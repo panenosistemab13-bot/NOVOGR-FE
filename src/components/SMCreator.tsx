@@ -1,0 +1,2511 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import * as pdfjsLib from 'pdfjs-dist';
+import { 
+  Clipboard, 
+  Trash2, 
+  Calculator, 
+  Mail, 
+  Plus, 
+  Check, 
+  ChevronRight,
+  TrendingUp,
+  Download,
+  Info,
+  Copy,
+  ChevronUp,
+  ChevronDown,
+  ArrowRightLeft,
+  Truck,
+  RefreshCw,
+  Calendar as CalendarIcon,
+  X,
+  LayoutGrid,
+  FileText,
+  Upload,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  RotateCcw,
+  StickyNote,
+  ArrowLeft,
+  FileSpreadsheet
+} from 'lucide-react';
+import { cn } from '../lib/utils';
+import { rtdb as db } from '../firebase';
+import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
+import { ref, onValue, set, update } from 'firebase/database';
+
+if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '3.11.174'}/pdf.worker.min.js`;
+  } catch (e) {
+    console.error('Error initializing PDF worker src:', e);
+  }
+}
+
+let isWorkerConfigured = false;
+const ensurePdfWorker = async () => {
+  if (isWorkerConfigured) return;
+  if (typeof window === 'undefined') return;
+
+  try {
+    const version = pdfjsLib.version || '3.11.174';
+    const cdnUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
+    const response = await fetch(cdnUrl);
+    if (response.ok) {
+      const workerCode = await response.text();
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob);
+    } else {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = cdnUrl;
+    }
+  } catch (err) {
+    console.warn('Fallback workerSrc:', err);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+  } finally {
+    isWorkerConfigured = true;
+  }
+};
+
+const invertRoute = (trecho: string) => {
+  if (!trecho) return '';
+  const parts = trecho.trim().split(/\s+/);
+  const xIndex = parts.findIndex(p => p.toUpperCase() === 'X');
+  if (xIndex > 0 && xIndex < parts.length - 1) {
+    const newParts = [...parts];
+    const startCity = newParts[xIndex - 1];
+    const endCity = newParts[xIndex + 1];
+    newParts[xIndex - 1] = endCity;
+    newParts[xIndex + 1] = startCity;
+    return newParts.join(' ').toUpperCase();
+  }
+  return trecho.toUpperCase();
+};
+
+const formatNfValue = (value: string) => {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '0,00';
+  const amount = parseFloat(digits) / 100;
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+};
+
+interface SMRow {
+  dataSaida: string;
+  motorista: string;
+  placa: string;
+  bau1: string;
+  bau2: string;
+  trecho: string;
+  valorNf: string;
+  ok?: boolean;
+}
+
+interface Note {
+  id: string;
+  text: string;
+  timestamp: string;
+}
+
+interface SMCreatorProps {
+  view?: 'generator' | 'codes';
+  onBack?: () => void;
+}
+
+interface RouteItem {
+  ida: string;
+  idaCod: string;
+  volta: string;
+  voltaCod: string;
+}
+
+const DEFAULT_ROUTES: RouteItem[] = [
+  { ida: 'SANTA LUZIA-MG X RIO DE JANEIRO-RJ', idaCod: '4069', volta: 'RIO DE JANEIRO-RJ X SANTA LUZIA-MG', voltaCod: '4079' },
+  { ida: 'SANTA LUZIA-MG X GUARULHOS-SP', idaCod: '4070', volta: 'GUARULHOS-SP X SANTA LUZIA-MG', voltaCod: '3971/4076' },
+  { ida: 'SANTA LUZIA-MG X MONTES CLAROS-MG', idaCod: '', volta: 'MONTES CLAROS-MG X SANTA LUZIA-MG', voltaCod: '4081' },
+  { ida: 'SANTA LUZIA-MG X VIANA-ES', idaCod: '', volta: 'VIANA-ES X SANTA LUZIA-MG', voltaCod: '3985' },
+  { ida: 'SANTA LUZIA-MG X BRASILIA-DF', idaCod: '4071', volta: 'BRASILIA-DF X SANTA LUZIA-MG', voltaCod: '4077' },
+  { ida: 'SANTA LUZIA-MG X SUMARE-SP', idaCod: '', volta: 'SUMARE-SP X SANTA LUZIA-MG', voltaCod: '3994' },
+  { ida: 'SANTA LUZIA-MG X PINHAIS-PR', idaCod: '', volta: 'PINHAIS-PR X SANTA LUZIA-MG', voltaCod: '4080' },
+  { ida: 'SANTA LUZIA-MG X LONDRINA-PR', idaCod: '4027', volta: 'LONDRINA-PR X SANTA LUZIA-MG', voltaCod: '3975/4078/4091' },
+  { ida: 'SANTA LUZIA-MG X NATAL-RN', idaCod: '4015', volta: 'NATAL-RN X SANTA LUZIA-MG', voltaCod: '3969/3970/4075' },
+  { ida: 'SANTA LUZIA-MG X GOV. CELSO RAMOS-SC', idaCod: '', volta: 'GOV. CELSO RAMOS-SC X SANTA LUZIA-MG', voltaCod: '' },
+  { ida: 'SANTA LUZIA-MG X SALVADOR-BA', idaCod: '', volta: 'SALVADOR-BA X SANTA LUZIA-MG', voltaCod: '' },
+  { ida: 'SANTA LUZIA-MG X EUSEBIO-CE', idaCod: '', volta: 'EUSEBIO-CE X SANTA LUZIA-MG', voltaCod: '' },
+  { ida: 'SANTA LUZIA-MG X GRAVATAI-RS', idaCod: '', volta: 'GRAVATAI-RS X SANTA LUZIA-MG', voltaCod: '' },
+  { ida: 'SANTA LUZIA-MG X CAMPO GRANDE-MT', idaCod: '', volta: 'CAMPO GRANDE-MS X SANTA LUZIA-MG', voltaCod: '' },
+  { ida: 'SANTA LUZIA-MG X CUIABA-MT', idaCod: '', volta: 'CUIABA-MT X SANTA LUZIA-MG', voltaCod: '' },
+  { ida: 'SANTA LUZIA-MG X ARIQUEMES', idaCod: '', volta: 'ARIQUEMES-RO X SANTA LUZIA-MG', voltaCod: '' },
+  { ida: 'SANTA LUZIA-MG X VESPASIANO-MG', idaCod: '', volta: 'VESPASIANO-MG X SANTA LUZIA-MG', voltaCod: '3989/3990' },
+];
+
+const CITY_MAP: Record<string, string> = {
+  slt: 'SANTA LUZIA',
+  stl: 'SANTA LUZIA',
+  'santa luzia': 'SANTA LUZIA',
+  vesp: 'VESPASIANO',
+  vespasiano: 'VESPASIANO',
+  bra: 'BRASILIA',
+  brasilia: 'BRASILIA',
+  spo: 'GUARULHOS',
+  guarulhos: 'GUARULHOS',
+  cam: 'SUMARE',
+  sumare: 'SUMARE',
+  via: 'VIANA',
+  viana: 'VIANA',
+  rjo: 'RIO DE JANEIRO',
+  'rio de janeiro': 'RIO DE JANEIRO',
+  pinh: 'PINHAIS',
+  pinhais: 'PINHAIS',
+  lon: 'LONDRINA',
+  londrina: 'LONDRINA',
+  moc: 'MONTES CLAROS',
+  'montes claros': 'MONTES CLAROS',
+  nat: 'NATAL',
+  natal: 'NATAL',
+  gov: 'GOV. CELSO RAMOS',
+  salv: 'SALVADOR',
+  euseb: 'EUSEBIO',
+  grav: 'GRAVATAI',
+  cg: 'CAMPO GRANDE',
+  cui: 'CUIABA',
+  ariq: 'ARIQUEMES'
+};
+
+const resolveCityName = (term: string): string => {
+  const clean = term.trim().toLowerCase().replace(/[-_]/g, ' ');
+  if (CITY_MAP[clean]) return CITY_MAP[clean];
+  
+  for (const [key, val] of Object.entries(CITY_MAP)) {
+    if (clean.includes(key)) return val;
+  }
+  return clean.toUpperCase();
+};
+
+const findRouteCode = (trechoStr: string, section: 'ida' | 'volta', routes: RouteItem[]): string => {
+  if (!trechoStr || !trechoStr.trim()) return '---';
+  
+  const raw = trechoStr.trim();
+  const parts = raw.split(/\s*X\s*/i);
+  let origin = '';
+  let destination = '';
+
+  if (parts.length >= 2) {
+    origin = resolveCityName(parts[0]);
+    destination = resolveCityName(parts[1]);
+  } else {
+    origin = resolveCityName(raw);
+  }
+
+  if (section === 'volta') {
+    if (origin === 'SANTA LUZIA' && destination && destination !== 'SANTA LUZIA') {
+      const temp = origin;
+      origin = destination;
+      destination = temp;
+    }
+  }
+
+  for (const r of routes) {
+    const idaUpper = (r.ida || '').toUpperCase();
+    const voltaUpper = (r.volta || '').toUpperCase();
+
+    if (section === 'ida') {
+      if (origin && destination) {
+        if (idaUpper.includes(origin) && idaUpper.includes(destination)) {
+          return r.idaCod || r.voltaCod || '---';
+        }
+      } else if (origin) {
+        if (idaUpper.includes(origin)) return r.idaCod || r.voltaCod || '---';
+      }
+    } else {
+      if (origin && destination) {
+        if (voltaUpper.includes(origin) && voltaUpper.includes(destination)) {
+          return r.voltaCod || r.idaCod || '---';
+        }
+      } else if (origin) {
+        if (voltaUpper.includes(origin)) return r.voltaCod || r.idaCod || '---';
+      }
+    }
+  }
+
+  for (const r of routes) {
+    const idaUpper = (r.ida || '').toUpperCase();
+    const voltaUpper = (r.volta || '').toUpperCase();
+
+    if (origin && destination) {
+      if ((idaUpper.includes(origin) && idaUpper.includes(destination)) ||
+          (voltaUpper.includes(origin) && voltaUpper.includes(destination))) {
+        return section === 'ida' ? (r.idaCod || r.voltaCod || '---') : (r.voltaCod || r.idaCod || '---');
+      }
+    }
+  }
+
+  return '---';
+};
+
+const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasiano') => {
+  if (rows.length === 0) return '';
+  const headerBg = type === 'ida' ? '#0F2D59' : type === 'volta' ? '#801414' : '#166534';
+  
+  let rowsHtml = '';
+  rows.forEach((r, idx) => {
+    const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+    rowsHtml += `
+      <tr style="background-color: ${bg}; height: 32px;">
+        <td style="width: 11%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.dataSaida || '-'}</td>
+        <td style="width: 25%; padding: 6px 8px; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.motorista || '-'}</td>
+        <td style="width: 12%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.placa || '-'}</td>
+        <td style="width: 11%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.bau1 || '-'}</td>
+        <td style="width: 11%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.bau2 || '-'}</td>
+        <td style="width: 18%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.trecho || '-'}</td>
+        <td style="width: 12%; padding: 6px 8px; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;">${r.valorNf || '0,00'}</td>
+      </tr>`;
+  });
+
+  return `
+    <div style="width: 100%; max-width: 950px; box-sizing: border-box; margin: 10px 0;">
+      <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; border: 1px solid #94a3b8; background-color: #ffffff;">
+        <thead>
+          <tr style="background-color: ${headerBg}; color: #ffffff; height: 36px;">
+            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">DATA</th>
+            <th style="width: 25%; text-align: left; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 8px; border: 1px solid ${headerBg};">MOTORISTA</th>
+            <th style="width: 12%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">PLACA</th>
+            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">BAÚ 1</th>
+            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">BAÚ 2</th>
+            <th style="width: 18%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">TRECHO</th>
+            <th style="width: 12%; text-align: right; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 8px; border: 1px solid ${headerBg};">VALOR NF</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    </div>`;
+};
+
+export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps) {
+  const [internalView, setInternalView] = useState<'all' | 'ida' | 'volta' | 'vespasiano' | 'codes'>('all');
+  const [idaRows, setIdaRows] = useState<SMRow[]>([]);
+  const [voltaRows, setVoltaRows] = useState<SMRow[]>([]);
+  const [vespasianoRows, setVespasianoRows] = useState<SMRow[]>([]);
+  const [calcValues, setCalcValues] = useState<string[]>(['']);
+  const [routesList, setRoutesList] = useState<RouteItem[]>(DEFAULT_ROUTES);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [isNotepadOpen, setIsNotepadOpen] = useState(false);
+  const [isVespasianoMaximized, setIsVespasianoMaximized] = useState(false);
+  const [newNoteText, setNewNoteText] = useState('');
+
+  useEffect(() => {
+    const smRef = ref(db, 'sm_creator_data');
+    const unsubscribeSM = onValue(smRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        if (data.ida) setIdaRows(data.ida);
+        if (data.volta) setVoltaRows(data.volta);
+        if (data.vespasiano) setVespasianoRows(data.vespasiano);
+        if (data.calc) setCalcValues(data.calc);
+        if (data.notes) {
+          const notesArray = Object.entries(data.notes).map(([id, note]: [string, any]) => ({
+            id,
+            ...note
+          })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          setNotes(notesArray);
+        } else {
+          setNotes([]);
+        }
+      }
+    });
+
+    const rotasRef = ref(db, 'app_rotas_data');
+    const unsubscribeRotas = onValue(rotasRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && Array.isArray(data) && data.length > 0) {
+        setRoutesList(data);
+      } else {
+        setRoutesList(DEFAULT_ROUTES);
+      }
+    });
+
+    return () => {
+      unsubscribeSM();
+      unsubscribeRotas();
+    };
+  }, []);
+
+  const historyRef = useRef<Array<{ ida: SMRow[]; volta: SMRow[]; vespasiano: SMRow[]; calc: string[] }>>([]);
+  const lastPushTimeRef = useRef<number>(0);
+  const [historyCount, setHistoryCount] = useState<number>(0);
+  const [showUndoToast, setShowUndoToast] = useState<boolean>(false);
+
+  const pushHistory = (forcePush = false) => {
+    const currentSnapshot = {
+      ida: JSON.parse(JSON.stringify(idaRows)),
+      volta: JSON.parse(JSON.stringify(voltaRows)),
+      vespasiano: JSON.parse(JSON.stringify(vespasianoRows)),
+      calc: [...calcValues]
+    };
+
+    const history = historyRef.current;
+    const last = history[history.length - 1];
+    const now = Date.now();
+
+    const isDifferent = !last || JSON.stringify(last) !== JSON.stringify(currentSnapshot);
+
+    if (isDifferent) {
+      if (!forcePush && history.length > 0 && now - lastPushTimeRef.current < 800) {
+        // Keeps the state prior to the rapid typing sequence
+      } else {
+        if (history.length >= 50) history.shift();
+        history.push(currentSnapshot);
+        lastPushTimeRef.current = now;
+        setHistoryCount(history.length);
+      }
+    }
+  };
+
+  const saveIda = (rows: SMRow[], forcePush = false) => {
+    pushHistory(forcePush);
+    setIdaRows(rows);
+    set(ref(db, 'sm_creator_data/ida'), rows);
+  };
+
+  const saveVolta = (rows: SMRow[], forcePush = false) => {
+    pushHistory(forcePush);
+    setVoltaRows(rows);
+    set(ref(db, 'sm_creator_data/volta'), rows);
+  };
+
+  const saveVespasiano = (rows: SMRow[], forcePush = false) => {
+    pushHistory(forcePush);
+    setVespasianoRows(rows);
+    set(ref(db, 'sm_creator_data/vespasiano'), rows);
+  };
+
+  const saveCalc = (vals: string[], forcePush = false) => {
+    pushHistory(forcePush);
+    setCalcValues(vals);
+    set(ref(db, 'sm_creator_data/calc'), vals);
+  };
+
+  const saveNote = (text: string) => {
+    if (!text.trim()) return;
+    const noteId = Date.now().toString();
+    const newNote = {
+      text: text.trim(),
+      timestamp: new Date().toISOString()
+    };
+    set(ref(db, `sm_creator_data/notes/${noteId}`), newNote);
+    setNewNoteText('');
+  };
+
+  const deleteNote = (id: string) => {
+    set(ref(db, `sm_creator_data/notes/${id}`), null);
+  };
+
+  const handleUndo = () => {
+    const history = historyRef.current;
+    if (history.length === 0) return;
+
+    const previousState = history.pop();
+    setHistoryCount(history.length);
+
+    if (previousState) {
+      setIdaRows(previousState.ida);
+      setVoltaRows(previousState.volta);
+      setVespasianoRows(previousState.vespasiano || []);
+      setCalcValues(previousState.calc);
+
+      set(ref(db, 'sm_creator_data'), {
+        ida: previousState.ida,
+        volta: previousState.volta,
+        vespasiano: previousState.vespasiano || [],
+        calc: previousState.calc
+      });
+
+      setShowUndoToast(true);
+      setTimeout(() => setShowUndoToast(false), 2500);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+        if (historyRef.current.length > 0) {
+          e.preventDefault();
+          handleUndo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  const [totalRawCopied, setTotalRawCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [idaCopied, setIdaCopied] = useState(false);
+  const [voltaCopied, setVoltaCopied] = useState(false);
+  const [subjectIdaCopied, setSubjectIdaCopied] = useState(false);
+  const [subjectVoltaCopied, setSubjectVoltaCopied] = useState(false);
+
+  // PDF Import Modal State
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [pdfTargetSection, setPdfTargetSection] = useState<'ida' | 'volta' | 'vespasiano' | 'calc'>('ida');
+  const [pdfTargetRowIndex, setPdfTargetRowIndex] = useState<number | null>(null);
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
+  const [parsedPdfItems, setParsedPdfItems] = useState<Array<{
+    fileName: string;
+    numeroNf: string;
+    valor: number;
+    valorFormatado: string;
+    success: boolean;
+    error?: string;
+  }>>([]);
+  const [pdfTotalSomado, setPdfTotalSomado] = useState<number>(0);
+  const [pdfTotalSomadoFormatado, setPdfTotalSomadoFormatado] = useState<string>('0,00');
+  const [pdfCopied, setPdfCopied] = useState(false);
+
+  const openPdfModal = (section: 'ida' | 'volta' | 'vespasiano' | 'calc' = 'ida', rowIndex: number | null = null) => {
+    setPdfTargetSection(section);
+    setPdfTargetRowIndex(rowIndex);
+    setIsPdfModalOpen(true);
+  };
+
+  const processarNotasFiscaisClient = async (arquivos: File[]) => {
+    await ensurePdfWorker();
+
+    const extractedItems: Array<{
+      fileName: string;
+      numeroNf: string;
+      valor: number;
+      valorFormatado: string;
+      success: boolean;
+      error?: string;
+    }> = [];
+
+    for (const arquivo of arquivos) {
+      try {
+        const arrayBuffer = await arquivo.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+
+        interface SpatialItem {
+          str: string;
+          x: number;
+          y: number;
+        }
+
+        interface PageExtractionResult {
+          pageNum: number;
+          valorNumerico: number | null;
+          valorTexto: string | null;
+        }
+
+        const pageResults: PageExtractionResult[] = [];
+        let numeroNf = '---';
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const content = await page.getTextContent();
+
+          const pageItems: SpatialItem[] = [];
+          const pageStrs: string[] = [];
+
+          for (const item of content.items as any[]) {
+            if (!item.str) continue;
+            pageStrs.push(item.str);
+            if (item.str.trim()) {
+              const transform = item.transform || [1, 0, 0, 1, 0, 0];
+              pageItems.push({
+                str: item.str,
+                x: transform[4] || 0,
+                y: transform[5] || 0
+              });
+            }
+          }
+
+          const rawPageText = pageStrs.join(' ');
+
+          // Agrupa itens em linhas na página atual (coordenada Y com tolerância de 6pt)
+          const lineGroups: Array<{ y: number; items: SpatialItem[] }> = [];
+          for (const item of pageItems) {
+            let group = lineGroups.find(g => Math.abs(g.y - item.y) <= 6);
+            if (!group) {
+              group = { y: item.y, items: [] };
+              lineGroups.push(group);
+            }
+            group.items.push(item);
+          }
+
+          lineGroups.sort((a, b) => b.y - a.y); // Do topo para o rodapé
+
+          const lines = lineGroups.map(g => {
+            g.items.sort((a, b) => a.x - b.x); // Da esquerda para a direita
+            return {
+              y: g.y,
+              items: g.items,
+              fullText: g.items.map(i => i.str).join(' ')
+            };
+          });
+
+          const fullSpatialText = lines.map(l => l.fullText).join('\n');
+          const combinedPageText = rawPageText + '\n' + fullSpatialText;
+
+          // Extrai o Número da NF se ainda não encontrado
+          if (numeroNf === '---') {
+            const matchNf = combinedPageText.match(/Nº[\s\.:]*(\d[\d\.\-]*\d|\d+)/i) || 
+                            combinedPageText.match(/NF-e[\s\.:]*(\d+)/i) ||
+                            combinedPageText.match(/NOTA\s+FISCAL[\s\S]{0,30}?(\d{3,9})/i);
+            if (matchNf && matchNf[1]) {
+              numeroNf = matchNf[1].replace(/\D/g, '');
+            }
+          }
+
+          let pageValTexto: string | null = null;
+          let pageValNumerico: number | null = null;
+
+          // ESTRATÉGIA 1: Correspondência direta quando a etiqueta e o valor estão adjacentes
+          const matchDirect1 = rawPageText.match(/VALOR\s+TOTAL\s+(?:DA\s+)?NF[^\d]*?([\d\.]+\,\d{2})/i) ||
+                               fullSpatialText.match(/VALOR\s+TOTAL\s+(?:DA\s+)?NF[^\d]*?([\d\.]+\,\d{2})/i);
+          if (matchDirect1 && matchDirect1[1]) {
+            pageValTexto = matchDirect1[1];
+            pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
+          }
+
+          // ESTRATÉGIA 2: Análise espacial por linhas
+          if (pageValNumerico === null) {
+            for (let idx = 0; idx < lines.length; idx++) {
+              const line = lines[idx];
+              if (/VALOR\s+TOTAL\s+(?:DA\s+)?NF/i.test(line.fullText)) {
+                // Tenta encontrar valor na mesma linha após a etiqueta
+                const labelIdx = line.fullText.search(/VALOR\s+TOTAL\s+(?:DA\s+)?NF/i);
+                const afterLabel = line.fullText.substring(labelIdx);
+                const afterMatch = afterLabel.match(/([\d\.]+\,\d{2})/);
+                if (afterMatch) {
+                  pageValTexto = afterMatch[1];
+                  pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
+                  break;
+                }
+
+                // Senão procura nas 3 linhas imediatamente abaixo
+                const labelItem = line.items.slice().reverse().find(i => /NF|TOTAL|VALOR/i.test(i.str)) || line.items[line.items.length - 1];
+                const labelX = labelItem ? labelItem.x : 400;
+
+                for (let offset = 1; offset <= 3; offset++) {
+                  if (idx + offset < lines.length) {
+                    const subLine = lines[idx + offset];
+                    const numbersInSubLine: Array<{ numStr: string; val: number; x: number }> = [];
+                    
+                    for (const item of subLine.items) {
+                      const m = item.str.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
+                      if (m) {
+                        for (const numStr of m) {
+                          const val = parseFloat(numStr.replace(/\./g, '').replace(',', '.'));
+                          numbersInSubLine.push({ numStr, val, x: item.x });
+                        }
+                      }
+                    }
+
+                    if (numbersInSubLine.length > 0) {
+                      const rightAligned = numbersInSubLine.filter(n => n.x >= labelX - 100);
+                      if (rightAligned.length > 0) {
+                        rightAligned.sort((a, b) => b.x - a.x);
+                        pageValTexto = rightAligned[0].numStr;
+                        pageValNumerico = rightAligned[0].val;
+                      } else {
+                        const lastNum = numbersInSubLine[numbersInSubLine.length - 1];
+                        pageValTexto = lastNum.numStr;
+                        pageValNumerico = lastNum.val;
+                      }
+                      break;
+                    }
+                  }
+                }
+                if (pageValNumerico !== null) break;
+              }
+            }
+          }
+
+          // ESTRATÉGIA 3: Região do quadro "CÁLCULO DO IMPOSTO"
+          if (pageValNumerico === null) {
+            const regexBlock = /(?:CALCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,350}/i;
+            const blockMatch = combinedPageText.match(regexBlock);
+            if (blockMatch) {
+              const blockText = blockMatch[0];
+              const allCurrencies = blockText.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
+              if (allCurrencies && allCurrencies.length > 0) {
+                const lastVal = allCurrencies[allCurrencies.length - 1];
+                pageValTexto = lastVal;
+                pageValNumerico = parseFloat(lastVal.replace(/\./g, '').replace(',', '.'));
+              }
+            }
+          }
+
+          // ESTRATÉGIA 4: Fallback por regex geral
+          if (pageValNumerico === null) {
+            const matchFallback = combinedPageText.match(/VALOR\s+TOTAL\s+(?:DA\s+)?NF[\s\S]{0,150}?([\d\.]+\,\d{2})/i);
+            if (matchFallback && matchFallback[1]) {
+              pageValTexto = matchFallback[1];
+              pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
+            }
+          }
+
+          pageResults.push({
+            pageNum,
+            valorNumerico: pageValNumerico,
+            valorTexto: pageValTexto
+          });
+        }
+
+        // Seleciona o melhor resultado entre todas as folhas do PDF
+        let valorNumericoResult: number | null = null;
+        let valorTextoResult: string | null = null;
+
+        // 1. Procura por valores positivos (> 0). Dá preferência ao valor preenchido na última folha que tiver valor > 0
+        const nonZeroResults = pageResults.filter(p => p.valorNumerico !== null && p.valorNumerico > 0);
+        if (nonZeroResults.length > 0) {
+          const chosen = nonZeroResults[nonZeroResults.length - 1];
+          valorNumericoResult = chosen.valorNumerico;
+          valorTextoResult = chosen.valorTexto;
+        } else {
+          // 2. Se nenhuma folha tinha valor > 0, pega o primeiro resultado válido (ex: 0,00)
+          const anyResult = pageResults.find(p => p.valorNumerico !== null);
+          if (anyResult) {
+            valorNumericoResult = anyResult.valorNumerico;
+            valorTextoResult = anyResult.valorTexto;
+          }
+        }
+
+        if (valorNumericoResult !== null && valorTextoResult !== null) {
+          const valorFormatado = new Intl.NumberFormat('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }).format(valorNumericoResult);
+
+          extractedItems.push({
+            fileName: arquivo.name,
+            numeroNf,
+            valor: valorNumericoResult,
+            valorFormatado,
+            success: true
+          });
+        } else {
+          extractedItems.push({
+            fileName: arquivo.name,
+            numeroNf,
+            valor: 0,
+            valorFormatado: '0,00',
+            success: false,
+            error: 'Valor Total da NF não localizado'
+          });
+        }
+      } catch (erro: any) {
+        console.error(`Erro ao ler o arquivo ${arquivo.name}:`, erro);
+        extractedItems.push({
+          fileName: arquivo.name,
+          numeroNf: '---',
+          valor: 0,
+          valorFormatado: '0,00',
+          success: false,
+          error: `Erro de leitura: ${erro?.message || 'PDF inválido'}`
+        });
+      }
+    }
+
+    return extractedItems;
+  };
+
+  const handlePdfFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsProcessingPdf(true);
+    const fileArray: File[] = Array.from(files);
+
+    try {
+      const newExtracted = await processarNotasFiscaisClient(fileArray);
+      const newItems = [...parsedPdfItems, ...newExtracted];
+      const newTotal = newItems.reduce((acc, curr) => acc + (curr.valor || 0), 0);
+      const newTotalFormatted = new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(newTotal);
+
+      setParsedPdfItems(newItems);
+      setPdfTotalSomado(newTotal);
+      setPdfTotalSomadoFormatado(newTotalFormatted);
+    } catch (err) {
+      console.error('Erro ao ler arquivos PDF:', err);
+      alert('Erro ao processar os arquivos PDF.');
+    } finally {
+      setIsProcessingPdf(false);
+      e.target.value = '';
+    }
+  };
+
+  const updateParsedPdfItemValue = (index: number, rawVal: string) => {
+    const digits = rawVal.replace(/\D/g, '');
+    const amount = digits ? parseFloat(digits) / 100 : 0;
+    const formatted = new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+
+    const updated = [...parsedPdfItems];
+    updated[index] = {
+      ...updated[index],
+      valor: amount,
+      valorFormatado: formatted,
+      success: amount > 0
+    };
+
+    const newTotal = updated.reduce((acc, curr) => acc + (curr.valor || 0), 0);
+    const newTotalFormatted = new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(newTotal);
+
+    setParsedPdfItems(updated);
+    setPdfTotalSomado(newTotal);
+    setPdfTotalSomadoFormatado(newTotalFormatted);
+  };
+
+  const removeParsedPdfItem = (index: number) => {
+    const updated = parsedPdfItems.filter((_, idx) => idx !== index);
+    const newTotal = updated.reduce((acc, curr) => acc + (curr.valor || 0), 0);
+    const newTotalFormatted = new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(newTotal);
+
+    setParsedPdfItems(updated);
+    setPdfTotalSomado(newTotal);
+    setPdfTotalSomadoFormatado(newTotalFormatted);
+  };
+
+  const applyPdfTotalToTarget = (section: 'ida' | 'volta' | 'vespasiano' | 'calc') => {
+    const totalValStr = pdfTotalSomadoFormatado;
+
+    if (section === 'calc') {
+      if (calcValues.length === 1 && (!calcValues[0] || calcValues[0] === '')) {
+        saveCalc([totalValStr], true);
+      } else {
+        saveCalc([...calcValues, totalValStr], true);
+      }
+    } else {
+      const targetRows = section === 'ida' ? idaRows : section === 'volta' ? voltaRows : vespasianoRows;
+      const saveFunc = section === 'ida' ? saveIda : section === 'volta' ? saveVolta : saveVespasiano;
+
+      if (pdfTargetRowIndex !== null && targetRows[pdfTargetRowIndex]) {
+        const updatedRows = [...targetRows];
+        updatedRows[pdfTargetRowIndex] = {
+          ...updatedRows[pdfTargetRowIndex],
+          valorNf: totalValStr
+        };
+        saveFunc(updatedRows, true);
+      } else if (targetRows.length > 0) {
+        const updatedRows = [...targetRows];
+        updatedRows[updatedRows.length - 1] = {
+          ...updatedRows[updatedRows.length - 1],
+          valorNf: totalValStr
+        };
+        saveFunc(updatedRows, true);
+      } else {
+        const newRow: SMRow = {
+          dataSaida: new Date().toLocaleDateString('pt-BR'),
+          motorista: '',
+          placa: '',
+          bau1: '',
+          bau2: '',
+          trecho: '',
+          valorNf: totalValStr
+        };
+        saveFunc([newRow], true);
+      }
+    }
+
+    setIsPdfModalOpen(false);
+  };
+
+  const applyIndividualPdfValuesToCalc = () => {
+    const validValues = parsedPdfItems.filter(i => i.valor > 0).map(i => i.valorFormatado);
+    if (validValues.length > 0) {
+      if (calcValues.length === 1 && (!calcValues[0] || calcValues[0] === '')) {
+        saveCalc(validValues, true);
+      } else {
+        saveCalc([...calcValues, ...validValues], true);
+      }
+    }
+    setIsPdfModalOpen(false);
+  };
+
+  const copyPdfTotal = async () => {
+    await safeCopyText(pdfTotalSomadoFormatado);
+    setPdfCopied(true);
+    setTimeout(() => setPdfCopied(false), 2000);
+  };
+
+  const renderCodesTable = () => (
+    <div className="bg-white border border-[#d6ccbe] rounded-[40px] overflow-hidden shadow-[0_20px_50px_rgba(155,21,38,0.04)]">
+      <div className="bg-gradient-to-r from-[#9b1526] via-[#851221] to-[#9b1526] p-5 text-center border-b border-[#9b1526]/10">
+        <h3 className="text-white font-black uppercase tracking-[0.2em] text-sm">Solicitação de Monitoramento</h3>
+        <p className="text-white/70 text-[9px] font-mono font-bold uppercase mt-1 tracking-widest">Trafegus • Códigos Padronizados</p>
+      </div>
+      <div className="overflow-x-auto p-4">
+        <table className="w-full border-collapse font-mono text-center text-xs">
+          <thead>
+            <tr className="bg-slate-900 text-slate-300 border-b border-white/10">
+              <th className="p-3 text-left w-1/3 text-slate-400 font-bold uppercase">Assunto</th>
+              <th className="p-3 w-1/4 text-cyan-400 font-bold uppercase">Códigos</th>
+              <th className="p-3 text-slate-200 font-bold uppercase">Descrição</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            <tr className="hover:bg-white/5 transition-colors">
+              <td className="p-3 text-left font-bold text-slate-300">Tipo de Transporte</td>
+              <td className="p-3 font-bold text-rose-400">1</td>
+              <td className="p-3 text-slate-200">Transferência</td>
+            </tr>
+            <tr className="hover:bg-white/5 transition-colors">
+              <td className="p-3 text-left font-bold text-slate-300">Tipos de Operação</td>
+              <td className="p-3 font-bold text-rose-400">2</td>
+              <td className="p-3 text-slate-300 italic">Dedicados</td>
+            </tr>
+            <tr className="hover:bg-white/5 transition-colors">
+              <td className="p-3 text-left font-bold text-slate-300">Embarcador</td>
+              <td className="p-3 font-bold text-rose-400">913</td>
+              <td className="p-3 text-slate-200 font-bold">Três Corações Alimentos</td>
+            </tr>
+            <tr className="hover:bg-white/5 transition-colors">
+              <td className="p-3 text-left font-bold text-slate-300">Transportador</td>
+              <td className="p-3 font-bold text-rose-400">87</td>
+              <td className="p-3 text-slate-200">3C Santa Luzia Dedicados</td>
+            </tr>
+            <tr className="hover:bg-white/5 transition-colors">
+              <td className="p-3 text-left font-bold text-slate-300">Valor Mercadoria Específica</td>
+              <td className="p-3 font-bold text-cyan-400">126</td>
+              <td className="p-3 text-cyan-300 font-bold">Acima de 900 Mil</td>
+            </tr>
+            <tr className="hover:bg-white/5 transition-colors">
+              <td className="p-3 text-left font-bold text-slate-300">Valor Mercadoria Específica</td>
+              <td className="p-3 font-bold text-cyan-400">42</td>
+              <td className="p-3 text-slate-300">Abaixo de 900 Mil</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const parseInput = (text: string, saveFunc: (rows: SMRow[], forcePush?: boolean) => void, existingRows: SMRow[], section: 'ida' | 'volta') => {
+    const lines = text.trim().split('\n');
+    const newRows: SMRow[] = [];
+
+    lines.forEach(line => {
+      const parts = line.split('\t').map(p => p.trim());
+      if (parts.length >= 2) {
+        let trecho = parts[5] || '';
+        if (section === 'volta') {
+          trecho = invertRoute(trecho);
+        }
+
+        const motoristaRaw = parts[1] || '';
+        const motoristaClean = motoristaRaw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+
+        newRows.push({
+          dataSaida: parts[0] || '',
+          motorista: motoristaClean,
+          placa: (parts[2] || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase(),
+          bau1: parts[3] || '',
+          bau2: parts[4] || '',
+          trecho: trecho,
+          valorNf: '0,00'
+        });
+      }
+    });
+
+    if (newRows.length > 0) {
+      saveFunc([...existingRows, ...newRows], true);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent, section: 'ida' | 'volta' | 'vespasiano') => {
+    const text = e.clipboardData.getData('text');
+    const saveFunc = section === 'ida' ? saveIda : section === 'volta' ? saveVolta : saveVespasiano;
+    const rows = section === 'ida' ? idaRows : section === 'volta' ? voltaRows : vespasianoRows;
+    parseInput(text, saveFunc, rows, section === 'vespasiano' ? 'ida' : section);
+  };
+
+  const addNewRow = (section: 'ida' | 'volta' | 'vespasiano') => {
+    const newRow: SMRow = {
+      dataSaida: new Date().toLocaleDateString('pt-BR'),
+      motorista: '',
+      placa: '',
+      bau1: '',
+      bau2: '',
+      trecho: '',
+      valorNf: '0,00'
+    };
+    if (section === 'ida') {
+      saveIda([...idaRows, newRow], true);
+    } else if (section === 'volta') {
+      saveVolta([...voltaRows, newRow], true);
+    } else {
+      saveVespasiano([...vespasianoRows, newRow], true);
+    }
+  };
+
+  const updateRowValue = (index: number, field: keyof SMRow, value: any, section: 'ida' | 'volta' | 'vespasiano', forcePush = false) => {
+    let finalValue = value;
+    
+    if (field === 'valorNf' && typeof value === 'string') {
+      finalValue = formatNfValue(value);
+    } else if (field === 'placa' && typeof value === 'string') {
+      finalValue = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    } else if (field === 'trecho' && typeof value === 'string') {
+      finalValue = value.toUpperCase();
+    } else if (field === 'motorista' && typeof value === 'string') {
+      finalValue = value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    }
+
+    const isDiscrete = forcePush || field === 'ok';
+
+    if (section === 'ida') {
+      const newRows = [...idaRows];
+      newRows[index] = { ...newRows[index], [field]: finalValue };
+      saveIda(newRows, isDiscrete);
+    } else if (section === 'volta') {
+      const newRows = [...voltaRows];
+      newRows[index] = { ...newRows[index], [field]: finalValue };
+      saveVolta(newRows, isDiscrete);
+    } else {
+      const newRows = [...vespasianoRows];
+      newRows[index] = { ...newRows[index], [field]: finalValue };
+      saveVespasiano(newRows, isDiscrete);
+    }
+  };
+
+  const moveRow = (index: number, direction: 'up' | 'down', section: 'ida' | 'volta' | 'vespasiano') => {
+    const rows = section === 'ida' ? [...idaRows] : section === 'volta' ? [...voltaRows] : [...vespasianoRows];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (newIndex < 0 || newIndex >= rows.length) return;
+
+    const temp = rows[index];
+    rows[index] = rows[newIndex];
+    rows[newIndex] = temp;
+
+    if (section === 'ida') {
+      saveIda(rows, true);
+    } else if (section === 'volta') {
+      saveVolta(rows, true);
+    } else {
+      saveVespasiano(rows, true);
+    }
+  };
+
+  const copyIdaToVolta = () => {
+    if (idaRows.length === 0) return;
+    
+    const newVoltaRows: SMRow[] = idaRows.map(row => ({
+      ...row,
+      trecho: invertRoute(row.trecho),
+      valorNf: '',
+      ok: false
+    }));
+
+    saveVolta([...voltaRows, ...newVoltaRows], true);
+  };
+
+  const calculateTotal = () => {
+    const sum = calcValues.reduce((acc, curr) => {
+      const val = parseFloat(curr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+      return isNaN(val) ? acc : acc + val;
+    }, 0);
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(sum);
+  };
+
+  const copyTotalRaw = async () => {
+    const total = calculateTotal();
+    await safeCopyText(total);
+    setTotalRawCopied(true);
+    setTimeout(() => setTotalRawCopied(false), 2000);
+  };
+
+  const addCalcLine = () => saveCalc([...calcValues, ''], true);
+  const updateCalcValue = (index: number, val: string) => {
+    const newVals = [...calcValues];
+    newVals[index] = val;
+    saveCalc(newVals);
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 12 && hour < 18) return 'Boa tarde';
+    if (hour >= 18 || hour < 24) return 'Boa noite';
+    return 'Bom dia';
+  };
+
+  const getJourneyDate = (rows: SMRow[]) => {
+    return rows[0]?.dataSaida || '---';
+  };
+
+  const getSubjectDate = (rows: SMRow[]) => {
+    const rawDate = rows[0]?.dataSaida?.trim();
+    if (!rawDate || rawDate === '---') {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, '0');
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      return `${day}/${month}`;
+    }
+    const match = rawDate.match(/(\d{1,2})[\/\.-](\d{1,2})/);
+    if (match) {
+      const day = match[1].padStart(2, '0');
+      const month = match[2].padStart(2, '0');
+      return `${day}/${month}`;
+    }
+    return rawDate;
+  };
+
+  const getSubjectIda = () => `SM IDA - DEDICADOS ${getSubjectDate(idaRows)} - SANTA LUZIA!`;
+  const getSubjectVolta = () => `SM VOLTA - DEDICADOS ${getSubjectDate(voltaRows)} - SANTA LUZIA!`;
+
+  const copySubjectIda = async () => {
+    const subject = getSubjectIda();
+    await safeCopyText(subject);
+    setSubjectIdaCopied(true);
+    setTimeout(() => setSubjectIdaCopied(false), 2000);
+  };
+
+  const copySubjectVolta = async () => {
+    const subject = getSubjectVolta();
+    await safeCopyText(subject);
+    setSubjectVoltaCopied(true);
+    setTimeout(() => setSubjectVoltaCopied(false), 2000);
+  };
+
+  const copyToEmail = async () => {
+    const greeting = getGreeting();
+
+    const formatRowsText = (rows: SMRow[], title: string) => {
+      if (rows.length === 0) return '';
+      let text = `--- ${title} ---\n`;
+      text += `DATA | MOTORISTA | PLACA | BAÚ 1 | BAÚ 2 | TRECHO | VALOR NF\n`;
+      rows.forEach(r => {
+        text += `${r.dataSaida} | ${r.motorista} | ${r.placa} | ${r.bau1} | ${r.bau2} | ${r.trecho} | ${r.valorNf}\n`;
+      });
+      return text + '\n';
+    };
+
+    const htmlContent = `
+      <div style="font-family: sans-serif; color: #333;">
+        <p>${greeting}!</p>
+        <p>Segue relatórios de SM - Ida, Volta e Vespasiano.</p>
+        
+        <div style="margin-top: 20px;">
+          <h3 style="color: #14325c; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA IDA ---</h3>
+          <p style="font-size: 13px;">${greeting},</p>
+          <p style="font-size: 13px;">Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: <strong>${getJourneyDate(idaRows)}</strong>!</p>
+          ${generateStyledTableHtml(idaRows, 'ida')}
+        </div>
+
+        <div style="margin-top: 30px;">
+          <h3 style="color: #7f1d1d; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA VOLTA ---</h3>
+          <p style="font-size: 13px;">${greeting},</p>
+          <p style="font-size: 13px;">Seguem em anexo as solicitações de monitoramento rota de volta para as escalas de viagem para o dia: <strong>${getJourneyDate(voltaRows)}</strong>!</p>
+          ${generateStyledTableHtml(voltaRows, 'volta')}
+        </div>
+
+        <div style="margin-top: 30px;">
+          <h3 style="color: #166534; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA VESPASIANO ---</h3>
+          <p style="font-size: 13px;">${greeting},</p>
+          <p style="font-size: 13px;">Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: <strong>${getJourneyDate(vespasianoRows)}</strong>!</p>
+          ${generateStyledTableHtml(vespasianoRows, 'vespasiano')}
+        </div>
+
+        <p style="margin-top: 20px;"><strong>Total Calculado: ${calculateTotal()}</strong></p>
+        <p>Att,</p>
+      </div>
+    `;
+
+    const textContent = `${greeting}!\n\nSegue relatórios de SM - Ida, Volta e Vespasiano.\n\nROTA IDA\n${greeting}, Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: ${getJourneyDate(idaRows)}!\n${formatRowsText(idaRows, '')}\nROTA VOLTA\n${greeting}, Seguem em anexo as solicitações de monitoramento rota de volta para as escalas de viagem para o dia: ${getJourneyDate(voltaRows)}!\n${formatRowsText(voltaRows, '')}\nROTA VESPASIANO\n${greeting}, Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: ${getJourneyDate(vespasianoRows)}!\n${formatRowsText(vespasianoRows, '')}\nTotal Calculado: ${calculateTotal()}\n\nAtt,`;
+
+    const success = await safeCopyHtmlAndText(htmlContent, textContent);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const copySection = async (rows: SMRow[], title: string, setCopiedStatus: React.Dispatch<React.SetStateAction<boolean>>) => {
+    if (rows.length === 0) return;
+    
+    const color = title.includes('IDA') ? '#14325c' : title.includes('VOLTA') ? '#7f1d1d' : '#166534';
+    const type = title.includes('IDA') ? 'ida' : title.includes('VOLTA') ? 'volta' : 'vespasiano';
+    const greeting = getGreeting();
+    const date = getJourneyDate(rows);
+    
+    const phrase = title.includes('IDA') 
+      ? `Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: ${date}!`
+      : title.includes('VOLTA')
+        ? `Seguem em anexo as solicitações de monitoramento rota de volta para as escalas de viagem para o dia: ${date}!`
+        : `Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: ${date}!`;
+
+    let html = `<div style="font-family: sans-serif; color: #333;">
+      <h3 style="color: ${color}; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ${title} ---</h3>
+      <p style="font-size: 13px;">${greeting},</p>
+      <p style="font-size: 13px;">${phrase}</p>
+      ${generateStyledTableHtml(rows, type)}
+      <p style="margin-top: 15px;">Att,</p>
+    </div>`;
+
+    let text = `--- ${title} ---\n${greeting},\n${phrase}\n\n`;
+    text += `| DATA | MOTORISTA | PLACA | BAÚ 1 | BAÚ 2 | TRECHO | VALOR NF |\n`;
+    rows.forEach(r => {
+      text += `| ${r.dataSaida} | ${r.motorista} | ${r.placa} | ${r.bau1} | ${r.bau2} | ${r.trecho} | ${r.valorNf} |\n`;
+    });
+
+    const success = await safeCopyHtmlAndText(html, text);
+    if (success) {
+      setCopiedStatus(true);
+      setTimeout(() => setCopiedStatus(false), 2000);
+    }
+  };
+
+  return (
+    <div className="w-full relative pb-10 space-y-3 font-sans text-slate-900 text-left">
+      
+      {internalView === 'codes' || view === 'codes' ? (
+        <div className="relative z-10 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs text-[#00163a]">{renderCodesTable()}</div>
+      ) : (
+        <div className="relative z-10 space-y-4 animate-fade-in text-left">
+          
+          {/* ========================================================================= */}
+          {/* EXECUTIVE DASHBOARD GRAPHIC (CENTRAL DE ESCALA & ASSUNTOS PADRONIZADOS)    */}
+          {/* ========================================================================= */}
+          {(() => {
+            const totalSmVehicles = idaRows.length + voltaRows.length + vespasianoRows.length;
+            const countIda = idaRows.length;
+            const countVolta = voltaRows.length;
+            const countVesp = vespasianoRows.length;
+
+            const routesStats = [
+              { name: 'ROTA IDA (AZUL)', count: countIda, percentage: totalSmVehicles > 0 ? (countIda / totalSmVehicles) * 100 : 100, barColor: 'from-blue-600 to-indigo-800', dotBg: 'bg-[#0F2D59]', badge: 'IDA' },
+              { name: 'ROTA VOLTA (VERMELHO)', count: countVolta, percentage: totalSmVehicles > 0 ? (countVolta / totalSmVehicles) * 100 : 0, barColor: 'from-red-600 to-rose-700', dotBg: 'bg-[#801414]', badge: 'VOLTA' },
+              { name: 'ROTA VESPASIANO (VERDE)', count: countVesp, percentage: totalSmVehicles > 0 ? (countVesp / totalSmVehicles) * 100 : 0, barColor: 'from-emerald-600 to-green-700', dotBg: 'bg-[#166534]', badge: 'VESP' }
+            ].sort((a, b) => b.count - a.count);
+
+            const smLeader = routesStats[0];
+
+            return (
+              <div className="w-full shrink-0">
+                <div className="flex flex-col gap-3 w-full">
+                  <div className="relative w-full h-[64px] bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] rounded-2xl overflow-hidden flex items-center justify-between px-6 shadow-md border border-white/20">
+                    <div className="relative z-10 flex flex-col text-left leading-none">
+                      <span className="text-[11px] font-black tracking-widest text-[#ffd54f] uppercase">
+                        ROTA DE TRANSPORTE - BRASIL
+                      </span>
+                      <span className="text-[22px] font-black tracking-tight text-white uppercase mt-0.5 font-heading">
+                        CENTRAL DE ESCALA
+                      </span>
+                    </div>
+                    {onBack && (
+                      <button
+                        onClick={onBack}
+                        className="relative z-10 px-3 py-1.5 text-xs font-black rounded-xl border bg-white/10 hover:bg-white/20 text-white border-white/20 cursor-pointer transition-all flex items-center gap-1.5 shadow-xs"
+                        title="Voltar ao menu"
+                      >
+                        <ArrowLeft size={13} /> Voltar
+                      </button>
+                    )}
+                  </div>
+
+                  {/* BROADCAST EXECUTIVE BOARD PANEL */}
+                  <div className="bg-white rounded-3xl p-5 border border-[#e8ded2] shadow-xs relative flex flex-col justify-between min-h-[380px]">
+
+                    {/* Leader Display with Medallion */}
+                    <div className="flex flex-col items-center justify-center py-6 z-10">
+                      <div className="relative">
+                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#c4161c] to-[#7a0c16] border-4 border-[#dfb15b] flex items-center justify-center shadow-lg relative overflow-hidden">
+                          <span className="text-white font-black text-3xl italic tracking-tighter">{smLeader.badge}</span>
+                          <div className="absolute bottom-0 inset-x-0 bg-black/40 py-0.5 text-center">
+                            <span className="text-[#ffd54f] text-[7.5px] font-black tracking-widest uppercase">LÍDER</span>
+                          </div>
+                        </div>
+                        <span className="absolute -top-1 -right-1 bg-[#dfb15b] text-[#5c3c00] text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
+                          1º LUGAR
+                        </span>
+                      </div>
+
+                      <div className="text-center mt-3">
+                        <span className="text-[9.5px] font-bold text-[#8a7c6e] uppercase tracking-widest block">ROTA LÍDER DE ESCALA</span>
+                        <span className="text-xl font-black text-[#1a1614] uppercase block mt-0.5 tracking-tight font-heading">
+                          {smLeader.name}
+                        </span>
+                        <span className="text-[11px] font-bold text-[#73675a] block mt-0.5">
+                          Representando o maior volume de solicitações geradas hoje
+                        </span>
+                      </div>
+
+                      <div className="w-full max-w-xs mt-4">
+                        <div className="flex justify-between items-center text-[11px] font-bold text-[#57493d] mb-1">
+                          <span>PERCENTUAL DE ESCALAS</span>
+                          <span className="text-[#c4161c] font-black">{smLeader.percentage.toFixed(2).replace('.', ',')}%</span>
+                        </div>
+                        <div className="w-full bg-[#f2e9dc] h-2.5 rounded-full overflow-hidden border border-[#e8ded2]">
+                          <div 
+                            className="h-full bg-gradient-to-r from-[#c4161c] to-[#dfb15b] rounded-full transition-all duration-500"
+                            style={{ width: `${smLeader.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+
+                    {/* Compact Assuntos do E-mail Padronizados (replaces static watermark exactly where requested in yellow) */}
+                    <div className="mt-5 border-t border-slate-100 pt-3.5 w-full z-10 text-left">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="text-[10px] font-black text-[#4a5d78] uppercase tracking-wider block">
+                          📧 Assuntos de E-mail Padronizados
+                        </span>
+                        <span className="text-[8px] font-mono font-black uppercase tracking-widest px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                          AUTO
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {/* Rota Ida Subject */}
+                        <div className="bg-[#fbf9f5] border border-slate-200 rounded-lg p-2.5 flex items-center justify-between gap-1.5 shadow-2xs">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-[8px] font-black uppercase tracking-wider text-blue-700 block">SM ROTA IDA</span>
+                            <span className="text-[10px] font-mono font-bold text-stone-900 truncate block max-w-[130px] sm:max-w-none">{getSubjectIda()}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={copySubjectIda}
+                            className={cn(
+                              "px-2 py-1 rounded text-[8.5px] font-mono font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer shrink-0 border",
+                              subjectIdaCopied
+                                ? "bg-emerald-600 text-white border-emerald-700"
+                                : "bg-[#0F2D59] text-white border-blue-900 hover:bg-[#153e77]"
+                            )}
+                          >
+                            {subjectIdaCopied ? <Check size={10} /> : <Copy size={10} />}
+                            <span>{subjectIdaCopied ? "OK" : "Copiar"}</span>
+                          </button>
+                        </div>
+
+                        {/* Rota Volta Subject */}
+                        <div className="bg-[#fbf9f5] border border-slate-200 rounded-lg p-2.5 flex items-center justify-between gap-1.5 shadow-2xs">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-[8px] font-black uppercase tracking-wider text-red-700 block">SM ROTA VOLTA</span>
+                            <span className="text-[10px] font-mono font-bold text-stone-900 truncate block max-w-[130px] sm:max-w-none">{getSubjectVolta()}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={copySubjectVolta}
+                            className={cn(
+                              "px-2 py-1 rounded text-[8.5px] font-mono font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer shrink-0 border",
+                              subjectVoltaCopied
+                                ? "bg-emerald-600 text-white border-emerald-700"
+                                : "bg-[#801414] text-white border-red-900 hover:bg-[#a31a1a]"
+                            )}
+                          >
+                            {subjectVoltaCopied ? <Check size={10} /> : <Copy size={10} />}
+                            <span>{subjectVoltaCopied ? "OK" : "Copiar"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+            {/* Main Work Area */}
+            <div className="xl:col-span-3 space-y-4">
+              
+              {/* ROTA IDA (Azul) */}
+              {(internalView === 'all' || internalView === 'ida') && (
+              <section className="space-y-3 font-sans">
+                <div className="flex items-center justify-between bg-stone-900 text-white p-3.5 rounded-xl shadow-md border border-stone-800">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse" />
+                    <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <TrendingUp size={16} className="text-blue-400" /> Rota Ida
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold bg-blue-600 text-white px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
+                      AZUL
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => addNewRow('ida')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#0B2545] hover:bg-[#14325c] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-blue-700"
+                    >
+                      <Plus size={12} /> Add Linha
+                    </button>
+                    {idaRows.length > 0 && (
+                      <button 
+                        onClick={copyIdaToVolta}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-emerald-700"
+                        title="Enviar dados da Ida para Volta (Invertendo Trecho)"
+                      >
+                        <ArrowRightLeft size={12} /> Enviar para Volta
+                      </button>
+                    )}
+                    {idaRows.length > 0 && (
+                      <button 
+                        onClick={() => copySection(idaRows, 'ROTA IDA', setIdaCopied)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
+                          idaCopied 
+                            ? "bg-emerald-600 text-white border-emerald-700" 
+                            : "bg-[#0B2545] hover:bg-[#14325c] text-white border-blue-950/50"
+                        )}
+                      >
+                        {idaCopied ? <Check size={12} /> : <Copy size={12} />}
+                        {idaCopied ? 'Copiado!' : 'Copiar Ida'}
+                      </button>
+                    )}
+                    <button onClick={() => saveIda([], true)} className="text-[10px] font-mono font-bold text-red-400 hover:text-red-300 uppercase tracking-tight cursor-pointer pl-2">Limpar</button>
+                  </div>
+                </div>
+
+                {/* Styled Table Frame */}
+                <div className="bg-white border border-[#d6ccbe] rounded-2xl p-2 shadow-xs overflow-hidden relative">
+                  {idaRows.length === 0 ? (
+                    <div className="p-8 flex flex-col items-center justify-center text-center bg-[#fbf9f5] border border-dashed border-[#d6ccbe] rounded-xl">
+                      <Clipboard className="text-stone-400 w-8 h-8 mb-2" />
+                      <p className="text-xs text-stone-600 mb-3 font-bold font-mono">Cole aqui as informações da Rota Ida ou adicione manualmente</p>
+                      <div className="flex flex-col gap-2.5 w-full max-w-md">
+                        <textarea 
+                          onPaste={(e) => handlePaste(e, 'ida')}
+                          placeholder="Ctrl+V aqui para colar escala..."
+                          className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-blue-500 resize-none"
+                        />
+                        <button 
+                          onClick={() => addNewRow('ida')}
+                          className="w-full py-2.5 bg-[#0B2545] hover:bg-[#14325c] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+                        >
+                          <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-lg border border-[#0B2545]/20 shadow-xs">
+                      <table className="w-full text-left border-collapse font-sans">
+                        <thead>
+                          <tr className="bg-[#0B2545] border-b border-blue-950 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
+                            <th className="px-2 py-2 w-8 text-center text-white">#</th>
+                            <th className="px-2 py-2 w-10 text-center text-white">OK</th>
+                            <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
+                            <th className="px-2 py-2 text-white">MOTORISTA</th>
+                            <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
+                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
+                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
+                            <th className="px-2 py-2 text-center text-white">TRECHO</th>
+                            <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
+                            <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
+                            <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          {idaRows.map((row, i) => (
+                            <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
+                              <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
+                                {i + 1}
+                              </td>
+                              <td className="p-1.5 text-center w-10">
+                                <button
+                                  type="button"
+                                  onClick={() => updateRowValue(i, 'ok', !row.ok, 'ida')}
+                                  className={cn(
+                                    "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
+                                    row.ok 
+                                      ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
+                                      : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
+                                  )}
+                                  title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
+                                >
+                                  <Check size={12} className="stroke-[3]" />
+                                </button>
+                              </td>
+                              <td className="p-1.5">
+                                <input 
+                                  type="text"
+                                  value={row.dataSaida}
+                                  onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'ida')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 group/cell">
+                                <div className="flex items-center gap-1.5">
+                                  <input 
+                                    type="text"
+                                    value={row.motorista}
+                                    onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'ida')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                  <button 
+                                    onClick={() => safeCopyText(row.motorista)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-blue-600/10 hover:bg-blue-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                    title="Copiar Motorista"
+                                  >
+                                    <Copy size={12} />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.placa}
+                                  onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'ida')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs font-mono"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.bau1}
+                                  onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'ida')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.bau2}
+                                  onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'ida')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.trecho}
+                                  onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'ida')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
+                                  {findRouteCode(row.trecho, 'ida', routesList)}
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-right font-extrabold group/cell">
+                                <div className="flex items-center justify-end gap-1">
+                                  <button 
+                                    onClick={() => openPdfModal('ida', i)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#0F2D59]/10 hover:bg-[#0F2D59]/25 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                    title="Importar PDFs de NFs para esta linha"
+                                  >
+                                    <FileText size={12} />
+                                  </button>
+                                  <button 
+                                    onClick={() => safeCopyText(row.valorNf)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-blue-600/10 hover:bg-blue-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                    title="Copiar Valor"
+                                  >
+                                    <Copy size={12} />
+                                  </button>
+                                  <input 
+                                    type="text"
+                                    value={row.valorNf}
+                                    onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all text-xs"
+                                  />
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <div className="flex flex-col gap-0.5">
+                                    <button 
+                                      onClick={() => moveRow(i, 'up', 'ida')}
+                                      disabled={i === 0}
+                                      className={cn(
+                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                        i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
+                                      )}
+                                      title="Mover para cima"
+                                    >
+                                      <ChevronUp size={14} />
+                                    </button>
+                                    <button 
+                                      onClick={() => moveRow(i, 'down', 'ida')}
+                                      disabled={i === idaRows.length - 1}
+                                      className={cn(
+                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                        i === idaRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
+                                      )}
+                                      title="Mover para baixo"
+                                    >
+                                      <ChevronDown size={14} />
+                                    </button>
+                                  </div>
+                                  <button 
+                                    onClick={() => saveIda(idaRows.filter((_, idx) => idx !== i), true)} 
+                                    className="p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors cursor-pointer"
+                                    title="Remover Linha"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </section>
+              )}
+
+              {/* ROTA VOLTA (Vermelha) */}
+              {(internalView === 'all' || internalView === 'volta') && (
+              <section className="space-y-3 font-sans animate-fade-in">
+                <div className="flex items-center justify-between bg-[#0B1E36] text-white p-3.5 rounded-xl shadow-md border border-slate-700/60">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                    <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <Download size={16} className="rotate-180 text-red-400" /> Rota Volta
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold bg-[#DC2626] text-white px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
+                      VERMELHA
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => addNewRow('volta')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#991B1B] hover:bg-[#7F1D1D] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-800"
+                    >
+                      <Plus size={12} /> Add Linha
+                    </button>
+                    {voltaRows.length > 0 && (
+                      <button 
+                        onClick={() => copySection(voltaRows, 'ROTA VOLTA', setVoltaCopied)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
+                          voltaCopied 
+                            ? "bg-emerald-600 text-white border-emerald-700" 
+                            : "bg-[#1E293B] hover:bg-[#334155] text-white border-slate-700"
+                        )}
+                      >
+                        {voltaCopied ? <Check size={12} /> : <Copy size={12} />}
+                        {voltaCopied ? 'Copiado!' : 'Copiar Volta'}
+                      </button>
+                    )}
+                    <button onClick={() => saveVolta([], true)} className="text-[10px] font-mono font-bold text-red-400 hover:text-red-300 uppercase tracking-tight cursor-pointer pl-2">Limpar</button>
+                  </div>
+                </div>
+
+                {/* Styled Table Frame */}
+                <div className="bg-white border border-[#d6ccbe] rounded-2xl p-2 shadow-xs overflow-hidden relative">
+                  {voltaRows.length === 0 ? (
+                    <div className="p-8 flex flex-col items-center justify-center text-center bg-[#fbf9f5] border border-dashed border-[#d6ccbe] rounded-xl">
+                      <Clipboard className="text-stone-400 w-8 h-8 mb-2" />
+                      <p className="text-xs text-stone-600 mb-3 font-bold font-mono">Cole aqui as informações da Rota Volta ou adicione manualmente</p>
+                      <div className="flex flex-col gap-2.5 w-full max-w-md">
+                        <textarea 
+                          onPaste={(e) => handlePaste(e, 'volta')}
+                          placeholder="Ctrl+V aqui para colar escala..."
+                          className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-red-500 resize-none"
+                        />
+                        <button 
+                          onClick={() => addNewRow('volta')}
+                          className="w-full py-2.5 bg-[#9b1526] hover:bg-[#831221] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+                        >
+                          <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-lg border border-[#9b1526]/20 shadow-xs">
+                      <table className="w-full text-left border-collapse font-sans">
+                        <thead>
+                          <tr className="bg-[#9b1526] border-b border-red-900 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
+                            <th className="px-2 py-2 w-8 text-center text-white">#</th>
+                            <th className="px-2 py-2 w-10 text-center text-white">OK</th>
+                            <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
+                            <th className="px-2 py-2 text-white">MOTORISTA</th>
+                            <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
+                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
+                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
+                            <th className="px-2 py-2 text-center text-white">TRECHO</th>
+                            <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
+                            <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
+                            <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          {voltaRows.map((row, i) => (
+                            <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
+                              <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
+                                {i + 1}
+                              </td>
+                              <td className="p-1.5 text-center w-10">
+                                <button
+                                  type="button"
+                                  onClick={() => updateRowValue(i, 'ok', !row.ok, 'volta')}
+                                  className={cn(
+                                    "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
+                                    row.ok 
+                                      ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
+                                      : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
+                                  )}
+                                  title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
+                                >
+                                  <Check size={12} className="stroke-[3]" />
+                                </button>
+                              </td>
+                              <td className="p-1.5">
+                                <input 
+                                  type="text"
+                                  value={row.dataSaida}
+                                  onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'volta')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 group/cell">
+                                <div className="flex items-center gap-1.5">
+                                  <input 
+                                    type="text"
+                                    value={row.motorista}
+                                    onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'volta')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                  <button 
+                                    onClick={() => safeCopyText(row.motorista)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#9b1526] transition-all shrink-0 cursor-pointer"
+                                    title="Copiar Motorista"
+                                  >
+                                    <Copy size={12} />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.placa}
+                                  onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'volta')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#801414] focus:ring-2 focus:ring-[#801414]/20 outline-none transition-all uppercase text-xs font-mono"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.bau1}
+                                  onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'volta')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.bau2}
+                                  onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'volta')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="flex items-center gap-1 group/trecho">
+                                  <input 
+                                    type="text"
+                                    value={row.trecho}
+                                    onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'volta')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                  <button 
+                                    onClick={() => {
+                                      const inverted = invertRoute(row.trecho);
+                                      updateRowValue(i, 'trecho', inverted, 'volta');
+                                    }}
+                                    className="opacity-0 group-hover/trecho:opacity-100 p-1.5 bg-rose-600/10 text-rose-700 hover:bg-rose-600 hover:text-white rounded transition-all shrink-0 cursor-pointer"
+                                    title="Inverter Rota"
+                                  >
+                                    <RefreshCw size={12} />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
+                                  {findRouteCode(row.trecho, 'volta', routesList)}
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-right font-extrabold group/cell">
+                                <div className="flex items-center justify-end gap-1">
+                                  <button 
+                                    onClick={() => openPdfModal('volta', i)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#9b1526]/10 hover:bg-[#9b1526]/25 rounded text-[#9b1526] transition-all shrink-0 cursor-pointer"
+                                    title="Importar PDFs de NFs para esta linha"
+                                  >
+                                    <FileText size={12} />
+                                  </button>
+                                  <button 
+                                    onClick={() => navigator.clipboard.writeText(row.valorNf)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#9b1526] transition-all shrink-0 cursor-pointer"
+                                    title="Copiar Valor"
+                                  >
+                                    <Copy size={12} />
+                                  </button>
+                                  <input 
+                                    type="text"
+                                    value={row.valorNf}
+                                    onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'volta')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all text-xs"
+                                  />
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <div className="flex flex-col gap-0.5">
+                                    <button 
+                                      onClick={() => moveRow(i, 'up', 'volta')}
+                                      disabled={i === 0}
+                                      className={cn(
+                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                        i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-rose-600"
+                                      )}
+                                      title="Mover para cima"
+                                    >
+                                      <ChevronUp size={14} />
+                                    </button>
+                                    <button 
+                                      onClick={() => moveRow(i, 'down', 'volta')}
+                                      disabled={i === voltaRows.length - 1}
+                                      className={cn(
+                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                        i === voltaRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-rose-600"
+                                      )}
+                                      title="Mover para baixo"
+                                    >
+                                      <ChevronDown size={14} />
+                                    </button>
+                                  </div>
+                                  <button 
+                                    onClick={() => saveVolta(voltaRows.filter((_, idx) => idx !== i), true)} 
+                                    className="p-1.5 text-rose-700 hover:bg-rose-600 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                    title="Remover Linha"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </section>
+              )}
+
+              {/* ================= ROTA VESPASIANO ================= */}
+              {(internalView === 'all' || internalView === 'vespasiano') && (
+              <section className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden font-sans transition-all">
+                <div className="bg-emerald-50/50 p-4 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#9b1526] text-white rounded-xl shadow-sm">
+                      <Truck size={18} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight">Rota Vespasiano</h2>
+                      <p className="text-[10px] text-[#9b1526] font-bold uppercase tracking-widest">Controle de Saída</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setIsVespasianoMaximized(!isVespasianoMaximized)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-xs"
+                    >
+                      {isVespasianoMaximized ? 'Minimizar' : 'Maximizar'}
+                    </button>
+                    {vespasianoRows.length > 0 && (
+                      <button 
+                        onClick={() => copySection(vespasianoRows, 'ROTA VESPASIANO', setVoltaCopied)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm border",
+                          voltaCopied 
+                            ? "bg-emerald-600 text-white border-emerald-700" 
+                            : "bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50"
+                        )}
+                      >
+                        {voltaCopied ? <Check size={12} /> : <Copy size={12} />}
+                        {voltaCopied ? 'Copiado!' : 'Copiar Rota'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className={cn(
+                  "transition-all duration-300 ease-in-out",
+                  isVespasianoMaximized ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+                )}>
+                  <div className="p-4 bg-white">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                      <div className="relative group">
+                        <textarea
+                          placeholder="Cole aqui os dados da Rota Vespasiano..."
+                          className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all resize-none font-medium placeholder:text-slate-400"
+                          onPaste={(e) => handlePaste(e, 'vespasiano')}
+                        />
+                        <div className="absolute bottom-2 right-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-[9px] font-bold text-slate-400 bg-white/80 px-2 py-0.5 rounded-full border border-slate-100">Ctrl + V para colar</span>
+                        </div>
+                      </div>
+                      
+                      <div className="lg:col-span-3 flex items-end justify-start gap-3">
+                        <button 
+                          onClick={() => addNewRow('vespasiano')}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-[#9b1526] hover:bg-[#831221] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-red-100 cursor-pointer"
+                        >
+                          <Plus size={16} /> Adicionar Linha
+                        </button>
+                        <button 
+                          onClick={() => saveVespasiano([], true)}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                        >
+                          <Trash2 size={16} /> Limpar Tudo
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-xl border border-[#d6ccbe] shadow-xs">
+                      <table className="w-full border-collapse min-w-[1000px]">
+                        <thead>
+                          <tr className="bg-[#fbf9f5] border-b border-[#e7dac9] text-stone-700 text-[10px] uppercase font-mono tracking-widest font-bold">
+                            <th className="p-3 text-center border-r border-[#e7dac9] w-8">#</th>
+                            <th className="p-3 text-center border-r border-[#e7dac9] w-10">OK</th>
+                            <th className="p-3 text-center border-r border-[#e7dac9]">Data</th>
+                            <th className="p-3 text-left border-r border-[#e7dac9]">Motorista</th>
+                            <th className="p-3 text-center border-r border-[#e7dac9]">Placa</th>
+                            <th className="p-3 text-center border-r border-[#e7dac9]">Baú 1</th>
+                            <th className="p-3 text-center border-r border-[#e7dac9]">Baú 2</th>
+                            <th className="p-3 text-center border-r border-[#e7dac9]">Trecho</th>
+                            <th className="p-3 text-center border-r border-[#e7dac9]">Code</th>
+                            <th className="p-3 text-right border-r border-[#e7dac9]">Valor NF</th>
+                            <th className="p-3 text-center">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          {vespasianoRows.map((row, i) => (
+                            <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
+                              <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
+                                {i + 1}
+                              </td>
+                              <td className="p-1.5 text-center w-10">
+                                <button
+                                  type="button"
+                                  onClick={() => updateRowValue(i, 'ok', !row.ok, 'vespasiano')}
+                                  className={cn(
+                                    "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
+                                    row.ok 
+                                      ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
+                                      : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
+                                  )}
+                                >
+                                  <Check size={12} className="stroke-[3]" />
+                                </button>
+                              </td>
+                              <td className="p-1.5">
+                                <input 
+                                  type="text"
+                                  value={row.dataSaida}
+                                  onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'vespasiano')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 group/cell">
+                                <div className="flex items-center gap-1.5">
+                                  <input 
+                                    type="text"
+                                    value={row.motorista}
+                                    onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'vespasiano')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                  <button 
+                                    onClick={() => navigator.clipboard.writeText(row.motorista)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-emerald-600/10 hover:bg-emerald-600/20 rounded text-emerald-700 transition-all shrink-0 cursor-pointer"
+                                    title="Copiar Motorista"
+                                  >
+                                    <Copy size={12} />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.placa}
+                                  onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'vespasiano')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none transition-all uppercase text-xs font-mono"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.bau1}
+                                  onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'vespasiano')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <input 
+                                  type="text"
+                                  value={row.bau2}
+                                  onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'vespasiano')}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none transition-all uppercase text-xs"
+                                />
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="flex items-center gap-1 group/trecho">
+                                  <input 
+                                    type="text"
+                                    value={row.trecho}
+                                    onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'vespasiano')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center">
+                                  {findRouteCode(row.trecho, 'ida', routesList)}
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-right font-extrabold group/cell">
+                                <div className="flex items-center justify-end gap-1">
+                                  <button 
+                                    onClick={() => openPdfModal('vespasiano', i)}
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-emerald-600/10 hover:bg-emerald-600/25 rounded text-emerald-700 transition-all shrink-0 cursor-pointer"
+                                    title="Importar PDFs de NFs para esta linha"
+                                  >
+                                    <FileText size={12} />
+                                  </button>
+                                  <input 
+                                    type="text"
+                                    value={row.valorNf}
+                                    onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'vespasiano')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none transition-all text-xs"
+                                  />
+                                </div>
+                              </td>
+                              <td className="p-1.5 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <div className="flex flex-col gap-0.5">
+                                    <button 
+                                      onClick={() => moveRow(i, 'up', 'vespasiano')}
+                                      disabled={i === 0}
+                                      className={cn(
+                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                        i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-emerald-600"
+                                      )}
+                                      title="Mover para cima"
+                                    >
+                                      <ChevronUp size={14} />
+                                    </button>
+                                    <button 
+                                      onClick={() => moveRow(i, 'down', 'vespasiano')}
+                                      disabled={i === vespasianoRows.length - 1}
+                                      className={cn(
+                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                        i === vespasianoRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-emerald-600"
+                                      )}
+                                      title="Mover para baixo"
+                                    >
+                                      <ChevronDown size={14} />
+                                    </button>
+                                  </div>
+                                  <button 
+                                    onClick={() => saveVespasiano(vespasianoRows.filter((_, idx) => idx !== i), true)} 
+                                    className="p-1.5 text-rose-700 hover:bg-rose-600 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                    title="Remover Linha"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              )}
+            </div>
+
+            {/* Calculator Sidebar (Sticky - Acompanha a rolagem da tela para cima e para baixo) */}
+            <div className="xl:col-span-1">
+              <div className="sticky top-4 space-y-4 font-sans z-20">
+                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col font-sans max-h-[calc(100vh-2rem)] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+                      <Calculator size={16} className="text-slate-700" />
+                      Soma de Valores
+                    </h3>
+                    <div className="flex items-center gap-1.5">
+                      <button 
+                        onClick={() => openPdfModal('calc')}
+                        className="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-[10px] font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer border border-slate-300"
+                        title="Importar PDFs de NFs para somar na calculadora"
+                      >
+                        <FileText size={11} /> PDF
+                      </button>
+                      <button 
+                        onClick={() => saveCalc(calcValues.map(() => ''), true)}
+                        className="p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                        title="Resetar calculadora"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl p-4 mb-4 text-center relative group/total text-stone-900 shadow-xs">
+                    <p className="text-[10px] font-mono font-bold text-stone-500 uppercase tracking-widest mb-1">Total Consolidado</p>
+                    <h4 className="text-2xl font-mono font-black tracking-tight text-[#9b1526]">
+                      <span className="text-stone-400 mr-1 text-sm font-semibold">R$</span>
+                      {calculateTotal()}
+                    </h4>
+                    <div className="absolute top-2.5 right-2.5">
+                      <button 
+                        onClick={copyTotalRaw}
+                        className={cn(
+                          "p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer border",
+                          totalRawCopied ? "bg-emerald-600 border-emerald-700 text-white" : "bg-white border-[#d6ccbe] text-stone-600 hover:bg-stone-50"
+                        )}
+                        title="Copiar Valor"
+                      >
+                        {totalRawCopied ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5 flex-1 max-h-[380px] overflow-y-auto pr-0.5">
+                    {calcValues.map((val, i) => (
+                      <div key={i} className="group relative flex items-center">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">R$</div>
+                        <input
+                          type="text"
+                          value={val}
+                          onChange={(e) => updateCalcValue(i, e.target.value)}
+                          placeholder="0,00"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-16 py-2 text-xs text-slate-900 font-mono font-bold focus:bg-white focus:border-slate-800 outline-none transition-all placeholder:text-slate-300"
+                        />
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                          {val && (
+                            <button 
+                              onClick={() => updateCalcValue(i, '')}
+                              className="text-slate-400 hover:text-slate-700 p-1 transition-all cursor-pointer"
+                              title="Limpar Campo"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                          {calcValues.length > 1 && (
+                            <button 
+                              onClick={() => saveCalc(calcValues.filter((_, idx) => idx !== i), true)}
+                              className="text-slate-400 hover:text-rose-600 p-1 transition-all cursor-pointer"
+                              title="Remover Linha"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="grid grid-cols-2 gap-2 mt-3">
+                      <button 
+                        onClick={addCalcLine}
+                        className="py-2.5 border border-dashed border-slate-300 hover:border-slate-800 rounded-lg text-slate-700 hover:text-slate-900 flex items-center justify-center gap-1.5 transition-all text-[10px] font-bold uppercase tracking-wider bg-slate-50 cursor-pointer"
+                      >
+                        <Plus size={14} /> Nova Linha
+                      </button>
+
+                      <button 
+                        onClick={() => saveCalc(calcValues.map(() => ''))}
+                        className="py-2.5 border border-dashed border-rose-200 hover:border-rose-400 text-rose-600 rounded-lg flex items-center justify-center gap-1.5 transition-all text-[10px] font-bold uppercase tracking-wider bg-rose-50/50 cursor-pointer"
+                        title="Limpar todos os valores adicionados"
+                      >
+                        <Trash2 size={14} /> Limpar
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-100 bg-slate-50 p-3 rounded-lg text-[10px] text-slate-600 font-medium">
+                    A soma aceita vírgulas e pontos. Atualizada em tempo real.
+                  </div>
+                </div>
+
+                <div className="bg-white border border-slate-200 p-3.5 flex items-center justify-between group cursor-pointer hover:border-slate-400 transition-all rounded-xl shadow-2xs">
+                  <div className="flex items-center gap-2.5">
+                    <CalendarIcon size={16} className="text-slate-600 group-hover:scale-110 transition-transform" />
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Última Atualização</p>
+                      <p className="text-xs font-bold text-slate-800">Agora mesmo</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      )}
+
+      {/* ================= PDF IMPORT MODAL (Master Light) ================= */}
+      {isPdfModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border border-[#d6ccbe] rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh] text-stone-900 relative">
+            
+            {/* Modal Header */}
+            <div className="bg-[#fbf9f5] p-5 text-stone-900 flex items-center justify-between border-b border-[#e7dac9]">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-red-50 border border-red-200 text-[#9b1526] rounded-xl shadow-xs">
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <h3 className="font-mono font-bold uppercase text-base tracking-wide text-stone-900">
+                    Importar Várias Notas Fiscais (PDF)
+                  </h3>
+                  <p className="text-xs text-stone-500 font-sans">
+                    Extração automática do valor total das NFs e cálculo da soma total
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsPdfModalOpen(false)}
+                className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition-all cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+              
+              {/* File Upload Dropzone */}
+              <div className="relative border-2 border-dashed border-red-200 hover:border-red-400 bg-red-50/40 hover:bg-red-50/70 rounded-2xl p-6 transition-all text-center flex flex-col items-center justify-center cursor-pointer group">
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="application/pdf,.pdf" 
+                  onChange={handlePdfFilesUpload}
+                  disabled={isProcessingPdf}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className="p-4 bg-red-100 text-[#9b1526] rounded-full shadow-xs group-hover:scale-105 transition-transform mb-3 border border-red-200">
+                  <Upload size={28} />
+                </div>
+                <p className="text-sm font-mono font-bold text-stone-900 uppercase tracking-wide">
+                  Clique para Selecionar ou Arraste os PDFs das NFs
+                </p>
+                <p className="text-xs text-stone-500 mt-1">
+                  Você pode selecionar várias notas fiscais em PDF simultaneamente (DANFE / NF-e)
+                </p>
+              </div>
+
+              {/* Processing Loader */}
+              {isProcessingPdf && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-center gap-3 text-amber-900 font-bold text-sm animate-pulse">
+                  <Loader2 size={20} className="animate-spin text-[#9b1526]" />
+                  Processando e lendo o valor das NFs em PDF...
+                </div>
+              )}
+
+              {/* Parsed Results Area */}
+              {parsedPdfItems.length > 0 && (
+                <div className="space-y-4">
+                  {/* Total Banner */}
+                  <div className="bg-[#9b1526] p-5 rounded-2xl text-white shadow-xs relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 border border-red-700">
+                    <div>
+                      <p className="text-[11px] font-mono font-bold uppercase tracking-widest text-red-200">
+                        Valor Total Somado ({parsedPdfItems.length} NFs)
+                      </p>
+                      <h4 className="text-3xl font-extrabold text-white font-mono tracking-tight mt-0.5">
+                        <span className="text-red-200 text-xl font-normal mr-1.5">R$</span>
+                        {pdfTotalSomadoFormatado}
+                      </h4>
+                    </div>
+
+                    <button 
+                      onClick={copyPdfTotal}
+                      className={cn(
+                        "px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-xs cursor-pointer border",
+                        pdfCopied 
+                          ? "bg-emerald-600 border-emerald-400 text-white" 
+                          : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                      )}
+                    >
+                      {pdfCopied ? <Check size={16} /> : <Copy size={16} />}
+                      {pdfCopied ? 'Copiado!' : 'Copiar Total'}
+                    </button>
+                  </div>
+
+                  {/* List of imported PDFs */}
+                  <div className="border border-[#d6ccbe] rounded-2xl overflow-hidden bg-white shadow-xs">
+                    <div className="bg-[#fbf9f5] p-3 border-b border-[#e7dac9] flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold uppercase text-stone-700 tracking-wider">
+                        Notas Importadas ({parsedPdfItems.length})
+                      </span>
+                      <button 
+                        onClick={() => {
+                          setParsedPdfItems([]);
+                          setPdfTotalSomado(0);
+                          setPdfTotalSomadoFormatado('0,00');
+                        }}
+                        className="text-[10px] font-mono font-bold text-red-700 hover:underline uppercase tracking-wider cursor-pointer"
+                      >
+                        Limpar Lista
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-stone-100 max-h-56 overflow-y-auto">
+                      {parsedPdfItems.map((item, idx) => (
+                        <div key={idx} className="p-3 flex items-center justify-between gap-3 text-xs hover:bg-stone-50 transition-colors">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className={cn("p-1.5 rounded-lg shrink-0", item.success ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200")}>
+                              {item.success ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-stone-900 truncate" title={item.fileName}>
+                                {item.fileName}
+                              </p>
+                              <p className="text-[10px] text-stone-500 font-mono">
+                                {item.numeroNf !== '---' ? `NF Nº ${item.numeroNf}` : item.error || 'Valor extraído do PDF'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-stone-500 font-bold text-[10px]">R$</span>
+                            <input 
+                              type="text" 
+                              value={item.valorFormatado}
+                              onChange={(e) => updateParsedPdfItemValue(idx, e.target.value)}
+                              className="w-28 bg-[#fbf9f5] border border-[#d6ccbe] rounded-lg py-1 px-2 text-right font-mono text-xs font-bold text-stone-900 outline-none focus:border-stone-500"
+                            />
+                            <button 
+                              onClick={() => removeParsedPdfItem(idx)}
+                              className="p-1.5 text-red-700 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Remover Nota"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="bg-[#fbf9f5] p-5 border-t border-[#e7dac9] flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-xs text-stone-600 font-mono text-center sm:text-left">
+                {pdfTargetRowIndex !== null ? (
+                  <span>Aplicando na linha #{pdfTargetRowIndex + 1} ({pdfTargetSection === 'ida' ? 'Rota Ida' : pdfTargetSection === 'volta' ? 'Rota Volta' : 'Rota Vespasiano'})</span>
+                ) : (
+                  <span>Selecione onde aplicar o valor somado (R$ {pdfTotalSomadoFormatado})</span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
+                <button 
+                  onClick={() => applyPdfTotalToTarget('ida')}
+                  disabled={parsedPdfItems.length === 0}
+                  className="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 disabled:opacity-40 text-white font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-stone-700"
+                >
+                  Preencher Ida
+                </button>
+
+                <button 
+                  onClick={() => applyPdfTotalToTarget('volta')}
+                  disabled={parsedPdfItems.length === 0}
+                  className="px-3.5 py-2 bg-[#9b1526] hover:bg-[#831220] disabled:opacity-40 text-white font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-700"
+                >
+                  Preencher Volta
+                </button>
+
+                <button 
+                  onClick={() => applyPdfTotalToTarget('vespasiano')}
+                  disabled={parsedPdfItems.length === 0}
+                  className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-emerald-800"
+                >
+                  Preencher Vespasiano
+                </button>
+
+                <button 
+                  onClick={() => applyPdfTotalToTarget('calc')}
+                  disabled={parsedPdfItems.length === 0}
+                  className="px-3.5 py-2 bg-white hover:bg-stone-50 disabled:opacity-40 text-stone-800 font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#d6ccbe]"
+                >
+                  Lançar Calculadora
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Notepad Sliding Panel */}
+      <AnimatePresence>
+        {isNotepadOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end font-sans">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsNotepadOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-md h-full bg-white shadow-2xl flex flex-col border-l border-slate-200"
+            >
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                    <StickyNote size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight">Bloco de Notas</h2>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Lembretes e Avisos</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsNotepadOpen(false)}
+                  className="p-2 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-xl transition-all cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-5 border-b border-slate-100 bg-white">
+                <div className="flex gap-2">
+                  <textarea
+                    placeholder="Digite seu lembrete aqui..."
+                    className="flex-1 min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none font-medium placeholder:text-slate-400"
+                    value={newNoteText}
+                    onChange={(e) => setNewNoteText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        saveNote(newNoteText);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex justify-end mt-3">
+                  <button
+                    onClick={() => saveNote(newNoteText)}
+                    disabled={!newNoteText.trim()}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-indigo-200 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <Plus size={16} /> Adicionar
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/30">
+                {notes.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-3 opacity-60">
+                    <div className="p-4 bg-slate-100 rounded-full">
+                      <StickyNote size={32} />
+                    </div>
+                    <p className="text-xs font-bold uppercase tracking-widest">Nenhum lembrete salvo</p>
+                  </div>
+                ) : (
+                  notes.map((note) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="group bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all"
+                      key={note.id}
+                    >
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex-1">
+                          <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+                            {note.text}
+                          </p>
+                          <div className="flex items-center gap-2 mt-3 text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                            <CalendarIcon size={10} />
+                            <span>
+                              {new Date(note.timestamp).toLocaleDateString('pt-BR')} às {new Date(note.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => deleteNote(note.id)}
+                          className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Action Bar - Undo Action */}
+      <div className="fixed bottom-4 right-6 z-40">
+        <button 
+          onClick={handleUndo}
+          disabled={historyCount === 0}
+          className={cn(
+            "flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-lg border cursor-pointer",
+            historyCount > 0 
+              ? "bg-amber-600 hover:bg-amber-700 text-white border-amber-500 shadow-amber-900/30 active:scale-95" 
+              : "bg-stone-800/90 text-stone-400 border-stone-700 backdrop-blur-md opacity-80"
+          )}
+          title="Restaurar informação modificada (Ctrl + Z)"
+        >
+          <RotateCcw size={13} className={historyCount > 0 ? "text-amber-200" : "text-stone-400"} />
+          <span>Desfazer (Ctrl+Z)</span>
+        </button>
+      </div>
+
+      {/* Toast feedback when Ctrl+Z is activated */}
+      <AnimatePresence>
+        {showUndoToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700"
+          >
+            <RotateCcw className="text-amber-400 w-5 h-5" />
+            <div>
+              <p className="text-xs font-bold font-sans">Informação restaurada!</p>
+              <p className="text-[10px] text-slate-400 font-sans">Desfazer (Ctrl + Z) aplicado com sucesso.</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
