@@ -1,5 +1,4 @@
 import React from 'react';
-import OperationalFooter from '../AppShell/OperationalFooter';
 
 interface DashboardLayoutProps {
   sidebar: React.ReactNode;
@@ -38,9 +37,9 @@ export default function DashboardLayout({
       </div>
 
       {/* =====================================================
-          RODAPÉ HORIZONTAL (BROADCAST INFORMATION FOOTER)
+          RODAPÉ HORIZONTAL (REMOVIDO CONFORME SOLICITAÇÃO)
       ====================================================== */}
-      {footer || <OperationalFooter />}
+      {footer || null}
     </div>
   );
 }

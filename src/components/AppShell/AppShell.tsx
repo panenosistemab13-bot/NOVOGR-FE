@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import DashboardLayout from '../Layout/DashboardLayout';
 import PremiumHeader from './PremiumHeader';
-import OperationalFooter from './OperationalFooter';
 
 interface AppShellProps {
   activeTab: string;
@@ -30,7 +29,7 @@ export default function AppShell({
       }
       sidebar={null}
       rightPanel={undefined}
-      footer={<OperationalFooter />}
+      footer={null}
     >
       {children}
     </DashboardLayout>
