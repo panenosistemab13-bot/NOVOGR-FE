@@ -30,7 +30,8 @@ import {
   Sliders,
   Lock,
   Unlock,
-  Settings
+  Settings,
+  Truck
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { rtdb as db } from './firebase';
@@ -51,6 +52,7 @@ import Rotas from './components/Rotas';
 import Checklist from './components/Checklist';
 import Controle from './components/Controle';
 import Escala from './components/Escala';
+import Disponibilidade from './components/Disponibilidade';
 import LoginScreen from './components/LoginScreen';
 import RestrictedPagesModal from './components/RestrictedPagesModal';
 import UpdateTopBanner from './components/UpdateTopBanner';
@@ -73,7 +75,7 @@ import patioBg from './assets/images/wallpaper_patio_logistics_1790202500274.jpg
 import satelliteBg from './assets/images/wallpaper_tactical_satellite_1790202511817.jpg';
 import { Globe, Database, FileSpreadsheet } from 'lucide-react';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'checklist' | 'controle' | 'escala';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade';
 
 const backgroundImages: Record<Tab, string> = {
   menu: hudBg,
@@ -84,7 +86,8 @@ const backgroundImages: Record<Tab, string> = {
   rotas: satelliteBg,
   checklist: patioBg,
   controle: patioBg,
-  escala: patioBg
+  escala: patioBg,
+  disponibilidade: patioBg
 };
 
 const allTabs = [
@@ -94,6 +97,7 @@ const allTabs = [
   { id: 'sm_creator', label: 'SM', icon: CalendarDays },
   { id: 'controle', label: 'Controle', icon: Sliders },
   { id: 'escala', label: 'Escala', icon: FileSpreadsheet },
+  { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: Route },
 ];
@@ -327,6 +331,8 @@ export default function App() {
         return <Controle onBack={() => setActiveTab('menu')} />;
       case 'escala':
         return <Escala onBack={() => setActiveTab('menu')} />;
+      case 'disponibilidade':
+        return <Disponibilidade onBack={() => setActiveTab('menu')} />;
       default:
         return (
           <div className="flex flex-col items-center justify-center p-20 text-zinc-500">
@@ -410,6 +416,8 @@ export default function App() {
         return <Controle onBack={() => setActiveTab('menu')} />;
       case 'escala':
         return <Escala onBack={() => setActiveTab('menu')} />;
+      case 'disponibilidade':
+        return <Disponibilidade onBack={() => setActiveTab('menu')} />;
       case 'presence':
         return <PresenceList onBack={() => setActiveTab('menu')} />;
       case 'rotas':

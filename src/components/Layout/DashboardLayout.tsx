@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface DashboardLayoutProps {
-  sidebar: React.ReactNode;
-  header: React.ReactNode;
+  sidebar?: React.ReactNode;
+  header?: React.ReactNode;
   children: React.ReactNode;
   rightPanel?: React.ReactNode;
   footer?: React.ReactNode;
@@ -12,34 +12,31 @@ export default function DashboardLayout({
   sidebar,
   header,
   children,
-  rightPanel,
   footer,
 }: DashboardLayoutProps) {
   return (
-    <div className="app-shell relative">
-      {/* =====================================================
-          HEADER HORIZONTAL SUPERIOR (ELECTION THEME)
-      ====================================================== */}
-      <header className="app-header">
-        {header}
-      </header>
+    <div className="w-screen h-screen flex flex-row overflow-hidden bg-[#07080c] text-white">
+      {/* LEFT SIDEBAR NAVIGATION */}
+      {sidebar && (
+        <div className="h-full shrink-0 z-30">
+          {sidebar}
+        </div>
+      )}
 
-      {/* =====================================================
-          CORPO DA APLICAÇÃO (WIDE FULL DISPLAY, NO DESKTOP SIDEBAR)
-      ====================================================== */}
-      <div className="app-body">
-        {/* ÁREA CENTRAL DE TRABALHO */}
-        <main className="app-main">
-          <div className="app-main-content">
-            {children}
-          </div>
+      {/* MAIN WORKSPACE BODY */}
+      <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden relative">
+        {header && (
+          <header className="w-full flex-shrink-0 z-20">
+            {header}
+          </header>
+        )}
+
+        <main className="flex-1 w-full h-full overflow-y-auto min-h-0 relative z-10">
+          {children}
         </main>
-      </div>
 
-      {/* =====================================================
-          RODAPÉ HORIZONTAL (REMOVIDO CONFORME SOLICITAÇÃO)
-      ====================================================== */}
-      {footer || null}
+        {footer || null}
+      </div>
     </div>
   );
 }

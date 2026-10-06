@@ -105,13 +105,24 @@ export const DEFAULT_PAGES: PageDefinition[] = [
   { 
     id: 'escala', 
     label: 'Escala', 
-    buttonLabel: 'Disponibilidade', 
+    buttonLabel: 'Conversor', 
     category: 'Operacional & Frota',
     iconName: 'FileSpreadsheet',
     description: 'Conversor de escala para formato de planilha de Disponibilidade do Pátio (30 colunas).',
     isDefaultVisible: true,
     isRestrictedByDefault: false,
     badge: 'Conversor'
+  },
+  { 
+    id: 'disponibilidade', 
+    label: 'Disponibilidade', 
+    buttonLabel: 'Frota Pátio', 
+    category: 'Operacional & Frota',
+    iconName: 'Truck',
+    description: 'Gestão de veículos disponíveis, colagem de planilha TSV e gerador de mensagem formatada para e-mail.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Pátio'
   },
   { 
     id: 'presence', 

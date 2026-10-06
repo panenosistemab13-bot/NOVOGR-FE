@@ -10,7 +10,8 @@ import {
   Sliders, 
   Calendar, 
   CalendarDays, 
-  Route 
+  Route,
+  Truck 
 } from 'lucide-react';
 
 interface PremiumHeaderProps {
@@ -30,7 +31,7 @@ export default function PremiumHeader({
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    return () => setCurrentTime(new Date());
   }, []);
 
   const formattedTime = useMemo(() => {
@@ -59,6 +60,7 @@ export default function PremiumHeader({
     { id: 'averbacao', label: 'AVERBAÇÃO', subtitle: 'Seguros', icon: FileCheck2 },
     { id: 'sm_creator', label: 'SM', subtitle: 'Monitoramento', icon: Share2 },
     { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'Iscas & Alertas', icon: Sliders },
+    { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'Veículos Pátio', icon: Truck },
     { id: 'escala', label: 'ESCALA 3C', subtitle: 'Plantão', icon: Calendar },
     { id: 'presence', label: 'CALENDÁRIO', subtitle: 'Frequência', icon: CalendarDays },
     { id: 'rotas', label: 'ROTAS', subtitle: 'PGR', icon: Route },
@@ -147,39 +149,14 @@ export default function PremiumHeader({
       {/* RIGHT: NOTIFICATIONS, CLOCK, WEATHER & ADMIN LOCK             */}
       {/* ------------------------------------------------------------- */}
       <div className="flex items-center gap-4 shrink-0">
-        
-        {/* Notification Bell with Red Badge */}
-        <div className="relative cursor-pointer p-2 rounded-full hover:bg-[#ede5d8] transition-colors">
-          <Bell size={18} className="text-[#594d42]" />
-          <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#d41a22] text-white text-[9px] font-black flex items-center justify-center border border-white">
-            0
-          </span>
-        </div>
-
-        {/* Digital Clock with Live Time & Date */}
-        <div className="text-right leading-none border-l border-[#e4d8c7] pl-3">
-          <span className="text-[17px] font-black text-[#1a1614] font-mono tracking-tight block leading-tight">
+        <div className="hidden sm:flex flex-col text-right leading-none">
+          <span className="text-[12px] font-mono font-black text-[#1f1a16]">
             {formattedTime}
           </span>
-          <span className="text-[8.5px] font-bold text-[#827464] uppercase tracking-wider block mt-0.5">
+          <span className="text-[9px] font-mono font-bold text-[#857667] mt-0.5 uppercase">
             {formattedDate}
           </span>
         </div>
-
-        {/* Weather / Sun Indicator */}
-        <div className="w-8 h-8 rounded-full bg-[#faedd9] border border-[#e8d5b8] flex items-center justify-center text-[#d8972e]" title="Monitoramento Operacional Ativo">
-          <Sun size={15} />
-        </div>
-
-        {/* Settings Master Lock */}
-        <button
-          onClick={onOpenSettings}
-          className="p-1.5 text-[#8a7c6e] hover:text-[#a8141d] transition-colors rounded-full hover:bg-[#ede5d8]"
-          title="Chave Mestra Administrador"
-        >
-          <Lock size={14} />
-        </button>
-
       </div>
 
     </div>

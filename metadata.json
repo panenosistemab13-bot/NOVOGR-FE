@@ -1,6 +1,6 @@
 {
-  "name": "NOVO GR",
-  "description": "Plataforma avançada de gerenciamento de risco com controle de presença 12x36 e estética futurista de alta densidade.",
+  "name": "CENTRAL OPERACIONAL",
+  "description": "Dashboard Executivo de Inteligência Operacional com monitoramento em tempo real em alta definição.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

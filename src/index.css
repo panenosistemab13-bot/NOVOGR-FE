@@ -1,43 +1,42 @@
 @import "tailwindcss";
 
 /* =========================================================
-   DESIGN SYSTEM GLOBAL — 3 CORAÇÕES / CENTRAL GR
-   Paleta Oficial: Marfim + Branco + Bege + Vermelho Corporativo 3C + Dourado
+   EXECUTIVE OPERATIONAL DASHBOARD — DESIGN SYSTEM (1920x1080)
+   Paleta: #0B1018 (Fundo), #121A26 (Secundário), #172231 / #202D3C (Superfícies)
+   Destaques: #A31324 (Vermelho Institucional), #D6A84F (Dourado), #4DD6D8 (Ciano), #43D17A (Verde)
    ========================================================= */
 
 :root {
-  --ivory-bg: #f4eee5;
-  --ivory-surface: #fbf7f1;
-  --ivory-card: #ffffff;
-  --ivory-border: #e8ded2;
-  --ivory-border-strong: #d9cdbd;
-  --ivory-text: #1a1614;
-  --ivory-muted: #73675a;
-  
-  --tc-red: #c4161c;
-  --tc-red-deep: #7a0c16;
-  --tc-red-bright: #e5222a;
-  --tc-gold: #dfb15b;
-  --tc-gold-dark: #b88628;
-  
-  --shadow-warm-sm: 0 2px 6px rgba(60, 40, 20, 0.04);
-  --shadow-warm-md: 0 6px 18px rgba(60, 40, 20, 0.06);
-  --shadow-warm-lg: 0 12px 32px rgba(60, 40, 20, 0.08);
-  --shadow-3d-button: 0 4px 12px rgba(196, 22, 28, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  --bg-primary: #0B1018;
+  --bg-secondary: #121A26;
+  --bg-surface-1: #172231;
+  --bg-surface-2: #202D3C;
+  --text-main: #F3F6F8;
+  --text-muted: #94A3B8;
+  --red-inst: #A31324;
+  --red-alert: #E63946;
+  --gold: #D6A84F;
+  --cyan: #4DD6D8;
+  --green: #43D17A;
+  --border-subtle: rgba(255, 255, 255, 0.08);
 }
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Plus Jakarta Sans", "Manrope", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Manrope", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   
-  --color-tc-red: #c4161c;
-  --color-tc-red-deep: #7a0c16;
-  --color-tc-red-bright: #e5222a;
-  --color-tc-gold: #dfb15b;
-  --color-tc-ivory: #f4eee5;
-  --color-tc-card: #ffffff;
-  --color-tc-surface: #fbf7f1;
+  --color-exec-bg: #0B1018;
+  --color-exec-card: #121A26;
+  --color-exec-surface: #172231;
+  --color-exec-border: rgba(255, 255, 255, 0.08);
+  --color-exec-red: #A31324;
+  --color-exec-red-bright: #E63946;
+  --color-exec-gold: #D6A84F;
+  --color-exec-cyan: #4DD6D8;
+  --color-exec-green: #43D17A;
+  --color-exec-text: #F3F6F8;
+  --color-exec-muted: #94A3B8;
 }
 
 * {
@@ -51,172 +50,99 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  background-color: #0B1018;
+  color: #F3F6F8;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 body {
-  overflow: hidden;
-  background-color: #F4F6F8;
-  color: #1a1614;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  background-color: #0B1018;
 }
 
-/* =========================================================
-   ESTRUTURA GLOBAL — FULLSCREEN PREMIUM SHELL (ZERO SIDEBAR)
-   ========================================================= */
-
-.app-shell {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: linear-gradient(180deg, #F8FAFC 0%, #F4F6F8 50%, #EAEFF4 100%);
-}
-
-.app-background {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.app-header {
-  position: relative;
-  z-index: 20;
-  flex-shrink: 0;
-  width: 100%;
-  background: #fbf8f3;
-  border-bottom: 1px solid #e8ded2;
-  box-shadow: 0 4px 16px rgba(60, 40, 20, 0.04);
-}
-
-.app-body {
-  position: relative;
-  z-index: 10;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-  overflow: hidden;
-  width: 100%;
-}
-
-.app-main {
-  min-width: 0;
-  min-height: 0;
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-}
-
-.app-main-content {
-  width: 100%;
-  height: 100%;
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-}
-
-.app-footer {
-  position: relative;
-  z-index: 20;
-  height: 38px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  color: #73675a;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 11px;
-  background: #fdfbf7;
-  border-top: 1px solid #e8ded2;
-  box-shadow: 0 -2px 10px rgba(60, 40, 20, 0.02);
-}
-
-/* =========================================================
-   CARDS & COMPONENTES 3D DESIGN SYSTEM
-   ========================================================= */
-
-.card-3c {
-  background: #ffffff;
-  border: 1px solid #e8ded2;
-  border-radius: 20px;
-  box-shadow: 0 6px 20px rgba(60, 40, 20, 0.04), 0 1px 3px rgba(60, 40, 20, 0.02);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card-3c:hover {
-  box-shadow: 0 10px 28px rgba(60, 40, 20, 0.07);
-}
-
-.card-3c-red {
-  background: linear-gradient(135deg, #a8121a 0%, #7d0b13 100%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  box-shadow: 0 8px 24px rgba(125, 11, 19, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
-/* 3D Button Capsule */
-.btn-capsule-red {
-  background: linear-gradient(180deg, #d31a22 0%, #9e1017 100%);
-  color: #ffffff;
-  border-radius: 9999px;
-  box-shadow: 0 4px 12px rgba(158, 16, 23, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-  font-weight: 800;
-  transition: all 0.2s ease;
-}
-
-.btn-capsule-red:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(158, 16, 23, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4);
-}
-
-.btn-capsule-ivory {
-  background: #fbf7f1;
-  color: #2c2520;
-  border: 1px solid #e4d8c8;
-  border-radius: 9999px;
-  box-shadow: 0 2px 6px rgba(60, 40, 20, 0.03);
-  font-weight: 700;
-  transition: all 0.2s ease;
-}
-
-.btn-capsule-ivory:hover {
-  background: #f4ede1;
-  border-color: #d8c8b2;
-  color: #1a1614;
-}
-
-/* Scrollbar limpa rente à parede */
+/* Scrollbar sutil elegante */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f2ebe0;
+  background: #0B1018;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4c5b1;
+  background: #202D3C;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b5a38d;
+  background: #A31324;
+}
+
+/* Visual Cards & Glassmorphism executivo */
+.exec-card {
+  background-color: #121A26;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.exec-card:hover {
+  border-color: rgba(214, 168, 79, 0.3);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.exec-card-glass {
+  background: linear-gradient(135deg, rgba(23, 34, 49, 0.85) 0%, rgba(18, 26, 38, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Nav Item Capsule */
+.nav-tab-capsule {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.nav-tab-capsule.active {
+  background: linear-gradient(180deg, #A31324 0%, #700C18 100%);
+  color: #F3F6F8;
+  border: 1px solid rgba(214, 168, 79, 0.5);
+  box-shadow: 0 2px 10px rgba(163, 19, 36, 0.4);
+}
+
+.nav-tab-capsule.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background-color: #D6A84F;
+  border-radius: 2px;
+  box-shadow: 0 0 8px #D6A84F;
+}
+
+/* Keyframes de pulso para nós do mapa e alertas */
+@keyframes map-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+.animate-node-pulse {
+  animation: map-pulse 2.5s infinite ease-in-out;
 }
