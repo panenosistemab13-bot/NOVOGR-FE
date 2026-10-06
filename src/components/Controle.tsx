@@ -741,12 +741,12 @@ export function parseUnidadesText(text: string): ParsedUnidadeInfo {
 
     // 7. Placa do Baú / Carreta / Semi-reboque or line with hyphen/tab separated columns
     const isBauPrefix = /(?:Placa\s+do\s+Baú|Placa\s+do\s+Bau|Placa\s+da\s+Carreta|Carreta|Baú|Bau)\s*:/i.test(line);
-    const partsCount = line.split(/[-;\t]/).length;
+    const partsCount = line.split(/[-\u2013\u2014;\t]/).length;
     const isMultiColumnLine = partsCount >= 2 && !/^(Data|Destino|Transportadora|Motorista|Condutor|Tecnologia|Rastreador|Placa\s+do\s+cavalo|Cavalo)/i.test(line);
 
     if (isBauPrefix || isMultiColumnLine) {
       const cleanLine = line.replace(/^(Placa\s+do\s+Baú|Placa\s+do\s+Bau|Placa\s+da\s+Carreta|Carreta\s*\d*|Baú\s*\d*|Bau\s*\d*)\s*:\s*/i, "").trim();
-      const parts = cleanLine.split(/[-;\t]/).map((p) => p.trim()).filter(Boolean);
+      const parts = cleanLine.split(/[-\u2013\u2014;\t]/).map((p) => p.trim()).filter(Boolean);
 
       if (parts.length > 0) {
         // Coluna 1: Placa da Carreta

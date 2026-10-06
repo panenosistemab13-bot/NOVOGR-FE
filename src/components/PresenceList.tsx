@@ -201,7 +201,7 @@ export default function PresenceList({ onBack }: PresenceListProps) {
         )}
       </AnimatePresence>
 
-      <div className="w-full max-w-3xl mx-auto space-y-3">
+      <div className="w-full max-w-lg mx-auto space-y-2.5">
         
         {/* ========================================================================= */}
         {/* HEADER HERO BANNER (ULTRA COMPACT)                                        */}
@@ -302,7 +302,7 @@ export default function PresenceList({ onBack }: PresenceListProps) {
                     key={i}
                     onClick={() => setSelectedDate(d.dateStr)}
                     className={cn(
-                      "min-h-[50px] sm:min-h-[56px] p-1.5 rounded-lg border flex flex-col justify-between transition-all cursor-pointer relative group text-left",
+                      "min-h-[28px] sm:min-h-[32px] p-0.5 rounded-md border flex flex-col justify-between transition-all cursor-pointer relative group text-left",
                       isSelected
                         ? "border-[#0f172a] bg-blue-50/70 ring-1 ring-[#0f172a] shadow-xs z-10"
                         : isWork
@@ -314,7 +314,7 @@ export default function PresenceList({ onBack }: PresenceListProps) {
                     {/* Top Row: Number & Primary Status Badge */}
                     <div className="flex items-center justify-between gap-0.5">
                       <span className={cn(
-                        "font-mono font-bold text-[11px] px-1 rounded transition-all",
+                        "font-mono font-bold text-[9px] px-0.5 rounded transition-all",
                         isToday 
                           ? "bg-[#0f172a] text-white shadow-xs" 
                           : isSelected 
@@ -326,12 +326,12 @@ export default function PresenceList({ onBack }: PresenceListProps) {
 
                       {/* Status Badges */}
                       {isWork && (
-                        <span className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 font-mono text-[7px] font-black uppercase">
+                        <span className="px-0.5 py-0 rounded bg-blue-100 text-blue-800 font-mono text-[6px] font-black uppercase">
                           ESC
                         </span>
                       )}
                       {isOff && (
-                        <span className="px-1 py-0.2 rounded bg-slate-200 text-slate-700 font-mono text-[7px] font-black uppercase">
+                        <span className="px-0.5 py-0 rounded bg-slate-200 text-slate-700 font-mono text-[6px] font-black uppercase">
                           FOL
                         </span>
                       )}
