@@ -300,9 +300,6 @@ export interface ParsedPlacaItem {
   status?: string;
   cpf?: string;
   telefone?: string;
-  isca1?: string;
-  produto1?: string;
-  uma1?: string;
   rawRowsCount: number;
 }
 
@@ -465,58 +462,6 @@ export const SAMPLE_PLACAS_SHEET_DATA = `N°\tORIGEM\tDIA\tDATA\tCONTATO WHATS\t
 
 export function parsePlacasData(text: string): ParsedPlacaItem[] {
   if (!text || !text.trim()) return [];
-
-  // Detect and handle multiline "List Format" (e.g., Cuiabá format)
-  if (text.toLowerCase().includes("placa do cavalo:") || text.toLowerCase().includes("placa do baú:")) {
-    const item: ParsedPlacaItem = {
-      id: `placa_list_${Date.now()}`,
-      transportador: "",
-      condutor: "",
-      cavalo: "",
-      carreta1: "",
-      carreta2: "",
-      destino: "",
-      origem: "CUIABA/MT",
-      nf: "",
-      isca1: "",
-      produto1: "",
-      uma1: "",
-      rawRowsCount: 1,
-    };
-
-    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-    lines.forEach((line) => {
-      const lower = line.toLowerCase();
-      if (lower.includes("placa do cavalo:")) {
-        item.cavalo = line.split(/placa do cavalo:/i)[1].trim().toUpperCase();
-      } else if (lower.includes("placa do baú:") || lower.includes("placa do bau:")) {
-        const partsText = line.split(/placa do baú:|placa do bau:/i)[1].trim();
-        // Split by various separators: ' - ', '–' (en dash), '|', '–' (em dash), '/'
-        const parts = partsText.split(/\s*[-–—|/]\s*/);
-        if (parts[0]) item.carreta1 = parts[0].trim().toUpperCase();
-        if (parts[1]) item.isca1 = parts[1].trim().toUpperCase();
-        if (parts[2]) item.produto1 = parts[2].trim().toUpperCase();
-        if (parts.length > 3) {
-          item.uma1 = parts.slice(3).join(" - ").trim().toUpperCase();
-        }
-      } else if (lower.includes("nf:")) {
-        item.nf = line.split(/nf:/i)[1].trim();
-      } else if (lower.includes("destino:")) {
-        item.destino = line.split(/destino:/i)[1].trim().toUpperCase();
-      } else if (lower.includes("transportadora:")) {
-        item.transportador = line.split(/transportadora:/i)[1].trim().toUpperCase();
-      } else if (lower.includes("motorista:")) {
-        item.condutor = line.split(/motorista:/i)[1].trim().toUpperCase();
-      } else if (lower.includes("data do embarque:")) {
-        item.data = line.split(/data do embarque:/i)[1].trim();
-      }
-    });
-
-    if (item.cavalo || item.carreta1 || item.condutor) {
-      return [item];
-    }
-  }
-
   const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
   if (lines.length === 0) return [];
 
@@ -801,7 +746,7 @@ export function parseUnidadesText(text: string): ParsedUnidadeInfo {
 
     if (isBauPrefix || isMultiColumnLine) {
       const cleanLine = line.replace(/^(Placa\s+do\s+Baú|Placa\s+do\s+Bau|Placa\s+da\s+Carreta|Carreta\s*\d*|Baú\s*\d*|Bau\s*\d*)\s*:\s*/i, "").trim();
-      const parts = cleanLine.split(/\s*[-–—|/;\t]\s*/).map((p) => p.trim()).filter(Boolean);
+      const parts = cleanLine.split(/[-;\t]/).map((p) => p.trim()).filter(Boolean);
 
       if (parts.length > 0) {
         // Coluna 1: Placa da Carreta
@@ -1078,10 +1023,10 @@ export default function Controle({ onBack }: ControleProps) {
   };
 
   const TABLE2_COLS: Record<string, { label: string; icon: React.ReactNode; defaultWidth: number }> = {
-    isca: { label: "PLACA / CÓDIGO DE VENDA ⇅", icon: <FileText size={13} className="text-slate-700" />, defaultWidth: 25 },
+    isca: { label: "PLACA / CÓDIGO DE VENDA II", icon: <FileText size={13} className="text-slate-700" />, defaultWidth: 25 },
     endereco: { label: "ENDEREÇO APROXIMADO DA ...", icon: <Radio size={13} className="text-slate-700" />, defaultWidth: 45 },
-    data: { label: "DATA POSIÇÃO ⇅", icon: <MapPin size={13} className="text-slate-700" />, defaultWidth: 18 },
-    bateria: { label: "BATERIA ISCA _ RF ⇅", icon: <Battery size={13} className="text-slate-700" />, defaultWidth: 12 }
+    data: { label: "DATA POSIÇÃO II", icon: <MapPin size={13} className="text-slate-700" />, defaultWidth: 18 },
+    bateria: { label: "BATERIA ISCA _ RF II", icon: <Battery size={13} className="text-slate-700" />, defaultWidth: 12 }
   };
 
   const [placasColumnOrder, setPlacasColumnOrder] = useState<string[]>([
@@ -1311,11 +1256,11 @@ export default function Controle({ onBack }: ControleProps) {
       case 'prata':
       default:
         return {
-          headerBg: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF1 25%, #C2CCD4 50%, #E8EDF1 75%, #B0BAC3 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFFFF 0%, #DDE4E9 35%, #AAB6C0 50%, #EEF2F5 70%, #B7C2CA 100%)',
+          headerBg: 'linear-gradient(180deg,#FFFFFF_0%,#E8EDF1_25%,#C2CCD4_50%,#E8EDF1_75%,#B0BAC3_100%)',
+          subHeaderBg: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
           border: '#929FA9',
-          table1Header: 'linear-gradient(180deg, #FFFFFF 0%, #DDE4E9 35%, #AAB6C0 50%, #EEF2F5 70%, #B7C2CA 100%)',
-          table2Header: 'linear-gradient(180deg, #FFFFFF 0%, #DDE4E9 35%, #AAB6C0 50%, #EEF2F5 70%, #B7C2CA 100%)',
+          table1Header: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
+          table2Header: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
         };
     }
   };
@@ -2158,25 +2103,9 @@ export default function Controle({ onBack }: ControleProps) {
       setSidebarTecnologia(item.tecnologia);
     }
 
-    // As colunas NF INÍCIO e NF FIM precisam ficar vazias ao importar da aba Placas,
-    // a menos que o formato de lista (Cuiabá) tenha fornecido uma NF
-    if (item.nf) {
-      setNfInicio(item.nf.trim().replace(/[\s.]/g, ""));
-      setNfFim("");
-    } else {
-      setNfInicio("");
-      setNfFim("");
-    }
-
-    if (item.isca1) {
-      setIsca1(item.isca1);
-    }
-    if (item.produto1) {
-      setProduto1(item.produto1);
-    }
-    if (item.uma1) {
-      setUma1(item.uma1);
-    }
+    // As colunas NF INÍCIO e NF FIM precisam ficar vazias ao importar da aba Placas
+    setNfInicio("");
+    setNfFim("");
 
     // Somente quando a informação for importada da aba Santa Luzia, importa o VALOR NF para o valor da carga
     if (item.valorNf) {
@@ -2294,10 +2223,6 @@ export default function Controle({ onBack }: ControleProps) {
 
     if (info.tecnologia) {
       setSidebarTecnologia(info.tecnologia);
-    }
-
-    if (info.dataEmbarque) {
-      setDataEnviada(info.dataEmbarque);
     }
 
     // Valor da carga fica vazio na importação da aba Unidades (exclusivo para Santa Luzia)
@@ -3501,23 +3426,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     <div className="bg-red-50/40 border-2 border-red-200 rounded-3xl p-5 sm:p-6 flex flex-col gap-5 animate-fade-in">
                       {/* Cockpit Header */}
                       <div className="flex items-center justify-between border-b border-red-200 pb-3.5">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <h3 className="text-xs font-black uppercase tracking-wider text-red-950">
-                              Dados Reconhecidos & Prontos para o PGR
-                            </h3>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <label className="text-[10px] font-black uppercase text-stone-600">Configurar Tema:</label>
-                            <select value={preAlertaTheme} onChange={(e) => setPreAlertaTheme(e.target.value as any)} className="bg-white border border-red-300 rounded-md px-2 py-1 text-[10px] font-black uppercase outline-none shadow-xs">
-                              <option value="prata">Prata</option>
-                              <option value="ouro">Ouro</option>
-                              <option value="bronze">Bronze</option>
-                              <option value="rubi">Rubi</option>
-                              <option value="gelo">Gelo</option>
-                            </select>
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <h3 className="text-xs font-black uppercase tracking-wider text-red-950">
+                            Dados Reconhecidos & Prontos para o PGR
+                          </h3>
                         </div>
                         <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">
                           Origem: CUIABÁ / MT
@@ -3704,91 +3617,22 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
         {/* TAB CONTENT: Gerador PGR Workspace */}
         {activeTab === "gerador" && (
-          <div className="flex flex-col gap-5 max-w-full mx-auto w-full animate-fade-in">
-            {/* TOP AREA: Fast Fill & Vehicle Forms */}
-            <div className="flex flex-col gap-5 w-full">
-              {/* Fast Fill Form */}
-              <div className="rounded-2xl bg-white border border-stone-200 shadow-md flex flex-col p-5">
-                <div className="border-b border-stone-200 pb-3 mb-4 flex items-center justify-between">
-                  <h3 className="text-base font-extrabold text-stone-900 uppercase flex items-center gap-2">
-                    <Sliders size={18} className={isCuiabaOrigem ? "text-amber-600" : "text-red-600"} /> Painel de Preenchimento Rápido
-                  </h3>
-                  <button type="button" onClick={handleClear} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Limpar tudo">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">Origem</label>
-                      <select value={origem} onChange={(e) => setOrigem(e.target.value)} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold uppercase">
-                        {ORIGEM_OPCOES.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">Selecionar Rota (Destino)</label>
-                      <select value={rota1} onChange={(e) => {
-                        const val = e.target.value;
-                        setRota1(val);
-                        const parts = val.split(/\s*x\s*/i);
-                        const last = parts[parts.length-1]?.trim();
-                        if (last) setDestino(last);
-                      }} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold uppercase">
-                        <option value="">Selecione...</option>
-                        {DESTINOS_OPCOES.map(dest => {
-                          const disp = dest.replace(/^SANTA LUZIA\/MG/i, origem);
-                          return <option key={dest} value={disp}>{disp}</option>;
-                        })}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">Colar da Planilha (Parametrização)</label>
-                      <textarea value={pastePlanilha} onChange={(e) => handlePastePlanilhaChange(e.target.value)} rows={2} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold resize-none" placeholder="Cole aqui..." />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">Nome Motorista</label>
-                      <input type="text" value={sidebarMotorista} onChange={(e) => handleSidebarMotoristaChange(e.target.value)} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold uppercase" placeholder="MOTORISTA" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vehicle & Cargo Form */}
-              <div className="rounded-2xl bg-white border border-stone-200 shadow-md flex flex-col p-5">
-                <div className="border-b border-stone-200 pb-3 mb-4 flex items-center justify-between">
-                  <h3 className="text-base font-extrabold text-stone-900 uppercase flex items-center gap-2">
-                    <Truck size={18} className={isCuiabaOrigem ? "text-amber-600" : "text-red-600"} /> Veículo & Carga
-                  </h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">Placa Cavalo</label>
-                      <input type="text" value={cavalo} onChange={(e) => setCavalo(e.target.value.replace(/-/g, ""))} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold uppercase" placeholder="CAVALO" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">Placa Carreta 1</label>
-                      <input type="text" value={carreta1} onChange={(e) => setCarreta1(e.target.value)} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold uppercase" placeholder="CARRETA 1" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">NF Início</label>
-                      <input type="text" value={nfInicio} onChange={(e) => setNfInicio(e.target.value.replace(/-/g, ""))} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold" placeholder="NF" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black uppercase text-stone-600">Valor da Carga</label>
-                      <input type="text" value={valorCarga} onChange={(e) => setValorCarga(e.target.value)} className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold" placeholder="R$ 0,00" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col w-full">
-        <div className="flex flex-col w-full">
+          <div className="flex flex-col gap-4 max-w-full mx-auto w-full animate-fade-in">
+            <div className={cn(
+              "grid gap-4 items-start w-full",
+              preAlertaMode === "minimized"
+                ? "grid-cols-1 xl:grid-cols-2"
+                : preAlertaMode === "maximized"
+                  ? "grid-cols-1 xl:grid-cols-2"
+                  : "grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px_280px] xl:grid-cols-[minmax(0,1fr)_290px_290px] 2xl:grid-cols-[minmax(0,1fr)_305px_305px]"
+            )}>
+        {/* LEFT AREA: Template Generator */}
+        <div className={cn(
+          "flex flex-col min-w-0",
+          preAlertaMode === "minimized" || preAlertaMode === "maximized"
+            ? "col-span-1 xl:col-span-2"
+            : "col-span-1 xl:col-span-1"
+        )}>
           <div className="flex-1 rounded-2xl sm:rounded-3xl bg-[#f8fafc]/92 backdrop-blur-md border border-[#929FA9]/50 shadow-xl relative overflow-hidden flex flex-col p-4 sm:p-6 text-[#00163a]">
 
           {/* Module Title */}
