@@ -230,7 +230,7 @@ export function BrazilMapBroadcast({
   selectedUf,
   onSelectUf,
   stateData = {},
-  activeColor = '#c4161c',
+  activeColor = '#0f172a',
   secondaryColor = '#8a7c6e',
   neutralColor = '#e8ded2',
   titleLegend = 'LÍDER POR UF',

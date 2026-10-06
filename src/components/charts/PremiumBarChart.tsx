@@ -24,7 +24,7 @@ export interface PremiumBarChartProps {
 export default function PremiumBarChart({
   data,
   xKey = 'name',
-  barKeys = [{ key: 'value', name: 'Valor', color: '#9b1526' }],
+  barKeys = [{ key: 'value', name: 'Valor', color: '#0f172a' }],
   height = 200,
   horizontal = false, // We'll render optimized vertical cylinders that feel premium
   title,
@@ -87,7 +87,7 @@ export default function PremiumBarChart({
         <div className="mb-4 flex items-center justify-between">
           <div>
             {title && (
-              <h4 className="text-xs font-mono font-black uppercase tracking-[0.15em] text-[#9b1526]">
+              <h4 className="text-xs font-mono font-black uppercase tracking-[0.15em] text-[#0f172a]">
                 {title}
               </h4>
             )}
@@ -114,7 +114,7 @@ export default function PremiumBarChart({
 
             {/* Shaders for each configured key color */}
             {barKeys.map((bar, idx) => {
-              const hex = bar.color || (customColorList && customColorList[idx]) || '#9b1526';
+              const hex = bar.color || (customColorList && customColorList[idx]) || '#0f172a';
               const shadowColor = getSideColor(hex, 0.65);
               const highlightColor = getSideColor(hex, 1.35);
               const glintColor = '#ffffff';
@@ -281,7 +281,7 @@ export default function PremiumBarChart({
                   fontSize="9"
                   className={cn(
                     "font-sans font-bold tracking-wide transition-all",
-                    isGroupHovered ? "fill-[#9b1526] font-extrabold" : "fill-stone-600"
+                    isGroupHovered ? "fill-[#0f172a] font-extrabold" : "fill-stone-600"
                   )}
                 >
                   {item[xKey]}
@@ -317,7 +317,7 @@ export default function PremiumBarChart({
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: bar.color }} />
                       {bar.name}:
                     </span>
-                    <span className="font-black text-[#9b1526]">
+                    <span className="font-black text-[#0f172a]">
                       {(Number(data[hoveredIndex][bar.key]) || 0).toLocaleString('pt-BR')} {unit}
                     </span>
                   </div>

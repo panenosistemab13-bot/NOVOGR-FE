@@ -339,7 +339,7 @@ export default function DashboardInicio({
                   }))}
                   xKey="date"
                   lines={[
-                    { key: 'Produção', name: 'Produção (kg)', color: '#9b1526' },
+                    { key: 'Produção', name: 'Produção (kg)', color: '#0f172a' },
                     { key: 'Vendas', name: 'Vendas (kg)', color: '#06b6d4' }
                   ]}
                   height={200}

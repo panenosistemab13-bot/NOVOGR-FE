@@ -110,7 +110,7 @@ export default function PremiumLineChart({
         <div className="mb-4 flex items-center justify-between">
           <div>
             {title && (
-              <h4 className="text-xs font-mono font-black uppercase tracking-[0.15em] text-[#9b1526]">
+              <h4 className="text-xs font-mono font-black uppercase tracking-[0.15em] text-[#0f172a]">
                 {title}
               </h4>
             )}
@@ -297,7 +297,7 @@ export default function PremiumLineChart({
                 fontSize="8.5"
                 className={cn(
                   "font-mono font-bold tracking-wide transition-colors",
-                  isSelected ? "fill-[#9b1526] font-extrabold" : "fill-stone-500"
+                  isSelected ? "fill-[#0f172a] font-extrabold" : "fill-stone-500"
                 )}
                 onMouseEnter={() => setHoveredIndex(idx)}
                 onMouseLeave={() => setHoveredIndex(null)}
@@ -334,7 +334,7 @@ export default function PremiumLineChart({
                       <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: line.color }} />
                       {line.name}:
                     </span>
-                    <span className="font-black text-[#9b1526]">
+                    <span className="font-black text-[#0f172a]">
                       {(Number(data[hoveredIndex][line.key]) || 0).toLocaleString('pt-BR')} {unit}
                     </span>
                   </div>

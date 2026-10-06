@@ -477,7 +477,7 @@ export default function App() {
                     "w-full bg-[#fbf9f5] text-stone-900 placeholder-stone-300 border rounded-xl px-4 py-3 text-center font-mono tracking-widest text-lg focus:outline-none transition-all shadow-inner",
                     passwordError 
                       ? "border-red-500 text-red-600 focus:ring-2 focus:ring-red-500" 
-                      : "border-stone-200 focus:border-[#9b1526] focus:ring-1 focus:ring-[#9b1526]"
+                      : "border-stone-200 focus:border-[#0f172a] focus:ring-1 focus:ring-[#0f172a]"
                   )}
                   autoFocus
                 />
@@ -502,7 +502,7 @@ export default function App() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 px-4 rounded-xl bg-[#9b1526] hover:bg-[#831220] text-white font-bold uppercase text-xs tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer font-mono"
+                    className="flex-1 py-3 px-4 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold uppercase text-xs tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer font-mono"
                   >
                     Autorizar
                   </button>

@@ -26,7 +26,7 @@ export function HUDPanel({
     normal: 'border-emerald-300 text-emerald-800 bg-emerald-50',
     warning: 'border-amber-300 text-amber-800 bg-amber-50',
     critical: 'border-red-300 text-red-800 bg-red-50',
-    info: 'border-[#d6ccbe] text-[#9b1526] bg-red-50/60'
+    info: 'border-[#d6ccbe] text-[#0f172a] bg-red-50/60'
   }[status];
 
   return (
@@ -35,7 +35,7 @@ export function HUDPanel({
       <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#e7dac9]">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className={cn("p-1.5 rounded-lg border shrink-0", statusGlow)}>
-            <Radio size={14} className="text-[#9b1526]" />
+            <Radio size={14} className="text-[#0f172a]" />
           </div>
           <h2 className="text-sm font-black font-mono uppercase tracking-wider text-stone-900 truncate">
             {title}

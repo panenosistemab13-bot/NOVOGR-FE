@@ -79,7 +79,7 @@ export default function PremiumHeader({
           title="Central GR - 3 Corações"
         >
           {/* 3 Corações Circular Red Emblem */}
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#7a0c16] border-2 border-white shadow-[0_4px_12px_rgba(179,20,29,0.35)] flex flex-col items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#0b1320] border-2 border-white shadow-[0_4px_12px_rgba(179,20,29,0.35)] flex flex-col items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
             {/* Corações icônicos estilizados */}
             <div className="flex items-center justify-center -space-x-1 mb-0.5">
               <span className="text-[#ffdf6d] text-[13px] leading-none">♥</span>

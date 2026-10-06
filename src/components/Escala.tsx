@@ -2245,7 +2245,7 @@ export default function Escala({ onBack }: EscalaProps) {
               Aba Protegida por Senha
             </h3>
             <p className="text-xs text-stone-500 font-mono max-w-md mx-auto leading-relaxed">
-              A aba <span className="font-bold text-[#9b1526] uppercase">{activeTab === 'motoristas' ? '3. Motoristas 3C' : activeTab === 'apolice' ? '4. Apólice' : '5. Transportador'}</span> requer credencial autorizada para visualização e edição da base de dados.
+              A aba <span className="font-bold text-[#0f172a] uppercase">{activeTab === 'motoristas' ? '3. Motoristas 3C' : activeTab === 'apolice' ? '4. Apólice' : '5. Transportador'}</span> requer credencial autorizada para visualização e edição da base de dados.
             </p>
           </div>
 
@@ -2286,7 +2286,7 @@ export default function Escala({ onBack }: EscalaProps) {
             <div className="flex flex-col gap-2 pt-2">
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#9b1526] hover:bg-[#831220] text-white font-mono font-bold uppercase text-xs tracking-wider rounded-2xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 border border-red-700 active:scale-95"
+                className="w-full py-3.5 bg-[#0f172a] hover:bg-[#1e293b] text-white font-mono font-bold uppercase text-xs tracking-wider rounded-2xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 border border-red-700 active:scale-95"
               >
                 <Key size={16} />
                 <span>Desbloquear Acesso</span>
@@ -2308,7 +2308,7 @@ export default function Escala({ onBack }: EscalaProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
             <div>
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-red-50 text-[#9b1526] border border-red-200 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-red-50 text-[#0f172a] border border-red-200 flex items-center justify-center">
                   <Users size={18} />
                 </div>
                 <h3 className="text-xl font-mono font-bold uppercase tracking-tight text-stone-900">
@@ -2336,7 +2336,7 @@ export default function Escala({ onBack }: EscalaProps) {
               {/* Add Motorista Button */}
               <button
                 onClick={handleOpenAddMotoristaModal}
-                className="px-4 py-2 bg-[#9b1526] hover:bg-[#831220] text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center gap-2 shrink-0 active:scale-95 border border-red-700"
+                className="px-4 py-2 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center gap-2 shrink-0 active:scale-95 border border-red-700"
               >
                 <UserPlus size={16} />
                 <span>Novo Motorista</span>
@@ -2429,7 +2429,7 @@ export default function Escala({ onBack }: EscalaProps) {
             >
               <div className="flex items-center justify-between border-b border-stone-200 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-red-50 text-[#9b1526] border border-red-200 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-red-50 text-[#0f172a] border border-red-200 flex items-center justify-center">
                     <Users size={18} />
                   </div>
                   <h3 className="text-lg font-mono font-bold uppercase text-stone-900">
@@ -2496,7 +2496,7 @@ export default function Escala({ onBack }: EscalaProps) {
 
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#9b1526] hover:bg-[#831220] text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer shadow-xs flex items-center gap-1.5 border border-red-700 active:scale-95"
+                    className="px-5 py-2 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer shadow-xs flex items-center gap-1.5 border border-red-700 active:scale-95"
                   >
                     <Save size={15} />
                     <span>Salvar</span>
@@ -2520,7 +2520,7 @@ export default function Escala({ onBack }: EscalaProps) {
             >
               <div className="flex items-center justify-between border-b border-stone-200 pb-3 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-red-50 text-[#9b1526] border border-red-200 flex items-center justify-center shadow-xs">
+                  <div className="w-10 h-10 rounded-2xl bg-red-50 text-[#0f172a] border border-red-200 flex items-center justify-center shadow-xs">
                     <MapPin size={22} />
                   </div>
                   <div>
@@ -2548,7 +2548,7 @@ export default function Escala({ onBack }: EscalaProps) {
                       key={dest}
                       className="p-2.5 bg-[#fbf9f5] hover:bg-stone-100 border border-[#d6ccbe] hover:border-stone-400 rounded-xl transition-colors flex items-center gap-2 font-mono text-xs font-bold text-stone-800"
                     >
-                      <span className="w-6 h-6 rounded-md bg-white text-[#9b1526] border border-[#d6ccbe] flex items-center justify-center text-[10px] font-black shrink-0">
+                      <span className="w-6 h-6 rounded-md bg-white text-[#0f172a] border border-[#d6ccbe] flex items-center justify-center text-[10px] font-black shrink-0">
                         {idx + 1}
                       </span>
                       <span className="truncate">{dest}</span>

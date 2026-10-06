@@ -151,7 +151,7 @@ export default function Graficos3DView() {
                 }))}
                 xKey="day"
                 lines={[
-                  { key: 'Produção', name: 'Produção (kg)', color: '#9b1526' },
+                  { key: 'Produção', name: 'Produção (kg)', color: '#0f172a' },
                   { key: 'Vendas', name: 'Vendas (kg)', color: '#dfb15b' }
                 ]}
                 height={260}

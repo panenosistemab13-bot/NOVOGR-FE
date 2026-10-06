@@ -40,7 +40,7 @@ export default function PremiumChart({
       <PremiumBarChart
         data={data}
         xKey={xKey}
-        barKeys={barKeys || [{ key: 'value', name: 'Valor', color: '#9b1526' }]}
+        barKeys={barKeys || [{ key: 'value', name: 'Valor', color: '#0f172a' }]}
         height={height}
         title={title}
         subtitle={subtitle}
@@ -55,7 +55,7 @@ export default function PremiumChart({
       <PremiumLineChart
         data={data}
         xKey={xKey}
-        lines={lineKeys || [{ key: 'value', name: 'Valor', color: '#9b1526' }]}
+        lines={lineKeys || [{ key: 'value', name: 'Valor', color: '#0f172a' }]}
         height={height}
         title={title}
         subtitle={subtitle}
@@ -69,7 +69,7 @@ export default function PremiumChart({
     const defaultDonutData = data.map((item, idx) => ({
       name: item.name || `Item ${idx}`,
       value: item.value || 0,
-      color: item.color || (idx === 0 ? '#9b1526' : idx === 1 ? '#dfb15b' : idx === 2 ? '#10b981' : '#71717a')
+      color: item.color || (idx === 0 ? '#0f172a' : idx === 1 ? '#dfb15b' : idx === 2 ? '#10b981' : '#71717a')
     }));
 
     return (

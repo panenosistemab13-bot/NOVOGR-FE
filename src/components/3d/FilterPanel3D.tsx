@@ -29,7 +29,7 @@ export function FilterPanel3D({
             value={searchQuery || ''}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full bg-white border border-[#d6ccbe] rounded-xl pl-9 pr-4 py-2 text-xs font-mono text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#9b1526] transition-colors shadow-xs"
+            className="w-full bg-white border border-[#d6ccbe] rounded-xl pl-9 pr-4 py-2 text-xs font-mono text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#0f172a] transition-colors shadow-xs"
           />
         </div>
       )}

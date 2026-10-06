@@ -288,7 +288,7 @@ export default function RestrictedPagesModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-6 right-6 w-12 h-12 rounded-2xl bg-[#fbf9f5] text-stone-400 hover:bg-[#9b1526] hover:text-white flex items-center justify-center transition-all shadow-sm z-20 cursor-pointer border border-[#d6ccbe]"
+          className="absolute top-6 right-6 w-12 h-12 rounded-2xl bg-[#fbf9f5] text-stone-400 hover:bg-[#0f172a] hover:text-white flex items-center justify-center transition-all shadow-sm z-20 cursor-pointer border border-[#d6ccbe]"
           title="Fechar"
         >
           <X size={20} />
@@ -297,7 +297,7 @@ export default function RestrictedPagesModal({
         {/* Header Title Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-stone-100 shrink-0 pr-12">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-3xl bg-[#9b1526] flex items-center justify-center border border-red-900/10 text-white shadow-xl shrink-0">
+            <div className="w-16 h-16 rounded-3xl bg-[#0f172a] flex items-center justify-center border border-red-900/10 text-white shadow-xl shrink-0">
               <Settings size={28} className="stroke-[2.5]" />
             </div>
             <div>
@@ -325,42 +325,42 @@ export default function RestrictedPagesModal({
 
         {/* PRESET QUICK ACTIONS SUGGESTIONS */}
         <div className="mt-6 shrink-0 bg-[#fbf9f5] border border-[#d6ccbe] p-4 rounded-3xl">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#9b1526] mb-3 block">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0f172a] mb-3 block">
             ⚡ Presets de Configuração Rápida:
           </span>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full">
             <button
               type="button"
               onClick={() => applyPreset('all_visible')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#9b1526] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
+              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
             >
               🌟 Exibir Tudo
             </button>
             <button
               type="button"
               onClick={() => applyPreset('default')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#9b1526] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
+              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
             >
               🔒 Padrão Seguro
             </button>
             <button
               type="button"
               onClick={() => applyPreset('operational')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#9b1526] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
+              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
             >
               🚛 Operacional
             </button>
             <button
               type="button"
               onClick={() => applyPreset('admin')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#9b1526] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
+              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
             >
               👥 Gestão Adm
             </button>
             <button
               type="button"
               onClick={() => applyPreset('executive')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#9b1526] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
+              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
             >
               🌐 Executivo
             </button>
@@ -377,7 +377,7 @@ export default function RestrictedPagesModal({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar módulos..."
-              className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-2xl pl-11 pr-4 py-2.5 text-xs text-stone-900 placeholder-stone-400 font-bold focus:outline-none focus:border-[#9b1526] transition-colors shadow-inner"
+              className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-2xl pl-11 pr-4 py-2.5 text-xs text-stone-900 placeholder-stone-400 font-bold focus:outline-none focus:border-[#0f172a] transition-colors shadow-inner"
             />
           </div>
 
@@ -390,7 +390,7 @@ export default function RestrictedPagesModal({
                 className={cn(
                   "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer",
                   filterTab === 'all' 
-                    ? "bg-white text-[#9b1526] shadow-sm" 
+                    ? "bg-white text-[#0f172a] shadow-sm" 
                     : "text-stone-500 hover:text-stone-900"
                 )}
               >
@@ -429,7 +429,7 @@ export default function RestrictedPagesModal({
                 "px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-2 border shadow-sm transition-all cursor-pointer shrink-0",
                 showAddPageForm 
                   ? "bg-stone-900 text-white border-stone-800"
-                  : "bg-[#9b1526] hover:bg-[#831220] text-white border-red-800"
+                  : "bg-[#0f172a] hover:bg-[#1e293b] text-white border-red-800"
               )}
             >
               {showAddPageForm ? <X size={14} /> : <Plus size={14} />}
@@ -452,7 +452,7 @@ export default function RestrictedPagesModal({
                 className="bg-[#fbf9f5] border border-[#d6ccbe] p-6 rounded-[32px] text-stone-900 shadow-xl space-y-4"
               >
                 <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-                  <span className="text-xs font-black uppercase tracking-widest text-[#9b1526] flex items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-widest text-[#0f172a] flex items-center gap-2">
                     <Sparkles size={16} />
                     Cadastrar Módulo Personalizado
                   </span>
@@ -474,7 +474,7 @@ export default function RestrictedPagesModal({
                       value={newPageLabel}
                       onChange={(e) => setNewPageLabel(e.target.value)}
                       placeholder="Ex: Auditoria PGR"
-                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#9b1526]"
+                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#0f172a]"
                       required
                     />
                   </div>
@@ -488,7 +488,7 @@ export default function RestrictedPagesModal({
                       value={newPageCategory}
                       onChange={(e) => setNewPageCategory(e.target.value)}
                       placeholder="Ex: Operacional"
-                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#9b1526]"
+                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#0f172a]"
                     />
                   </div>
 
@@ -499,7 +499,7 @@ export default function RestrictedPagesModal({
                     <select
                       value={newPageIcon}
                       onChange={(e) => setNewPageIcon(e.target.value)}
-                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#9b1526] cursor-pointer"
+                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#0f172a] cursor-pointer"
                     >
                       {Object.keys(ICON_MAP).map((iconKey) => (
                         <option key={iconKey} value={iconKey}>{iconKey}</option>
@@ -514,7 +514,7 @@ export default function RestrictedPagesModal({
                       type="checkbox"
                       checked={newPageVisible}
                       onChange={(e) => setNewPageVisible(e.target.checked)}
-                      className="w-5 h-5 accent-[#9b1526] rounded-lg"
+                      className="w-5 h-5 accent-[#0f172a] rounded-lg"
                     />
                     <span className="text-xs font-bold text-stone-700">
                       Disponibilizar imediatamente no menu principal
@@ -531,7 +531,7 @@ export default function RestrictedPagesModal({
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 rounded-xl bg-[#9b1526] text-white text-xs font-black uppercase transition-all shadow-md"
+                      className="px-6 py-2 rounded-xl bg-[#0f172a] text-white text-xs font-black uppercase transition-all shadow-md"
                     >
                       Salvar Módulo
                     </button>
@@ -562,7 +562,7 @@ export default function RestrictedPagesModal({
                   className={cn(
                     "p-4 rounded-[28px] border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm",
                     isVisible
-                      ? "bg-white border-stone-200 hover:border-[#9b1526]/30"
+                      ? "bg-white border-stone-200 hover:border-[#0f172a]/30"
                       : "bg-[#fbf9f5]/50 border-stone-100 opacity-60"
                   )}
                 >
@@ -571,7 +571,7 @@ export default function RestrictedPagesModal({
                     <div className={cn(
                       "w-14 h-14 rounded-2xl flex items-center justify-center border shrink-0 shadow-sm transition-all",
                       isVisible
-                        ? "bg-[#9b1526]/5 border-[#9b1526]/10 text-[#9b1526]"
+                        ? "bg-[#0f172a]/5 border-[#0f172a]/10 text-[#0f172a]"
                         : "bg-stone-100 border-stone-200 text-stone-400"
                     )}>
                       <IconComponent size={24} strokeWidth={2.5} />
@@ -584,7 +584,7 @@ export default function RestrictedPagesModal({
                         </span>
                         
                         {page.isCustom && (
-                          <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#9b1526] border border-red-100 text-[8px] font-black uppercase tracking-widest">
+                          <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#0f172a] border border-red-100 text-[8px] font-black uppercase tracking-widest">
                             Personalizado
                           </span>
                         )}
@@ -601,7 +601,7 @@ export default function RestrictedPagesModal({
                     <div className="bg-white border border-[#d6ccbe] px-3 py-1.5 rounded-xl shadow-inner text-center min-w-[70px]">
                       <span className="text-[10px] font-black text-stone-950 font-mono">#{globalIndex + 1}</span>
                       {globalIndex < 9 && (
-                        <span className="text-[7px] font-black text-[#9b1526] block leading-none mt-0.5">CTRL+{globalIndex + 1}</span>
+                        <span className="text-[7px] font-black text-[#0f172a] block leading-none mt-0.5">CTRL+{globalIndex + 1}</span>
                       )}
                     </div>
 
@@ -612,7 +612,7 @@ export default function RestrictedPagesModal({
                         disabled={isFirst}
                         className={cn(
                           "w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border",
-                          isFirst ? "opacity-20 pointer-events-none" : "bg-white text-stone-600 hover:bg-[#9b1526] hover:text-white border-[#d6ccbe]"
+                          isFirst ? "opacity-20 pointer-events-none" : "bg-white text-stone-600 hover:bg-[#0f172a] hover:text-white border-[#d6ccbe]"
                         )}
                       >
                         <ChevronUp size={14} strokeWidth={3} />
@@ -623,7 +623,7 @@ export default function RestrictedPagesModal({
                         disabled={isLast}
                         className={cn(
                           "w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border",
-                          isLast ? "opacity-20 pointer-events-none" : "bg-white text-stone-600 hover:bg-[#9b1526] hover:text-white border-[#d6ccbe]"
+                          isLast ? "opacity-20 pointer-events-none" : "bg-white text-stone-600 hover:bg-[#0f172a] hover:text-white border-[#d6ccbe]"
                         )}
                       >
                         <ChevronDown size={14} strokeWidth={3} />
@@ -695,7 +695,7 @@ export default function RestrictedPagesModal({
             <button
               type="button"
               onClick={handleSaveAndApply}
-              className="flex-1 sm:flex-initial py-4 px-10 rounded-[20px] bg-[#9b1526] hover:bg-[#831220] text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-3 border border-red-800"
+              className="flex-1 sm:flex-initial py-4 px-10 rounded-[20px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-3 border border-red-800"
             >
               <Check size={18} strokeWidth={3} />
               Aplicar Mudanças

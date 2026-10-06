@@ -849,7 +849,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
   const renderCodesTable = () => (
     <div className="bg-white border border-[#d6ccbe] rounded-[40px] overflow-hidden shadow-[0_20px_50px_rgba(155,21,38,0.04)]">
-      <div className="bg-gradient-to-r from-[#9b1526] via-[#851221] to-[#9b1526] p-5 text-center border-b border-[#9b1526]/10">
+      <div className="bg-gradient-to-r from-[#0f172a] via-[#851221] to-[#0f172a] p-5 text-center border-b border-[#0f172a]/10">
         <h3 className="text-white font-black uppercase tracking-[0.2em] text-sm">Solicitação de Monitoramento</h3>
         <p className="text-white/70 text-[9px] font-mono font-bold uppercase mt-1 tracking-widest">Trafegus • Códigos Padronizados</p>
       </div>
@@ -1205,7 +1205,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             return (
               <div className="w-full shrink-0">
                 <div className="flex flex-col gap-3 w-full">
-                  <div className="relative w-full h-[64px] bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] rounded-2xl overflow-hidden flex items-center justify-between px-6 shadow-md border border-white/20">
+                  <div className="relative w-full h-[64px] bg-gradient-to-r from-[#0b1320] via-[#0f172a] to-[#910d14] rounded-2xl overflow-hidden flex items-center justify-between px-6 shadow-md border border-white/20">
                     <div className="relative z-10 flex flex-col text-left leading-none">
                       <span className="text-[11px] font-black tracking-widest text-[#ffd54f] uppercase">
                         ROTA DE TRANSPORTE - BRASIL
@@ -1584,17 +1584,17 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                         />
                         <button 
                           onClick={() => addNewRow('volta')}
-                          className="w-full py-2.5 bg-[#9b1526] hover:bg-[#831221] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+                          className="w-full py-2.5 bg-[#0f172a] hover:bg-[#831221] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
                         >
                           <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto rounded-lg border border-[#9b1526]/20 shadow-xs">
+                    <div className="overflow-x-auto rounded-lg border border-[#0f172a]/20 shadow-xs">
                       <table className="w-full text-left border-collapse font-sans">
                         <thead>
-                          <tr className="bg-[#9b1526] border-b border-red-900 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
+                          <tr className="bg-[#0f172a] border-b border-red-900 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
                             <th className="px-2 py-2 w-8 text-center text-white">#</th>
                             <th className="px-2 py-2 w-10 text-center text-white">OK</th>
                             <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
@@ -1634,7 +1634,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   type="text"
                                   value={row.dataSaida}
                                   onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'volta')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
                                 />
                               </td>
                               <td className="p-1.5 group/cell">
@@ -1643,11 +1643,11 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                     type="text"
                                     value={row.motorista}
                                     onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'volta')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
                                   />
                                   <button 
                                     onClick={() => safeCopyText(row.motorista)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#9b1526] transition-all shrink-0 cursor-pointer"
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
                                     title="Copiar Motorista"
                                   >
                                     <Copy size={12} />
@@ -1667,7 +1667,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   type="text"
                                   value={row.bau1}
                                   onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'volta')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
                                 />
                               </td>
                               <td className="p-1.5 text-center">
@@ -1675,7 +1675,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   type="text"
                                   value={row.bau2}
                                   onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'volta')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
                                 />
                               </td>
                               <td className="p-1.5 text-center">
@@ -1684,7 +1684,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                     type="text"
                                     value={row.trecho}
                                     onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'volta')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
                                   />
                                   <button 
                                     onClick={() => {
@@ -1707,14 +1707,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                 <div className="flex items-center justify-end gap-1">
                                   <button 
                                     onClick={() => openPdfModal('volta', i)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#9b1526]/10 hover:bg-[#9b1526]/25 rounded text-[#9b1526] transition-all shrink-0 cursor-pointer"
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#0f172a]/10 hover:bg-[#0f172a]/25 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
                                     title="Importar PDFs de NFs para esta linha"
                                   >
                                     <FileText size={12} />
                                   </button>
                                   <button 
                                     onClick={() => navigator.clipboard.writeText(row.valorNf)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#9b1526] transition-all shrink-0 cursor-pointer"
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
                                     title="Copiar Valor"
                                   >
                                     <Copy size={12} />
@@ -1723,7 +1723,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                     type="text"
                                     value={row.valorNf}
                                     onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'volta')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all text-xs"
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all text-xs"
                                   />
                                 </div>
                               </td>
@@ -1777,12 +1777,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               <section className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden font-sans transition-all">
                 <div className="bg-emerald-50/50 p-4 border-b border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#9b1526] text-white rounded-xl shadow-sm">
+                    <div className="p-2 bg-[#0f172a] text-white rounded-xl shadow-sm">
                       <Truck size={18} />
                     </div>
                     <div>
                       <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight">Rota Vespasiano</h2>
-                      <p className="text-[10px] text-[#9b1526] font-bold uppercase tracking-widest">Controle de Saída</p>
+                      <p className="text-[10px] text-[#0f172a] font-bold uppercase tracking-widest">Controle de Saída</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1829,7 +1829,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                       <div className="lg:col-span-3 flex items-end justify-start gap-3">
                         <button 
                           onClick={() => addNewRow('vespasiano')}
-                          className="flex items-center gap-2 px-5 py-2.5 bg-[#9b1526] hover:bg-[#831221] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-red-100 cursor-pointer"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-[#0f172a] hover:bg-[#831221] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-red-100 cursor-pointer"
                         >
                           <Plus size={16} /> Adicionar Linha
                         </button>
@@ -1934,7 +1934,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                     type="text"
                                     value={row.trecho}
                                     onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'vespasiano')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#9b1526] focus:ring-2 focus:ring-[#9b1526]/20 outline-none transition-all uppercase text-xs"
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
                                   />
                                 </div>
                               </td>
@@ -2035,7 +2035,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
                   <div className="bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl p-4 mb-4 text-center relative group/total text-stone-900 shadow-xs">
                     <p className="text-[10px] font-mono font-bold text-stone-500 uppercase tracking-widest mb-1">Total Consolidado</p>
-                    <h4 className="text-2xl font-mono font-black tracking-tight text-[#9b1526]">
+                    <h4 className="text-2xl font-mono font-black tracking-tight text-[#0f172a]">
                       <span className="text-stone-400 mr-1 text-sm font-semibold">R$</span>
                       {calculateTotal()}
                     </h4>
@@ -2135,7 +2135,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             {/* Modal Header */}
             <div className="bg-[#fbf9f5] p-5 text-stone-900 flex items-center justify-between border-b border-[#e7dac9]">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-red-50 border border-red-200 text-[#9b1526] rounded-xl shadow-xs">
+                <div className="p-2.5 bg-red-50 border border-red-200 text-[#0f172a] rounded-xl shadow-xs">
                   <FileText size={22} />
                 </div>
                 <div>
@@ -2168,7 +2168,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   disabled={isProcessingPdf}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
-                <div className="p-4 bg-red-100 text-[#9b1526] rounded-full shadow-xs group-hover:scale-105 transition-transform mb-3 border border-red-200">
+                <div className="p-4 bg-red-100 text-[#0f172a] rounded-full shadow-xs group-hover:scale-105 transition-transform mb-3 border border-red-200">
                   <Upload size={28} />
                 </div>
                 <p className="text-sm font-mono font-bold text-stone-900 uppercase tracking-wide">
@@ -2182,7 +2182,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               {/* Processing Loader */}
               {isProcessingPdf && (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-center gap-3 text-amber-900 font-bold text-sm animate-pulse">
-                  <Loader2 size={20} className="animate-spin text-[#9b1526]" />
+                  <Loader2 size={20} className="animate-spin text-[#0f172a]" />
                   Processando e lendo o valor das NFs em PDF...
                 </div>
               )}
@@ -2191,7 +2191,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               {parsedPdfItems.length > 0 && (
                 <div className="space-y-4">
                   {/* Total Banner */}
-                  <div className="bg-[#9b1526] p-5 rounded-2xl text-white shadow-xs relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 border border-red-700">
+                  <div className="bg-[#0f172a] p-5 rounded-2xl text-white shadow-xs relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 border border-red-700">
                     <div>
                       <p className="text-[11px] font-mono font-bold uppercase tracking-widest text-red-200">
                         Valor Total Somado ({parsedPdfItems.length} NFs)
@@ -2297,7 +2297,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                 <button 
                   onClick={() => applyPdfTotalToTarget('volta')}
                   disabled={parsedPdfItems.length === 0}
-                  className="px-3.5 py-2 bg-[#9b1526] hover:bg-[#831220] disabled:opacity-40 text-white font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-700"
+                  className="px-3.5 py-2 bg-[#0f172a] hover:bg-[#1e293b] disabled:opacity-40 text-white font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-700"
                 >
                   Preencher Volta
                 </button>

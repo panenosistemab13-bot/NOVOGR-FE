@@ -31,7 +31,7 @@ export function Modal3D({
         {/* Modal Header */}
         <div className="flex items-center justify-between gap-4 p-5 border-b border-[#e7dac9] bg-[#fbf9f5]">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-50 border border-red-200 text-[#9b1526]">
+            <div className="p-2 rounded-xl bg-red-50 border border-red-200 text-[#0f172a]">
               <Shield size={18} />
             </div>
             <div>

@@ -283,7 +283,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
           
           {/* Top Left Title Banner (3C Vermelho Corporativo & Vinho) */}
-          <div className="lg:col-span-7 bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] text-white p-4 sm:p-5 rounded-2xl shadow-md border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative overflow-hidden">
+          <div className="lg:col-span-7 bg-gradient-to-r from-[#0b1320] via-[#0f172a] to-[#910d14] text-white p-4 sm:p-5 rounded-2xl shadow-md border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative overflow-hidden">
             <div className="space-y-1 relative z-10 text-left">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono font-black text-[#ffd54f] uppercase tracking-widest">
@@ -331,14 +331,14 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
 
             <div className="w-full bg-[#f4ece0] h-3 rounded-full overflow-hidden border border-[#e8ded2] p-0.5">
               <div 
-                className="h-full bg-gradient-to-r from-[#c4161c] via-[#b8141c] to-[#dfb15b] rounded-full transition-all duration-700 shadow-xs"
+                className="h-full bg-gradient-to-r from-[#0f172a] via-[#b8141c] to-[#dfb15b] rounded-full transition-all duration-700 shadow-xs"
                 style={{ width: `${(activeUfsCount / 27) * 100}%` }}
               />
             </div>
 
             <div className="flex justify-between items-center text-[10px] font-mono font-bold text-[#8a7c6e] mt-2">
               <span>{routes.length} Trechos Cadastrados</span>
-              <span className="text-[#c4161c] font-black">{selectedUf === 'BR' ? 'Visão Geral Brasil' : `Filtro UF: ${selectedUf}`}</span>
+              <span className="text-[#0f172a] font-black">{selectedUf === 'BR' ? 'Visão Geral Brasil' : `Filtro UF: ${selectedUf}`}</span>
             </div>
           </div>
 
@@ -355,7 +355,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
             {/* Map Top Bar */}
             <div className="flex items-center justify-between mb-3 z-10">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#c4161c] animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0f172a] animate-pulse" />
                 <h3 className="text-xs font-mono font-black text-[#1a1614] uppercase tracking-wider font-heading">
                   MAPA GEOPOLÍTICO DE ESCALAS • BRASIL
                 </h3>
@@ -382,11 +382,11 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                 selectedUf={selectedUf === 'BR' ? null : selectedUf}
                 onSelectUf={handleUfClick}
                 stateData={mapStateData}
-                activeColor="#c4161c"
+                activeColor="#0f172a"
                 secondaryColor="#8a7c6e"
                 titleLegend="LEGENDA DE COBERTURA 3C"
                 legendItems={[
-                  { label: 'UFs com Rotas Regulares', count: `${activeUfsCount} UFs`, color: '#c4161c' },
+                  { label: 'UFs com Rotas Regulares', count: `${activeUfsCount} UFs`, color: '#0f172a' },
                   { label: 'UFs de Apoio / Rede', count: `${27 - activeUfsCount} UFs`, color: '#8a7c6e' }
                 ]}
               />
@@ -435,7 +435,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
               {/* Leader Card 1: Rota Ida */}
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fbf8f3] border border-[#e8ded2]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#c4161c] to-[#910d14] text-white flex items-center justify-center font-mono font-black text-sm shadow-xs">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0f172a] to-[#910d14] text-white flex items-center justify-center font-mono font-black text-sm shadow-xs">
                     IDA
                   </div>
                   <div className="text-left leading-none">
@@ -444,7 +444,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                   </div>
                 </div>
                 <div className="text-right font-mono">
-                  <span className="text-lg font-black text-[#c4161c] block">48,47%</span>
+                  <span className="text-lg font-black text-[#0f172a] block">48,47%</span>
                   <span className="text-[9px] font-bold text-[#8a7c6e] uppercase">Volume Regular</span>
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
               {/* Leader Card 2: Rota Volta */}
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fbf8f3] border border-[#e8ded2]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#7a0c16] text-white flex items-center justify-center font-mono font-black text-sm shadow-xs">
+                  <div className="w-9 h-9 rounded-xl bg-[#0b1320] text-white flex items-center justify-center font-mono font-black text-sm shadow-xs">
                     RET
                   </div>
                   <div className="text-left leading-none">
@@ -461,7 +461,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                   </div>
                 </div>
                 <div className="text-right font-mono">
-                  <span className="text-lg font-black text-[#7a0c16] block">43,49%</span>
+                  <span className="text-lg font-black text-[#0b1320] block">43,49%</span>
                   <span className="text-[9px] font-bold text-[#8a7c6e] uppercase">Volume Retorno</span>
                 </div>
               </div>
@@ -474,7 +474,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#f0e8dd] pb-3">
                 <div className="text-left">
                   <h4 className="text-xs font-mono font-black text-[#1a1614] uppercase tracking-wide flex items-center gap-1.5 font-heading">
-                    <RouteIcon size={14} className="text-[#c4161c]" />
+                    <RouteIcon size={14} className="text-[#0f172a]" />
                     TABELA DE CÓDIGOS E ROTAS
                   </h4>
                   <span className="text-[10px] font-mono text-[#8a7c6e] block mt-0.5">
@@ -493,7 +493,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                       </button>
                       <button
                         onClick={handleSave}
-                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#c4161c] to-[#910d14] text-white font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#0f172a] to-[#910d14] text-white font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                       >
                         <Save size={12} /> Salvar
                       </button>
@@ -507,7 +507,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                   ) : (
                     <button
                       onClick={handleStartEdit}
-                      className="px-3 py-1.5 rounded-xl bg-[#c4161c] hover:bg-[#910d14] text-white font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      className="px-3 py-1.5 rounded-xl bg-[#0f172a] hover:bg-[#910d14] text-white font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                     >
                       <Edit2 size={12} />
                       <span>Editar Rotas</span>
@@ -524,14 +524,14 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Filtrar por cidade, código ou UF..."
-                  className="w-full bg-[#fbf8f3] border border-[#e8ded2] rounded-xl pl-8 pr-3 py-1.5 text-xs font-mono font-bold text-[#1a1614] focus:bg-white focus:border-[#c4161c] outline-none transition-all placeholder:text-[#a89a8a]"
+                  className="w-full bg-[#fbf8f3] border border-[#e8ded2] rounded-xl pl-8 pr-3 py-1.5 text-xs font-mono font-bold text-[#1a1614] focus:bg-white focus:border-[#0f172a] outline-none transition-all placeholder:text-[#a89a8a]"
                 />
               </div>
 
               {/* Table Container */}
               <div className="overflow-y-auto max-h-[460px] rounded-xl border border-[#e8ded2]">
                 <table className="w-full border-collapse text-left font-mono text-xs">
-                  <thead className="sticky top-0 bg-gradient-to-r from-[#7a0c16] via-[#910d14] to-[#7a0c16] text-white z-10 text-[9.5px] uppercase font-black tracking-wider">
+                  <thead className="sticky top-0 bg-gradient-to-r from-[#0b1320] via-[#910d14] to-[#0b1320] text-white z-10 text-[9.5px] uppercase font-black tracking-wider">
                     <tr>
                       <th className="p-2.5 w-12 text-center">UF</th>
                       <th className="p-2.5">TRECHO / ROTA</th>
@@ -556,7 +556,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                             <span className={cn(
                               "px-2 py-0.5 rounded text-[10px] font-black",
                               selectedUf === uf 
-                                ? "bg-[#c4161c] text-white shadow-2xs" 
+                                ? "bg-[#0f172a] text-white shadow-2xs" 
                                 : "bg-[#f4ece0] text-[#57493d]"
                             )}>
                               {uf}
@@ -609,7 +609,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                                   "px-2 py-1 rounded-md text-[11px] font-bold font-mono transition-all cursor-pointer border w-full text-center",
                                   isIdaCopied
                                     ? "bg-emerald-600 text-white border-emerald-700"
-                                    : "bg-[#fbf8f3] hover:bg-[#c4161c] hover:text-white text-[#1a1614] border-[#e8ded2]"
+                                    : "bg-[#fbf8f3] hover:bg-[#0f172a] hover:text-white text-[#1a1614] border-[#e8ded2]"
                                 )}
                                 title="Clique para copiar"
                               >
@@ -637,7 +637,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                                   "px-2 py-1 rounded-md text-[10.5px] font-black font-mono transition-all cursor-pointer border w-full text-center",
                                   isVoltaCopied
                                     ? "bg-emerald-600 text-white border-emerald-700"
-                                    : "bg-[#fae8e9] hover:bg-[#7a0c16] hover:text-white text-[#7a0c16] border-[#f5c6cb]"
+                                    : "bg-[#fae8e9] hover:bg-[#0b1320] hover:text-white text-[#0b1320] border-[#f5c6cb]"
                                 )}
                                 title="Clique para copiar"
                               >
@@ -676,7 +676,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
         {/* ========================================================================= */}
         {/* BOTTOM BROADCAST STUDIO TICKER FOOTER                                      */}
         {/* ========================================================================= */}
-        <div className="w-full bg-gradient-to-r from-[#7a0c16] via-[#8c0f18] to-[#5e070e] text-white p-2.5 sm:p-3 rounded-2xl shadow-md border border-white/20 flex flex-col sm:flex-row items-center justify-between text-[10.5px] font-mono gap-2">
+        <div className="w-full bg-gradient-to-r from-[#0b1320] via-[#8c0f18] to-[#5e070e] text-white p-2.5 sm:p-3 rounded-2xl shadow-md border border-white/20 flex flex-col sm:flex-row items-center justify-between text-[10.5px] font-mono gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="flex items-center gap-1.5 font-black text-[#ffd54f]">
               <span className="w-2 h-2 rounded-full bg-[#ffd54f] inline-block animate-ping" />

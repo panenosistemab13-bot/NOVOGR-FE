@@ -22,7 +22,7 @@ export default function PremiumStatChart({
   badgeType = 'neutral',
   progress,
   icon: Icon,
-  iconColor = '#9b1526',
+  iconColor = '#0f172a',
   className
 }: PremiumStatChartProps) {
   const badgeClasses = {

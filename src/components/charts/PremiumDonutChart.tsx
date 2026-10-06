@@ -97,7 +97,7 @@ export default function PremiumDonutChart({
         <div className="mb-4 flex items-center justify-between">
           <div>
             {title && (
-              <h4 className="text-xs font-mono font-black uppercase tracking-[0.15em] text-[#9b1526]">
+              <h4 className="text-xs font-mono font-black uppercase tracking-[0.15em] text-[#0f172a]">
                 {title}
               </h4>
             )}
@@ -312,7 +312,7 @@ export default function PremiumDonutChart({
               key={totalVal}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="text-2xl sm:text-3xl font-black font-mono text-[#9b1526] leading-none drop-shadow-xs"
+              className="text-2xl sm:text-3xl font-black font-mono text-[#0f172a] leading-none drop-shadow-xs"
             >
               {totalVal.toLocaleString('pt-BR')}
             </motion.span>
@@ -336,7 +336,7 @@ export default function PremiumDonutChart({
                   <span className="font-extrabold text-stone-900 uppercase">
                     {data[hoveredIndex].name}:
                   </span>
-                  <span className="font-black text-[#9b1526]">
+                  <span className="font-black text-[#0f172a]">
                     {data[hoveredIndex].value.toLocaleString('pt-BR')} {unit} ({((data[hoveredIndex].value / totalValueSum) * 100).toFixed(1)}%)
                   </span>
                 </div>

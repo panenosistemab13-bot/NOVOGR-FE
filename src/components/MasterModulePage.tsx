@@ -490,7 +490,7 @@ export function MasterModulePage({
                 className="w-full bg-white hover:bg-amber-50/30 border border-[#ded5c6] hover:border-[#dfb15b]/60 rounded-2xl p-2.5 sm:p-3 transition-all duration-300 shadow-sm hover:shadow flex flex-col md:flex-row items-center justify-between gap-3 cursor-pointer group relative overflow-hidden"
               >
                 {/* Lateral glowing indicator bar on hover */}
-                <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-[#9b1526] to-[#760914] scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+                <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-[#0f172a] to-[#760914] scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
                 
                 {/* Col 1: Item Thumbnail & Title */}
                 <div className="flex items-center gap-3 w-full md:w-1/4 min-w-[200px] text-left pl-1">

@@ -6,14 +6,10 @@ import {
   Plus,
   Check,
   ArrowRightLeft,
-  Clock,
   Trash2,
-  CalendarCheck2,
-  Briefcase,
   UserCheck,
   Coffee,
-  Sparkles,
-  Tag
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -188,7 +184,7 @@ export default function PresenceList({ onBack }: PresenceListProps) {
   const monthName = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="w-full min-h-screen bg-[#f4eee5] text-[#1a1614] font-sans flex flex-col justify-between overflow-x-hidden select-none pb-6">
+    <div className="w-full min-h-screen bg-[#f8fafc] text-[#1e293b] font-sans flex flex-col items-center justify-start overflow-hidden select-none p-3 sm:p-5">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -197,127 +193,102 @@ export default function PresenceList({ onBack }: PresenceListProps) {
             initial={{ opacity: 0, y: -15, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -15, scale: 0.95 }}
-            className="fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl bg-[#1a1614]/95 text-white border border-[#dfb15b]/40 text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
+            className="fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl bg-[#0f172a] text-white border border-slate-700 text-xs font-mono font-bold flex items-center gap-2 shadow-2xl backdrop-blur-md"
           >
-            <Check size={16} className="text-[#ffd54f]" />
+            <Check size={15} className="text-emerald-400" />
             <span>{notification}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="w-full space-y-4 p-2 sm:p-4 max-w-[1700px] mx-auto">
+      <div className="w-full max-w-3xl mx-auto space-y-3">
         
         {/* ========================================================================= */}
-        {/* HEADER HERO BANNER (EXECUTIVE METALLIC RED)                               */}
+        {/* HEADER HERO BANNER (ULTRA COMPACT)                                        */}
         {/* ========================================================================= */}
-        <div className="w-full bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] text-white p-4 sm:p-5 rounded-2xl shadow-md border border-white/20 flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative overflow-hidden">
-          <div className="space-y-1 relative z-10 text-left">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-black text-[#ffd54f] uppercase tracking-widest flex items-center gap-1">
-                <Sparkles size={12} />
-                ESCALAS, FREQUÊNCIA & AGENDA OPERACIONAL 3C
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-2 font-heading">
-              CALENDÁRIO <span className="text-[#ffd54f]">BRASIL</span>
+        <div className="w-full bg-[#0f172a] text-white px-4 py-3 rounded-xl shadow-md border border-slate-800 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-mono font-black text-blue-400 uppercase tracking-widest flex items-center gap-1">
+              <Sparkles size={11} />
+              CALENDÁRIO 3C
+            </span>
+            <h1 className="text-lg font-black uppercase tracking-tight text-white font-heading">
+              FREQUÊNCIA <span className="text-blue-400">BRASIL</span>
             </h1>
           </div>
 
-          {/* Quick Metrics Bar */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap relative z-10">
-            <div className="bg-black/25 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-left">
-              <span className="text-[9px] font-mono font-bold text-white/70 uppercase block">ESCALA NO MÊS</span>
-              <span className="text-sm font-mono font-black text-[#ffd54f]">
-                {stats.workDays} Dias
-              </span>
-            </div>
-
-            <div className="bg-black/25 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-left">
-              <span className="text-[9px] font-mono font-bold text-white/70 uppercase block">FOLGAS</span>
-              <span className="text-sm font-mono font-black text-white">
-                {stats.offDays} Dias
-              </span>
-            </div>
-
-            <div className="bg-black/25 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-left">
-              <span className="text-[9px] font-mono font-bold text-white/70 uppercase block">SELECIONADO</span>
-              <span className="text-sm font-mono font-black text-[#ffd54f]">
-                {selectedDate}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="bg-slate-800/80 border border-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-300">
+              ESCALA: <strong className="text-blue-400">{stats.workDays}D</strong>
+            </span>
 
             {onBack && (
               <button
                 onClick={onBack}
-                className="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all cursor-pointer border border-white/20"
-                title="Voltar ao Painel Principal"
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 p-1.5 rounded-lg transition-all cursor-pointer border border-slate-700"
+                title="Voltar"
               >
-                <ArrowRightLeft size={16} />
+                <ArrowRightLeft size={14} />
               </button>
             )}
           </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* MAIN CALENDAR BOARD                                                       */}
+        {/* ULTRA-ZOOMED-OUT COMPACT CALENDAR BOARD                                   */}
         {/* ========================================================================= */}
-        <div className="w-full bg-white border border-[#e8ded2] rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between relative min-h-[620px]">
+        <div className="w-full bg-white border border-slate-200 rounded-xl p-3.5 shadow-md flex flex-col justify-between">
           
           {/* Controls Bar: Navigation & Today Jump */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 z-10 border-b border-[#f0e8dd] pb-3.5">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#fbf8f3] border border-[#e8ded2] text-[#1a1614] font-mono text-xs font-black uppercase">
-                <CalendarIcon size={15} className="text-[#c4161c]" />
-                <span>Grade Mensal de Frequência</span>
-              </div>
-
+          <div className="flex items-center justify-between gap-2 mb-2.5 border-b border-slate-100 pb-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={jumpToToday}
-                className="px-3 py-1.5 bg-[#fae8e9] hover:bg-[#f5c6cb] text-[#c4161c] border border-[#f5c6cb] rounded-xl text-xs font-mono font-black uppercase transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-mono font-black uppercase transition-all cursor-pointer"
               >
                 HOJE
               </button>
             </div>
 
             {/* Month Navigator */}
-            <div className="flex items-center gap-2 bg-[#fbf8f3] p-1 rounded-xl border border-[#e8ded2]">
+            <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
               <button
                 onClick={prevMonth}
-                className="p-2 rounded-lg bg-white hover:bg-[#f4ece0] text-[#1a1614] border border-[#e8ded2] transition-colors cursor-pointer shadow-2xs"
+                className="p-1 rounded bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 transition-colors cursor-pointer"
                 title="Mês Anterior"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={13} />
               </button>
               
-              <span className="font-mono font-black text-sm text-[#1a1614] uppercase px-3 min-w-[160px] text-center font-heading">
+              <span className="font-mono font-bold text-xs text-slate-900 uppercase px-2 text-center font-heading">
                 {monthName}
               </span>
 
               <button
                 onClick={nextMonth}
-                className="p-2 rounded-lg bg-white hover:bg-[#f4ece0] text-[#1a1614] border border-[#e8ded2] transition-colors cursor-pointer shadow-2xs"
+                className="p-1 rounded bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 transition-colors cursor-pointer"
                 title="Próximo Mês"
               >
-                <ChevronRight size={16} />
+                <ChevronRight size={13} />
               </button>
             </div>
           </div>
 
-          {/* Calendar Matrix Grid */}
+          {/* Calendar Matrix Grid (Ultra Zoomed Out) */}
           <div className="w-full flex-1 flex flex-col">
             {/* Days of Week Header */}
-            <div className="grid grid-cols-7 gap-2 text-center font-mono text-[11px] font-black uppercase text-[#8a7c6e] mb-3">
-              <span className="p-1 rounded bg-[#fbf8f3]">DOMINGO</span>
-              <span className="p-1 rounded bg-[#fbf8f3]">SEGUNDA</span>
-              <span className="p-1 rounded bg-[#fbf8f3]">TERÇA</span>
-              <span className="p-1 rounded bg-[#fbf8f3]">QUARTA</span>
-              <span className="p-1 rounded bg-[#fbf8f3]">QUINTA</span>
-              <span className="p-1 rounded bg-[#fbf8f3]">SEXTA</span>
-              <span className="p-1 rounded bg-[#fbf8f3]">SÁBADO</span>
+            <div className="grid grid-cols-7 gap-1 text-center font-mono text-[9.5px] font-bold uppercase text-slate-500 mb-1.5">
+              <span className="p-0.5 rounded bg-slate-50">DOM</span>
+              <span className="p-0.5 rounded bg-slate-50">SEG</span>
+              <span className="p-0.5 rounded bg-slate-50">TER</span>
+              <span className="p-0.5 rounded bg-slate-50">QUA</span>
+              <span className="p-0.5 rounded bg-slate-50">QUI</span>
+              <span className="p-0.5 rounded bg-slate-50">SEX</span>
+              <span className="p-0.5 rounded bg-slate-50">SÁB</span>
             </div>
 
             {/* 42-cell Calendar Grid */}
-            <div className="grid grid-cols-7 gap-2.5 flex-1">
+            <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((d, i) => {
                 const isSelected = selectedDate === d.dateStr;
                 const isToday = d.dateStr === getTodayStr();
@@ -331,64 +302,57 @@ export default function PresenceList({ onBack }: PresenceListProps) {
                     key={i}
                     onClick={() => setSelectedDate(d.dateStr)}
                     className={cn(
-                      "min-h-[92px] sm:min-h-[105px] p-2.5 rounded-2xl border flex flex-col justify-between transition-all cursor-pointer relative group text-left",
+                      "min-h-[50px] sm:min-h-[56px] p-1.5 rounded-lg border flex flex-col justify-between transition-all cursor-pointer relative group text-left",
                       isSelected
-                        ? "border-[#c4161c] bg-[#fae8e9]/20 ring-2 ring-[#c4161c] shadow-md z-10"
+                        ? "border-[#0f172a] bg-blue-50/70 ring-1 ring-[#0f172a] shadow-xs z-10"
                         : isWork
-                          ? "bg-[#fffdfa] border-[#e8ded2] hover:border-[#c4161c]"
-                          : "bg-white border-[#f0e8dd] hover:border-[#d9cdbd]",
-                      !d.isCurrentMonth && "opacity-35 bg-[#fbf8f3]"
+                          ? "bg-slate-50/60 border-slate-200 hover:border-slate-400"
+                          : "bg-white border-slate-200 hover:border-slate-300",
+                      !d.isCurrentMonth && "opacity-30 bg-slate-50"
                     )}
                   >
                     {/* Top Row: Number & Primary Status Badge */}
-                    <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center justify-between gap-0.5">
                       <span className={cn(
-                        "font-mono font-black text-xs sm:text-sm px-2 py-0.5 rounded-lg transition-all",
+                        "font-mono font-bold text-[11px] px-1 rounded transition-all",
                         isToday 
-                          ? "bg-[#c4161c] text-white shadow-xs font-heading" 
+                          ? "bg-[#0f172a] text-white shadow-xs" 
                           : isSelected 
-                            ? "bg-[#1a1614] text-white" 
-                            : "text-[#1a1614]"
+                            ? "bg-slate-900 text-white" 
+                            : "text-slate-800"
                       )}>
                         {d.dayNumber}
                       </span>
 
                       {/* Status Badges */}
                       {isWork && (
-                        <span className="px-1.5 py-0.5 rounded-md bg-[#fae8e9] text-[#c4161c] border border-[#f5c6cb] font-mono text-[9px] font-black uppercase">
-                          ESCALA
+                        <span className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 font-mono text-[7px] font-black uppercase">
+                          ESC
                         </span>
                       )}
                       {isOff && (
-                        <span className="px-1.5 py-0.5 rounded-md bg-[#f4ece0] text-[#73675a] border border-[#e8ded2] font-mono text-[9px] font-black uppercase">
-                          FOLGA
+                        <span className="px-1 py-0.2 rounded bg-slate-200 text-slate-700 font-mono text-[7px] font-black uppercase">
+                          FOL
                         </span>
                       )}
                     </div>
 
                     {/* Middle Row: Event Badges List */}
-                    <div className="space-y-1 my-1 overflow-hidden">
-                      {dayApps.slice(0, 2).map((app) => (
+                    <div className="space-y-0.5 overflow-hidden">
+                      {dayApps.slice(0, 1).map((app) => (
                         <div 
                           key={app.id} 
-                          className="bg-[#fbf8f3] border border-[#e8ded2] rounded-md px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-[#1a1614] truncate flex items-center gap-1"
+                          className="bg-white border border-slate-200 rounded px-1 py-0 text-[7.5px] font-mono text-slate-800 truncate flex items-center gap-0.5"
                         >
-                          <span className="text-[#c4161c] font-black">{app.time}</span>
+                          <span className="text-blue-600 font-bold">{app.time}</span>
                           <span className="truncate">{app.title}</span>
                         </div>
                       ))}
-                      {dayApps.length > 2 && (
-                        <span className="text-[8.5px] font-mono font-black text-[#c4161c] block">
-                          +{dayApps.length - 2} mais
+                      {dayApps.length > 1 && (
+                        <span className="text-[7.5px] font-mono font-bold text-blue-600 block">
+                          +{dayApps.length - 1}
                         </span>
                       )}
-                    </div>
-
-                    {/* Bottom Indicator Dot */}
-                    <div className="flex items-center justify-between text-[8.5px] font-mono text-[#8a7c6e]">
-                      <span className="uppercase">
-                        {isToday ? '• HOJE' : ''}
-                      </span>
                     </div>
                   </div>
                 );
@@ -397,100 +361,89 @@ export default function PresenceList({ onBack }: PresenceListProps) {
           </div>
 
           {/* Day Detail & Appointment Manager Dock */}
-          <div className="mt-4 pt-4 border-t border-[#f0e8dd] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 z-10">
+          <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 z-10 text-xs">
             
             {/* Quick Status Buttons for Selected Day */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-mono font-black uppercase text-[#1a1614] flex items-center gap-1.5 bg-[#fbf8f3] px-3 py-1.5 rounded-xl border border-[#e8ded2]">
-                <CalendarCheck2 size={14} className="text-[#c4161c]" />
-                DIA {selectedDate}:
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="font-mono font-bold uppercase text-slate-700 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 text-[10px]">
+                {selectedDate}:
               </span>
 
               <button
                 onClick={() => updateStatus(selectedDate, 'trabalhei')}
-                className="px-3.5 py-2 bg-[#fae8e9] hover:bg-[#f5c6cb] text-[#c4161c] border border-[#f5c6cb] rounded-xl text-xs font-mono font-black uppercase transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-1 text-[10px]"
               >
-                <UserCheck size={14} />
-                <span>Marcar Escala / Trabalho</span>
+                <UserCheck size={11} />
+                <span>Trabalho</span>
               </button>
 
               <button
                 onClick={() => updateStatus(selectedDate, 'folga')}
-                className="px-3.5 py-2 bg-[#fbf8f3] hover:bg-[#f4ece0] text-[#73675a] border border-[#e8ded2] rounded-xl text-xs font-mono font-black uppercase transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-1 text-[10px]"
               >
-                <Coffee size={14} />
-                <span>Marcar Folga</span>
+                <Coffee size={11} />
+                <span>Folga</span>
               </button>
 
               <button
                 onClick={() => updateStatus(selectedDate, '')}
-                className="px-2.5 py-2 bg-white hover:bg-stone-100 text-[#8a7c6e] border border-[#e8ded2] rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer"
-                title="Limpar Alteração Manual"
+                className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-500 border border-slate-200 rounded-lg font-mono uppercase transition-all cursor-pointer text-[10px]"
               >
                 Limpar
               </button>
             </div>
 
             {/* Quick Add Appointment Form */}
-            <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap flex-1 justify-end">
+            <div className="flex items-center gap-1 flex-wrap w-full sm:w-auto justify-end">
               <input
                 type="text"
                 value={newAppTitle}
                 onChange={(e) => setNewAppTitle(e.target.value)}
-                placeholder={`Novo compromisso para ${selectedDate}...`}
-                className="bg-[#fbf8f3] border border-[#e8ded2] rounded-xl px-3 py-2 text-xs font-bold text-[#1a1614] focus:bg-white focus:border-[#c4161c] outline-none flex-1 max-w-sm"
+                placeholder="Novo compromisso..."
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-[11px] text-slate-900 focus:bg-white focus:border-blue-600 outline-none w-36"
               />
 
               <input
                 type="time"
                 value={newAppTime}
                 onChange={(e) => setNewAppTime(e.target.value)}
-                className="bg-[#fbf8f3] border border-[#e8ded2] rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-[#1a1614]"
+                className="bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-1 text-[11px] font-mono text-slate-900"
               />
-
-              <select
-                value={newAppType}
-                onChange={(e) => setNewAppType(e.target.value as 'pessoal' | 'corporativo')}
-                className="bg-[#fbf8f3] border border-[#e8ded2] rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-[#1a1614] uppercase appearance-none cursor-pointer"
-              >
-                <option value="corporativo">Corp</option>
-                <option value="pessoal">Pessoal</option>
-              </select>
 
               <button
                 onClick={() => addAppointment(newAppTime, newAppTitle, newAppType)}
-                className="px-4 py-2 bg-gradient-to-r from-[#c4161c] to-[#910d14] text-white rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-xs flex items-center gap-1.5 shrink-0"
+                className="px-3 py-1 bg-[#0f172a] hover:bg-slate-800 text-white rounded-lg font-mono text-[10px] font-bold uppercase transition-all cursor-pointer shadow-xs flex items-center gap-1 shrink-0"
               >
-                <Plus size={15} />
+                <Plus size={12} />
                 <span>Agendar</span>
               </button>
             </div>
 
           </div>
 
-          {/* Active Appointments Drawer for Selected Day (If any exist) */}
+          {/* Active Appointments Drawer for Selected Day */}
           {selectedDayAppointments.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-[#f0e8dd] bg-[#fbf8f3] rounded-xl p-3 text-left space-y-2">
-              <span className="text-[10px] font-mono font-black text-[#c4161c] uppercase tracking-wider block">
-                COMPROMISSOS AGENDADOS EM {selectedDate} ({selectedDayAppointments.length}):
+            <div className="mt-2 pt-1.5 border-t border-slate-100 bg-slate-50 rounded-lg p-2 text-left space-y-1">
+              <span className="text-[9.5px] font-mono font-bold text-slate-600 uppercase tracking-wider block">
+                COMPROMISSOS EM {selectedDate} ({selectedDayAppointments.length}):
               </span>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {selectedDayAppointments.map((app) => (
-                  <div key={app.id} className="bg-white border border-[#e8ded2] rounded-lg p-2 flex items-center justify-between text-xs font-mono">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <span className="bg-[#fae8e9] text-[#c4161c] px-1.5 py-0.5 rounded font-black text-[10px]">
+                  <div key={app.id} className="bg-white border border-slate-200 rounded px-2 py-1 flex items-center justify-between text-[11px] font-mono">
+                    <div className="flex items-center gap-1.5 overflow-hidden">
+                      <span className="bg-blue-100 text-blue-800 px-1 py-0.2 rounded font-bold text-[9.5px]">
                         {app.time}
                       </span>
-                      <span className="font-bold text-[#1a1614] truncate">{app.title}</span>
+                      <span className="font-bold text-slate-800 truncate">{app.title}</span>
                     </div>
 
                     <button
                       onClick={() => deleteAppointment(app.id)}
-                      className="text-[#8a7c6e] hover:text-rose-600 transition-colors p-1 cursor-pointer"
+                      className="text-slate-400 hover:text-red-600 transition-colors p-0.5 cursor-pointer"
                       title="Excluir"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={11} />
                     </button>
                   </div>
                 ))}
@@ -498,28 +451,6 @@ export default function PresenceList({ onBack }: PresenceListProps) {
             </div>
           )}
 
-        </div>
-
-        {/* ========================================================================= */}
-        {/* FOOTER TICKER                                                            */}
-        {/* ========================================================================= */}
-        <div className="w-full bg-gradient-to-r from-[#7a0c16] via-[#8c0f18] to-[#5e070e] text-white p-2.5 sm:p-3 rounded-2xl shadow-md border border-white/20 flex flex-col sm:flex-row items-center justify-between text-[10.5px] font-mono gap-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="flex items-center gap-1.5 font-black text-[#ffd54f]">
-              <span className="w-2 h-2 rounded-full bg-[#ffd54f] inline-block animate-ping" />
-              SISTEMA DE ESCALA & FREQUÊNCIA OPERACIONAL 3C
-            </span>
-            <span className="text-white/40">•</span>
-            <span className="text-white/90">Coletor: Sincronizado</span>
-            <span className="text-white/40">•</span>
-            <span className="text-[#ffd54f] font-bold">{stats.totalApps} compromissos gravados</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-white/70 text-[9.5px] uppercase">
-            <span>[HOJE] ir para data atual</span>
-            <span>•</span>
-            <span className="text-[#ffd54f] font-bold">[3C] CALENDÁRIO OPERACIONAL</span>
-          </div>
         </div>
 
       </div>

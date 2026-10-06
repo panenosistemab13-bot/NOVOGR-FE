@@ -1018,15 +1018,15 @@ export default function Controle({ onBack }: ControleProps) {
     isca: { label: "N° ISCA", shortLabel: "N° ISCA", icon: <Barcode size={13} className="text-slate-700" />, defaultWidth: 12 },
     produto: { label: "PRODUTO EMBARCADO", shortLabel: "PRODUT...", icon: <Package size={13} className="text-slate-700" />, defaultWidth: 14 },
     uma: { label: "CÓDIGO U.M.A.", shortLabel: "CÓDIGO...", icon: <FileText size={13} className="text-slate-700" />, defaultWidth: 14 },
-    destino: { label: "DESTINO", shortLabel: "D.", icon: <MapPin size={13} className="text-slate-700" />, defaultWidth: 8 },
-    data: { label: "DATA PARTIDA", shortLabel: "D.", icon: <Calendar size={13} className="text-slate-700" />, defaultWidth: 8 }
+    destino: { label: "DESTINO", shortLabel: "DESTINO", icon: <MapPin size={13} className="text-slate-700" />, defaultWidth: 8 },
+    data: { label: "DATA PARTIDA", shortLabel: "DATA PARTIDA", icon: <Calendar size={13} className="text-slate-700" />, defaultWidth: 8 }
   };
 
   const TABLE2_COLS: Record<string, { label: string; icon: React.ReactNode; defaultWidth: number }> = {
     isca: { label: "PLACA / CÓDIGO DE VENDA II", icon: <FileText size={13} className="text-slate-700" />, defaultWidth: 25 },
     endereco: { label: "ENDEREÇO APROXIMADO DA ...", icon: <Radio size={13} className="text-slate-700" />, defaultWidth: 45 },
     data: { label: "DATA POSIÇÃO II", icon: <MapPin size={13} className="text-slate-700" />, defaultWidth: 18 },
-    bateria: { label: "BATERIA ISCA_RF II", icon: <Battery size={13} className="text-slate-700" />, defaultWidth: 12 }
+    bateria: { label: "BATERIA ISCA _ RF II", icon: <Battery size={13} className="text-slate-700" />, defaultWidth: 12 }
   };
 
   const [placasColumnOrder, setPlacasColumnOrder] = useState<string[]>([
@@ -1216,6 +1216,55 @@ export default function Controle({ onBack }: ControleProps) {
   const [esquemaEmbarque, setEsquemaEmbarque] = useState(
     "CAVALO: ISCA NO PAINEL / CARRETA 1: ISCA NO MEIO DA CARGA / CARRETA 2: ISCA NO FUNDO DA CARGA",
   );
+
+  const [preAlertaTheme, setPreAlertaTheme] = useState<'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo'>('prata');
+
+  const getThemeStyles = () => {
+    switch (preAlertaTheme) {
+      case 'ouro':
+        return {
+          headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #FFFEF7 0%, #FEF3C7 35%, #FDE68A 50%, #FDF8E8 70%, #F59E0B 100%)',
+          border: '#D97706',
+          table1Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
+          table2Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
+        };
+      case 'bronze':
+        return {
+          headerBg: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 30%, #D97757 50%, #F3D2C1 70%, #B45309 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #FFFAF6 0%, #FDE8E1 35%, #F3D2C1 50%, #FAF0EC 70%, #C25E38 100%)',
+          border: '#B45309',
+          table1Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 30%, #D97757 50%, #F3D2C1 70%, #B45309 100%)',
+          table2Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 30%, #D97757 50%, #F3D2C1 70%, #B45309 100%)',
+        };
+      case 'rubi':
+        return {
+          headerBg: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 30%, #FEB2B2 50%, #FEB2B2 70%, #9B1526 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #FFFAFA 0%, #FED7D7 35%, #FEB2B2 50%, #FFF5F5 70%, #9B1526 100%)',
+          border: '#9B1526',
+          table1Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 30%, #FEB2B2 50%, #FEB2B2 70%, #9B1526 100%)',
+          table2Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 30%, #FEB2B2 50%, #FEB2B2 70%, #9B1526 100%)',
+        };
+      case 'gelo':
+        return {
+          headerBg: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 30%, #BAE6FD 50%, #E0F2FE 70%, #0284C7 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #E0F2FE 35%, #BAE6FD 50%, #F0F9FF 70%, #0284C7 100%)',
+          border: '#0284C7',
+          table1Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 30%, #BAE6FD 50%, #E0F2FE 70%, #0284C7 100%)',
+          table2Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 30%, #BAE6FD 50%, #E0F2FE 70%, #0284C7 100%)',
+        };
+      case 'prata':
+      default:
+        return {
+          headerBg: 'linear-gradient(180deg,#FFFFFF_0%,#E8EDF1_25%,#C2CCD4_50%,#E8EDF1_75%,#B0BAC3_100%)',
+          subHeaderBg: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
+          border: '#929FA9',
+          table1Header: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
+          table2Header: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
+        };
+    }
+  };
+  const themeStyles = getThemeStyles();
 
   // Isca positions (addresses, times and battery level) matching the image exactly
   const [isca1Endereco, setIsca1Endereco] = useState("");
@@ -2321,7 +2370,7 @@ export default function Controle({ onBack }: ControleProps) {
           <thead>
             <tr style="background: linear-gradient(180deg, #FFFFFF 0%, #E8EDF1 25%, #C2CCD4 50%, #E8EDF1 75%, #B7C2CA 100%); color: #151B20;">
               <th colspan="2" style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; font-weight: 800; padding: 8px 10px; text-transform: uppercase; font-size: 10.5px; width: 25%; color: #202930; letter-spacing: 0.5px;">NÚMERO DA NF:</th>
-              <th colspan="1" style="border-right: 1px solid #BFC9D1; border-bottom: 1px solid #929FA9; padding: 5px; width: 15%; background-color: #FFFFFF; text-align: center; font-family: sans-serif; font-size: 11.5px; line-height: 1.2;">
+              <th colspan="1" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 5px; width: 15%; background-color: #FFFFFF; text-align: center; font-family: sans-serif; font-size: 11.5px; line-height: 1.2;">
                 <div style="font-weight: 800; color: #151B20; text-align: center; width: 100%;">${nfInicio.replace(/-/g, '') || '&nbsp;'}</div>
                 ${numCarretas === 2 && isca2 && isca2 !== "SEM ISCA" ? `
                   <div style="font-weight: 800; color: #151B20; text-align: center; width: 100%;">${nfFim.replace(/-/g, '') || nfInicio.replace(/-/g, '') || '&nbsp;'}</div>
@@ -2337,14 +2386,14 @@ export default function Controle({ onBack }: ControleProps) {
               </th>
             </tr>
             <tr style="background: linear-gradient(180deg, #F4F7FA 0%, #E8EDF1 30%, #C2CCD4 50%, #E8EDF1 70%, #AAB6C0 100%); color: #202930; text-transform: uppercase; font-size: 9.5px; font-weight: 800; letter-spacing: 0.4px;">
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 20%; color: #202930;">MOTORI...</th>
+              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 18%; color: #202930;">MOTORISTA</th>
               <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 12%; color: #202930;">CAVALO</th>
               <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 12%; color: #202930;">CARRETAS</th>
               <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 12%; color: #202930;">N° ISCA</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 14%; color: #202930;">PRODUT...</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 14%; color: #202930;">CÓDIGO...</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 9%; color: #202930;">D.</th>
-              <th style="border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 7%; color: #202930;">D.</th>
+              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 14%; color: #202930;">PRODUTO EMBARCADO</th>
+              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 14%; color: #202930;">CÓDIGO U.M.A.</th>
+              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 11%; color: #202930;">DESTINO</th>
+              <th style="border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 11%; color: #202930;">DATA PARTIDA</th>
             </tr>
           </thead>
           <tbody>
@@ -2374,17 +2423,17 @@ export default function Controle({ onBack }: ControleProps) {
         </table>
 
         <!-- TABELA 2: PARAMETRIZAÇÃO DAS ISCAS METÁLICA -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 10.5px; text-align: center; font-weight: 500; color: #151B20; margin-bottom: 25px; border: 1px solid #929FA9; border-radius: 8px; overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 12px rgba(30,40,50,0.12);">
-          <tr style="background: linear-gradient(180deg, #FFFFFF 0%, #E8EDF1 25%, #BFC9D1 50%, #E8EDF1 75%, #AAB6C0 100%); color: #202930; font-size: 11px;">
-            <td colspan="4" style="padding: 9px 12px; border-bottom: 1px solid #929FA9; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; color: #202930;">‹─── PARAMETRIZAÇÃO DAS ISCAS ───›</td>
+        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 10.5px; text-align: center; font-weight: 500; color: #151B20; margin-bottom: 25px; border: 1px solid ${themeStyles.border}; border-radius: 8px; overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 12px rgba(30,40,50,0.12);">
+          <tr style="background: ${themeStyles.headerBg}; color: #202930; font-size: 11px;">
+            <td colspan="4" style="padding: 9px 12px; border-bottom: 1px solid ${themeStyles.border}; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; color: #202930;">‹─── PARAMETRIZAÇÃO DAS ISCAS ───›</td>
           </tr>
-          <tr style="background: linear-gradient(180deg, #F4F7FA 0%, #E8EDF1 30%, #C2CCD4 50%, #E8EDF1 70%, #AAB6C0 100%); color: #202930; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 800;">
+          <tr style="background: ${themeStyles.subHeaderBg}; color: #202930; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 800;">
             <td style="padding: 8px; border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; width: 25%;">
-              PLACA / CODIGO DE VENDA ⇅
+              PLACA / CÓDIGO DE VENDA ⇅
             </td>
             <td style="padding: 8px; border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
             <td style="padding: 8px; border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; width: 18%;">DATA POSIÇÃO ⇅</td>
-            <td style="padding: 8px; border-bottom: 1px solid #929FA9; width: 12%;">BATERIA ISCA_RF ⇅</td>
+            <td style="padding: 8px; border-bottom: 1px solid #929FA9; width: 12%;">BATERIA ISCA _ RF ⇅</td>
           </tr>
           ${
             numCarretas === 2 && isca2 && isca2 !== "SEM ISCA"
@@ -2394,6 +2443,10 @@ export default function Controle({ onBack }: ControleProps) {
             <td style="padding: 8px; border-right: 1px solid #DCE3E8; text-align: left; padding-left: 12px; font-weight: 600; color: ${!pastePlanilha.trim() && !isca2Endereco ? "#C62845" : "#202930"};">${isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
             <td style="padding: 8px; border-right: 1px solid #DCE3E8; font-weight: 600; color: #202930;">${isca2Data}</td>
             <td style="padding: 8px;">
+              ${
+                ((isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
+                  ? ""
+                  : `
               <div style="display: flex; align-items: center; justify-content: center;">
                 <span style="margin-right: 6px; font-weight: 800; color: #16A34A;">${isca2Bateria || "100%"}</span>
                 <div style="width: 20px; height: 10px; border: 1px solid #16A34A; border-radius: 2px; padding: 1px; display: inline-block; position: relative; vertical-align: middle;">
@@ -2401,6 +2454,8 @@ export default function Controle({ onBack }: ControleProps) {
                   <div style="position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background-color: #16A34A; border-radius: 0 1px 1px 0;"></div>
                 </div>
               </div>
+              `
+              }
             </td>
           </tr>
           `
@@ -2411,6 +2466,10 @@ export default function Controle({ onBack }: ControleProps) {
             <td style="padding: 8px; border-right: 1px solid #DCE3E8; text-align: left; padding-left: 12px; font-weight: 600; color: ${!pastePlanilha.trim() && !isca1Endereco ? "#C62845" : "#202930"};">${isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
             <td style="padding: 8px; border-right: 1px solid #DCE3E8; font-weight: 600; color: #202930;">${isca1Data}</td>
             <td style="padding: 8px;">
+              ${
+                ((isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
+                  ? ""
+                  : `
               <div style="display: flex; align-items: center; justify-content: center;">
                 <span style="margin-right: 6px; font-weight: 800; color: #16A34A;">${isca1Bateria || "100%"}</span>
                 <div style="width: 20px; height: 10px; border: 1px solid #16A34A; border-radius: 2px; padding: 1px; display: inline-block; position: relative; vertical-align: middle;">
@@ -2418,6 +2477,8 @@ export default function Controle({ onBack }: ControleProps) {
                   <div style="position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background-color: #16A34A; border-radius: 0 1px 1px 0;"></div>
                 </div>
               </div>
+              `
+              }
             </td>
           </tr>
         </table>
@@ -3960,11 +4021,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
 
                 {/* PAINEL METÁLICO CROMADO PRINCIPAL */}
-                <div className="w-full rounded-2xl overflow-hidden border border-[#929FA9] shadow-[0_12px_30px_rgba(30,40,50,0.18),inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)] mb-3 bg-[#F4F6F8]">
+                <div className="w-full rounded-2xl overflow-hidden shadow-[0_12px_30px_rgba(30,40,50,0.18),inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)] mb-3 bg-[#F4F6F8]" style={{ border: `1px solid ${themeStyles.border}` }}>
                   {/* BLOCO SUPERIOR METÁLICO: NF, TRANSPORTADORA, VALOR DA CARGA */}
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-0 border-b border-[#929FA9] bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF1_25%,#C2CCD4_50%,#E8EDF1_75%,#B0BAC3_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]" style={{ background: themeStyles.headerBg, borderBottom: `1px solid ${themeStyles.border}` }}>
                     {/* MODULE 1: NÚMERO DA NF */}
-                    <div className="md:col-span-5 p-2.5 sm:p-3 border-b md:border-b-0 md:border-r border-[#929FA9] flex items-center justify-between gap-3 relative">
+                    <div className="md:col-span-5 p-2.5 sm:p-3 border-b md:border-b-0 md:border-r flex items-center justify-between gap-3 relative" style={{ borderColor: themeStyles.border }}>
                       <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#FFFFFF] via-[#DDE4E9] to-[#929FA9] p-[2px] shadow-[0_2px_5px_rgba(30,40,50,0.22),inset_0_1px_1px_rgba(255,255,255,0.95)] flex items-center justify-center shrink-0">
                           <div className="w-full h-full rounded-full bg-gradient-to-b from-[#BFC9D1] via-[#E8EDF1] to-[#66737D] flex items-center justify-center shadow-inner">
@@ -4057,7 +4118,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <table className="w-full border-collapse text-xs font-sans text-[#151B20] table-fixed">
                     <thead>
                       {/* Row: Metallic Silver Chrome Column Headings */}
-                      <tr className="border-b border-[#929FA9] bg-[linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)] text-[#151B20] text-center font-extrabold uppercase text-[9.5px] tracking-wider h-[32px] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)]">
+                      <tr className="border-b text-[#151B20] text-center font-extrabold uppercase text-[9.5px] tracking-wider h-[32px] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)]" style={{ background: themeStyles.table1Header, borderColor: themeStyles.border }}>
                         {table1ColumnOrder.map((colKey, idx) => {
                           const col = TABLE1_COLS[colKey];
                           const widthVal = table1ColumnWidths[colKey] || col.defaultWidth;
@@ -4312,19 +4373,20 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       <tr>
                         <td
                           colSpan={4}
-                          className="bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF1_25%,#BFC9D1_50%,#E8EDF1_75%,#AAB6C0_100%)] text-center font-black text-[#151B20] p-2.5 uppercase text-[11px] tracking-widest border-t border-b border-[#929FA9] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)] relative"
+                          className="text-center font-black text-[#151B20] p-2.5 uppercase text-[11px] tracking-widest border-t border-b shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)] relative"
+                          style={{ background: themeStyles.table2Header, borderColor: themeStyles.border }}
                         >
                           <div className="flex items-center justify-center gap-3">
-                            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#929FA9] to-transparent"></div>
+                            <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to right, transparent, ${themeStyles.border}, transparent)` }}></div>
                             <span className="select-none tracking-widest text-[#151B20] font-black">
                               ‹─── PARAMETRIZAÇÃO DAS ISCAS ───›
                             </span>
-                            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#929FA9] to-transparent"></div>
+                            <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to right, transparent, ${themeStyles.border}, transparent)` }}></div>
                           </div>
                         </td>
                       </tr>
                       {/* Subheaders Row with Metallic Silver Chrome & Icons */}
-                      <tr className="bg-[linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)] text-[#151B20] text-center font-extrabold text-[9.5px] tracking-wider h-[32px] border-b border-[#929FA9] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)]">
+                      <tr className="text-[#151B20] text-center font-extrabold text-[9.5px] tracking-wider h-[32px] border-b shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)]" style={{ background: themeStyles.subHeaderBg, borderColor: themeStyles.border }}>
                         {table2ColumnOrder.map((colKey, idx) => {
                           const col = TABLE2_COLS[colKey];
                           const widthVal = table2ColumnWidths[colKey] || col.defaultWidth;
@@ -4351,7 +4413,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   {colKey === 'isca' && (
                                     <>
                                       <Barcode size={11} className="text-[#303A42] shrink-0 inline-block" />
-                                      <span>PLACA / CODIGO DE VENDA ⇅</span>
+                                      <span>PLACA / CÓDIGO DE VENDA ⇅</span>
                                     </>
                                   )}
                                   {colKey === 'endereco' && (
@@ -4369,7 +4431,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   {colKey === 'bateria' && (
                                     <>
                                       <Battery size={11} className="text-[#303A42] shrink-0 inline-block" />
-                                      <span>BATERIA ISCA_RF ⇅</span>
+                                      <span>BATERIA ISCA _ RF ⇅</span>
                                     </>
                                   )}
                                 </span>
@@ -4449,25 +4511,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   </td>
                                 );
                               case 'bateria':
+                                const text2 = isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
+                                const isOffline2 = text2.includes("temporariamente fora do ar");
                                 return (
                                   <td key={colKey} className="p-1 text-center font-medium text-[11px] align-middle">
-                                    <div className="flex items-center justify-center gap-1 mx-auto w-fit">
-                                      <input
-                                        type="text"
-                                        value={isca2 === "SEM ISCA" ? "" : isca2Bateria}
-                                        onChange={(e) => setIsca2Bateria(e.target.value)}
-                                        disabled={isca2 === "SEM ISCA"}
-                                        className="w-10 bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150 disabled:opacity-50"
-                                        placeholder={isca2 === "SEM ISCA" ? "" : "100%"}
-                                      />
-                                      <div className="relative flex items-center shrink-0">
-                                        <Battery className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
-                                        <div 
-                                          className="absolute left-[2px] top-[5.5px] h-[5px] bg-emerald-500 rounded-[1px]"
-                                          style={{ width: `${(isca2 === "SEM ISCA" ? 0 : Math.min(100, parseInt(isca2Bateria) || 100)) * 0.09}px` }}
+                                    {isOffline2 ? null : (
+                                      <div className="flex items-center justify-center gap-1 mx-auto w-fit">
+                                        <input
+                                          type="text"
+                                          value={isca2 === "SEM ISCA" ? "" : isca2Bateria}
+                                          onChange={(e) => setIsca2Bateria(e.target.value)}
+                                          disabled={isca2 === "SEM ISCA"}
+                                          className="w-10 bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150 disabled:opacity-50"
+                                          placeholder={isca2 === "SEM ISCA" ? "" : "100%"}
                                         />
+                                        <div className="relative flex items-center shrink-0">
+                                          <Battery className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
+                                          <div 
+                                            className="absolute left-[2px] top-[5.5px] h-[5px] bg-emerald-500 rounded-[1px]"
+                                            style={{ width: `${(isca2 === "SEM ISCA" ? 0 : Math.min(100, parseInt(isca2Bateria) || 100)) * 0.09}px` }}
+                                          />
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
                                   </td>
                                 );
                               default:
@@ -4517,24 +4583,28 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 </td>
                               );
                             case 'bateria':
+                              const text1 = isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
+                              const isOffline1 = text1.includes("temporariamente fora do ar");
                               return (
                                 <td key={colKey} className="p-1 text-center font-medium text-[11px] bg-white align-middle">
-                                  <div className="flex items-center justify-center gap-1 mx-auto w-fit">
-                                    <input
-                                      type="text"
-                                      value={isca1Bateria}
-                                      onChange={(e) => setIsca1Bateria(e.target.value)}
-                                      className="w-10 bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150"
-                                      placeholder="100%"
-                                    />
-                                    <div className="relative flex items-center shrink-0">
-                                      <Battery className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
-                                      <div 
-                                        className="absolute left-[2px] top-[5.5px] h-[5px] bg-emerald-500 rounded-[1px]"
-                                        style={{ width: `${Math.min(100, parseInt(isca1Bateria) || 100) * 0.09}px` }}
+                                  {isOffline1 ? null : (
+                                    <div className="flex items-center justify-center gap-1 mx-auto w-fit">
+                                      <input
+                                        type="text"
+                                        value={isca1Bateria}
+                                        onChange={(e) => setIsca1Bateria(e.target.value)}
+                                        className="w-10 bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150"
+                                        placeholder="100%"
                                       />
+                                      <div className="relative flex items-center shrink-0">
+                                        <Battery className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
+                                        <div 
+                                          className="absolute left-[2px] top-[5.5px] h-[5px] bg-emerald-500 rounded-[1px]"
+                                          style={{ width: `${Math.min(100, parseInt(isca1Bateria) || 100) * 0.09}px` }}
+                                        />
+                                      </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </td>
                               );
                             default:
@@ -5853,6 +5923,24 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 placeholder="R$ 0,00"
                 title="Importado da coluna VALOR NF na aba SANTA LUZIA"
               />
+            </div>
+
+            {/* TEMA DO PRÉ-ALERTA */}
+            <div className="flex flex-col gap-1 p-2.5 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs mt-2">
+              <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
+                <Sliders size={10} className="text-[#9b1526]" /> Tema
+              </label>
+              <select
+                value={preAlertaTheme}
+                onChange={(e) => setPreAlertaTheme(e.target.value as any)}
+                className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-black uppercase text-stone-900 focus:border-[#9b1526] outline-none transition-all shadow-2xs cursor-pointer"
+              >
+                <option value="prata">Prata (Padrão)</option>
+                <option value="ouro">Ouro</option>
+                <option value="bronze">Bronze</option>
+                <option value="rubi">Rubi</option>
+                <option value="gelo">Gelo</option>
+              </select>
             </div>
           </div>
         </div>

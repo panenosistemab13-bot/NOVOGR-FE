@@ -33,7 +33,7 @@ export function GlassPanel3D({
       className={cn(
         "relative rounded-2xl border transition-all duration-300 overflow-hidden group",
         variantClasses,
-        onClick && "cursor-pointer hover:border-[#9b1526] hover:translate-y-[-2px]",
+        onClick && "cursor-pointer hover:border-[#0f172a] hover:translate-y-[-2px]",
         className
       )}
     >

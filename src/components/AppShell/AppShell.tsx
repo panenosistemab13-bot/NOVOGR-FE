@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import DashboardLayout from '../Layout/DashboardLayout';
-import OrbitalSidebar from './OrbitalSidebar';
+import PremiumHeader from './PremiumHeader';
 
 interface AppShellProps {
   activeTab: string;
@@ -18,12 +18,13 @@ export default function AppShell({
 }: AppShellProps) {
   return (
     <DashboardLayout
-      sidebar={
-        <OrbitalSidebar 
+      header={
+        <PremiumHeader 
           activeTab={activeTab}
           onSelectTab={onSelectTab}
         />
       }
+      sidebar={null}
       footer={null}
     >
       {children}
