@@ -110,7 +110,7 @@ export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'
         </span>
         <div className="w-[8px] h-[5.5px] bg-[#009b3a] border border-white/20 flex items-center justify-center relative rounded-[1px] overflow-hidden">
           <div className="w-[4.5px] h-[3px] bg-yellow-400 rotate-45 transform flex items-center justify-center">
-            <div className="w-[1.5px] h-[1.5px] bg-blue-800 rounded-full"></div>
+            <div className="w-[1.5px] h-[1.5px] bg-red-800 rounded-full"></div>
           </div>
         </div>
       </div>
@@ -644,9 +644,9 @@ export default function Checklist() {
   <p style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; margin: 0 0 12px 0; padding: 0;">${requestFormatted}</p>
   <table style="width: 250px; border-collapse: collapse; border: 1px solid #000000; margin: 0 0 20px 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px;" border="1" cellpadding="4" cellspacing="0">
     <thead>
-      <tr style="background-color: #123B5D; color: #ffffff;">
-        <th style="width: 103px; background-color: #123B5D; color: #ffffff; font-weight: bold; text-align: center; padding: 4px 6px; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif;">CAVALO</th>
-        <th style="width: 147px; background-color: #123B5D; color: #ffffff; font-weight: bold; text-align: center; padding: 4px 6px; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif;">CARRETAS</th>
+      <tr style="background-color: #c4161c; color: #ffffff;">
+        <th style="width: 103px; background-color: #c4161c; color: #ffffff; font-weight: bold; text-align: center; padding: 4px 6px; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif;">CAVALO</th>
+        <th style="width: 147px; background-color: #c4161c; color: #ffffff; font-weight: bold; text-align: center; padding: 4px 6px; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif;">CARRETAS</th>
       </tr>
     </thead>
     <tbody>
@@ -774,8 +774,8 @@ export default function Checklist() {
         </div>
       )}
 
-      {/* Painel Operacional Principal (Padrão 3C: Marfim, Branco, Bege, Vermelho Corporativo) */}
-      <div className="w-full bg-white rounded-3xl p-4 sm:p-6 relative flex flex-col gap-5 border border-[#e8ded2] shadow-xs text-[#1a1614]">
+      {/* Painel Operacional Principal (Padrão 3C com Translucidez para Wallpaper 8K) */}
+      <div className="w-full bg-[#f8fafc]/92 backdrop-blur-md rounded-3xl p-4 sm:p-6 relative flex flex-col gap-5 border border-[#e8ded2] shadow-md text-[#1a1614]">
         
         {/* Top Area: Módulo Integrado de Vistoria e Manutenção Banner */}
         <div className="flex flex-col lg:flex-row gap-5 items-start lg:items-center justify-between bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] p-4 sm:p-5 rounded-2xl border border-white/20 text-white shadow-md relative overflow-hidden">
@@ -909,7 +909,7 @@ export default function Checklist() {
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Pesquisar por placa, condutor, carretas, prefixo ou observação..."
-                      className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-[#00163a] placeholder-slate-400 focus:outline-none focus:border-[#002f87] shadow-2xs uppercase"
+                      className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-[#00163a] placeholder-slate-400 focus:outline-none focus:border-[#c4161c] shadow-2xs uppercase"
                     />
                   </div>
 
@@ -923,7 +923,7 @@ export default function Checklist() {
                         className={cn(
                           "px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer border shadow-xs",
                           filter === f
-                            ? "bg-[#002f87] text-white border-[#002f87] shadow-sm border-b-2 border-[#ff5500]"
+                            ? "bg-[#c4161c] text-white border-[#c4161c] shadow-sm border-b-2 border-[#ffd54f]"
                             : "bg-white text-[#4a5d78] border-slate-200 hover:text-[#00163a] hover:bg-slate-100"
                         )}
                       >
@@ -933,9 +933,9 @@ export default function Checklist() {
                   </div>
 
                   <div className="text-right shrink-0 flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-xl">
-                    <Clock size={13} className="text-[#002f87]" />
+                    <Clock size={13} className="text-[#c4161c]" />
                     <span className="text-[11px] font-mono font-bold text-[#4a5d78]">
-                      EXIBINDO VEÍCULOS <strong className="text-[#002f87]">{filteredItems.length}</strong> de {items.length}
+                      EXIBINDO VEÍCULOS <strong className="text-[#c4161c]">{filteredItems.length}</strong> de {items.length}
                     </span>
                   </div>
                 </div>
@@ -945,7 +945,7 @@ export default function Checklist() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[960px]">
                       <thead>
-                        <tr className="bg-[#002f87] text-white border-b border-[#002366]">
+                        <tr className="bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] text-white border-b border-[#7a0c16]">
                           <th className="py-3 px-3 w-10 text-center font-mono font-bold uppercase tracking-wider text-[11px]">
                             #
                           </th>

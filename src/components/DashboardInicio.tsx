@@ -144,9 +144,9 @@ export default function DashboardInicio({
             <div className="bg-white rounded-2xl p-4 border border-[#e8ded0] shadow-[0_8px_24px_rgba(45,28,14,0.06)] hover:shadow-[0_12px_32px_rgba(45,28,14,0.12)] transition-all relative overflow-hidden group">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-blue-300 p-0.5 shadow-md flex items-center justify-center mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-300 p-0.5 shadow-md flex items-center justify-center mb-3">
                     <div className="w-full h-full rounded-full bg-[#f0f7ff] flex items-center justify-center">
-                      <Users size={18} className="text-blue-600" />
+                      <Users size={18} className="text-red-600" />
                     </div>
                   </div>
                   <span className="text-[11px] font-bold text-[#7d6b5c] uppercase tracking-wider block">
@@ -612,7 +612,7 @@ export default function DashboardInicio({
                       ord.status === 'em_separacao'
                         ? { bg: 'bg-amber-50 text-amber-800 border-amber-300', dot: 'bg-amber-500', label: 'Em separação' }
                         : ord.status === 'faturado'
-                        ? { bg: 'bg-blue-50 text-blue-800 border-blue-300', dot: 'bg-blue-500', label: 'Faturado' }
+                        ? { bg: 'bg-red-50 text-red-800 border-red-300', dot: 'bg-red-500', label: 'Faturado' }
                         : ord.status === 'em_transporte'
                         ? { bg: 'bg-cyan-50 text-cyan-800 border-cyan-300', dot: 'bg-cyan-500', label: 'Em transporte' }
                         : { bg: 'bg-emerald-50 text-emerald-800 border-emerald-300', dot: 'bg-emerald-500', label: 'Entregue' };

@@ -113,7 +113,7 @@ interface AverbacaoProps {
 }
 
 export function Averbacao({ onBack }: AverbacaoProps) {
-  const [emailColor, setEmailColor] = useState<'amarelo' | 'vermelho' | 'azul' | 'verde'>('azul');
+  const [emailColor, setEmailColor] = useState<'amarelo' | 'vermelho' | 'azul' | 'verde'>('vermelho');
   const activeTheme = COLOR_THEMES[emailColor];
   const emailPreviewRef = useRef<HTMLDivElement>(null);
   
@@ -831,7 +831,13 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             <div className="bg-white border border-[#ded5c6] rounded-xl p-3 shadow-2xs space-y-2">
               <div className="flex items-center justify-between text-[9px] font-black uppercase text-slate-400">
                 <span>PALETA DE CORES DO E-MAIL</span>
-                <span className="bg-[#FFFF00] text-black px-1.5 py-0.5 rounded font-bold border border-yellow-400">
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded font-bold border",
+                  emailColor === 'amarelo' ? "bg-[#FFFF00] text-black border-yellow-400" :
+                  emailColor === 'vermelho' ? "bg-red-600 text-white border-red-700" :
+                  emailColor === 'azul' ? "bg-blue-600 text-white border-blue-700" :
+                  "bg-emerald-600 text-white border-emerald-700"
+                )}>
                   {COLOR_THEMES[emailColor].name}
                 </span>
               </div>

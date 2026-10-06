@@ -2612,7 +2612,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
     <div className="w-full relative z-10 max-w-full mx-auto flex flex-col font-sans space-y-5 text-stone-900 min-h-screen">
       
       {/* 1. TOP HEADER (INTERFACE PRESIDENTE) */}
-      <div className="bg-gradient-to-r from-[#002366] to-[#0039a6] rounded-2xl p-4 sm:p-5 border-b-4 border-[#ff5500] shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 text-white">
+      <div className="bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] rounded-2xl p-4 sm:p-5 border-b-4 border-[#ffd54f] shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 text-white">
         <div className="flex items-center gap-4">
           {onBack && (
             <button
@@ -2624,29 +2624,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             </button>
           )}
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-black/20 border border-white/20 text-[#00e5ff] text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-black/20 border border-white/20 text-[#ffd54f] text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
               <span>// OPERACIONAL 3 CORAÇÕES</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight font-heading flex items-center gap-2 text-white">
-              <Sliders size={22} className="text-[#00e5ff]" />
+              <Sliders size={22} className="text-[#ffd54f]" />
               Central de Controle PGR
             </h1>
-            <p className="text-xs text-blue-100/80 font-sans">
+            <p className="text-xs text-red-100/90 font-sans">
               Gerador inteligente de controle, pré-alerta, monitoramento e gestão de frota integrada.
             </p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center bg-black/20 p-1.5 rounded-2xl border border-white/20 shadow-inner gap-1.5 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center bg-black/25 p-1.5 rounded-2xl border border-white/20 shadow-inner gap-1.5 flex-wrap sm:flex-nowrap">
           <button
             type="button"
             onClick={() => setActiveTab("gerador")}
             className={cn(
               "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all cursor-pointer",
               activeTab === "gerador"
-                ? "bg-[#002f87] text-white shadow-md border-b-2 border-[#ff5500]"
-                : "text-blue-100/80 hover:text-white hover:bg-white/10"
+                ? "bg-[#5c0810] text-white shadow-md border-b-2 border-[#ffd54f]"
+                : "text-red-100/80 hover:text-white hover:bg-white/10"
             )}
           >
             <Sliders size={14} />
@@ -2659,8 +2659,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             className={cn(
               "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all cursor-pointer relative",
               activeTab === "placas"
-                ? "bg-[#002f87] text-white shadow-md border-b-2 border-[#ff5500]"
-                : "text-blue-100/80 hover:text-white hover:bg-white/10"
+                ? "bg-[#5c0810] text-white shadow-md border-b-2 border-[#ffd54f]"
+                : "text-red-100/80 hover:text-white hover:bg-white/10"
             )}
           >
             <Truck size={14} />
@@ -2670,7 +2670,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 className={cn(
                   "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
                   activeTab === "placas"
-                    ? "bg-[#ff5500] text-white"
+                    ? "bg-[#ffd54f] text-[#5c3c00]"
                     : "bg-white/20 text-white"
                 )}
               >
@@ -2685,8 +2685,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             className={cn(
               "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all cursor-pointer relative",
               activeTab === "unidades"
-                ? "bg-[#002f87] text-white shadow-md border-b-2 border-[#ff5500]"
-                : "text-blue-100/80 hover:text-white hover:bg-white/10"
+                ? "bg-[#5c0810] text-white shadow-md border-b-2 border-[#ffd54f]"
+                : "text-red-100/80 hover:text-white hover:bg-white/10"
             )}
           >
             <Compass size={14} />
@@ -2696,7 +2696,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 className={cn(
                   "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
                   activeTab === "unidades"
-                    ? "bg-[#ff5500] text-white"
+                    ? "bg-[#ffd54f] text-[#5c3c00]"
                     : "bg-white/20 text-white"
                 )}
               >
@@ -2710,12 +2710,12 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
 
       {/* Main Workspace Layout */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden pt-1 bg-canvas">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden pt-1 bg-transparent">
         {/* TAB CONTENT: Placas (SANTA LUZIA / MG) */}
         {activeTab === "placas" && (
           <div className="flex flex-col gap-6 max-w-full mx-auto w-full animate-fade-in">
             {/* Main Station Cockpit */}
-            <div className="bg-white rounded-3xl border border-[#D1E1EB] shadow-lg p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden">
+            <div className="bg-[#f8fafc]/90 backdrop-blur-md rounded-3xl border border-[#929FA9]/40 shadow-xl p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden">
               {/* Decorative top accent line */}
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#B32025] via-red-600 to-amber-500" />
 
@@ -3239,17 +3239,17 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* Main Station Cockpit */}
             <div className="bg-white rounded-3xl border border-[#D1E1EB] shadow-lg p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden">
               {/* Decorative top accent line */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-amber-500" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-700 via-indigo-600 to-amber-500" />
 
               {/* Station Header */}
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#E2E8F0]">
                 <div className="flex items-start sm:items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-950 text-white p-3.5 shadow-md shadow-blue-900/30 flex items-center justify-center shrink-0 border border-blue-900">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-700 via-red-800 to-indigo-950 text-white p-3.5 shadow-md shadow-red-900/30 flex items-center justify-center shrink-0 border border-red-900">
                     <Compass size={28} className="stroke-[2.5]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-300">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-900 border border-red-300">
                         Terminal de Embarques
                       </span>
                       <span className="text-xs font-mono font-bold text-stone-400">
@@ -3269,10 +3269,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <button
                     type="button"
                     onClick={() => setUnidadesPastedText(SAMPLE_UNIDADES_TEXT)}
-                    className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                    className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-900 border border-red-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
                     title="Carrega a mensagem exemplo recebida da unidade Cuiabá"
                   >
-                    <Sparkles size={14} className="text-blue-600" />
+                    <Sparkles size={14} className="text-red-600" />
                     <span>Carregar Ficha Real Cuiabá</span>
                   </button>
                   {unidadesPastedText && (
@@ -3295,7 +3295,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <div className="bg-stone-50 border-2 border-stone-200 rounded-3xl p-5 flex flex-col gap-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-black uppercase tracking-wider text-stone-900 flex items-center gap-1.5">
-                        <FileText size={16} className="text-blue-600" />
+                        <FileText size={16} className="text-red-600" />
                         Mensagem da Unidade Cuiabá:
                       </label>
                       <button
@@ -3303,7 +3303,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         onClick={handlePasteClipboardUnidades}
                         className="px-2.5 py-1 bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95"
                       >
-                        <ClipboardPaste size={12} className="text-blue-600" />
+                        <ClipboardPaste size={12} className="text-red-600" />
                         <span>Colar WhatsApp</span>
                       </button>
                     </div>
@@ -3312,14 +3312,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       value={unidadesPastedText}
                       onChange={(e) => setUnidadesPastedText(e.target.value)}
                       placeholder={`Cole a mensagem enviada pelo time de Cuiabá...\n\nExemplo estruturado das 5 colunas:\nRBV2C89 - R100001239 - LADO DIREITO SUPERIOR BATIDO - 12211016 - 305124\n\nOu dados completos:\nData do embarque: 02/09/2026\nPlaca do cavalo: RFX9E81\nPlaca do Baú: RBV2C89 - R100001239 - 12211016 - LADO DIREITO SUPERIOR\nNF : 305124\nDestino: CAMPO GRANDE - MS\nMotorista: Diego Pereira\nTransportadora: Ledfran`}
-                      className="w-full h-72 bg-white border-2 border-stone-300 focus:border-blue-600 rounded-2xl p-4 text-xs font-mono text-stone-900 outline-none transition-all placeholder:text-stone-400 shadow-inner resize-y leading-relaxed"
+                      className="w-full h-72 bg-white border-2 border-stone-300 focus:border-red-600 rounded-2xl p-4 text-xs font-mono text-stone-900 outline-none transition-all placeholder:text-stone-400 shadow-inner resize-y leading-relaxed"
                     />
 
                     {/* Live Parser Diagnostic Checklist */}
                     <div className="bg-white border border-stone-200 rounded-2xl p-3.5 flex flex-col gap-2">
                       <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 flex items-center justify-between">
                         <span>Diagnóstico do Parser em Tempo Real:</span>
-                        <span className="text-blue-600 font-bold">Auto-Sync</span>
+                        <span className="text-red-600 font-bold">Auto-Sync</span>
                       </span>
                       <div className="grid grid-cols-2 gap-2 text-[11px]">
                         <div className="flex items-center gap-1.5">
@@ -3351,7 +3351,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             {parsedUnidades.carretas.length > 0 ? "✓" : "○"}
                           </span>
                           <span className="text-stone-600 truncate">
-                            Carretas: <strong className="text-blue-700 font-mono">{parsedUnidades.carretas.length} Baú(s)</strong>
+                            Carretas: <strong className="text-red-700 font-mono">{parsedUnidades.carretas.length} Baú(s)</strong>
                           </span>
                         </div>
                       </div>
@@ -3362,23 +3362,23 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 {/* RIGHT PANE: Dispatch Cockpit & Live Preview (7 cols) */}
                 <div className="lg:col-span-7 flex flex-col gap-4">
                   {parsedUnidades.cavalo || parsedUnidades.carretas.length > 0 || parsedUnidades.destino || parsedUnidades.motorista ? (
-                    <div className="bg-blue-50/40 border-2 border-blue-200 rounded-3xl p-5 sm:p-6 flex flex-col gap-5 animate-fade-in">
+                    <div className="bg-red-50/40 border-2 border-red-200 rounded-3xl p-5 sm:p-6 flex flex-col gap-5 animate-fade-in">
                       {/* Cockpit Header */}
-                      <div className="flex items-center justify-between border-b border-blue-200 pb-3.5">
+                      <div className="flex items-center justify-between border-b border-red-200 pb-3.5">
                         <div className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <h3 className="text-xs font-black uppercase tracking-wider text-blue-950">
+                          <h3 className="text-xs font-black uppercase tracking-wider text-red-950">
                             Dados Reconhecidos & Prontos para o PGR
                           </h3>
                         </div>
-                        <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-xs">
+                        <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">
                           Origem: CUIABÁ / MT
                         </span>
                       </div>
 
                       {/* General Vehicle & Driver HUD */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="bg-white border border-blue-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
+                        <div className="bg-white border border-red-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
                           <span className="text-[10px] font-extrabold text-stone-400 uppercase">
                             Placa Cavalo
                           </span>
@@ -3387,7 +3387,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           </span>
                         </div>
 
-                        <div className="bg-white border border-blue-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
+                        <div className="bg-white border border-red-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
                           <span className="text-[10px] font-extrabold text-stone-400 uppercase">
                             Motorista
                           </span>
@@ -3396,7 +3396,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           </span>
                         </div>
 
-                        <div className="bg-white border border-blue-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
+                        <div className="bg-white border border-red-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
                           <span className="text-[10px] font-extrabold text-stone-400 uppercase">
                             Transportadora
                           </span>
@@ -3405,7 +3405,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           </span>
                         </div>
 
-                        <div className="bg-white border border-blue-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
+                        <div className="bg-white border border-red-200 p-3 rounded-2xl flex flex-col gap-0.5 shadow-xs">
                           <span className="text-[10px] font-extrabold text-stone-400 uppercase">
                             Destino Final
                           </span>
@@ -3420,10 +3420,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-black uppercase tracking-wider text-stone-800 flex items-center gap-1.5">
-                              <Truck size={14} className="text-blue-600" />
+                              <Truck size={14} className="text-red-600" />
                               Carretas & Mapeamento de Iscas ({parsedUnidades.carretas.length}):
                             </span>
-                            <span className="text-[10px] font-mono font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
+                            <span className="text-[10px] font-mono font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-md">
                               5 Colunas Validadas
                             </span>
                           </div>
@@ -3432,12 +3432,12 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             {parsedUnidades.carretas.map((cr, idx) => (
                               <div
                                 key={idx}
-                                className="bg-white border-2 border-blue-200/90 rounded-2xl p-4 flex flex-col gap-3 shadow-xs hover:border-blue-500 transition-colors"
+                                className="bg-white border-2 border-red-200/90 rounded-2xl p-4 flex flex-col gap-3 shadow-xs hover:border-red-500 transition-colors"
                               >
                                 <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
                                   <div className="flex items-center gap-2">
                                     <span className="bg-[#1f1915] text-white font-mono font-black text-xs px-2.5 py-1 rounded-lg uppercase flex items-center gap-1.5 shadow-xs">
-                                      <Truck size={13} className="text-blue-400" />
+                                      <Truck size={13} className="text-red-400" />
                                       Carreta {idx + 1}: {cr.carreta || "S/ Placa"}
                                     </span>
                                     {cr.esquema && (
@@ -3449,7 +3449,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-[11px] font-black text-stone-700 bg-stone-100 border border-stone-200 px-2.5 py-1 rounded-lg">
-                                      NF: <span className="font-mono text-blue-700">{cr.nf || "---"}</span>
+                                      NF: <span className="font-mono text-red-700">{cr.nf || "---"}</span>
                                     </span>
                                   </div>
                                 </div>
@@ -3503,7 +3503,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     <span className="text-[9px] font-extrabold uppercase text-stone-400 block">
                                       4. U.M.A
                                     </span>
-                                    <span className="font-mono font-black text-blue-900 text-xs mt-0.5 block truncate">
+                                    <span className="font-mono font-black text-red-900 text-xs mt-0.5 block truncate">
                                       {cr.uma || "---"}
                                     </span>
                                   </div>
@@ -3518,7 +3518,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       <button
                         type="button"
                         onClick={() => handleImportUnidadeData(parsedUnidades)}
-                        className="w-full py-4 bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-blue-900/20 cursor-pointer active:scale-98 mt-2"
+                        className="w-full py-4 bg-gradient-to-r from-red-700 to-indigo-800 hover:from-red-800 hover:to-indigo-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-red-900/20 cursor-pointer active:scale-98 mt-2"
                       >
                         <Send size={16} />
                         <span>ENVIAR DADOS PARA O GERADOR PGR & GERAR PRÉ-ALERTA COMPLETO</span>
@@ -3527,7 +3527,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   ) : (
                     /* Empty state for Cuiabá */
                     <div className="bg-stone-50 border-2 border-dashed border-stone-300 rounded-3xl p-10 flex flex-col items-center justify-center text-center gap-4 h-full min-h-[360px]">
-                      <div className="w-16 h-16 rounded-2xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center shadow-md">
+                      <div className="w-16 h-16 rounded-2xl bg-white border border-red-200 text-red-600 flex items-center justify-center shadow-md">
                         <Compass size={32} />
                       </div>
                       <div className="max-w-md">
@@ -3541,7 +3541,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       <button
                         type="button"
                         onClick={() => setUnidadesPastedText(SAMPLE_UNIDADES_TEXT)}
-                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-md transition-all cursor-pointer active:scale-95"
+                        className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-md transition-all cursor-pointer active:scale-95"
                       >
                         <Sparkles size={14} />
                         <span>Testar com Ficha Real de Cuiabá</span>
@@ -3572,7 +3572,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             ? "col-span-1 xl:col-span-2"
             : "col-span-1 xl:col-span-1"
         )}>
-          <div className="flex-1 rounded-2xl sm:rounded-3xl bg-white border border-slate-200 shadow-xl relative overflow-hidden flex flex-col p-4 sm:p-6 text-[#00163a]">
+          <div className="flex-1 rounded-2xl sm:rounded-3xl bg-[#f8fafc]/92 backdrop-blur-md border border-[#929FA9]/50 shadow-xl relative overflow-hidden flex flex-col p-4 sm:p-6 text-[#00163a]">
 
           {/* Module Title */}
           <div className={cn(
@@ -4045,7 +4045,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           type="text"
                           value={valorCarga}
                           onChange={(e) => setValorCarga(e.target.value)}
-                          className="w-24 sm:w-28 text-right font-black uppercase text-[#151B20] bg-transparent border-none outline-none text-[14px] tracking-tight hover:bg-white/40 focus:bg-white/80 focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 transition-all"
+                          className="w-24 sm:w-28 text-right font-black uppercase text-[#151B20] bg-transparent border-none outline-none text-[14px] tracking-tight hover:bg-white/40 focus:bg-white/80 focus:ring-1 focus:ring-[#C62845] rounded px-1 transition-all"
                           placeholder="355565"
                           title="Valor da Carga"
                         />
@@ -4135,7 +4135,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   <textarea
                                     value={motorista}
                                     onChange={(e) => handleTableMotoristaChange(e.target.value)}
-                                    className="w-full h-full min-h-[40px] text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded resize-none p-1 text-[11px] leading-snug text-[#151B20] transition-all duration-150"
+                                    className="w-full h-full min-h-[40px] text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded resize-none p-1 text-[11px] leading-snug text-[#151B20] transition-all duration-150"
                                     placeholder="NOME MOTORISTA"
                                   />
                                 </td>
@@ -4147,7 +4147,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="text"
                                     value={cavalo}
                                     onChange={(e) => setCavalo(e.target.value.replace(/-/g, ""))}
-                                    className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 text-[12.5px] text-[#151B20] tracking-wider transition-all duration-150"
+                                    className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[12.5px] text-[#151B20] tracking-wider transition-all duration-150"
                                     placeholder="PLACA"
                                     title="Placa"
                                   />
@@ -4160,7 +4160,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="text"
                                     value={carreta1}
                                     onChange={(e) => setCarreta1(e.target.value)}
-                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#202930] transition-all duration-150"
+                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#202930] transition-all duration-150"
                                     placeholder="CARRETA 1"
                                   />
                                 </td>
@@ -4173,7 +4173,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     value={isca1}
                                     onChange={(e) => handleIsca1Change(e.target.value)}
                                     className={cn(
-                                      "w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-black text-[11.5px] transition-all duration-150",
+                                      "w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-black text-[11.5px] transition-all duration-150",
                                       isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C62845]"
                                     )}
                                     placeholder="ISCA 1"
@@ -4187,7 +4187,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="text"
                                     value={produto1}
                                     onChange={(e) => setProduto1(e.target.value)}
-                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-semibold text-[11px] text-[#202930] transition-all duration-150"
+                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] text-[#202930] transition-all duration-150"
                                     placeholder="PROD 1"
                                   />
                                 </td>
@@ -4199,7 +4199,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="text"
                                     value={uma1}
                                     onChange={(e) => setUma1(formatUMA(e.target.value))}
-                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-semibold text-[11px] text-[#202930] transition-all duration-150"
+                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] text-[#202930] transition-all duration-150"
                                     placeholder="0XX.XXX.XXX.XXX"
                                   />
                                 </td>
@@ -4211,7 +4211,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="text"
                                     value={destino}
                                     onChange={(e) => setDestino(e.target.value)}
-                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 text-[11px] text-[#151B20] transition-all duration-150"
+                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-[#151B20] transition-all duration-150"
                                     placeholder="DESTINO"
                                   />
                                 </td>
@@ -4223,7 +4223,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="text"
                                     value={dataEnviada}
                                     onChange={(e) => setDataEnviada(e.target.value)}
-                                    className="w-full text-center font-bold bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 text-[11px] text-[#151B20] transition-all duration-150"
+                                    className="w-full text-center font-bold bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-[#151B20] transition-all duration-150"
                                     placeholder="DATA"
                                   />
                                 </td>
@@ -4246,7 +4246,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       type="text"
                                       value={carreta2}
                                       onChange={(e) => setCarreta2(e.target.value)}
-                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#202930] transition-all duration-150"
+                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#202930] transition-all duration-150"
                                       placeholder="CARRETA 2"
                                     />
                                   </td>
@@ -4259,7 +4259,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       value={isca2}
                                       onChange={(e) => handleIsca2Change(e.target.value)}
                                       className={cn(
-                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-black text-[11.5px] transition-all duration-150",
+                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-black text-[11.5px] transition-all duration-150",
                                         isca2 === "SEM ISCA" ? "text-slate-400 font-semibold" : isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C62845]"
                                       )}
                                       placeholder="ISCA 2"
@@ -4274,7 +4274,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       value={produto2}
                                       onChange={(e) => setProduto2(e.target.value)}
                                       className={cn(
-                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-semibold text-[11px] transition-all duration-150",
+                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] transition-all duration-150",
                                         isca2 === "SEM ISCA" ? "text-slate-400 font-medium" : "text-[#202930]"
                                       )}
                                       placeholder="PROD 2"
@@ -4289,7 +4289,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       value={uma2}
                                       onChange={(e) => setUma2(formatUMA(e.target.value))}
                                       className={cn(
-                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 uppercase font-semibold text-[11px] transition-all duration-150",
+                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] transition-all duration-150",
                                         isca2 === "SEM ISCA" ? "text-slate-400 font-medium" : "text-[#202930]"
                                       )}
                                       placeholder="0XX.XXX.XXX.XXX"
@@ -4428,7 +4428,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       disabled={isca2 === "SEM ISCA"}
                                       rows={1}
                                       className={cn(
-                                        "w-full bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150 disabled:opacity-50",
+                                        "w-full bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150 disabled:opacity-50",
                                         !pastePlanilha.trim() && !isca2Endereco ? "text-[#C62845] font-black uppercase" : "text-[#151B20]"
                                       )}
                                       placeholder={isca2 === "SEM ISCA" ? "" : "Endereço da Isca 2..."}
@@ -4443,7 +4443,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       value={isca2 === "SEM ISCA" ? "" : isca2Data}
                                       onChange={(e) => setIsca2Data(e.target.value)}
                                       disabled={isca2 === "SEM ISCA"}
-                                      className="w-full bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1.5 py-0.5 text-[11px] text-center text-[#151B20] font-medium transition-all duration-150 disabled:opacity-50"
+                                      className="w-full bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] text-center text-[#151B20] font-medium transition-all duration-150 disabled:opacity-50"
                                       placeholder={isca2 === "SEM ISCA" ? "" : "Data/Hora..."}
                                     />
                                   </td>
@@ -4457,7 +4457,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                         value={isca2 === "SEM ISCA" ? "" : isca2Bateria}
                                         onChange={(e) => setIsca2Bateria(e.target.value)}
                                         disabled={isca2 === "SEM ISCA"}
-                                        className="w-10 bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150 disabled:opacity-50"
+                                        className="w-10 bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150 disabled:opacity-50"
                                         placeholder={isca2 === "SEM ISCA" ? "" : "100%"}
                                       />
                                       <div className="relative flex items-center shrink-0">
@@ -4497,7 +4497,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     onChange={(e) => setIsca1Endereco(e.target.value)}
                                     rows={1}
                                     className={cn(
-                                      "w-full bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150",
+                                      "w-full bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150",
                                       !pastePlanilha.trim() && !isca1Endereco ? "text-[#C62845] font-black uppercase" : "text-[#151B20]"
                                     )}
                                     placeholder="Endereço da Isca 1..."
@@ -4511,7 +4511,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="text"
                                     value={isca1Data}
                                     onChange={(e) => setIsca1Data(e.target.value)}
-                                    className="w-full bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1.5 py-0.5 text-[11px] text-center text-[#151B20] font-medium transition-all duration-150"
+                                    className="w-full bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] text-center text-[#151B20] font-medium transition-all duration-150"
                                     placeholder="Data/Hora..."
                                   />
                                 </td>
@@ -4524,7 +4524,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       type="text"
                                       value={isca1Bateria}
                                       onChange={(e) => setIsca1Bateria(e.target.value)}
-                                      className="w-10 bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#9CC8E8] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150"
+                                      className="w-10 bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150"
                                       placeholder="100%"
                                     />
                                     <div className="relative flex items-center shrink-0">
@@ -5508,7 +5508,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               <div className="flex flex-col gap-2 pt-2 border-t border-stone-200">
                 <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
                   <span>Embarque (carreta 2)</span>
-                  {carreta2 && <span className="text-[9px] font-mono text-blue-600 font-black">{carreta2}</span>}
+                  {carreta2 && <span className="text-[9px] font-mono text-red-600 font-black">{carreta2}</span>}
                 </label>
 
                 <div className="grid grid-cols-2 gap-1.5">
@@ -5828,7 +5828,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 title="Inverter as placas das colunas Carreta 1 e Carreta 2"
                 className="w-full flex items-center justify-center gap-1 bg-white hover:bg-stone-200/80 text-stone-800 border border-stone-300 font-extrabold uppercase text-[9px] py-1.5 px-2 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95"
               >
-                <ArrowUpDown size={11} className="text-blue-600 stroke-[2.5]" />
+                <ArrowUpDown size={11} className="text-red-600 stroke-[2.5]" />
                 <span>Carreta 1 ⇄ 2</span>
               </button>
             </div>
@@ -5891,7 +5891,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 "px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm border flex items-center gap-2 transition-all cursor-pointer active:scale-95",
                 copiedFraseEmbarque
                   ? "bg-emerald-600 text-white border-emerald-500"
-                  : "bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
+                  : "bg-red-600 hover:bg-red-700 text-white border-red-500"
               )}
               title="Copiar frase de embarque com dia/mês e destino do pré-alerta"
             >
@@ -6194,14 +6194,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         </div>
 
         {/* Card Dedicado com a Frase de Embarque das Iscas (POR ÚLTIMO NA PÁGINA) */}
-        <div className="mt-5 bg-gradient-to-r from-blue-50/80 via-white to-blue-50/50 border-2 border-blue-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="mt-5 bg-gradient-to-r from-red-50/80 via-white to-red-50/50 border-2 border-red-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5 flex-1 min-w-0">
-            <div className="w-11 h-11 rounded-xl bg-blue-600 text-white shadow-xs flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-red-600 text-white shadow-xs flex items-center justify-center shrink-0">
               <Radio size={22} className="animate-pulse" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-widest text-blue-800 bg-blue-100/90 px-2.5 py-0.5 rounded-md border border-blue-200">
+                <span className="text-[10px] font-black uppercase tracking-widest text-red-800 bg-red-100/90 px-2.5 py-0.5 rounded-md border border-red-200">
                   Frase de Embarque das Iscas
                 </span>
                 <span className="text-[10px] text-stone-500 font-bold">
@@ -6211,9 +6211,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               <div 
                 onClick={handleCopyFraseEmbarque}
                 title="Clique para copiar a frase"
-                className="text-xs sm:text-sm md:text-base font-mono font-black text-stone-950 tracking-tight select-all bg-white border border-blue-200 hover:border-blue-400 rounded-xl px-3.5 py-2 inline-flex items-center gap-2 cursor-pointer shadow-xs transition-all hover:bg-blue-50/40 max-w-full"
+                className="text-xs sm:text-sm md:text-base font-mono font-black text-stone-950 tracking-tight select-all bg-white border border-red-200 hover:border-red-400 rounded-xl px-3.5 py-2 inline-flex items-center gap-2 cursor-pointer shadow-xs transition-all hover:bg-red-50/40 max-w-full"
               >
-                <span className="text-blue-600 font-extrabold text-[11px] uppercase tracking-wider shrink-0 font-sans">FRASE:</span>
+                <span className="text-red-600 font-extrabold text-[11px] uppercase tracking-wider shrink-0 font-sans">FRASE:</span>
                 <span className="truncate">"{getFraseEmbarqueIsca()}"</span>
               </div>
             </div>
@@ -6226,7 +6226,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               "w-full md:w-auto px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm border flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shrink-0 select-none",
               copiedFraseEmbarque
                 ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500"
-                : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:shadow-md"
+                : "bg-red-600 hover:bg-red-700 text-white border-red-600 hover:shadow-md"
             )}
             title="Copiar texto da frase de embarque"
           >

@@ -350,7 +350,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
           
           {/* LEFT 7 COLUMNS: BROADCAST MAP DISPLAY */}
-          <div className="xl:col-span-7 bg-white border border-[#e8ded2] rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between relative min-h-[560px]">
+          <div className="xl:col-span-7 bg-[#f8fafc]/92 backdrop-blur-md border border-[#e8ded2] rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between relative min-h-[560px]">
             
             {/* Map Top Bar */}
             <div className="flex items-center justify-between mb-3 z-10">
@@ -427,7 +427,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
           <div className="xl:col-span-5 space-y-3.5">
             
             {/* Candidate / Route Summary Cards */}
-            <div className="bg-white border border-[#e8ded2] rounded-2xl p-4 shadow-xs space-y-3">
+            <div className="bg-[#f8fafc]/92 backdrop-blur-md border border-[#e8ded2] rounded-2xl p-4 shadow-sm space-y-3">
               <span className="text-[9.5px] font-mono font-black text-[#8a7c6e] uppercase tracking-wider block">
                 DISTRIBUIÇÃO DE FLUXO OPERACIONAL
               </span>

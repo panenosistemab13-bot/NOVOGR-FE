@@ -1750,7 +1750,7 @@ export default function Escala({ onBack }: EscalaProps) {
             ) : (
               <Lock size={11} className="text-stone-400" />
             )}
-            <span className="ml-1 font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-800 border border-blue-300">
+            <span className="ml-1 font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-red-50 text-red-800 border border-red-300">
               {apoliceItems.length}
             </span>
           </button>
@@ -1793,10 +1793,10 @@ export default function Escala({ onBack }: EscalaProps) {
 
             <button
               onClick={() => setIsDestinosModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer bg-[#122b52] hover:bg-[#18396d] text-blue-100 border border-blue-400/40 shadow-xs"
+              className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer bg-[#122b52] hover:bg-[#18396d] text-red-100 border border-red-400/40 shadow-xs"
               title="Visualizar a lista completa de 58 destinos padronizados"
             >
-              <MapPin size={14} className="text-blue-300" />
+              <MapPin size={14} className="text-red-300" />
               <span>DESTINOS PADRÃO ({DESTINOS_PADRAO.length})</span>
             </button>
           </div>

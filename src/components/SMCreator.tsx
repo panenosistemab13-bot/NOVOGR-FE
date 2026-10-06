@@ -1195,7 +1195,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             const countVesp = vespasianoRows.length;
 
             const routesStats = [
-              { name: 'ROTA IDA (AZUL)', count: countIda, percentage: totalSmVehicles > 0 ? (countIda / totalSmVehicles) * 100 : 100, barColor: 'from-blue-600 to-indigo-800', dotBg: 'bg-[#0F2D59]', badge: 'IDA' },
+              { name: 'ROTA IDA (AZUL)', count: countIda, percentage: totalSmVehicles > 0 ? (countIda / totalSmVehicles) * 100 : 100, barColor: 'from-red-600 to-indigo-800', dotBg: 'bg-[#0F2D59]', badge: 'IDA' },
               { name: 'ROTA VOLTA (VERMELHO)', count: countVolta, percentage: totalSmVehicles > 0 ? (countVolta / totalSmVehicles) * 100 : 0, barColor: 'from-red-600 to-rose-700', dotBg: 'bg-[#801414]', badge: 'VOLTA' },
               { name: 'ROTA VESPASIANO (VERDE)', count: countVesp, percentage: totalSmVehicles > 0 ? (countVesp / totalSmVehicles) * 100 : 0, barColor: 'from-emerald-600 to-green-700', dotBg: 'bg-[#166534]', badge: 'VESP' }
             ].sort((a, b) => b.count - a.count);
@@ -1226,54 +1226,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   </div>
 
                   {/* BROADCAST EXECUTIVE BOARD PANEL */}
-                  <div className="bg-white rounded-3xl p-5 border border-[#e8ded2] shadow-xs relative flex flex-col justify-between min-h-[380px]">
-
-                    {/* Leader Display with Medallion */}
-                    <div className="flex flex-col items-center justify-center py-6 z-10">
-                      <div className="relative">
-                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#c4161c] to-[#7a0c16] border-4 border-[#dfb15b] flex items-center justify-center shadow-lg relative overflow-hidden">
-                          <span className="text-white font-black text-3xl italic tracking-tighter">{smLeader.badge}</span>
-                          <div className="absolute bottom-0 inset-x-0 bg-black/40 py-0.5 text-center">
-                            <span className="text-[#ffd54f] text-[7.5px] font-black tracking-widest uppercase">LÍDER</span>
-                          </div>
-                        </div>
-                        <span className="absolute -top-1 -right-1 bg-[#dfb15b] text-[#5c3c00] text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
-                          1º LUGAR
-                        </span>
-                      </div>
-
-                      <div className="text-center mt-3">
-                        <span className="text-[9.5px] font-bold text-[#8a7c6e] uppercase tracking-widest block">ROTA LÍDER DE ESCALA</span>
-                        <span className="text-xl font-black text-[#1a1614] uppercase block mt-0.5 tracking-tight font-heading">
-                          {smLeader.name}
-                        </span>
-                        <span className="text-[11px] font-bold text-[#73675a] block mt-0.5">
-                          Representando o maior volume de solicitações geradas hoje
-                        </span>
-                      </div>
-
-                      <div className="w-full max-w-xs mt-4">
-                        <div className="flex justify-between items-center text-[11px] font-bold text-[#57493d] mb-1">
-                          <span>PERCENTUAL DE ESCALAS</span>
-                          <span className="text-[#c4161c] font-black">{smLeader.percentage.toFixed(2).replace('.', ',')}%</span>
-                        </div>
-                        <div className="w-full bg-[#f2e9dc] h-2.5 rounded-full overflow-hidden border border-[#e8ded2]">
-                          <div 
-                            className="h-full bg-gradient-to-r from-[#c4161c] to-[#dfb15b] rounded-full transition-all duration-500"
-                            style={{ width: `${smLeader.percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-
-                    {/* Compact Assuntos do E-mail Padronizados (replaces static watermark exactly where requested in yellow) */}
-                    <div className="mt-5 border-t border-slate-100 pt-3.5 w-full z-10 text-left">
+                  <div className="bg-[#f8fafc]/92 backdrop-blur-md rounded-3xl p-5 border border-[#e8ded2] shadow-sm relative flex flex-col justify-start">
+                    {/* Compact Assuntos do E-mail Padronizados */}
+                    <div className="w-full z-10 text-left">
                       <div className="flex items-center gap-1.5 mb-2">
                         <span className="text-[10px] font-black text-[#4a5d78] uppercase tracking-wider block">
                           📧 Assuntos de E-mail Padronizados
                         </span>
-                        <span className="text-[8px] font-mono font-black uppercase tracking-widest px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                        <span className="text-[8px] font-mono font-black uppercase tracking-widest px-1.5 py-0.2 rounded-full bg-red-50 text-red-700 border border-red-200">
                           AUTO
                         </span>
                       </div>
@@ -1282,7 +1242,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                         {/* Rota Ida Subject */}
                         <div className="bg-[#fbf9f5] border border-slate-200 rounded-lg p-2.5 flex items-center justify-between gap-1.5 shadow-2xs">
                           <div className="min-w-0 flex-1">
-                            <span className="text-[8px] font-black uppercase tracking-wider text-blue-700 block">SM ROTA IDA</span>
+                            <span className="text-[8px] font-black uppercase tracking-wider text-red-700 block">SM ROTA IDA</span>
                             <span className="text-[10px] font-mono font-bold text-stone-900 truncate block max-w-[130px] sm:max-w-none">{getSubjectIda()}</span>
                           </div>
                           <button
@@ -1292,7 +1252,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               "px-2 py-1 rounded text-[8.5px] font-mono font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer shrink-0 border",
                               subjectIdaCopied
                                 ? "bg-emerald-600 text-white border-emerald-700"
-                                : "bg-[#0F2D59] text-white border-blue-900 hover:bg-[#153e77]"
+                                : "bg-[#0F2D59] text-white border-red-900 hover:bg-[#153e77]"
                             )}
                           >
                             {subjectIdaCopied ? <Check size={10} /> : <Copy size={10} />}
@@ -1338,11 +1298,11 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               <section className="space-y-3 font-sans">
                 <div className="flex items-center justify-between bg-stone-900 text-white p-3.5 rounded-xl shadow-md border border-stone-800">
                   <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse" />
                     <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                      <TrendingUp size={16} className="text-blue-400" /> Rota Ida
+                      <TrendingUp size={16} className="text-red-400" /> Rota Ida
                     </h3>
-                    <span className="text-[10px] font-mono font-bold bg-blue-600 text-white px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
+                    <span className="text-[10px] font-mono font-bold bg-red-600 text-white px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
                       AZUL
                     </span>
                   </div>
@@ -1350,7 +1310,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => addNewRow('ida')}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#0B2545] hover:bg-[#14325c] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-blue-700"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#0B2545] hover:bg-[#14325c] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-700"
                     >
                       <Plus size={12} /> Add Linha
                     </button>
@@ -1370,7 +1330,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                           "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
                           idaCopied 
                             ? "bg-emerald-600 text-white border-emerald-700" 
-                            : "bg-[#0B2545] hover:bg-[#14325c] text-white border-blue-950/50"
+                            : "bg-[#0B2545] hover:bg-[#14325c] text-white border-red-950/50"
                         )}
                       >
                         {idaCopied ? <Check size={12} /> : <Copy size={12} />}
@@ -1391,7 +1351,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                         <textarea 
                           onPaste={(e) => handlePaste(e, 'ida')}
                           placeholder="Ctrl+V aqui para colar escala..."
-                          className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-blue-500 resize-none"
+                          className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-red-500 resize-none"
                         />
                         <button 
                           onClick={() => addNewRow('ida')}
@@ -1405,7 +1365,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                     <div className="overflow-x-auto rounded-lg border border-[#0B2545]/20 shadow-xs">
                       <table className="w-full text-left border-collapse font-sans">
                         <thead>
-                          <tr className="bg-[#0B2545] border-b border-blue-950 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
+                          <tr className="bg-[#0B2545] border-b border-red-950 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
                             <th className="px-2 py-2 w-8 text-center text-white">#</th>
                             <th className="px-2 py-2 w-10 text-center text-white">OK</th>
                             <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
@@ -1458,7 +1418,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   />
                                   <button 
                                     onClick={() => safeCopyText(row.motorista)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-blue-600/10 hover:bg-blue-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
                                     title="Copiar Motorista"
                                   >
                                     <Copy size={12} />
@@ -1513,7 +1473,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   </button>
                                   <button 
                                     onClick={() => safeCopyText(row.valorNf)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-blue-600/10 hover:bg-blue-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
                                     title="Copiar Valor"
                                   >
                                     <Copy size={12} />

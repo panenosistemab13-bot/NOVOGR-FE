@@ -17,12 +17,7 @@ export default function DashboardLayout({
   footer,
 }: DashboardLayoutProps) {
   return (
-    <div className="app-shell">
-      {/* =====================================================
-          FUNDO GERAL (ELECTION THEME BACKGROUND)
-      ====================================================== */}
-      <div className="app-background" />
-
+    <div className="app-shell relative">
       {/* =====================================================
           HEADER HORIZONTAL SUPERIOR (ELECTION THEME)
       ====================================================== */}
