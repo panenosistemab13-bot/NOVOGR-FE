@@ -2185,10 +2185,6 @@ export default function Controle({ onBack }: ControleProps) {
       setValorCarga("");
     }
 
-    if (item.data) {
-      setDataEnviada(item.data);
-    }
-
     // Interactive confirmation banner
     setImportSuccessBanner({
       cavalo: item.cavalo || "S/ Placa",
@@ -3505,11 +3501,23 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     <div className="bg-red-50/40 border-2 border-red-200 rounded-3xl p-5 sm:p-6 flex flex-col gap-5 animate-fade-in">
                       {/* Cockpit Header */}
                       <div className="flex items-center justify-between border-b border-red-200 pb-3.5">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <h3 className="text-xs font-black uppercase tracking-wider text-red-950">
-                            Dados Reconhecidos & Prontos para o PGR
-                          </h3>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <h3 className="text-xs font-black uppercase tracking-wider text-red-950">
+                              Dados Reconhecidos & Prontos para o PGR
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <label className="text-[10px] font-black uppercase text-stone-600">Configurar Tema:</label>
+                            <select value={preAlertaTheme} onChange={(e) => setPreAlertaTheme(e.target.value as any)} className="bg-white border border-red-300 rounded-md px-2 py-1 text-[10px] font-black uppercase outline-none shadow-xs">
+                              <option value="prata">Prata</option>
+                              <option value="ouro">Ouro</option>
+                              <option value="bronze">Bronze</option>
+                              <option value="rubi">Rubi</option>
+                              <option value="gelo">Gelo</option>
+                            </select>
+                          </div>
                         </div>
                         <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">
                           Origem: CUIABÁ / MT
@@ -3697,8 +3705,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         {/* TAB CONTENT: Gerador PGR Workspace */}
         {activeTab === "gerador" && (
           <div className="flex flex-col gap-5 max-w-full mx-auto w-full animate-fade-in">
-            {/* TOP AREA: Fast Fill & Vehicle Forms (Horizontal Layout) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">
+            {/* TOP AREA: Fast Fill & Vehicle Forms */}
+            <div className="flex flex-col gap-5 w-full">
               {/* Fast Fill Form */}
               <div className="rounded-2xl bg-white border border-stone-200 shadow-md flex flex-col p-5">
                 <div className="border-b border-stone-200 pb-3 mb-4 flex items-center justify-between">
@@ -3753,16 +3761,6 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <h3 className="text-base font-extrabold text-stone-900 uppercase flex items-center gap-2">
                     <Truck size={18} className={isCuiabaOrigem ? "text-amber-600" : "text-red-600"} /> Veículo & Carga
                   </h3>
-                  <div className="flex items-center gap-2">
-                    <label className="text-[10px] font-black uppercase text-stone-600">Tema:</label>
-                    <select value={preAlertaTheme} onChange={(e) => setPreAlertaTheme(e.target.value as any)} className="bg-stone-100 border border-stone-300 rounded-md px-2 py-1 text-[10px] font-black uppercase">
-                      <option value="prata">Prata</option>
-                      <option value="ouro">Ouro</option>
-                      <option value="bronze">Bronze</option>
-                      <option value="rubi">Rubi</option>
-                      <option value="gelo">Gelo</option>
-                    </select>
-                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-3">
