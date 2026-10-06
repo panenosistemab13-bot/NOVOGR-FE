@@ -19,13 +19,15 @@ interface PremiumHeaderProps {
   onSelectTab?: (tabId: string) => void;
   onNavigateHome?: () => void;
   onOpenSettings?: () => void;
+  onOpenWallpaper?: () => void;
 }
 
 export default function PremiumHeader({ 
   activeTab, 
   onSelectTab, 
   onNavigateHome, 
-  onOpenSettings 
+  onOpenSettings,
+  onOpenWallpaper
 }: PremiumHeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -149,6 +151,15 @@ export default function PremiumHeader({
       {/* RIGHT: NOTIFICATIONS, CLOCK, WEATHER & ADMIN LOCK             */}
       {/* ------------------------------------------------------------- */}
       <div className="flex items-center gap-4 shrink-0">
+        <button
+          onClick={onOpenWallpaper}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#be1620] to-[#7d0b13] text-white text-xs font-bold uppercase tracking-wider shadow hover:opacity-95 transition-all cursor-pointer border border-red-400/30"
+          title="Ver Papel de Parede 360° 4K da Fábrica"
+        >
+          <span>🌐</span>
+          <span className="hidden sm:inline">Wallpaper 360° 4K</span>
+        </button>
+
         <div className="hidden sm:flex flex-col text-right leading-none">
           <span className="text-[12px] font-mono font-black text-[#1f1a16]">
             {formattedTime}

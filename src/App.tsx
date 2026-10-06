@@ -74,20 +74,29 @@ import hudBg from './assets/images/wallpaper_hud_command_center_1790202488063.jp
 import patioBg from './assets/images/wallpaper_patio_logistics_1790202500274.jpg';
 import satelliteBg from './assets/images/wallpaper_tactical_satellite_1790202511817.jpg';
 import { Globe, Database, FileSpreadsheet } from 'lucide-react';
+import factoryMenuBg from './assets/images/factory_wallpaper_menu_1791328632981.jpg';
+import factoryChecklistBg from './assets/images/factory_wallpaper_checklist_1791328643367.jpg';
+import factoryAverbacaoBg from './assets/images/factory_wallpaper_averbacao_1791328653522.jpg';
+import factorySmBg from './assets/images/factory_wallpaper_sm_1791328663393.jpg';
+import factoryControleBg from './assets/images/factory_wallpaper_controle_1791328673670.jpg';
+import factoryEscalaBg from './assets/images/factory_wallpaper_escala_1791328684394.jpg';
+import factoryDisponibilidadeBg from './assets/images/factory_wallpaper_disponibilidade_1791328698210.jpg';
+import factoryPresenceBg from './assets/images/factory_wallpaper_presence_1791328708994.jpg';
+import factoryRotasBg from './assets/images/factory_wallpaper_rotas_1791328719413.jpg';
 
 export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade';
 
 const backgroundImages: Record<Tab, string> = {
-  menu: hudBg,
-  presence: satelliteBg,
-  risk: satelliteBg,
-  averbacao: satelliteBg,
-  sm_creator: satelliteBg,
-  rotas: satelliteBg,
-  checklist: patioBg,
-  controle: patioBg,
-  escala: patioBg,
-  disponibilidade: patioBg
+  menu: factoryMenuBg,
+  presence: factoryPresenceBg,
+  risk: factorySmBg,
+  averbacao: factoryAverbacaoBg,
+  sm_creator: factorySmBg,
+  rotas: factoryRotasBg,
+  checklist: factoryChecklistBg,
+  controle: factoryControleBg,
+  escala: factoryEscalaBg,
+  disponibilidade: factoryDisponibilidadeBg
 };
 
 const allTabs = [
@@ -435,13 +444,21 @@ export default function App() {
       showPresenceList={Boolean(pageVisibility['presence'])}
       showRotasPage={Boolean(pageVisibility['rotas'])}
     >
-      {activeTab === 'menu' ? (
-        <MainDashboard onNavigate={(id) => setActiveTab(id as Tab)} />
-      ) : (
-        <div className="w-full h-full overflow-y-auto">
-          {renderActiveModuleContent()}
-        </div>
-      )}
+      <div 
+        className="w-full h-full overflow-y-auto relative"
+        style={{
+          backgroundImage: `linear-gradient(rgba(7, 8, 12, 0.75), rgba(7, 8, 12, 0.75)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        {activeTab === 'menu' ? (
+          <MainDashboard onNavigate={(id) => setActiveTab(id as Tab)} />
+        ) : (
+          renderActiveModuleContent()
+        )}
+      </div>
 
       {/* Global Password Modal Overlay - 3D Cyber Security Clearance Modal */}
       {showPasswordModal && (
