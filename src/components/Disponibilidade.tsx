@@ -304,8 +304,8 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.data}</td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.contatoWhats}</td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.horaLiberado}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">
-            <span style="background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 9999px; font-size: 10px; font-weight: bold;">${r.status}</span>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; white-space: nowrap;">
+            <span style="background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 9999px; font-size: 10px; font-weight: bold; white-space: nowrap;">${r.status.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()}</span>
           </td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.modeloCarreta}</td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.modeloCavalo}</td>

@@ -124,6 +124,7 @@ export default function App() {
 
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
   const [showRestrictedPagesModal, setShowRestrictedPagesModal] = useState<boolean>(false);
+  const [showWallpaperModal, setShowWallpaperModal] = useState<boolean>(false);
 
   const [passwordInput, setPasswordInput] = useState<string>('');
   const [passwordError, setPasswordError] = useState<boolean>(false);
@@ -443,6 +444,7 @@ export default function App() {
       onOpenSettings={handleOpenPageSelector}
       showPresenceList={Boolean(pageVisibility['presence'])}
       showRotasPage={Boolean(pageVisibility['rotas'])}
+      onOpenWallpaper={() => setShowWallpaperModal(true)}
     >
       <div 
         className="w-full h-full overflow-y-auto relative"
@@ -459,6 +461,30 @@ export default function App() {
           renderActiveModuleContent()
         )}
       </div>
+
+      {/* Full screen immersive wallpaper view modal */}
+      {showWallpaperModal && (
+        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col items-center justify-center p-4 backdrop-blur-md">
+          <div className="absolute top-4 right-4 flex items-center gap-3">
+            <span className="text-white/90 text-xs font-bold uppercase tracking-widest bg-stone-900/80 px-4 py-2 rounded-xl border border-white/10 shadow-lg">
+              Fábrica Três Corações · 360° 4K
+            </span>
+            <button
+              onClick={() => setShowWallpaperModal(false)}
+              className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-extrabold uppercase text-xs rounded-xl shadow-lg transition-all hover:scale-105 cursor-pointer border border-red-500/30"
+            >
+              ✕ Fechar View
+            </button>
+          </div>
+          <div className="w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center relative overflow-hidden rounded-3xl border border-white/10 shadow-[0_24px_50px_rgba(0,0,0,0.8)]">
+            <img 
+              src={backgroundImages[activeTab] || backgroundImages.menu} 
+              alt="Papel de Parede 360° 4K da Fábrica" 
+              className="w-full h-full object-cover select-none"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Global Password Modal Overlay - 3D Cyber Security Clearance Modal */}
       {showPasswordModal && (

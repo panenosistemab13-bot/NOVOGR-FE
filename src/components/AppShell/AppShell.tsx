@@ -8,12 +8,14 @@ interface AppShellProps {
   onOpenSettings?: () => void;
   showPresenceList?: boolean;
   showRotasPage?: boolean;
+  onOpenWallpaper?: () => void;
   children: ReactNode;
 }
 
 export default function AppShell({
   activeTab,
   onSelectTab,
+  onOpenWallpaper,
   children
 }: AppShellProps) {
   return (
@@ -22,6 +24,7 @@ export default function AppShell({
         <PremiumHeader 
           activeTab={activeTab}
           onSelectTab={onSelectTab}
+          onOpenWallpaper={onOpenWallpaper}
         />
       }
       sidebar={null}
