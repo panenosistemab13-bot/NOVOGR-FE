@@ -246,9 +246,9 @@ const findRouteCode = (trechoStr: string, section: 'ida' | 'volta', routes: Rout
   return '---';
 };
 
-const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasiano') => {
+const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
   if (rows.length === 0) return '';
-  const headerBg = type === 'ida' ? '#0F2D59' : type === 'volta' ? '#801414' : '#166534';
+  const headerBg = type === 'ida' ? '#0F2D59' : type === 'volta' ? '#801414' : type === 'nordeste' ? '#000000' : '#166534';
   
   let rowsHtml = '';
   rows.forEach((r, idx) => {
@@ -287,15 +287,19 @@ const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasi
 };
 
 export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps) {
-  const [internalView, setInternalView] = useState<'all' | 'ida' | 'volta' | 'vespasiano' | 'codes'>('all');
+  const [internalView, setInternalView] = useState<'all' | 'ida' | 'volta' | 'vespasiano' | 'nordeste' | 'codes'>('all');
   const [idaRows, setIdaRows] = useState<SMRow[]>([]);
   const [voltaRows, setVoltaRows] = useState<SMRow[]>([]);
+  const [nordesteRows, setNordesteRows] = useState<SMRow[]>([]);
   const [vespasianoRows, setVespasianoRows] = useState<SMRow[]>([]);
   const [calcValues, setCalcValues] = useState<string[]>(['']);
   const [routesList, setRoutesList] = useState<RouteItem[]>(DEFAULT_ROUTES);
   const [notes, setNotes] = useState<Note[]>([]);
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
-  const [isVespasianoMaximized, setIsVespasianoMaximized] = useState(false);
+  const [isVespasianoMaximized, setIsVespasianoMaximized] = useState(true);
+  const [isIdaMaximized, setIsIdaMaximized] = useState(true);
+  const [isVoltaMaximized, setIsVoltaMaximized] = useState(true);
+  const [isNordesteMaximized, setIsNordesteMaximized] = useState(true);
   const [newNoteText, setNewNoteText] = useState('');
 
   useEffect(() => {
@@ -305,6 +309,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       if (data) {
         if (data.ida) setIdaRows(data.ida);
         if (data.volta) setVoltaRows(data.volta);
+        if (data.nordeste) setNordesteRows(data.nordeste);
         if (data.vespasiano) setVespasianoRows(data.vespasiano);
         if (data.calc) setCalcValues(data.calc);
         if (data.notes) {
@@ -335,7 +340,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     };
   }, []);
 
-  const historyRef = useRef<Array<{ ida: SMRow[]; volta: SMRow[]; vespasiano: SMRow[]; calc: string[] }>>([]);
+  const historyRef = useRef<Array<{ ida: SMRow[]; volta: SMRow[]; nordeste: SMRow[]; vespasiano: SMRow[]; calc: string[] }>>([]);
   const lastPushTimeRef = useRef<number>(0);
   const [historyCount, setHistoryCount] = useState<number>(0);
   const [showUndoToast, setShowUndoToast] = useState<boolean>(false);
@@ -344,6 +349,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     const currentSnapshot = {
       ida: JSON.parse(JSON.stringify(idaRows)),
       volta: JSON.parse(JSON.stringify(voltaRows)),
+      nordeste: JSON.parse(JSON.stringify(nordesteRows)),
       vespasiano: JSON.parse(JSON.stringify(vespasianoRows)),
       calc: [...calcValues]
     };
@@ -376,6 +382,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     pushHistory(forcePush);
     setVoltaRows(rows);
     set(ref(db, 'sm_creator_data/volta'), rows);
+  };
+
+  const saveNordeste = (rows: SMRow[], forcePush = false) => {
+    pushHistory(forcePush);
+    setNordesteRows(rows);
+    set(ref(db, 'sm_creator_data/nordeste'), rows);
   };
 
   const saveVespasiano = (rows: SMRow[], forcePush = false) => {
@@ -415,12 +427,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     if (previousState) {
       setIdaRows(previousState.ida);
       setVoltaRows(previousState.volta);
+      setNordesteRows(previousState.nordeste || []);
       setVespasianoRows(previousState.vespasiano || []);
       setCalcValues(previousState.calc);
 
       set(ref(db, 'sm_creator_data'), {
         ida: previousState.ida,
         volta: previousState.volta,
+        nordeste: previousState.nordeste || [],
         vespasiano: previousState.vespasiano || [],
         calc: previousState.calc
       });
@@ -447,12 +461,13 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   const [copied, setCopied] = useState(false);
   const [idaCopied, setIdaCopied] = useState(false);
   const [voltaCopied, setVoltaCopied] = useState(false);
+  const [nordesteCopied, setNordesteCopied] = useState(false);
   const [subjectIdaCopied, setSubjectIdaCopied] = useState(false);
   const [subjectVoltaCopied, setSubjectVoltaCopied] = useState(false);
 
   // PDF Import Modal State
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [pdfTargetSection, setPdfTargetSection] = useState<'ida' | 'volta' | 'vespasiano' | 'calc'>('ida');
+  const [pdfTargetSection, setPdfTargetSection] = useState<'ida' | 'volta' | 'vespasiano' | 'nordeste' | 'calc'>('ida');
   const [pdfTargetRowIndex, setPdfTargetRowIndex] = useState<number | null>(null);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const [parsedPdfItems, setParsedPdfItems] = useState<Array<{
@@ -467,7 +482,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   const [pdfTotalSomadoFormatado, setPdfTotalSomadoFormatado] = useState<string>('0,00');
   const [pdfCopied, setPdfCopied] = useState(false);
 
-  const openPdfModal = (section: 'ida' | 'volta' | 'vespasiano' | 'calc' = 'ida', rowIndex: number | null = null) => {
+  const openPdfModal = (section: 'ida' | 'volta' | 'vespasiano' | 'nordeste' | 'calc' = 'ida', rowIndex: number | null = null) => {
     setPdfTargetSection(section);
     setPdfTargetRowIndex(rowIndex);
     setIsPdfModalOpen(true);
@@ -931,14 +946,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent, section: 'ida' | 'volta' | 'vespasiano') => {
+  const handlePaste = (e: React.ClipboardEvent, section: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
     const text = e.clipboardData.getData('text');
-    const saveFunc = section === 'ida' ? saveIda : section === 'volta' ? saveVolta : saveVespasiano;
-    const rows = section === 'ida' ? idaRows : section === 'volta' ? voltaRows : vespasianoRows;
-    parseInput(text, saveFunc, rows, section === 'vespasiano' ? 'ida' : section);
+    const saveFunc = section === 'ida' ? saveIda : section === 'volta' ? saveVolta : section === 'nordeste' ? saveNordeste : saveVespasiano;
+    const rows = section === 'ida' ? idaRows : section === 'volta' ? voltaRows : section === 'nordeste' ? nordesteRows : vespasianoRows;
+    parseInput(text, saveFunc, rows, section === 'volta' ? 'volta' : 'ida');
   };
 
-  const addNewRow = (section: 'ida' | 'volta' | 'vespasiano') => {
+  const addNewRow = (section: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
     const newRow: SMRow = {
       dataSaida: new Date().toLocaleDateString('pt-BR'),
       motorista: '',
@@ -952,12 +967,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       saveIda([...idaRows, newRow], true);
     } else if (section === 'volta') {
       saveVolta([...voltaRows, newRow], true);
+    } else if (section === 'nordeste') {
+      saveNordeste([...nordesteRows, newRow], true);
     } else {
       saveVespasiano([...vespasianoRows, newRow], true);
     }
   };
 
-  const updateRowValue = (index: number, field: keyof SMRow, value: any, section: 'ida' | 'volta' | 'vespasiano', forcePush = false) => {
+  const updateRowValue = (index: number, field: keyof SMRow, value: any, section: 'ida' | 'volta' | 'vespasiano' | 'nordeste', forcePush = false) => {
     let finalValue = value;
     
     if (field === 'valorNf' && typeof value === 'string') {
@@ -980,6 +997,10 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       const newRows = [...voltaRows];
       newRows[index] = { ...newRows[index], [field]: finalValue };
       saveVolta(newRows, isDiscrete);
+    } else if (section === 'nordeste') {
+      const newRows = [...nordesteRows];
+      newRows[index] = { ...newRows[index], [field]: finalValue };
+      saveNordeste(newRows, isDiscrete);
     } else {
       const newRows = [...vespasianoRows];
       newRows[index] = { ...newRows[index], [field]: finalValue };
@@ -987,8 +1008,8 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     }
   };
 
-  const moveRow = (index: number, direction: 'up' | 'down', section: 'ida' | 'volta' | 'vespasiano') => {
-    const rows = section === 'ida' ? [...idaRows] : section === 'volta' ? [...voltaRows] : [...vespasianoRows];
+  const moveRow = (index: number, direction: 'up' | 'down', section: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
+    const rows = section === 'ida' ? [...idaRows] : section === 'volta' ? [...voltaRows] : section === 'nordeste' ? [...nordesteRows] : [...vespasianoRows];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     
     if (newIndex < 0 || newIndex >= rows.length) return;
@@ -1001,6 +1022,8 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       saveIda(rows, true);
     } else if (section === 'volta') {
       saveVolta(rows, true);
+    } else if (section === 'nordeste') {
+      saveNordeste(rows, true);
     } else {
       saveVespasiano(rows, true);
     }
@@ -1105,7 +1128,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     const htmlContent = `
       <div style="font-family: sans-serif; color: #333;">
         <p>${greeting}!</p>
-        <p>Segue relatórios de SM - Ida, Volta e Vespasiano.</p>
+        <p>Segue relatórios de SM - Ida, Volta, Nordeste e Vespasiano.</p>
         
         <div style="margin-top: 20px;">
           <h3 style="color: #14325c; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA IDA ---</h3>
@@ -1122,6 +1145,13 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         </div>
 
         <div style="margin-top: 30px;">
+          <h3 style="color: #000000; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA SANTA LUZIA X NORDESTE ---</h3>
+          <p style="font-size: 13px;">${greeting},</p>
+          <p style="font-size: 13px;">Seguem em anexo as solicitações de monitoramento rota Santa Luzia x Nordeste para as escalas de viagem para o dia: <strong>${getJourneyDate(nordesteRows)}</strong>!</p>
+          ${generateStyledTableHtml(nordesteRows, 'nordeste')}
+        </div>
+
+        <div style="margin-top: 30px;">
           <h3 style="color: #166534; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA VESPASIANO ---</h3>
           <p style="font-size: 13px;">${greeting},</p>
           <p style="font-size: 13px;">Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: <strong>${getJourneyDate(vespasianoRows)}</strong>!</p>
@@ -1133,7 +1163,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       </div>
     `;
 
-    const textContent = `${greeting}!\n\nSegue relatórios de SM - Ida, Volta e Vespasiano.\n\nROTA IDA\n${greeting}, Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: ${getJourneyDate(idaRows)}!\n${formatRowsText(idaRows, '')}\nROTA VOLTA\n${greeting}, Seguem em anexo as solicitações de monitoramento rota de volta para as escalas de viagem para o dia: ${getJourneyDate(voltaRows)}!\n${formatRowsText(voltaRows, '')}\nROTA VESPASIANO\n${greeting}, Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: ${getJourneyDate(vespasianoRows)}!\n${formatRowsText(vespasianoRows, '')}\nTotal Calculado: ${calculateTotal()}\n\nAtt,`;
+    const textContent = `${greeting}!\n\nSegue relatórios de SM - Ida, Volta, Nordeste e Vespasiano.\n\nROTA IDA\n${greeting}, Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: ${getJourneyDate(idaRows)}!\n${formatRowsText(idaRows, '')}\nROTA VOLTA\n${greeting}, Seguem em anexo as solicitações de monitoramento rota de volta para as escalas de viagem para o dia: ${getJourneyDate(voltaRows)}!\n${formatRowsText(voltaRows, '')}\nROTA SANTA LUZIA X NORDESTE\n${greeting}, Seguem em anexo as solicitações de monitoramento rota Santa Luzia x Nordeste para as escalas de viagem para o dia: ${getJourneyDate(nordesteRows)}!\n${formatRowsText(nordesteRows, '')}\nROTA VESPASIANO\n${greeting}, Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: ${getJourneyDate(vespasianoRows)}!\n${formatRowsText(vespasianoRows, '')}\nTotal Calculado: ${calculateTotal()}\n\nAtt,`;
 
     const success = await safeCopyHtmlAndText(htmlContent, textContent);
     if (success) {
@@ -1145,16 +1175,19 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   const copySection = async (rows: SMRow[], title: string, setCopiedStatus: React.Dispatch<React.SetStateAction<boolean>>) => {
     if (rows.length === 0) return;
     
-    const color = title.includes('IDA') ? '#14325c' : title.includes('VOLTA') ? '#7f1d1d' : '#166534';
-    const type = title.includes('IDA') ? 'ida' : title.includes('VOLTA') ? 'volta' : 'vespasiano';
+    const isNordeste = title.toUpperCase().includes('NORDESTE');
+    const color = isNordeste ? '#000000' : title.includes('IDA') ? '#14325c' : title.includes('VOLTA') ? '#7f1d1d' : '#166534';
+    const type = isNordeste ? 'nordeste' : title.includes('IDA') ? 'ida' : title.includes('VOLTA') ? 'volta' : 'vespasiano';
     const greeting = getGreeting();
     const date = getJourneyDate(rows);
     
-    const phrase = title.includes('IDA') 
-      ? `Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: ${date}!`
-      : title.includes('VOLTA')
-        ? `Seguem em anexo as solicitações de monitoramento rota de volta para as escalas de viagem para o dia: ${date}!`
-        : `Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: ${date}!`;
+    const phrase = isNordeste
+      ? `Seguem em anexo as solicitações de monitoramento rota Santa Luzia x Nordeste para as escalas de viagem para o dia: ${date}!`
+      : title.includes('IDA') 
+        ? `Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: ${date}!`
+        : title.includes('VOLTA')
+          ? `Seguem em anexo as solicitações de monitoramento rota de volta para as escalas de viagem para o dia: ${date}!`
+          : `Seguem em anexo as solicitações de monitoramento rota Vespasiano para as escalas de viagem para o dia: ${date}!`;
 
     let html = `<div style="font-family: sans-serif; color: #333;">
       <h3 style="color: ${color}; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ${title} ---</h3>
@@ -1309,6 +1342,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
                   <div className="flex items-center gap-2">
                     <button 
+                      onClick={() => setIsIdaMaximized(!isIdaMaximized)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] bg-[#0B2545] hover:bg-[#14325c] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-700"
+                    >
+                      {isIdaMaximized ? 'Minimizar' : 'Maximizar'}
+                    </button>
+                    <button 
                       onClick={() => addNewRow('ida')}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#0B2545] hover:bg-[#14325c] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-700"
                     >
@@ -1341,192 +1380,197 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   </div>
                 </div>
 
-                {/* Styled Table Frame */}
-                <div className="bg-white border border-[#d6ccbe] rounded-2xl p-2 shadow-xs overflow-hidden relative">
-                  {idaRows.length === 0 ? (
-                    <div className="p-8 flex flex-col items-center justify-center text-center bg-[#fbf9f5] border border-dashed border-[#d6ccbe] rounded-xl">
-                      <Clipboard className="text-stone-400 w-8 h-8 mb-2" />
-                      <p className="text-xs text-stone-600 mb-3 font-bold font-mono">Cole aqui as informações da Rota Ida ou adicione manualmente</p>
-                      <div className="flex flex-col gap-2.5 w-full max-w-md">
-                        <textarea 
-                          onPaste={(e) => handlePaste(e, 'ida')}
-                          placeholder="Ctrl+V aqui para colar escala..."
-                          className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-red-500 resize-none"
-                        />
-                        <button 
-                          onClick={() => addNewRow('ida')}
-                          className="w-full py-2.5 bg-[#0B2545] hover:bg-[#14325c] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
-                        >
-                          <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
-                        </button>
+                <div className={cn(
+                  "transition-all duration-300 ease-in-out",
+                  isIdaMaximized ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+                )}>
+                  {/* Styled Table Frame */}
+                  <div className="bg-white border border-[#d6ccbe] rounded-2xl p-2 shadow-xs overflow-hidden relative">
+                    {idaRows.length === 0 ? (
+                      <div className="p-8 flex flex-col items-center justify-center text-center bg-[#fbf9f5] border border-dashed border-[#d6ccbe] rounded-xl">
+                        <Clipboard className="text-stone-400 w-8 h-8 mb-2" />
+                        <p className="text-xs text-stone-600 mb-3 font-bold font-mono">Cole aqui as informações da Rota Ida ou adicione manualmente</p>
+                        <div className="flex flex-col gap-2.5 w-full max-w-md">
+                          <textarea 
+                            onPaste={(e) => handlePaste(e, 'ida')}
+                            placeholder="Ctrl+V aqui para colar escala..."
+                            className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-red-500 resize-none"
+                          />
+                          <button 
+                            onClick={() => addNewRow('ida')}
+                            className="w-full py-2.5 bg-[#0B2545] hover:bg-[#14325c] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+                          >
+                            <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto rounded-lg border border-[#0B2545]/20 shadow-xs">
-                      <table className="w-full text-left border-collapse font-sans">
-                        <thead>
-                          <tr className="bg-[#0B2545] border-b border-red-950 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
-                            <th className="px-2 py-2 w-8 text-center text-white">#</th>
-                            <th className="px-2 py-2 w-10 text-center text-white">OK</th>
-                            <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
-                            <th className="px-2 py-2 text-white">MOTORISTA</th>
-                            <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
-                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
-                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
-                            <th className="px-2 py-2 text-center text-white">TRECHO</th>
-                            <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
-                            <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
-                            <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white">
-                          {idaRows.map((row, i) => (
-                            <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
-                              <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
-                                {i + 1}
-                              </td>
-                              <td className="p-1.5 text-center w-10">
-                                <button
-                                  type="button"
-                                  onClick={() => updateRowValue(i, 'ok', !row.ok, 'ida')}
-                                  className={cn(
-                                    "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
-                                    row.ok 
-                                      ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
-                                      : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
-                                  )}
-                                  title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
-                                >
-                                  <Check size={12} className="stroke-[3]" />
-                                </button>
-                              </td>
-                              <td className="p-1.5">
-                                <input 
-                                  type="text"
-                                  value={row.dataSaida}
-                                  onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'ida')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
-                                />
-                              </td>
-                              <td className="p-1.5 group/cell">
-                                <div className="flex items-center gap-1.5">
+                    ) : (
+                      <div className="overflow-x-auto rounded-lg border border-[#0B2545]/20 shadow-xs">
+                        <table className="w-full text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="bg-[#0B2545] border-b border-red-950 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
+                              <th className="px-2 py-2 w-8 text-center text-white">#</th>
+                              <th className="px-2 py-2 w-10 text-center text-white">OK</th>
+                              <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
+                              <th className="px-2 py-2 text-white">MOTORISTA</th>
+                              <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
+                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
+                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
+                              <th className="px-2 py-2 text-center text-white">TRECHO</th>
+                              <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
+                              <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
+                              <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white">
+                            {idaRows.map((row, i) => (
+                              <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
+                                <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
+                                  {i + 1}
+                                </td>
+                                <td className="p-1.5 text-center w-10">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateRowValue(i, 'ok', !row.ok, 'ida')}
+                                    className={cn(
+                                      "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
+                                      row.ok 
+                                        ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
+                                        : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
+                                    )}
+                                    title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
+                                  >
+                                    <Check size={12} className="stroke-[3]" />
+                                  </button>
+                                </td>
+                                <td className="p-1.5">
                                   <input 
                                     type="text"
-                                    value={row.motorista}
-                                    onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'ida')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                    value={row.dataSaida}
+                                    onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'ida')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
                                   />
-                                  <button 
-                                    onClick={() => safeCopyText(row.motorista)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
-                                    title="Copiar Motorista"
-                                  >
-                                    <Copy size={12} />
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <input 
-                                  type="text"
-                                  value={row.placa}
-                                  onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'ida')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs font-mono"
-                                />
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <input 
-                                  type="text"
-                                  value={row.bau1}
-                                  onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'ida')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
-                                />
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <input 
-                                  type="text"
-                                  value={row.bau2}
-                                  onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'ida')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
-                                />
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <input 
-                                  type="text"
-                                  value={row.trecho}
-                                  onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'ida')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
-                                />
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
-                                  {findRouteCode(row.trecho, 'ida', routesList)}
-                                </div>
-                              </td>
-                              <td className="p-1.5 text-right font-extrabold group/cell">
-                                <div className="flex items-center justify-end gap-1">
-                                  <button 
-                                    onClick={() => openPdfModal('ida', i)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#0F2D59]/10 hover:bg-[#0F2D59]/25 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
-                                    title="Importar PDFs de NFs para esta linha"
-                                  >
-                                    <FileText size={12} />
-                                  </button>
-                                  <button 
-                                    onClick={() => safeCopyText(row.valorNf)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
-                                    title="Copiar Valor"
-                                  >
-                                    <Copy size={12} />
-                                  </button>
-                                  <input 
-                                    type="text"
-                                    value={row.valorNf}
-                                    onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all text-xs"
-                                  />
-                                </div>
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <div className="flex items-center justify-center gap-1">
-                                  <div className="flex flex-col gap-0.5">
+                                </td>
+                                <td className="p-1.5 group/cell">
+                                  <div className="flex items-center gap-1.5">
+                                    <input 
+                                      type="text"
+                                      value={row.motorista}
+                                      onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'ida')}
+                                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                    />
                                     <button 
-                                      onClick={() => moveRow(i, 'up', 'ida')}
-                                      disabled={i === 0}
-                                      className={cn(
-                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
-                                        i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
-                                      )}
-                                      title="Mover para cima"
+                                      onClick={() => safeCopyText(row.motorista)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                      title="Copiar Motorista"
                                     >
-                                      <ChevronUp size={14} />
-                                    </button>
-                                    <button 
-                                      onClick={() => moveRow(i, 'down', 'ida')}
-                                      disabled={i === idaRows.length - 1}
-                                      className={cn(
-                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
-                                        i === idaRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
-                                      )}
-                                      title="Mover para baixo"
-                                    >
-                                      <ChevronDown size={14} />
+                                      <Copy size={12} />
                                     </button>
                                   </div>
-                                  <button 
-                                    onClick={() => saveIda(idaRows.filter((_, idx) => idx !== i), true)} 
-                                    className="p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors cursor-pointer"
-                                    title="Remover Linha"
-                                  >
-                                    <Trash2 size={15} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.placa}
+                                    onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'ida')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs font-mono"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.bau1}
+                                    onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'ida')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.bau2}
+                                    onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'ida')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.trecho}
+                                    onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'ida')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
+                                    {findRouteCode(row.trecho, 'ida', routesList)}
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-right font-extrabold group/cell">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <button 
+                                      onClick={() => openPdfModal('ida', i)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#0F2D59]/10 hover:bg-[#0F2D59]/25 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                      title="Importar PDFs de NFs para esta linha"
+                                    >
+                                      <FileText size={12} />
+                                    </button>
+                                    <button 
+                                      onClick={() => safeCopyText(row.valorNf)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
+                                      title="Copiar Valor"
+                                    >
+                                      <Copy size={12} />
+                                    </button>
+                                    <input 
+                                      type="text"
+                                      value={row.valorNf}
+                                      onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
+                                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#0F2D59] focus:ring-2 focus:ring-[#0F2D59]/20 outline-none transition-all text-xs"
+                                    />
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <div className="flex flex-col gap-0.5">
+                                      <button 
+                                        onClick={() => moveRow(i, 'up', 'ida')}
+                                        disabled={i === 0}
+                                        className={cn(
+                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                          i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
+                                        )}
+                                        title="Mover para cima"
+                                      >
+                                        <ChevronUp size={14} />
+                                      </button>
+                                      <button 
+                                        onClick={() => moveRow(i, 'down', 'ida')}
+                                        disabled={i === idaRows.length - 1}
+                                        className={cn(
+                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                          i === idaRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
+                                        )}
+                                        title="Mover para baixo"
+                                      >
+                                        <ChevronDown size={14} />
+                                      </button>
+                                    </div>
+                                    <button 
+                                      onClick={() => saveIda(idaRows.filter((_, idx) => idx !== i), true)} 
+                                      className="p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors cursor-pointer"
+                                      title="Remover Linha"
+                                    >
+                                      <Trash2 size={15} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </section>
               )}
@@ -1534,7 +1578,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               {/* ROTA VOLTA (Vermelha) */}
               {(internalView === 'all' || internalView === 'volta') && (
               <section className="space-y-3 font-sans animate-fade-in">
-                <div className="flex items-center justify-between bg-[#0B1E36] text-white p-3.5 rounded-xl shadow-md border border-slate-700/60">
+                <div className="flex items-center justify-between bg-[#991B1B] text-white p-3.5 rounded-xl shadow-md border border-slate-700/60">
                   <div className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                     <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
@@ -1546,6 +1590,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setIsVoltaMaximized(!isVoltaMaximized)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] bg-[#991B1B] hover:bg-[#7F1D1D] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-800"
+                    >
+                      {isVoltaMaximized ? 'Minimizar' : 'Maximizar'}
+                    </button>
                     <button 
                       onClick={() => addNewRow('volta')}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#991B1B] hover:bg-[#7F1D1D] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-red-800"
@@ -1570,204 +1620,449 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   </div>
                 </div>
 
-                {/* Styled Table Frame */}
-                <div className="bg-white border border-[#d6ccbe] rounded-2xl p-2 shadow-xs overflow-hidden relative">
-                  {voltaRows.length === 0 ? (
-                    <div className="p-8 flex flex-col items-center justify-center text-center bg-[#fbf9f5] border border-dashed border-[#d6ccbe] rounded-xl">
-                      <Clipboard className="text-stone-400 w-8 h-8 mb-2" />
-                      <p className="text-xs text-stone-600 mb-3 font-bold font-mono">Cole aqui as informações da Rota Volta ou adicione manualmente</p>
-                      <div className="flex flex-col gap-2.5 w-full max-w-md">
-                        <textarea 
-                          onPaste={(e) => handlePaste(e, 'volta')}
-                          placeholder="Ctrl+V aqui para colar escala..."
-                          className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-red-500 resize-none"
-                        />
-                        <button 
-                          onClick={() => addNewRow('volta')}
-                          className="w-full py-2.5 bg-[#0f172a] hover:bg-[#831221] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
-                        >
-                          <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
-                        </button>
+                <div className={cn(
+                  "transition-all duration-300 ease-in-out",
+                  isVoltaMaximized ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+                )}>
+                  {/* Styled Table Frame */}
+                  <div className="bg-white border border-[#d6ccbe] rounded-2xl p-2 shadow-xs overflow-hidden relative">
+                    {voltaRows.length === 0 ? (
+                      <div className="p-8 flex flex-col items-center justify-center text-center bg-[#fbf9f5] border border-dashed border-[#d6ccbe] rounded-xl">
+                        <Clipboard className="text-stone-400 w-8 h-8 mb-2" />
+                        <p className="text-xs text-stone-600 mb-3 font-bold font-mono">Cole aqui as informações da Rota Volta ou adicione manualmente</p>
+                        <div className="flex flex-col gap-2.5 w-full max-w-md">
+                          <textarea 
+                            onPaste={(e) => handlePaste(e, 'volta')}
+                            placeholder="Ctrl+V aqui para colar escala..."
+                            className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-red-500 resize-none"
+                          />
+                          <button 
+                            onClick={() => addNewRow('volta')}
+                            className="w-full py-2.5 bg-[#0f172a] hover:bg-[#831221] text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+                          >
+                            <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto rounded-lg border border-[#0f172a]/20 shadow-xs">
-                      <table className="w-full text-left border-collapse font-sans">
-                        <thead>
-                          <tr className="bg-[#0f172a] border-b border-red-900 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
-                            <th className="px-2 py-2 w-8 text-center text-white">#</th>
-                            <th className="px-2 py-2 w-10 text-center text-white">OK</th>
-                            <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
-                            <th className="px-2 py-2 text-white">MOTORISTA</th>
-                            <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
-                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
-                            <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
-                            <th className="px-2 py-2 text-center text-white">TRECHO</th>
-                            <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
-                            <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
-                            <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white">
-                          {voltaRows.map((row, i) => (
-                            <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
-                              <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
-                                {i + 1}
-                              </td>
-                              <td className="p-1.5 text-center w-10">
-                                <button
-                                  type="button"
-                                  onClick={() => updateRowValue(i, 'ok', !row.ok, 'volta')}
-                                  className={cn(
-                                    "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
-                                    row.ok 
-                                      ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
-                                      : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
-                                  )}
-                                  title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
-                                >
-                                  <Check size={12} className="stroke-[3]" />
-                                </button>
-                              </td>
-                              <td className="p-1.5">
-                                <input 
-                                  type="text"
-                                  value={row.dataSaida}
-                                  onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'volta')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
-                                />
-                              </td>
-                              <td className="p-1.5 group/cell">
-                                <div className="flex items-center gap-1.5">
+                    ) : (
+                      <div className="overflow-x-auto rounded-lg border border-[#0f172a]/20 shadow-xs">
+                        <table className="w-full text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="bg-[#991B1B] border-b border-red-900 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
+                              <th className="px-2 py-2 w-8 text-center text-white">#</th>
+                              <th className="px-2 py-2 w-10 text-center text-white">OK</th>
+                              <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
+                              <th className="px-2 py-2 text-white">MOTORISTA</th>
+                              <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
+                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
+                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
+                              <th className="px-2 py-2 text-center text-white">TRECHO</th>
+                              <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
+                              <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
+                              <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white">
+                            {voltaRows.map((row, i) => (
+                              <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
+                                <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
+                                  {i + 1}
+                                </td>
+                                <td className="p-1.5 text-center w-10">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateRowValue(i, 'ok', !row.ok, 'volta')}
+                                    className={cn(
+                                      "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
+                                      row.ok 
+                                        ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
+                                        : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
+                                    )}
+                                    title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
+                                  >
+                                    <Check size={12} className="stroke-[3]" />
+                                  </button>
+                                </td>
+                                <td className="p-1.5">
                                   <input 
                                     type="text"
-                                    value={row.motorista}
-                                    onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'volta')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
+                                    value={row.dataSaida}
+                                    onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'volta')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
                                   />
-                                  <button 
-                                    onClick={() => safeCopyText(row.motorista)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
-                                    title="Copiar Motorista"
+                                </td>
+                                <td className="p-1.5 group/cell">
+                                  <div className="flex items-center gap-1.5">
+                                    <input 
+                                      type="text"
+                                      value={row.motorista}
+                                      onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'volta')}
+                                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
+                                    />
+                                    <button 
+                                      onClick={() => safeCopyText(row.motorista)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
+                                      title="Copiar Motorista"
+                                    >
+                                      <Copy size={12} />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.placa}
+                                    onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'volta')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#801414] focus:ring-2 focus:ring-[#801414]/20 outline-none transition-all uppercase text-xs font-mono"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.bau1}
+                                    onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'volta')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.bau2}
+                                    onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'volta')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <div className="flex items-center gap-1 group/trecho">
+                                    <input 
+                                      type="text"
+                                      value={row.trecho}
+                                      onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'volta')}
+                                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
+                                    />
+                                    <button 
+                                      onClick={() => {
+                                        const inverted = invertRoute(row.trecho);
+                                        updateRowValue(i, 'trecho', inverted, 'volta');
+                                      }}
+                                      className="opacity-0 group-hover/trecho:opacity-100 p-1.5 bg-rose-600/10 text-rose-700 hover:bg-rose-600 hover:text-white rounded transition-all shrink-0 cursor-pointer"
+                                      title="Inverter Rota"
+                                    >
+                                      <RefreshCw size={12} />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
+                                    {findRouteCode(row.trecho, 'volta', routesList)}
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-right font-extrabold group/cell">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <button 
+                                      onClick={() => openPdfModal('volta', i)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#0f172a]/10 hover:bg-[#0f172a]/25 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
+                                      title="Importar PDFs de NFs para esta linha"
+                                    >
+                                      <FileText size={12} />
+                                    </button>
+                                    <button 
+                                      onClick={() => navigator.clipboard.writeText(row.valorNf)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
+                                      title="Copiar Valor"
+                                    >
+                                      <Copy size={12} />
+                                    </button>
+                                    <input 
+                                      type="text"
+                                      value={row.valorNf}
+                                      onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'volta')}
+                                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all text-xs"
+                                    />
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <div className="flex flex-col gap-0.5">
+                                      <button 
+                                        onClick={() => moveRow(i, 'up', 'volta')}
+                                        disabled={i === 0}
+                                        className={cn(
+                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                          i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-rose-600"
+                                        )}
+                                        title="Mover para cima"
+                                      >
+                                        <ChevronUp size={14} />
+                                      </button>
+                                      <button 
+                                        onClick={() => moveRow(i, 'down', 'volta')}
+                                        disabled={i === voltaRows.length - 1}
+                                        className={cn(
+                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                          i === voltaRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-rose-600"
+                                        )}
+                                        title="Mover para baixo"
+                                      >
+                                        <ChevronDown size={14} />
+                                      </button>
+                                    </div>
+                                    <button 
+                                      onClick={() => saveVolta(voltaRows.filter((_, idx) => idx !== i), true)} 
+                                      className="p-1.5 text-rose-700 hover:bg-rose-600 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                      title="Remover Linha"
+                                    >
+                                      <Trash2 size={15} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+              )}
+
+              {/* ROTA SANTA LUZIA X NORDESTE (Preta) */}
+              {(internalView === 'all' || internalView === 'nordeste') && (
+              <section className="space-y-3 font-sans animate-fade-in">
+                <div className="flex items-center justify-between bg-black text-white p-3.5 rounded-xl shadow-md border border-stone-800">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-400 animate-pulse" />
+                    <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <TrendingUp size={16} className="text-slate-400" /> Rota Santa Luzia x Nordeste
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold bg-slate-800 text-white px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
+                      PRETO
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setIsNordesteMaximized(!isNordesteMaximized)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] bg-stone-900 hover:bg-stone-800 text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-stone-700"
+                    >
+                      {isNordesteMaximized ? 'Minimizar' : 'Maximizar'}
+                    </button>
+                    <button 
+                      onClick={() => addNewRow('nordeste')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-stone-900 hover:bg-stone-800 text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-stone-700"
+                    >
+                      <Plus size={12} /> Add Linha
+                    </button>
+                    {nordesteRows.length > 0 && (
+                      <button 
+                        onClick={() => copySection(nordesteRows, 'ROTA SANTA LUZIA X NORDESTE', setNordesteCopied)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
+                          nordesteCopied 
+                            ? "bg-emerald-600 text-white border-emerald-700" 
+                            : "bg-stone-900 hover:bg-stone-800 text-white border-stone-700"
+                        )}
+                      >
+                        {nordesteCopied ? <Check size={12} /> : <Copy size={12} />}
+                        {nordesteCopied ? 'Copiado!' : 'Copiar Rota'}
+                      </button>
+                    )}
+                    <button onClick={() => saveNordeste([], true)} className="text-[10px] font-mono font-bold text-red-400 hover:text-red-300 uppercase tracking-tight cursor-pointer pl-2">Limpar</button>
+                  </div>
+                </div>
+
+                <div className={cn(
+                  "transition-all duration-300 ease-in-out",
+                  isNordesteMaximized ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+                )}>
+                  {/* Styled Table Frame */}
+                  <div className="bg-white border border-[#d6ccbe] rounded-2xl p-2 shadow-xs overflow-hidden relative">
+                    {nordesteRows.length === 0 ? (
+                      <div className="p-8 flex flex-col items-center justify-center text-center bg-[#fbf9f5] border border-dashed border-[#d6ccbe] rounded-xl">
+                        <Clipboard className="text-stone-400 w-8 h-8 mb-2" />
+                        <p className="text-xs text-stone-600 mb-3 font-bold font-mono">Cole aqui as informações da Rota Nordeste ou adicione manualmente</p>
+                        <div className="flex flex-col gap-2.5 w-full max-w-md">
+                          <textarea 
+                            onPaste={(e) => handlePaste(e, 'nordeste')}
+                            placeholder="Ctrl+V aqui para colar escala..."
+                            className="w-full h-20 bg-white border border-[#d6ccbe] rounded-xl p-3 text-xs font-mono text-stone-800 font-bold outline-none placeholder:text-stone-400 focus:border-red-500 resize-none"
+                          />
+                          <button 
+                            onClick={() => addNewRow('nordeste')}
+                            className="w-full py-2.5 bg-black hover:bg-stone-900 text-white rounded-xl text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm"
+                          >
+                            <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto rounded-lg border border-black/20 shadow-xs">
+                        <table className="w-full text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="bg-black border-b border-stone-800 text-white text-[11px] uppercase font-mono font-bold tracking-wider h-10">
+                              <th className="px-2 py-2 w-8 text-center text-white">#</th>
+                              <th className="px-2 py-2 w-10 text-center text-white">OK</th>
+                              <th className="px-2 py-2 w-28 text-center text-white">DATA</th>
+                              <th className="px-2 py-2 text-white">MOTORISTA</th>
+                              <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
+                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
+                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
+                              <th className="px-2 py-2 text-center text-white">TRECHO</th>
+                              <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
+                              <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
+                              <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white">
+                            {nordesteRows.map((row, i) => (
+                              <tr key={i} className="text-xs text-slate-900 group/row font-bold hover:bg-slate-50 transition-colors border-b border-slate-100">
+                                <td className="p-1.5 text-center text-slate-400 font-mono text-xs w-8">
+                                  {i + 1}
+                                </td>
+                                <td className="p-1.5 text-center w-10">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateRowValue(i, 'ok', !row.ok, 'nordeste')}
+                                    className={cn(
+                                      "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
+                                      row.ok 
+                                        ? "bg-emerald-600 border-emerald-700 text-white shadow-xs" 
+                                        : "bg-slate-100 border-slate-300 text-transparent hover:border-emerald-600"
+                                    )}
+                                    title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
                                   >
-                                    <Copy size={12} />
+                                    <Check size={12} className="stroke-[3]" />
                                   </button>
-                                </div>
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <input 
-                                  type="text"
-                                  value={row.placa}
-                                  onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'volta')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#801414] focus:ring-2 focus:ring-[#801414]/20 outline-none transition-all uppercase text-xs font-mono"
-                                />
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <input 
-                                  type="text"
-                                  value={row.bau1}
-                                  onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'volta')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
-                                />
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <input 
-                                  type="text"
-                                  value={row.bau2}
-                                  onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'volta')}
-                                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
-                                />
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <div className="flex items-center gap-1 group/trecho">
+                                </td>
+                                <td className="p-1.5">
+                                  <input 
+                                    type="text"
+                                    value={row.dataSaida}
+                                    onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'nordeste')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-black focus:ring-2 focus:ring-black/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 group/cell">
+                                  <div className="flex items-center gap-1.5">
+                                    <input 
+                                      type="text"
+                                      value={row.motorista}
+                                      onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'nordeste')}
+                                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2.5 focus:bg-white focus:border-black focus:ring-2 focus:ring-black/20 outline-none transition-all uppercase text-xs"
+                                    />
+                                    <button 
+                                      onClick={() => safeCopyText(row.motorista)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-black transition-all shrink-0 cursor-pointer"
+                                      title="Copiar Motorista"
+                                    >
+                                      <Copy size={12} />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.placa}
+                                    onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'nordeste')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-black focus:ring-2 focus:ring-black/20 outline-none transition-all uppercase text-xs font-mono"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.bau1}
+                                    onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'nordeste')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-black focus:ring-2 focus:ring-black/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <input 
+                                    type="text"
+                                    value={row.bau2}
+                                    onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'nordeste')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-black focus:ring-2 focus:ring-black/20 outline-none transition-all uppercase text-xs"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
                                   <input 
                                     type="text"
                                     value={row.trecho}
-                                    onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'volta')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all uppercase text-xs"
+                                    onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'nordeste')}
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-center focus:bg-white focus:border-black focus:ring-2 focus:ring-black/20 outline-none transition-all uppercase text-xs"
                                   />
-                                  <button 
-                                    onClick={() => {
-                                      const inverted = invertRoute(row.trecho);
-                                      updateRowValue(i, 'trecho', inverted, 'volta');
-                                    }}
-                                    className="opacity-0 group-hover/trecho:opacity-100 p-1.5 bg-rose-600/10 text-rose-700 hover:bg-rose-600 hover:text-white rounded transition-all shrink-0 cursor-pointer"
-                                    title="Inverter Rota"
-                                  >
-                                    <RefreshCw size={12} />
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
-                                  {findRouteCode(row.trecho, 'volta', routesList)}
-                                </div>
-                              </td>
-                              <td className="p-1.5 text-right font-extrabold group/cell">
-                                <div className="flex items-center justify-end gap-1">
-                                  <button 
-                                    onClick={() => openPdfModal('volta', i)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#0f172a]/10 hover:bg-[#0f172a]/25 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
-                                    title="Importar PDFs de NFs para esta linha"
-                                  >
-                                    <FileText size={12} />
-                                  </button>
-                                  <button 
-                                    onClick={() => navigator.clipboard.writeText(row.valorNf)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-rose-600/10 hover:bg-rose-600/20 rounded text-[#0f172a] transition-all shrink-0 cursor-pointer"
-                                    title="Copiar Valor"
-                                  >
-                                    <Copy size={12} />
-                                  </button>
-                                  <input 
-                                    type="text"
-                                    value={row.valorNf}
-                                    onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'volta')}
-                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#0f172a] focus:ring-2 focus:ring-[#0f172a]/20 outline-none transition-all text-xs"
-                                  />
-                                </div>
-                              </td>
-                              <td className="p-1.5 text-center">
-                                <div className="flex items-center justify-center gap-1">
-                                  <div className="flex flex-col gap-0.5">
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <div className="bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
+                                    {findRouteCode(row.trecho, 'ida', routesList)}
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-right font-extrabold group/cell">
+                                  <div className="flex items-center justify-end gap-1">
                                     <button 
-                                      onClick={() => moveRow(i, 'up', 'volta')}
-                                      disabled={i === 0}
-                                      className={cn(
-                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
-                                        i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-rose-600"
-                                      )}
-                                      title="Mover para cima"
+                                      onClick={() => openPdfModal('nordeste', i)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-black/10 hover:bg-black/25 rounded text-black transition-all shrink-0 cursor-pointer"
+                                      title="Importar PDFs de NFs para esta linha"
                                     >
-                                      <ChevronUp size={14} />
+                                      <FileText size={12} />
                                     </button>
                                     <button 
-                                      onClick={() => moveRow(i, 'down', 'volta')}
-                                      disabled={i === voltaRows.length - 1}
-                                      className={cn(
-                                        "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
-                                        i === voltaRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-rose-600"
-                                      )}
-                                      title="Mover para baixo"
+                                      onClick={() => safeCopyText(row.valorNf)}
+                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-black transition-all shrink-0 cursor-pointer"
+                                      title="Copiar Valor"
                                     >
-                                      <ChevronDown size={14} />
+                                      <Copy size={12} />
+                                    </button>
+                                    <input 
+                                      type="text"
+                                      value={row.valorNf}
+                                      onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'nordeste')}
+                                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-black focus:ring-2 focus:ring-black/20 outline-none transition-all text-xs"
+                                    />
+                                  </div>
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <div className="flex flex-col gap-0.5">
+                                      <button 
+                                        onClick={() => moveRow(i, 'up', 'nordeste')}
+                                        disabled={i === 0}
+                                        className={cn(
+                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                          i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
+                                        )}
+                                        title="Mover para cima"
+                                      >
+                                        <ChevronUp size={14} />
+                                      </button>
+                                      <button 
+                                        onClick={() => moveRow(i, 'down', 'nordeste')}
+                                        disabled={i === nordesteRows.length - 1}
+                                        className={cn(
+                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
+                                          i === nordesteRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
+                                        )}
+                                        title="Mover para baixo"
+                                      >
+                                        <ChevronDown size={14} />
+                                      </button>
+                                    </div>
+                                    <button 
+                                      onClick={() => saveNordeste(nordesteRows.filter((_, idx) => idx !== i), true)} 
+                                      className="p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors cursor-pointer"
+                                      title="Remover Linha"
+                                    >
+                                      <Trash2 size={15} />
                                     </button>
                                   </div>
-                                  <button 
-                                    onClick={() => saveVolta(voltaRows.filter((_, idx) => idx !== i), true)} 
-                                    className="p-1.5 text-rose-700 hover:bg-rose-600 hover:text-white rounded-lg transition-colors cursor-pointer"
-                                    title="Remover Linha"
-                                  >
-                                    <Trash2 size={15} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </section>
               )}

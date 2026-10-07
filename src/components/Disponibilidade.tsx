@@ -121,49 +121,77 @@ const SAMPLE_TSV_DATA = `1	SANTA LUZIA|MG	quarta-feira	30/09/2026	13:35:00	13:38
 
 export function parseDisponibilidadeTsv(text: string): DisponibilidadeRow[] {
   if (!text.trim()) return [];
-  const lines = text.trim().split('\n');
-  const rows: DisponibilidadeRow[] = [];
+  
+  const rawLines = text.split(/\r?\n/);
+  const combinedLines: string[] = [];
+  
+  rawLines.forEach(line => {
+    if (combinedLines.length === 0) {
+      combinedLines.push(line);
+    } else {
+      const lastLine = combinedLines[combinedLines.length - 1];
+      const tabCount = (lastLine.match(/\t/g) || []).length;
+      const quoteCount = (lastLine.match(/"/g) || []).length;
+      const isOddQuotes = quoteCount % 2 !== 0;
+      
+      if (isOddQuotes || (tabCount < 8 && line.trim() !== '')) {
+        combinedLines[combinedLines.length - 1] = lastLine + ' ' + line;
+      } else {
+        combinedLines.push(line);
+      }
+    }
+  });
 
-  lines.forEach((line, index) => {
-    const parts = line.split('\t');
+  const rows: DisponibilidadeRow[] = [];
+  combinedLines.forEach((line, index) => {
+    const parts = line.split('\t').map(part => {
+      let p = part.trim();
+      if (p.startsWith('"') && p.endsWith('"')) {
+        p = p.substring(1, p.length - 1).trim();
+      }
+      return p;
+    });
+
     if (parts.length >= 8) {
+      const sanitize = (val: string) => val.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+      
       rows.push({
         id: `disp_${index}_${Date.now()}`,
-        itemNum: parts[0] || String(index + 1),
-        origem: parts[1] || '',
-        dia: parts[2] || '',
-        data: parts[3] || '',
-        contatoWhats: parts[4] || '',
-        horaLiberado: parts[5] || '',
-        status: parts[6] || '',
-        modeloCarreta: parts[7] || '',
-        modeloCavalo: parts[8] || '',
-        fezContato: parts[9] || '',
-        destino: parts[10] || '',
-        transportador: parts[11] || '',
-        cavalo: parts[12] || '',
-        carreta: parts[13] || '',
-        numPallets: parts[14] || '',
-        pbtTon: parts[15] || '',
-        m3: parts[16] || '',
-        categoria: parts[17] || '',
-        tecnologia: parts[18] || '',
-        condutor: parts[19] || '',
-        cpf: parts[20] || '',
-        rgSap: parts[21] || '',
-        cnh: parts[22] || '',
-        telefone: parts[23] || '',
-        vigenciaCadastro: parts[24] || '',
-        codTransportadora: parts[25] || '',
-        idCargaLacre: parts[26] || '',
-        estadoMotorista: parts[27] || '',
-        estadoCavalo: parts[28] || '',
-        estadoCarreta: parts[29] || '',
-        tresCargo: parts[30] || '',
-        carregou: parts[31] || '',
-        termo: parts[32] || '',
-        valorNf: parts[33] || '',
-        operacao: parts[34] || ''
+        itemNum: sanitize(parts[0] || String(index + 1)),
+        origem: sanitize(parts[1] || ''),
+        dia: sanitize(parts[2] || ''),
+        data: sanitize(parts[3] || ''),
+        contatoWhats: sanitize(parts[4] || ''),
+        horaLiberado: sanitize(parts[5] || ''),
+        status: sanitize(parts[6] || ''),
+        modeloCarreta: sanitize(parts[7] || ''),
+        modeloCavalo: sanitize(parts[8] || ''),
+        fezContato: sanitize(parts[9] || ''),
+        destino: sanitize(parts[10] || ''),
+        transportador: sanitize(parts[11] || ''),
+        cavalo: sanitize(parts[12] || ''),
+        carreta: sanitize(parts[13] || ''),
+        numPallets: sanitize(parts[14] || ''),
+        pbtTon: sanitize(parts[15] || ''),
+        m3: sanitize(parts[16] || ''),
+        categoria: sanitize(parts[17] || ''),
+        tecnologia: sanitize(parts[18] || ''),
+        condutor: sanitize(parts[19] || ''),
+        cpf: sanitize(parts[20] || ''),
+        rgSap: sanitize(parts[21] || ''),
+        cnh: sanitize(parts[22] || ''),
+        telefone: sanitize(parts[23] || ''),
+        vigenciaCadastro: sanitize(parts[24] || ''),
+        codTransportadora: sanitize(parts[25] || ''),
+        idCargaLacre: sanitize(parts[26] || ''),
+        estadoMotorista: sanitize(parts[27] || ''),
+        estadoCavalo: sanitize(parts[28] || ''),
+        estadoCarreta: sanitize(parts[29] || ''),
+        tresCargo: sanitize(parts[30] || ''),
+        carregou: sanitize(parts[31] || ''),
+        termo: sanitize(parts[32] || ''),
+        valorNf: sanitize(parts[33] || ''),
+        operacao: sanitize(parts[34] || '')
       });
     }
   });
@@ -304,13 +332,13 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.data}</td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.contatoWhats}</td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.horaLiberado}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; white-space: nowrap;">
-            <span style="background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 9999px; font-size: 10px; font-weight: bold; white-space: nowrap;">${r.status.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()}</span>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; white-space: nowrap; background-color: #d1fae5; color: #065f46; font-size: 10px; font-weight: bold;">
+            ${r.status.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()}
           </td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.modeloCarreta}</td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.modeloCavalo}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">
-            <span style="background-color: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 9999px; font-size: 10px; font-weight: bold;">✓ ${r.fezContato || 'SIM'}</span>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; white-space: nowrap; background-color: #d1fae5; color: #065f46; font-size: 10px; font-weight: bold;">
+            ✓ ${r.fezContato || 'SIM'}
           </td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-weight: bold;">${r.destino}</td>
           <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-weight: bold;">${r.transportador}</td>
