@@ -1217,10 +1217,18 @@ export default function Controle({ onBack }: ControleProps) {
     "CAVALO: ISCA NO PAINEL / CARRETA 1: ISCA NO MEIO DA CARGA / CARRETA 2: ISCA NO FUNDO DA CARGA",
   );
 
-  const [preAlertaTheme, setPreAlertaTheme] = useState<'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo'>('prata');
+  const [preAlertaTheme, setPreAlertaTheme] = useState<'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo' | 'azul'>('azul');
 
   const getThemeStyles = () => {
     switch (preAlertaTheme) {
+      case 'azul':
+        return {
+          headerBg: 'linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 30%, #3B82F6 50%, #93C5FD 70%, #1D4ED8 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #DBEAFE 35%, #93C5FD 50%, #EFF6FF 70%, #1D4ED8 100%)',
+          border: '#1D4ED8',
+          table1Header: 'linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 30%, #3B82F6 50%, #93C5FD 70%, #1D4ED8 100%)',
+          table2Header: 'linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 30%, #3B82F6 50%, #93C5FD 70%, #1D4ED8 100%)',
+        };
       case 'ouro':
         return {
           headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
@@ -5904,7 +5912,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 onChange={(e) => setPreAlertaTheme(e.target.value as any)}
                 className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-black uppercase text-stone-900 focus:border-[#9b1526] outline-none transition-all shadow-2xs cursor-pointer"
               >
-                <option value="prata">Prata (Padrão)</option>
+                <option value="azul">Azul (Padrão)</option>
+                <option value="prata">Prata</option>
                 <option value="ouro">Ouro</option>
                 <option value="bronze">Bronze</option>
                 <option value="rubi">Rubi</option>
