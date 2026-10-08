@@ -1,17 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { cn } from '../../lib/utils';
 import { 
-  Bell, 
   Sun, 
-  Lock, 
-  Home, 
-  ClipboardCheck, 
-  FileCheck2, 
-  Share2, 
-  Sliders, 
-  Calendar, 
-  CalendarDays, 
-  Route,
-  Truck 
+  User, 
+  MapPin,
+  ShieldCheck
 } from 'lucide-react';
 
 interface PremiumHeaderProps {
@@ -20,20 +13,19 @@ interface PremiumHeaderProps {
   onNavigateHome?: () => void;
   onOpenSettings?: () => void;
   onOpenWallpaper?: () => void;
+  isWallpaperOpen?: boolean;
 }
 
 export default function PremiumHeader({ 
-  activeTab, 
-  onSelectTab, 
   onNavigateHome, 
-  onOpenSettings,
-  onOpenWallpaper
+  onOpenWallpaper,
+  isWallpaperOpen
 }: PremiumHeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => setCurrentTime(new Date());
+    return () => clearInterval(timer);
   }, []);
 
   const formattedTime = useMemo(() => {
@@ -52,124 +44,126 @@ export default function PremiumHeader({
     const m = months[currentTime.getMonth()];
     const y = currentTime.getFullYear();
     const dayName = days[currentTime.getDay()];
-    return `${d < 10 ? '0' + d : d} ${m} ${y} · ${dayName}`;
+    return `${d < 10 ? '0' + d : d} ${m} ${y} - ${dayName}`;
   }, [currentTime]);
 
-  // Navegação horizontal completa conforme solicitado
-  const headerTabs = [
-    { id: 'menu', label: 'INÍCIO', subtitle: '', icon: Home },
-    { id: 'checklist', label: 'CHECKLIST', subtitle: 'Divergências', icon: ClipboardCheck },
-    { id: 'averbacao', label: 'AVERBAÇÃO', subtitle: 'Seguros', icon: FileCheck2 },
-    { id: 'sm_creator', label: 'SM', subtitle: 'Monitoramento', icon: Share2 },
-    { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'Iscas & Alertas', icon: Sliders },
-    { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'Veículos Pátio', icon: Truck },
-    { id: 'escala', label: 'ESCALA 3C', subtitle: 'Plantão', icon: Calendar },
-    { id: 'presence', label: 'CALENDÁRIO', subtitle: 'Frequência', icon: CalendarDays },
-    { id: 'rotas', label: 'ROTAS', subtitle: 'PGR', icon: Route },
-  ];
-
   return (
-    <div className="w-full h-[76px] px-4 sm:px-6 flex items-center justify-between select-none relative font-sans bg-[#fbf8f3] border-b border-[#e8ded2] shadow-xs">
+    <header className="w-full h-[76px] px-4 sm:px-6 flex items-center justify-between select-none relative font-sans bg-[#0d1012]/95 backdrop-blur-md border-b border-[rgba(201,151,62,0.22)] shadow-[0_8px_24px_rgba(0,0,0,0.7)] z-30">
       
       {/* ------------------------------------------------------------- */}
-      {/* LEFT: 3 CORAÇÕES LOGO EMBLEM + CENTRAL GR                      */}
+      {/* LEFT: 3 CORAÇÕES LOGO EMBLEM + CENTRAL GR + SANTA LUZIA - MG  */}
       {/* ------------------------------------------------------------- */}
       <div className="flex items-center gap-4 shrink-0">
         <div 
           onClick={onNavigateHome}
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center gap-3.5 cursor-pointer group"
           title="Central GR - 3 Corações"
         >
           {/* 3 Corações Circular Red Emblem */}
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#0b1320] border-2 border-white shadow-[0_4px_12px_rgba(179,20,29,0.35)] flex flex-col items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
-            {/* Corações icônicos estilizados */}
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#7f0b12] border-2 border-white/90 shadow-[0_0_18px_rgba(212,26,34,0.5)] flex flex-col items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform shrink-0">
             <div className="flex items-center justify-center -space-x-1 mb-0.5">
-              <span className="text-[#ffdf6d] text-[13px] leading-none">♥</span>
-              <span className="text-[#ffea9f] text-[15px] leading-none -translate-y-0.5">♥</span>
-              <span className="text-[#ffdf6d] text-[13px] leading-none">♥</span>
+              <span className="text-white text-[12px] leading-none drop-shadow-xs">♥</span>
+              <span className="text-white text-[14px] leading-none -translate-y-0.5 drop-shadow-xs">♥</span>
+              <span className="text-white text-[12px] leading-none drop-shadow-xs">♥</span>
             </div>
-            <span className="text-white text-[7.5px] font-black tracking-tight leading-none uppercase">
+            <span className="text-white text-[6.5px] font-black tracking-tight leading-none uppercase">
               3corações
             </span>
           </div>
           
-          {/* Central GR Text Labels */}
+          {/* Central GR Text Labels & Location */}
           <div className="text-left leading-none flex flex-col justify-center">
-            <span className="text-[9.5px] font-bold text-[#73675a] tracking-widest block uppercase mb-0.5">
-              CENTRAL
-            </span>
-            <span className="text-[22px] font-black text-[#a8141d] tracking-tight block uppercase leading-none font-heading">
-              GR
-            </span>
-            <span className="text-[7.5px] font-extrabold tracking-wider text-[#918373] block mt-0.5">
-              3CORAÇÕES.COM.BR
+            <div className="flex items-center gap-2.5">
+              <span className="text-[18px] font-black text-white tracking-tight uppercase leading-none font-sans drop-shadow-sm">
+                CENTRAL GR
+              </span>
+              <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-[rgba(201,151,62,0.15)] border border-[rgba(201,151,62,0.3)] text-[#e5c27a] text-[9.5px] font-black uppercase tracking-wider">
+                <MapPin size={10} />
+                <span>SANTA LUZIA - MG</span>
+              </div>
+            </div>
+            <span className="text-[8.5px] font-bold tracking-widest text-[#a8a39a] block uppercase mt-1.5">
+              LOGÍSTICA QUE APROXIMA
             </span>
           </div>
         </div>
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* CENTER: CAPSULE NAVIGATION BAR (HORIZONAL TOPO)               */}
+      {/* CENTER: LOCATION BADGE FOR MOBILE/TABLET                      */}
       {/* ------------------------------------------------------------- */}
-      <div className="hidden xl:flex items-center gap-1 bg-[#f4ece0] p-1.5 rounded-full border border-[#e4d8c7] shadow-inner">
-        {headerTabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          const IconComponent = tab.icon;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onSelectTab && onSelectTab(tab.id)}
-              className={`px-3.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer flex items-center gap-2 leading-tight ${
-                isActive
-                  ? 'bg-gradient-to-r from-[#be1620] via-[#a8141d] to-[#7d0b13] text-white shadow-[0_4px_14px_rgba(168,20,29,0.4)] border border-[#ff6b74]/30 scale-[1.02]'
-                  : 'text-[#42382f] hover:text-[#a8141d] hover:bg-[#fffdfa]/80'
-              }`}
-            >
-              {/* Icon Container */}
-              <div className={`p-1 rounded-full ${isActive ? 'bg-white/20 text-white' : 'text-[#877869]'}`}>
-                <IconComponent size={14} className="stroke-[2.2]" />
-              </div>
-
-              {/* Text Labels */}
-              <div className="text-left flex flex-col justify-center">
-                <span className={`text-[11px] font-black tracking-tight block uppercase ${isActive ? 'text-white' : 'text-[#1f1a16]'}`}>
-                  {tab.label}
-                </span>
-                {tab.subtitle && (
-                  <span className={`text-[7.5px] font-semibold block uppercase ${isActive ? 'text-white/80' : 'text-[#857667]'}`}>
-                    {tab.subtitle}
-                  </span>
-                )}
-              </div>
-            </button>
-          );
-        })}
+      <div className="flex sm:hidden items-center gap-1 px-2.5 py-1 rounded-full bg-[rgba(201,151,62,0.15)] border border-[rgba(201,151,62,0.3)] text-[#e5c27a] text-[9.5px] font-black uppercase tracking-wider">
+        <MapPin size={10} />
+        <span>SANTA LUZIA - MG</span>
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* RIGHT: NOTIFICATIONS, CLOCK, WEATHER & ADMIN LOCK             */}
+      {/* RIGHT: CLIMATE, CLOCK, USER PROFILE (JEFFERSON / ADMIN)       */}
       {/* ------------------------------------------------------------- */}
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        
+        {/* 360° Button */}
         <button
           onClick={onOpenWallpaper}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#be1620] to-[#7d0b13] text-white text-xs font-bold uppercase tracking-wider shadow hover:opacity-95 transition-all cursor-pointer border border-red-400/30"
-          title="Ver Papel de Parede 360° 4K da Fábrica"
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border shadow-sm",
+            isWallpaperOpen
+              ? "bg-gradient-to-r from-emerald-600 to-teal-800 text-white border-emerald-400/40"
+              : "bg-[#171a1c] hover:bg-[#232628] text-[#e5c27a] border-[rgba(201,151,62,0.3)] shadow-[0_0_10px_rgba(201,151,62,0.15)]"
+          )}
+          title={isWallpaperOpen ? "Voltar a exibir as páginas dos aplicativos" : "Ver 360°"}
         >
-          <span>🌐</span>
-          <span className="hidden sm:inline">Wallpaper 360° 4K</span>
+          <span>{isWallpaperOpen ? '↩️' : '🌐'}</span>
+          <span className="hidden sm:inline">
+            {isWallpaperOpen ? 'Exibir Páginas' : '360°'}
+          </span>
         </button>
 
-        <div className="hidden sm:flex flex-col text-right leading-none">
-          <span className="text-[12px] font-mono font-black text-[#1f1a16]">
+        {/* Climate Widget */}
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#131619] border border-[rgba(201,151,62,0.15)] text-left">
+          <div className="w-6 h-6 rounded-full bg-[#e5c27a]/20 flex items-center justify-center text-[#e5c27a]">
+            <Sun size={14} className="animate-spin-slow" />
+          </div>
+          <div className="leading-none flex flex-col">
+            <span className="text-[10px] font-bold text-white uppercase">
+              Santa Luzia - MG
+            </span>
+            <span className="text-[8.5px] font-semibold text-[#a8a39a] mt-0.5">
+              <strong className="text-[#e5c27a]">27°C</strong> Operação Normal
+            </span>
+          </div>
+        </div>
+
+        {/* Clock & Date */}
+        <div className="hidden sm:flex flex-col text-right leading-none px-2 py-1 rounded-xl bg-[#131619] border border-[rgba(201,151,62,0.15)]">
+          <span className="text-[12px] font-mono font-black text-[#e5c27a] tracking-wider">
             {formattedTime}
           </span>
-          <span className="text-[9px] font-mono font-bold text-[#857667] mt-0.5 uppercase">
+          <span className="text-[8.5px] font-mono font-bold text-[#a8a39a] mt-0.5 uppercase tracking-wide">
             {formattedDate}
           </span>
         </div>
+
+        {/* User Profile: Jefferson | Administrador */}
+        <div className="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-[rgba(201,151,62,0.2)]">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] p-0.5 shadow-md flex items-center justify-center shrink-0">
+            <div className="w-full h-full rounded-full bg-[#131619] flex items-center justify-center text-[#e5c27a]">
+              <User size={16} />
+            </div>
+          </div>
+          <div className="hidden md:flex flex-col text-left leading-none">
+            <span className="text-[11.5px] font-black text-white uppercase tracking-tight">
+              Jefferson
+            </span>
+            <span className="text-[8.5px] font-semibold text-[#a8a39a] mt-0.5 flex items-center gap-1">
+              <ShieldCheck size={10} className="text-[#e5c27a]" />
+              Administrador
+            </span>
+          </div>
+        </div>
+
       </div>
 
-    </div>
+    </header>
   );
 }

@@ -277,34 +277,34 @@ export default function RestrictedPagesModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#ede6dc]/95 backdrop-blur-xl z-[9999] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div className="fixed inset-0 bg-[#080a0c]/90 backdrop-blur-xl z-[9999] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       <motion.div 
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="w-full max-w-4xl bg-white border border-[#d6ccbe] shadow-2xl rounded-[48px] p-6 sm:p-10 relative text-stone-900 flex flex-col max-h-[95vh] overflow-hidden"
+        className="w-full max-w-4xl bg-[#131619] border border-[rgba(201,151,62,0.25)] shadow-[0_24px_64px_rgba(0,0,0,0.85)] rounded-[32px] p-6 sm:p-10 relative text-white flex flex-col max-h-[95vh] overflow-hidden"
       >
         {/* Close Button Top Right */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-6 right-6 w-12 h-12 rounded-2xl bg-[#fbf9f5] text-stone-400 hover:bg-[#0f172a] hover:text-white flex items-center justify-center transition-all shadow-sm z-20 cursor-pointer border border-[#d6ccbe]"
+          className="absolute top-6 right-6 w-11 h-11 rounded-xl bg-[#171a1c] text-[#a8a39a] hover:bg-[#c9973e] hover:text-[#080a0c] flex items-center justify-center transition-all shadow-sm z-20 cursor-pointer border border-[rgba(201,151,62,0.2)]"
           title="Fechar"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
         {/* Header Title Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-stone-100 shrink-0 pr-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-[rgba(201,151,62,0.18)] shrink-0 pr-12">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-3xl bg-[#0f172a] flex items-center justify-center border border-red-900/10 text-white shadow-xl shrink-0">
-              <Settings size={28} className="stroke-[2.5]" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] flex items-center justify-center text-[#080a0c] shadow-lg shrink-0">
+              <Settings size={26} className="stroke-[2.5]" />
             </div>
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-stone-950 leading-none font-sans">
+              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-none font-sans">
                 Configuração Operacional
               </h2>
-              <p className="text-xs sm:text-sm text-stone-500 mt-2 font-bold font-sans">
+              <p className="text-xs sm:text-sm text-[#a8a39a] mt-1.5 font-medium font-sans">
                 Gerenciamento de visibilidade de módulos e ordem de navegação tática.
               </p>
             </div>
@@ -674,11 +674,11 @@ export default function RestrictedPagesModal({
         </div>
 
         {/* FOOTER ACTIONS */}
-        <div className="mt-8 pt-6 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+        <div className="mt-8 pt-6 border-t border-[rgba(201,151,62,0.18)] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
           <button
             type="button"
             onClick={handleResetOrder}
-            className="py-3 px-6 rounded-2xl bg-white hover:bg-stone-50 text-stone-500 font-black uppercase text-[10px] tracking-widest transition-all border border-[#d6ccbe] cursor-pointer flex items-center justify-center gap-2 w-full sm:w-auto"
+            className="py-3 px-6 rounded-xl bg-[#171a1c] hover:bg-[#232628] text-[#a8a39a] hover:text-white font-bold uppercase text-[10px] tracking-widest transition-all border border-[rgba(201,151,62,0.2)] cursor-pointer flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <RotateCcw size={14} />
             Resetar Ordem Global
@@ -688,14 +688,14 @@ export default function RestrictedPagesModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-initial py-3 px-8 rounded-2xl bg-white hover:bg-stone-50 text-stone-500 font-black uppercase text-xs tracking-widest transition-colors border border-[#d6ccbe] cursor-pointer text-center"
+              className="flex-1 sm:flex-initial py-3 px-8 rounded-xl bg-[#171a1c] hover:bg-[#232628] text-[#d8d3c8] font-bold uppercase text-xs tracking-wider transition-colors border border-[rgba(201,151,62,0.2)] cursor-pointer text-center"
             >
               Voltar
             </button>
             <button
               type="button"
               onClick={handleSaveAndApply}
-              className="flex-1 sm:flex-initial py-4 px-10 rounded-[20px] bg-[#0f172a] hover:bg-[#1e293b] text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-3 border border-red-800"
+              className="flex-1 sm:flex-initial py-3.5 px-9 rounded-xl bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] font-black uppercase text-xs tracking-wider shadow-lg hover:brightness-110 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2.5"
             >
               <Check size={18} strokeWidth={3} />
               Aplicar Mudanças

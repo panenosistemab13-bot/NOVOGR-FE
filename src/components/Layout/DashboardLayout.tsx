@@ -1,42 +1,37 @@
 import React from 'react';
 
 interface DashboardLayoutProps {
-  sidebar?: React.ReactNode;
   header?: React.ReactNode;
+  drawer?: React.ReactNode;
   children: React.ReactNode;
-  rightPanel?: React.ReactNode;
   footer?: React.ReactNode;
 }
 
 export default function DashboardLayout({
-  sidebar,
   header,
+  drawer,
   children,
   footer,
 }: DashboardLayoutProps) {
   return (
-    <div className="w-screen h-screen flex flex-row overflow-hidden bg-[#07080c] text-white">
-      {/* LEFT SIDEBAR NAVIGATION */}
-      {sidebar && (
-        <div className="h-full shrink-0 z-30">
-          {sidebar}
-        </div>
+    <div className="w-screen h-screen flex flex-col overflow-hidden bg-[#07080c] text-white select-none">
+      {/* 1. TOPBAR HORIZONTAL */}
+      {header && (
+        <header className="w-full shrink-0 z-30">
+          {header}
+        </header>
       )}
 
-      {/* MAIN WORKSPACE BODY */}
-      <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden relative">
-        {header && (
-          <header className="w-full flex-shrink-0 z-20">
-            {header}
-          </header>
-        )}
+      {/* 2 & 3. CONTAINER COM CONTEÚDO 100% E MENU OVERLAY */}
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0 relative">
+        {drawer}
 
-        <main className="flex-1 w-full h-full overflow-y-auto min-h-0 relative z-10">
+        <main className="flex-1 h-full overflow-y-auto w-full relative z-10">
           {children}
         </main>
-
-        {footer || null}
       </div>
+
+      {footer || null}
     </div>
   );
 }

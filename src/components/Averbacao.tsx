@@ -451,7 +451,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
   });
 
   return (
-    <div className="w-full h-full flex flex-col relative text-left bg-[#fcf9f5] p-3 text-[#00163a] font-sans overflow-y-auto">
+    <div className="w-full h-full flex flex-col relative text-left bg-[#080A0C] p-3 text-[#F4F0E8] font-sans overflow-y-auto">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -463,11 +463,11 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             className={cn(
               "fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl border text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md",
               notification.type === 'delete'
-                ? "bg-red-50 text-red-800 border-red-200"
-                : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                ? "bg-[#180A0C]/90 text-red-300 border-red-500/40"
+                : "bg-[#0A1A12]/90 text-emerald-300 border-emerald-500/40"
             )}
           >
-            <Check size={15} className={notification.type === 'delete' ? "text-red-600" : "text-emerald-600"} />
+            <Check size={15} className={notification.type === 'delete' ? "text-red-400" : "text-emerald-400"} />
             <span>{notification.message}</span>
           </motion.div>
         )}
@@ -482,45 +482,45 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         <div className="flex flex-col gap-3.5 w-full">
           
           {/* TOP CONTROLS: CODES BAR */}
-          <div className="bg-[#fffdfa] border border-[#e7dac9] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+          <div className="bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-[#F4F0E8]">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-[11px] font-black uppercase text-amber-800 flex items-center gap-1">
+              <span className="text-[11px] font-black uppercase text-[#E5C27A] flex items-center gap-1 font-mono">
                 ⚡ CÓDIGOS RÁPIDOS OPERACIONAIS:
               </span>
               
               {/* Capsula Field */}
-              <div className="flex items-center bg-white border border-[#ded5c6] rounded px-3 py-1.5 font-bold font-mono text-[#00163a] gap-2 shadow-2xs">
-                <span>CÁPSULA:</span>
-                <span className="text-stone-900 tracking-wider font-extrabold uppercase">
+              <div className="flex items-center bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-1.5 font-bold font-mono text-white gap-2 shadow-inner">
+                <span className="text-[#A8A39A]">CÁPSULA:</span>
+                <span className="text-[#E5C27A] tracking-wider font-extrabold uppercase">
                   9000000982
                 </span>
                 <button 
                   onClick={() => copyCodeToClipboard('CÁPSULA', '9000000982')}
-                  className="text-stone-400 hover:text-stone-800 cursor-pointer"
+                  className="text-[#A8A39A] hover:text-[#E5C27A] cursor-pointer"
                 >
                   <Copy size={11} />
                 </button>
               </div>
 
               {/* Maquina Field */}
-              <div className="flex items-center bg-white border border-[#ded5c6] rounded px-3 py-1.5 font-bold font-mono text-[#00163a] gap-2 shadow-2xs">
-                <span>MÁQUINA:</span>
-                <span className="text-stone-950 font-black">00008901</span>
+              <div className="flex items-center bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-1.5 font-bold font-mono text-white gap-2 shadow-inner">
+                <span className="text-[#A8A39A]">MÁQUINA:</span>
+                <span className="text-[#E5C27A] font-black">00008901</span>
                 <button 
                   onClick={() => copyCodeToClipboard('MÁQUINA', '00008901')}
-                  className="text-stone-400 hover:text-stone-800 cursor-pointer"
+                  className="text-[#A8A39A] hover:text-[#E5C27A] cursor-pointer"
                 >
                   <Copy size={11} />
                 </button>
               </div>
 
               {/* Embarques Field */}
-              <div className="flex items-center bg-white border border-[#ded5c6] rounded px-3 py-1.5 font-bold font-mono text-[#00163a] gap-2 shadow-2xs">
-                <span>EMBARQUES:</span>
-                <span className="text-stone-950 font-black">132</span>
+              <div className="flex items-center bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-1.5 font-bold font-mono text-white gap-2 shadow-inner">
+                <span className="text-[#A8A39A]">EMBARQUES:</span>
+                <span className="text-[#E5C27A] font-black">132</span>
                 <button 
                   onClick={() => copyCodeToClipboard('EMBARQUES', '132')}
-                  className="text-stone-400 hover:text-stone-800 cursor-pointer"
+                  className="text-[#A8A39A] hover:text-[#E5C27A] cursor-pointer"
                 >
                   <Copy size={11} />
                 </button>
@@ -531,20 +531,20 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => setShowPasteModal(true)}
-                className="bg-[#8d1118] hover:bg-[#6f0d14] text-white text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer"
+                className="bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] hover:brightness-110 text-[#080A0C] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-[#E5C27A]"
               >
                 COLAR PLANILHA TSV
               </button>
               <button
                 onClick={() => parseInput(SAMPLE_TSV_DATA)}
-                className="bg-white hover:bg-stone-50 border border-[#ded5c6] text-stone-700 text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-2xs flex items-center gap-1 cursor-pointer"
+                className="bg-[#171A1C] hover:bg-[#202428] border border-[#C9973E]/30 text-[#E5C27A] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs flex items-center gap-1 cursor-pointer"
               >
-                <Sparkles size={11} className="text-amber-600" />
+                <Sparkles size={11} className="text-[#E5C27A]" />
                 <span>EXEMPLO</span>
               </button>
               <button
                 onClick={handleClearAll}
-                className="bg-white hover:bg-red-50 border border-red-200 text-red-600 text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-2xs cursor-pointer"
+                className="bg-red-950/40 hover:bg-red-950/60 border border-red-500/30 text-red-300 text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs cursor-pointer"
               >
                 LIMPAR
               </button>
@@ -553,41 +553,39 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
           {/* SEARCH BAR (Wide) */}
           <div className="relative w-full">
-            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
+            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A39A]" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por placa, nota, protocolo ou destino..."
-              className="w-full bg-white text-stone-900 border border-[#e7dac9] rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#8d1118] shadow-2xs"
+              className="w-full bg-[#131619] text-white border border-[#C9973E]/25 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#D9AD5A] shadow-inner placeholder-[#7A756D]"
             />
           </div>
 
           {/* EMAIL PREVIEW CARD CONTAINER */}
-          <div className="bg-[#fffdfa] border border-[#e7dac9] rounded-2xl p-4 shadow-sm text-xs font-mono space-y-3.5">
+          <div className="bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-4 shadow-lg text-xs font-mono space-y-3.5 text-[#F4F0E8]">
             
             {/* Header Area */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-200 pb-3 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-red-50 text-red-700 border border-red-100 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[#C9973E]/15 text-[#E5C27A] border border-[#C9973E]/30 flex items-center justify-center shrink-0">
                   <Mail size={16} />
                 </div>
                 <div className="text-left leading-none">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-red-800 block">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-[#D9AD5A] block">
                     FORMATO PARA CLIENTE DE E-MAIL
                   </span>
-                  <span className="text-[13px] font-black text-stone-900 uppercase tracking-tight block mt-1">
+                  <span className="text-[13px] font-black text-white uppercase tracking-tight block mt-1">
                     CORPO DA MENSAGEM DE AVERBAÇÃO
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
-
-
                   <button
                     onClick={copyToEmail}
-                    className="bg-[#8d1118] hover:bg-[#6f0d14] text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] text-[11px] font-black uppercase px-4 py-2 rounded-lg shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#E5C27A]"
                   >
                     <Clipboard size={12} />
                     <span>{copied ? 'COPIADO' : 'COPIAR FORMATADO'}</span>
@@ -703,19 +701,19 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         <div className="flex flex-col gap-3 w-full shrink-0">
           
           {/* Header Section */}
-          <div className="bg-[#fffdfa] border border-[#e7dac9] rounded-xl p-3 flex items-center justify-between shadow-2xs">
-            <span className="text-xs font-black uppercase text-[#00163a] tracking-wider flex items-center gap-2">
+          <div className="bg-[#131619] border border-[#C9973E]/25 rounded-xl p-3 flex items-center justify-between shadow-md">
+            <span className="text-xs font-black uppercase text-[#E5C27A] tracking-wider flex items-center gap-2 font-mono">
               🏢 DADOS OPERACIONAIS
             </span>
-            <ChevronDown size={14} className="text-[#00163a]" />
+            <ChevronDown size={14} className="text-[#E5C27A]" />
           </div>
 
           {/* SIDEBAR FIELDS CARDS */}
           <div className="space-y-3.5 text-xs text-left">
             
             {/* Field 1: Transportadora */}
-            <div className="bg-white border border-[#ded5c6] rounded-xl p-3 shadow-2xs">
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">
+            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
+              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
                 TRANSPORTADORA
               </label>
               
@@ -723,13 +721,13 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <select
                   value={extraData.transportadora}
                   onChange={(e) => setExtraData(prev => ({ ...prev, transportadora: e.target.value }))}
-                  className="w-full bg-[#fbf9f5] border border-[#ded5c6] rounded px-3 py-2 text-xs font-black text-stone-900 outline-none uppercase appearance-none cursor-pointer pr-8"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2 text-xs font-black text-white outline-none uppercase appearance-none cursor-pointer pr-8"
                 >
                   {customTransportadoras.map(t => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t} className="bg-[#131619] text-white">{t}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8A39A] pointer-events-none" />
               </div>
 
               {/* Add Custom Transportadora Button */}
@@ -740,11 +738,11 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                     value={newTranspName}
                     onChange={(e) => setNewTranspName(e.target.value)}
                     placeholder="NOME"
-                    className="flex-1 bg-stone-50 border border-stone-200 rounded px-2 py-1 uppercase font-bold text-xs"
+                    className="flex-1 bg-[#080A0C] border border-[#C9973E]/30 rounded px-2 py-1 uppercase font-bold text-xs text-white"
                   />
                   <button 
                     onClick={handleAddCustomTransp}
-                    className="px-2.5 py-1 bg-stone-800 text-white rounded text-xs font-bold cursor-pointer"
+                    className="px-2.5 py-1 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black rounded text-xs cursor-pointer"
                   >
                     OK
                   </button>
@@ -753,7 +751,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <button
                   type="button"
                   onClick={() => setShowAddTranspInput(true)}
-                  className="text-red-700 font-black text-[10px] mt-2 block hover:underline cursor-pointer"
+                  className="text-[#E5C27A] font-black text-[10px] mt-2 block hover:underline cursor-pointer"
                 >
                   + ADICIONAR NOVA
                 </button>
@@ -761,75 +759,75 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             </div>
 
             {/* Field 2: Tecnologia PGR */}
-            <div className="bg-white border border-[#ded5c6] rounded-xl p-3 shadow-2xs">
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">
+            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
+              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
                 TECNOLOGIA PGR
               </label>
               <div className="relative">
                 <select
                   value={extraData.tecnologia}
                   onChange={(e) => setExtraData(prev => ({ ...prev, tecnologia: e.target.value }))}
-                  className="w-full bg-[#fbf9f5] border border-[#ded5c6] rounded px-3 py-2 text-xs font-black text-stone-900 outline-none uppercase appearance-none cursor-pointer pr-8"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2 text-xs font-black text-white outline-none uppercase appearance-none cursor-pointer pr-8"
                 >
                   {DEFAULT_TECNOLOGIAS.map(t => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t} className="bg-[#131619] text-white">{t}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8A39A] pointer-events-none" />
               </div>
             </div>
 
             {/* Field 3: Nome do Condutor */}
-            <div className="bg-white border border-[#ded5c6] rounded-xl p-3 shadow-2xs">
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">
+            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
+              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
                 NOME DO CONDUTOR
               </label>
-              <div className="flex items-center gap-2 bg-[#fbf9f5] border border-[#ded5c6] rounded px-3 py-2">
-                <User size={13} className="text-slate-400" />
+              <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2">
+                <User size={13} className="text-[#A8A39A]" />
                 <input
                   type="text"
                   value={extraData.nomeMotorista}
                   onChange={(e) => setExtraData(prev => ({ ...prev, nomeMotorista: e.target.value.toUpperCase() }))}
-                  className="w-full bg-transparent font-black text-stone-900 outline-none uppercase"
+                  className="w-full bg-transparent font-black text-white outline-none uppercase"
                 />
               </div>
             </div>
 
             {/* Field 4: CPF */}
-            <div className="bg-white border border-[#ded5c6] rounded-xl p-3 shadow-2xs">
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">
+            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
+              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
                 CPF / MOTORISTA
               </label>
-              <div className="flex items-center gap-2 bg-[#fbf9f5] border border-[#ded5c6] rounded px-3 py-2">
-                <CreditCard size={13} className="text-slate-400" />
+              <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2">
+                <CreditCard size={13} className="text-[#A8A39A]" />
                 <input
                   type="text"
                   value={extraData.cpf}
                   onChange={(e) => setExtraData(prev => ({ ...prev, cpf: e.target.value }))}
-                  className="w-full bg-transparent font-black text-stone-900 outline-none"
+                  className="w-full bg-transparent font-black text-white outline-none"
                 />
               </div>
             </div>
 
             {/* Field 5: Telefone */}
-            <div className="bg-white border border-[#ded5c6] rounded-xl p-3 shadow-2xs">
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">
+            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
+              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
                 TELEFONE / WHATSAPP
               </label>
-              <div className="flex items-center gap-2 bg-[#fbf9f5] border border-[#ded5c6] rounded px-3 py-2">
-                <Phone size={13} className="text-slate-400" />
+              <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2">
+                <Phone size={13} className="text-[#A8A39A]" />
                 <input
                   type="text"
                   value={extraData.telefone}
                   onChange={(e) => setExtraData(prev => ({ ...prev, telefone: e.target.value }))}
-                  className="w-full bg-transparent font-black text-stone-900 outline-none"
+                  className="w-full bg-transparent font-black text-white outline-none"
                 />
               </div>
             </div>
 
             {/* Field 6: Paleta de Cores do E-mail */}
-            <div className="bg-white border border-[#ded5c6] rounded-xl p-3 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-[9px] font-black uppercase text-slate-400">
+            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md space-y-2">
+              <div className="flex items-center justify-between text-[9px] font-black uppercase text-[#A8A39A]">
                 <span>PALETA DE CORES DO E-MAIL</span>
                 <span className={cn(
                   "px-1.5 py-0.5 rounded font-bold border",

@@ -751,44 +751,44 @@ export default function Checklist() {
   const totalOsPendentes = items.filter(i => (i.osStatus || 'PENDENTE') === 'PENDENTE').length;
 
   return (
-    <div className="w-full flex flex-col min-h-screen relative p-1 sm:p-3 md:p-4 pb-16 font-sans space-y-6">
+    <div className="w-full flex flex-col min-h-screen relative p-1 sm:p-3 md:p-4 pb-16 font-sans space-y-6 text-[#F4F0E8]">
 
       {/* Toast de Notificação */}
       {notification.show && (
         <div 
           className={cn(
-            "fixed top-4 right-4 z-50 px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border transition-all text-xs font-bold uppercase tracking-wider font-mono",
+            "fixed top-4 right-4 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border transition-all text-xs font-bold uppercase tracking-wider font-mono backdrop-blur-md",
             notification.type === 'delete' 
-              ? "bg-red-50 text-red-800 border-red-200" 
+              ? "bg-[#180A0C]/90 text-red-300 border-red-500/40" 
               : notification.type === 'info'
-                ? "bg-amber-50 text-amber-800 border-amber-200"
-                : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                ? "bg-[#1A150A]/90 text-amber-300 border-[#C9973E]/40"
+                : "bg-[#0A1A12]/90 text-emerald-300 border-emerald-500/40"
           )}
         >
           {notification.type === 'delete' ? (
-            <Trash2 size={16} className="text-red-600 shrink-0" />
+            <Trash2 size={16} className="text-red-400 shrink-0" />
           ) : (
-            <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+            <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
           )}
           <span>{notification.message}</span>
         </div>
       )}
 
-      {/* Painel Operacional Principal (Padrão 3C com Translucidez para Wallpaper 8K) */}
-      <div className="w-full bg-[#f8fafc]/92 backdrop-blur-md rounded-3xl p-4 sm:p-6 relative flex flex-col gap-5 border border-[#e8ded2] shadow-md text-[#1a1614]">
+      {/* Painel Operacional Principal (Dark Luxury & Gold) */}
+      <div className="w-full bg-[#0D1012]/95 backdrop-blur-xl rounded-3xl p-4 sm:p-6 relative flex flex-col gap-5 border border-[#C9973E]/20 shadow-[0_16px_40px_rgba(0,0,0,0.7)] text-[#F4F0E8]">
         
         {/* Top Area: Módulo Integrado de Vistoria e Manutenção Banner */}
-        <div className="flex flex-col lg:flex-row gap-5 items-start lg:items-center justify-between bg-gradient-to-r from-[#0b1320] via-[#0f172a] to-[#910d14] p-4 sm:p-5 rounded-2xl border border-white/20 text-white shadow-md relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-5 items-start lg:items-center justify-between bg-gradient-to-r from-[#080A0C] via-[#131619] to-[#1C160F] p-4 sm:p-5 rounded-2xl border border-[#C9973E]/30 text-white shadow-lg relative overflow-hidden">
           <div className="flex items-center gap-3.5 relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center shadow-md border border-white/30 shrink-0">
-              <ClipboardCheck size={26} className="text-[#ffd54f]" />
+            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 backdrop-blur-md text-[#E5C27A] flex items-center justify-center shadow-md border border-[#C9973E]/40 shrink-0">
+              <ClipboardCheck size={26} className="text-[#E5C27A]" />
             </div>
             <div className="text-left leading-tight">
-              <span className="text-[10px] font-mono font-black text-[#ffd54f] uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-black text-[#D9AD5A] uppercase tracking-wider block">
                 // MÓDULO INTEGRADO DE VISTORIA E MANUTENÇÃO
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight font-heading mt-0.5">
-                CHECKLIST DE FROTA: <span className="text-[#ffd54f]">{totalVeiculos} VEÍCULOS</span> / <span className="text-emerald-300">{totalEmDia} EM DIA</span>
+                CHECKLIST DE FROTA: <span className="text-[#E5C27A]">{totalVeiculos} VEÍCULOS</span> / <span className="text-emerald-400">{totalEmDia} EM DIA</span>
               </h2>
             </div>
           </div>
@@ -807,21 +807,26 @@ export default function Checklist() {
         </div>
 
         {/* Sub-Aba Navigation Bar & Stat Pills */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f0e8dd] pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#C9973E]/20 pb-3">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setActiveView('monitoring')}
               className={cn(
-                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs",
+                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
                 activeView === 'monitoring'
-                  ? "bg-gradient-to-r from-[#0f172a] to-[#910d14] text-white shadow-xs border border-white/20"
-                  : "bg-[#fbf8f3] hover:bg-white text-[#57493d] border border-[#e8ded2]"
+                  ? "bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] text-[#080A0C] font-black shadow-[0_4px_16px_rgba(201,151,62,0.35)] border border-[#E5C27A]"
+                  : "bg-[#131619] hover:bg-[#1C2023] text-[#A8A39A] hover:text-[#FFFFFF] border border-white/10"
               )}
             >
               <ClipboardCheck size={14} />
               <span>1. PRANCHETA DE CHECKLIST</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-[#ffd54f] text-[#5c3c00] text-[10px] font-mono font-black">
+              <span className={cn(
+                "ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-black",
+                activeView === 'monitoring'
+                  ? "bg-[#080A0C] text-[#E5C27A]"
+                  : "bg-[#C9973E]/20 text-[#E5C27A]"
+              )}>
                 {totalVeiculos}
               </span>
             </button>
@@ -830,15 +835,20 @@ export default function Checklist() {
               type="button"
               onClick={() => setActiveView('os')}
               className={cn(
-                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs",
+                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
                 activeView === 'os'
-                  ? "bg-gradient-to-r from-[#0f172a] to-[#910d14] text-white shadow-xs border border-white/20"
-                  : "bg-[#fbf8f3] hover:bg-white text-[#57493d] border border-[#e8ded2]"
+                  ? "bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] text-[#080A0C] font-black shadow-[0_4px_16px_rgba(201,151,62,0.35)] border border-[#E5C27A]"
+                  : "bg-[#131619] hover:bg-[#1C2023] text-[#A8A39A] hover:text-[#FFFFFF] border border-white/10"
               )}
             >
               <FileText size={14} />
               <span>2. ORDENS DE SERVIÇO (OS)</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-[#f0e8dd] text-[#1a1614] text-[10px] font-mono font-bold">
+              <span className={cn(
+                "ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
+                activeView === 'os'
+                  ? "bg-[#080A0C] text-[#E5C27A]"
+                  : "bg-white/10 text-white"
+              )}>
                 {totalOsPendentes}
               </span>
             </button>
@@ -847,10 +857,10 @@ export default function Checklist() {
               type="button"
               onClick={() => setActiveView('generator')}
               className={cn(
-                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs",
+                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
                 activeView === 'generator'
-                  ? "bg-gradient-to-r from-[#0f172a] to-[#910d14] text-white shadow-xs border border-white/20"
-                  : "bg-[#fbf8f3] hover:bg-white text-[#57493d] border border-[#e8ded2]"
+                  ? "bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] text-[#080A0C] font-black shadow-[0_4px_16px_rgba(201,151,62,0.35)] border border-[#E5C27A]"
+                  : "bg-[#131619] hover:bg-[#1C2023] text-[#A8A39A] hover:text-[#FFFFFF] border border-white/10"
               )}
             >
               <Mail size={14} />
@@ -860,16 +870,16 @@ export default function Checklist() {
 
           {/* Stat Pills on the right */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-[#fbf8f3] border border-[#e8ded2] text-[#1a1614] text-xs font-mono font-bold shadow-2xs">
-              FROTA TOTAL: <strong className="text-[#0f172a]">{totalVeiculos}</strong>
+            <span className="px-3 py-1 rounded-full bg-[#131619] border border-[#C9973E]/30 text-[#F4F0E8] text-xs font-mono font-bold shadow-xs">
+              FROTA TOTAL: <strong className="text-[#E5C27A]">{totalVeiculos}</strong>
             </span>
-            <span className="px-3 py-1 rounded-full bg-[#e8f5e9] text-[#1b5e20] border border-[#c8e6c9] text-xs font-mono font-bold shadow-2xs">
+            <span className="px-3 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold shadow-xs">
               EM DIA: {totalEmDia}
             </span>
-            <span className="px-3 py-1 rounded-full bg-[#fae8e9] text-[#0f172a] border border-[#f5c6cb] text-xs font-mono font-bold">
+            <span className="px-3 py-1 rounded-full bg-rose-950/60 text-rose-300 border border-rose-500/30 text-xs font-mono font-bold shadow-xs">
               VENCIDOS: {totalVencidos}
             </span>
-            <span className="px-3 py-1 rounded-full bg-[#fff8e1] text-[#b78103] border border-[#ffe082] text-xs font-mono font-bold">
+            <span className="px-3 py-1 rounded-full bg-amber-950/60 text-amber-300 border border-amber-500/30 text-xs font-mono font-bold shadow-xs">
               OS PENDENTES: {totalOsPendentes}
             </span>
 
@@ -878,16 +888,16 @@ export default function Checklist() {
               <button
                 type="button"
                 onClick={() => setShowPasteModal(true)}
-                className="bg-[#fbf8f3] hover:bg-[#fffdfa] border border-[#e8ded2] text-[#1a1614] text-[11px] font-mono font-bold uppercase py-1.5 px-3 rounded-xl shadow-2xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="bg-[#171A1C] hover:bg-[#202428] border border-[#C9973E]/30 text-[#E5C27A] text-[11px] font-mono font-bold uppercase py-1.5 px-3 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
                 title="Colar planilha Excel"
               >
-                <Clipboard size={12} className="text-[#0f172a]" />
+                <Clipboard size={12} className="text-[#E5C27A]" />
                 <span>Colar</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsAdding(true)}
-                className="bg-gradient-to-r from-[#0f172a] to-[#910d14] hover:brightness-110 text-white text-[11px] font-mono font-bold uppercase py-1.5 px-3 rounded-xl shadow-xs flex items-center gap-1 cursor-pointer transition-all"
+                className="bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] hover:brightness-110 text-[#080A0C] font-black text-[11px] font-mono uppercase py-1.5 px-3 rounded-xl shadow-md flex items-center gap-1 cursor-pointer transition-all"
               >
                 <Plus size={12} />
                 <span>Novo</span>
@@ -901,15 +911,15 @@ export default function Checklist() {
               <div className="flex flex-col gap-4">
                 
                 {/* Search / Filter Bar */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-xs">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#131619] p-3 rounded-2xl border border-[#C9973E]/20 shadow-md">
                   <div className="relative flex-1 w-full">
-                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A39A]" />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Pesquisar por placa, condutor, carretas, prefixo ou observação..."
-                      className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-[#00163a] placeholder-slate-400 focus:outline-none focus:border-[#0f172a] shadow-2xs uppercase"
+                      className="w-full pl-9 pr-3 py-2 bg-[#080A0C] border border-[#C9973E]/25 rounded-xl text-xs font-mono font-medium text-white placeholder-[#7A756D] focus:outline-none focus:border-[#D9AD5A] shadow-inner uppercase"
                     />
                   </div>
 
@@ -923,8 +933,8 @@ export default function Checklist() {
                         className={cn(
                           "px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer border shadow-xs",
                           filter === f
-                            ? "bg-[#0f172a] text-white border-[#0f172a] shadow-sm border-b-2 border-[#ffd54f]"
-                            : "bg-white text-[#4a5d78] border-slate-200 hover:text-[#00163a] hover:bg-slate-100"
+                            ? "bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black border-[#E5C27A] shadow-[0_2px_12px_rgba(201,151,62,0.35)]"
+                            : "bg-[#171A1C] text-[#A8A39A] border-white/10 hover:text-white hover:bg-[#202428]"
                         )}
                       >
                         {f}
@@ -932,20 +942,20 @@ export default function Checklist() {
                     ))}
                   </div>
 
-                  <div className="text-right shrink-0 flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-xl">
-                    <Clock size={13} className="text-[#0f172a]" />
-                    <span className="text-[11px] font-mono font-bold text-[#4a5d78]">
-                      EXIBINDO VEÍCULOS <strong className="text-[#0f172a]">{filteredItems.length}</strong> de {items.length}
+                  <div className="text-right shrink-0 flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/20 px-3 py-1.5 rounded-xl">
+                    <Clock size={13} className="text-[#E5C27A]" />
+                    <span className="text-[11px] font-mono font-bold text-[#A8A39A]">
+                      EXIBINDO VEÍCULOS <strong className="text-[#E5C27A]">{filteredItems.length}</strong> de {items.length}
                     </span>
                   </div>
                 </div>
 
                 {/* Tabela Oficial Executiva Presidente */}
-                <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-xs bg-white">
+                <div className="rounded-2xl border border-[#C9973E]/20 overflow-hidden shadow-xl bg-[#131619]">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[960px]">
                       <thead>
-                        <tr className="bg-gradient-to-r from-[#0b1320] via-[#0f172a] to-[#910d14] text-white border-b border-[#0b1320]">
+                        <tr className="bg-gradient-to-r from-[#080A0C] via-[#101214] to-[#1C160F] text-[#E5C27A] border-b border-[#C9973E]/30">
                           <th className="py-3 px-3 w-10 text-center font-mono font-bold uppercase tracking-wider text-[11px]">
                             #
                           </th>
@@ -976,16 +986,16 @@ export default function Checklist() {
                         </tr>
                       </thead>
 
-                      <tbody className="divide-y divide-[#eee7dc]">
+                      <tbody className="divide-y divide-white/5">
                         {filteredItems.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="py-14 text-center text-stone-500 font-medium">
+                            <td colSpan={9} className="py-14 text-center text-[#7A756D] font-medium">
                               <div className="flex flex-col items-center justify-center gap-3">
-                                <FileSpreadsheet size={40} className="text-stone-400" />
-                                <p className="font-bold text-stone-900 text-sm font-heading">
+                                <FileSpreadsheet size={40} className="text-[#C9973E]/40" />
+                                <p className="font-bold text-white text-sm font-heading">
                                   Nenhum registro de checklist encontrado
                                 </p>
-                                <p className="text-xs text-stone-500 max-w-md font-sans">
+                                <p className="text-xs text-[#A8A39A] max-w-md font-sans">
                                   Clique em <strong>"Colar Planilha Excel"</strong> acima para importar seus dados ou em <strong>"Novo Registro"</strong> para cadastrar manualmente.
                                 </p>
                               </div>
@@ -1007,14 +1017,14 @@ export default function Checklist() {
                                 className={cn(
                                   "transition-colors group",
                                   isVencido 
-                                    ? "bg-red-50/40 hover:bg-red-50/70" 
+                                    ? "bg-red-950/20 hover:bg-red-950/35" 
                                     : isAVencer 
-                                    ? "bg-amber-50/40 hover:bg-amber-50/70" 
-                                    : "hover:bg-stone-50/80"
+                                    ? "bg-amber-950/20 hover:bg-amber-950/35" 
+                                    : "hover:bg-white/[0.03]"
                                 )}
                               >
                                 {/* Index */}
-                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-stone-400">
+                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-[#7A756D]">
                                   {index + 1}
                                 </td>
 
@@ -1027,54 +1037,54 @@ export default function Checklist() {
                                 <td className="py-2.5 px-3">
                                   {item.carretas ? (
                                     <div className="flex items-center gap-1.5">
-                                      <span className="bg-stone-100 text-stone-800 px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border border-stone-200">
+                                      <span className="bg-[#080A0C] text-[#F4F0E8] px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border border-[#C9973E]/20">
                                         {item.carretas}
                                       </span>
                                     </div>
                                   ) : (
-                                    <span className="text-stone-400 italic text-[11px]">Sem carreta</span>
+                                    <span className="text-[#7A756D] italic text-[11px]">Sem carreta</span>
                                   )}
                                 </td>
 
                                 {/* Status */}
                                 <td className="py-2.5 px-3 text-center">
                                   {status.label === 'NEGATIVADO' ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 text-red-700 border border-red-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-950/60 text-red-300 border border-red-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
                                       <ShieldAlert size={12} /> NEGATIVADO
                                     </span>
                                   ) : status.label === 'REPROVADO' ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 text-red-700 border border-red-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-950/60 text-red-300 border border-red-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
                                       <ShieldAlert size={12} /> REPROVADO
                                     </span>
                                   ) : isVencido ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 text-red-700 border border-red-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-950/60 text-red-300 border border-red-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
                                       <ShieldAlert size={12} /> VENCIDO
                                     </span>
                                   ) : isAVencer ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-950/60 text-amber-300 border border-amber-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
                                       <Clock size={12} /> A VENCER
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-bold text-[10px] uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/60 text-emerald-300 border border-emerald-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
                                       <Check size={12} /> APROVADO
                                     </span>
                                   )}
                                 </td>
 
                                 {/* Data Teste */}
-                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-stone-600">
+                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-[#A8A39A]">
                                   {formattedTeste}
                                 </td>
 
                                 {/* Validade e dias restantes */}
                                 <td className="py-2.5 px-3 text-center">
                                   <div className="flex flex-col items-center">
-                                    <span className="font-mono font-bold text-xs text-stone-900">
+                                    <span className="font-mono font-bold text-xs text-white">
                                       {formattedVencimento}
                                     </span>
                                     <span className={cn(
                                       "font-mono font-bold text-[10px]",
-                                      diasParaVencer < 0 ? "text-red-600 font-black" : diasParaVencer <= 3 ? "text-amber-700 font-black" : "text-emerald-700 font-black"
+                                      diasParaVencer < 0 ? "text-red-400 font-black" : diasParaVencer <= 3 ? "text-amber-400 font-black" : "text-emerald-400 font-black"
                                     )}>
                                       {diasParaVencer < 0 ? `${Math.abs(diasParaVencer)}d vencido` : `${diasParaVencer}d restantes`}
                                     </span>
@@ -1085,17 +1095,17 @@ export default function Checklist() {
                                 <td className="py-2.5 px-3 text-center">
                                   <div className="flex flex-col items-center gap-1">
                                     {item.periferico && (
-                                      <span className="bg-stone-100 text-stone-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border border-stone-200">
+                                      <span className="bg-[#080A0C] text-[#F4F0E8] px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border border-white/10">
                                         {item.periferico}
                                       </span>
                                     )}
                                     {item.manutencaoOs && (
-                                      <span className="bg-red-50 text-red-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-red-200">
+                                      <span className="bg-red-950/60 text-red-300 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-red-500/30">
                                         OS: {item.manutencaoOs}
                                       </span>
                                     )}
                                     {!item.periferico && !item.manutencaoOs && (
-                                      <span className="text-stone-400 text-xs">-</span>
+                                      <span className="text-[#7A756D] text-xs">-</span>
                                     )}
                                   </div>
                                 </td>
@@ -1103,7 +1113,7 @@ export default function Checklist() {
                                 {/* PDFs Anexados */}
                                 <td className="py-2.5 px-3 text-center">
                                   <div className="flex flex-col items-center gap-1">
-                                    <label className="text-[10px] font-bold text-[#0f172a] hover:underline cursor-pointer flex items-center gap-1 font-mono">
+                                    <label className="text-[10px] font-bold text-[#E5C27A] hover:underline cursor-pointer flex items-center gap-1 font-mono">
                                       {uploadingItemId === item.id ? <Loader2 size={11} className="animate-spin" /> : <Upload size={11} />}
                                       <span>Anexar</span>
                                       <input 
@@ -1120,7 +1130,7 @@ export default function Checklist() {
                                             key={p.id}
                                             type="button"
                                             onClick={(e) => handlePdfAction(e, p.url, p.name, 'view')}
-                                            className="p-1 bg-red-50 text-red-700 rounded border border-red-200 text-[9px] font-bold hover:bg-red-100 cursor-pointer"
+                                            className="p-1 bg-[#171A1C] text-[#E5C27A] rounded border border-[#C9973E]/30 text-[9px] font-bold hover:bg-[#202428] cursor-pointer"
                                             title={`Ver PDF: ${p.name}`}
                                           >
                                             <FileText size={12} />
@@ -1137,7 +1147,7 @@ export default function Checklist() {
                                     <button
                                       type="button"
                                       onClick={() => setEditingItem(item)}
-                                      className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                                      className="p-1.5 text-[#A8A39A] hover:text-[#E5C27A] hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
                                       title="Editar"
                                     >
                                       <Edit2 size={13} />
@@ -1145,7 +1155,7 @@ export default function Checklist() {
                                     <button
                                       type="button"
                                       onClick={() => handleDelete(item.id)}
-                                      className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                      className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
                                       title="Excluir"
                                     >
                                       <Trash2 size={13} />
@@ -1408,16 +1418,16 @@ export default function Checklist() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
                 {/* Left Form: Controles e Edição */}
-                <div className="lg:col-span-5 bg-[#fbf9f5] border border-[#d6ccbe] rounded-2xl p-5 shadow-xs space-y-4">
-                  <div className="border-b border-[#e7dac9] pb-3 flex items-center justify-between">
-                    <h3 className="text-xs font-mono font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2">
-                      <Edit2 size={14} className="text-[#0f172a]" />
+                <div className="lg:col-span-5 bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-5 shadow-lg space-y-4 text-[#F4F0E8]">
+                  <div className="border-b border-white/10 pb-3 flex items-center justify-between">
+                    <h3 className="text-xs font-mono font-bold text-[#E5C27A] uppercase tracking-wider flex items-center gap-2">
+                      <Edit2 size={14} className="text-[#E5C27A]" />
                       <span>Edição dos Dados da Solicitação</span>
                     </h3>
                     <button
                       type="button"
                       onClick={handleResetDefaultData}
-                      className="text-xs text-stone-500 hover:text-stone-900 flex items-center gap-1 cursor-pointer font-mono"
+                      className="text-xs text-[#A8A39A] hover:text-[#E5C27A] flex items-center gap-1 cursor-pointer font-mono"
                     >
                       <RotateCcw size={12} />
                       <span>Restaurar</span>
@@ -1425,9 +1435,9 @@ export default function Checklist() {
                   </div>
 
                   {/* Preenchimento Rápido por Veículo da Frota */}
-                  <div className="space-y-1.5 bg-white border border-[#d6ccbe] rounded-xl p-3 shadow-2xs">
-                    <label className="text-xs font-mono font-bold text-stone-700 flex items-center gap-1.5">
-                      <Truck size={14} className="text-[#0f172a]" />
+                  <div className="space-y-1.5 bg-[#080A0C] border border-[#C9973E]/25 rounded-xl p-3 shadow-inner">
+                    <label className="text-xs font-mono font-bold text-[#E5C27A] flex items-center gap-1.5">
+                      <Truck size={14} className="text-[#E5C27A]" />
                       <span>Preenchimento Rápido pela Frota:</span>
                     </label>
                     <select
@@ -1441,7 +1451,7 @@ export default function Checklist() {
                           carretas: relatedItem ? relatedItem.carretas : prev.carretas 
                         }));
                       }}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-lg px-3 py-2 text-xs text-stone-900 font-mono font-bold uppercase focus:border-[#0f172a] outline-none cursor-pointer"
+                      className="w-full bg-[#131619] border border-[#C9973E]/30 rounded-lg px-3 py-2 text-xs text-white font-mono font-bold uppercase focus:border-[#D9AD5A] outline-none cursor-pointer"
                     >
                       <option value="">Selecione um cavalo...</option>
                       {sortedCavalos.map(item => (
@@ -1455,109 +1465,109 @@ export default function Checklist() {
                   {/* Form fields */}
                   <div className="space-y-3 text-xs font-mono">
                     <div>
-                      <label className="block font-bold text-stone-600 mb-1">
+                      <label className="block font-bold text-[#A8A39A] mb-1">
                         1. Saudação:
                       </label>
                       <input
                         type="text"
                         value={genData.greeting}
                         onChange={(e) => setGenData(prev => ({ ...prev, greeting: e.target.value }))}
-                        className="w-full bg-white border border-[#d6ccbe] rounded-lg px-3 py-2 text-stone-900 font-medium focus:border-[#0f172a] outline-none"
+                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-stone-600 mb-1">
+                      <label className="block font-bold text-[#A8A39A] mb-1">
                         2. Frase de Solicitação:
                       </label>
                       <input
                         type="text"
                         value={genData.requestText}
                         onChange={(e) => setGenData(prev => ({ ...prev, requestText: e.target.value }))}
-                        className="w-full bg-white border border-[#d6ccbe] rounded-lg px-3 py-2 text-stone-900 font-medium focus:border-[#0f172a] outline-none"
+                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block font-bold text-stone-600 mb-1">
+                        <label className="block font-bold text-[#A8A39A] mb-1">
                           3. CAVALO:
                         </label>
                         <input
                           type="text"
                           value={genData.cavalo}
                           onChange={(e) => setGenData(prev => ({ ...prev, cavalo: e.target.value.toUpperCase() }))}
-                          className="w-full bg-white border border-[#d6ccbe] rounded-lg px-3 py-2 text-[#0f172a] font-mono font-bold uppercase focus:border-[#0f172a] outline-none"
+                          className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-[#E5C27A] font-mono font-bold uppercase focus:border-[#D9AD5A] outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block font-bold text-stone-600 mb-1">
+                        <label className="block font-bold text-[#A8A39A] mb-1">
                           4. CARRETAS:
                         </label>
                         <input
                           type="text"
                           value={genData.carretas}
                           onChange={(e) => setGenData(prev => ({ ...prev, carretas: e.target.value.toUpperCase() }))}
-                          className="w-full bg-white border border-[#d6ccbe] rounded-lg px-3 py-2 text-[#0f172a] font-mono font-bold uppercase focus:border-[#0f172a] outline-none"
+                          className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-[#E5C27A] font-mono font-bold uppercase focus:border-[#D9AD5A] outline-none"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block font-bold text-stone-600 mb-1">
+                      <label className="block font-bold text-[#A8A39A] mb-1">
                         5. Telefone / Contato:
                       </label>
                       <input
                         type="text"
                         value={genData.contato}
                         onChange={(e) => setGenData(prev => ({ ...prev, contato: e.target.value }))}
-                        className="w-full bg-white border border-[#d6ccbe] rounded-lg px-3 py-2 text-stone-900 font-medium focus:border-[#0f172a] outline-none"
+                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-stone-600 mb-1">
+                      <label className="block font-bold text-[#A8A39A] mb-1">
                         6. Assinatura:
                       </label>
                       <input
                         type="text"
                         value={genData.signature}
                         onChange={(e) => setGenData(prev => ({ ...prev, signature: e.target.value }))}
-                        className="w-full bg-white border border-[#d6ccbe] rounded-lg px-3 py-2 text-stone-900 font-medium focus:border-[#0f172a] outline-none"
+                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
                       />
                     </div>
                   </div>
 
                   {/* Copy Action */}
-                  <div className="pt-2 border-t border-[#e7dac9]">
+                  <div className="pt-2 border-t border-white/10">
                     <button
                       type="button"
                       onClick={handleCopyFormattedEmail}
-                      className="w-full bg-gradient-to-r from-[#0f172a] via-[#851221] to-[#6b0d1a] hover:from-[#aa182b] hover:to-[#7a0f1e] text-white px-4 py-3 rounded-xl text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all active:scale-95 border border-red-500/40"
+                      className="w-full bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] px-4 py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(201,151,62,0.35)] cursor-pointer transition-all active:scale-95 border border-[#E5C27A]"
                     >
-                      {copiedEmail ? <Check size={16} className="text-emerald-300" /> : <Copy size={16} />}
+                      {copiedEmail ? <Check size={16} className="text-[#080A0C] stroke-[3]" /> : <Copy size={16} />}
                       <span>{copiedEmail ? 'E-mail Copiado!' : 'Copiar E-mail Formatado'}</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Right Column: Prévia do E-mail */}
-                <div className="lg:col-span-7 bg-white rounded-2xl border border-[#d6ccbe] p-6 sm:p-8 shadow-xs flex flex-col justify-between text-stone-900">
+                <div className="lg:col-span-7 bg-[#131619] rounded-2xl border border-[#C9973E]/25 p-6 sm:p-8 shadow-lg flex flex-col justify-between text-[#F4F0E8]">
                   <div>
-                    <div className="flex items-center justify-between border-b border-[#e7dac9] pb-3 mb-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
                       <div>
-                        <span className="text-[10px] font-mono font-bold tracking-widest text-[#0f172a] uppercase bg-red-50 border border-red-200 px-3 py-0.5 rounded-full">
+                        <span className="text-[10px] font-mono font-bold tracking-widest text-[#E5C27A] uppercase bg-[#C9973E]/15 border border-[#C9973E]/30 px-3 py-0.5 rounded-full">
                           FORMATO OFICIAL OUTLOOK / GMAIL
                         </span>
-                        <h3 className="font-heading font-black text-base text-stone-900 mt-1 uppercase">
+                        <h3 className="font-heading font-black text-base text-white mt-1 uppercase">
                           Prévia do E-mail de Solicitação
                         </h3>
                       </div>
-                      <span className="text-[11px] font-medium text-stone-500">100% idêntico ao copiado</span>
+                      <span className="text-[11px] font-medium text-[#A8A39A]">100% idêntico ao copiado</span>
                     </div>
 
-                    <div className="bg-[#fbf9f5] p-6 rounded-xl border border-[#d6ccbe] min-h-[300px]">
+                    <div className="bg-[#FFFFFF] p-6 rounded-xl border border-stone-300 min-h-[300px] text-stone-900">
                       <div dangerouslySetInnerHTML={{ __html: getChecklistEmailHtml(genData) }} />
                     </div>
                   </div>
@@ -1580,15 +1590,15 @@ export default function Checklist() {
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-3 border-b border-[#e7dac9] pb-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-[#0f172a] flex items-center justify-center shadow-xs">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#C9973E]/20 border border-[#C9973E]/40 text-[#E5C27A] flex items-center justify-center shadow-xs">
                 <Clipboard size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-stone-900 uppercase tracking-wide">
+                <h3 className="text-lg font-bold text-white uppercase tracking-wide font-heading">
                   Colar Dados do Checklist (Planilha Excel / TSV)
                 </h3>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-[#A8A39A]">
                   Cole as colunas copiadas da sua planilha (Placa, Carretas, Status, Data Teste, Validade).
                 </p>
               </div>
@@ -1598,21 +1608,21 @@ export default function Checklist() {
               value={pasteData}
               onChange={(e) => setPasteData(e.target.value)}
               placeholder={`Cole aqui as linhas copiadas do Excel...\nExemplo:\nSAS2D02\tPOG2095 / POR5E42\tAPROVADO\t11/09/2026\t10/11/2026`}
-              className="w-full h-44 p-3.5 bg-[#fbf9f5] border border-[#d6ccbe] rounded-2xl text-xs font-mono font-medium text-stone-900 focus:outline-none focus:border-[#0f172a] shadow-inner resize-none placeholder-stone-400"
+              className="w-full h-44 p-3.5 bg-[#080A0C] border border-[#C9973E]/30 rounded-2xl text-xs font-mono font-medium text-white focus:outline-none focus:border-[#D9AD5A] shadow-inner resize-none placeholder-[#7A756D]"
             />
 
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#e7dac9]">
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setShowPasteModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-stone-300 text-xs font-bold uppercase text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold uppercase text-[#A8A39A] hover:bg-[#202428] transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={() => handleImportData(pasteData)}
-                className="px-6 py-2.5 bg-[#0f172a] hover:bg-[#851221] text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm cursor-pointer active:scale-97 border border-red-600/40"
+                className="px-6 py-2.5 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] hover:brightness-110 text-[#080A0C] font-black rounded-xl text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-97 border border-[#E5C27A]"
               >
                 Processar e Atualizar
               </button>
@@ -1623,107 +1633,107 @@ export default function Checklist() {
 
       {/* Modal: Novo Registro de Checklist */}
       {isAdding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white border border-[#d6ccbe] rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-stone-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#131619] border border-[#C9973E]/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#F4F0E8]">
             <button
               type="button"
               onClick={() => setIsAdding(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 p-1.5 rounded-xl hover:bg-stone-100 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 text-[#A8A39A] hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-3 border-b border-[#e7dac9] pb-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-[#0f172a] flex items-center justify-center shadow-xs">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#C9973E]/20 border border-[#C9973E]/40 text-[#E5C27A] flex items-center justify-center shadow-xs">
                 <Plus size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-stone-900 uppercase tracking-wide">
+                <h3 className="text-lg font-bold text-white uppercase tracking-wide font-heading">
                   Novo Registro de Checklist
                 </h3>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-[#A8A39A]">
                   Cadastre um novo conjunto de cavalo e carretas na frota.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs font-mono">
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Placa Cavalo *</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Placa Cavalo *</label>
                 <input
                   type="text"
                   value={newItem.cavalo}
                   onChange={(e) => setNewItem({ ...newItem, cavalo: e.target.value.toUpperCase() })}
                   placeholder="EX: POZ4431"
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#0f172a]"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Carretas do Conjunto</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Carretas do Conjunto</label>
                 <input
                   type="text"
                   value={newItem.carretas}
                   onChange={(e) => setNewItem({ ...newItem, carretas: e.target.value.toUpperCase() })}
                   placeholder="EX: PNE7353 / PNE7433"
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#0f172a]"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Data Teste</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Teste</label>
                   <input
                     type="date"
                     value={newItem.dataTeste}
                     onChange={(e) => setNewItem({ ...newItem, dataTeste: e.target.value })}
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Data Vencimento</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Vencimento</label>
                   <input
                     type="date"
                     value={newItem.dataVencimento}
                     onChange={(e) => setNewItem({ ...newItem, dataVencimento: e.target.value })}
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Periférico</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Periférico</label>
                 <input
                   type="text"
                   value={newItem.periferico}
                   onChange={(e) => setNewItem({ ...newItem, periferico: e.target.value.toUpperCase() })}
                   placeholder="EX: TECLADO / SENSOR"
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 uppercase font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white uppercase font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Observação</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Observação</label>
                 <textarea
                   value={newItem.observacao}
                   onChange={(e) => setNewItem({ ...newItem, observacao: e.target.value })}
                   placeholder="Observações adicionais..."
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 text-xs focus:outline-none focus:border-[#0f172a] h-16 resize-none"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#D9AD5A] h-16 resize-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#e7dac9]">
+              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setIsAdding(false)}
-                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold uppercase text-xs cursor-pointer border border-stone-300"
+                  className="px-4 py-2 bg-[#171A1C] hover:bg-[#202428] text-[#A8A39A] rounded-xl font-bold uppercase text-xs cursor-pointer border border-white/10"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={handleAdd}
-                  className="px-6 py-2 bg-[#0f172a] hover:bg-[#851221] text-white rounded-xl font-bold uppercase text-xs shadow-sm cursor-pointer active:scale-97 border border-red-600/40"
+                  className="px-6 py-2 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black rounded-xl uppercase text-xs shadow-md cursor-pointer hover:brightness-110 active:scale-97 border border-[#E5C27A]"
                 >
                   Salvar Veículo
                 </button>
@@ -1735,78 +1745,78 @@ export default function Checklist() {
 
       {/* Modal: Editar Registro */}
       {editingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white border border-[#d6ccbe] rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-stone-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#131619] border border-[#C9973E]/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#F4F0E8]">
             <button
               type="button"
               onClick={() => setEditingItem(null)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 p-1.5 rounded-xl hover:bg-stone-100 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 text-[#A8A39A] hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-3 border-b border-[#e7dac9] pb-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-[#0f172a] flex items-center justify-center shadow-xs">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#C9973E]/20 border border-[#C9973E]/40 text-[#E5C27A] flex items-center justify-center shadow-xs">
                 <Edit2 size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-stone-900 uppercase tracking-wide">
+                <h3 className="text-lg font-bold text-white uppercase tracking-wide font-heading">
                   Editar Checklist: {editingItem.cavalo}
                 </h3>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-[#A8A39A]">
                   Atualize os dados e datas de vistoria do veículo.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs font-mono">
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Placa Cavalo</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Placa Cavalo</label>
                 <input
                   type="text"
                   value={editingItem.cavalo}
                   onChange={(e) => setEditingItem({ ...editingItem, cavalo: e.target.value.toUpperCase() })}
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#0f172a]"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Carretas do Conjunto</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Carretas do Conjunto</label>
                 <input
                   type="text"
                   value={editingItem.carretas}
                   onChange={(e) => setEditingItem({ ...editingItem, carretas: e.target.value.toUpperCase() })}
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#0f172a]"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Data Teste</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Teste</label>
                   <input
                     type="date"
                     value={editingItem.dataTeste}
                     onChange={(e) => setEditingItem({ ...editingItem, dataTeste: e.target.value })}
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Data Vencimento</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Vencimento</label>
                   <input
                     type="date"
                     value={editingItem.dataVencimento}
                     onChange={(e) => setEditingItem({ ...editingItem, dataVencimento: e.target.value })}
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Status Manual</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Status Manual</label>
                 <select
                   value={editingItem.statusOverride || ''}
                   onChange={(e) => setEditingItem({ ...editingItem, statusOverride: (e.target.value as any) || null })}
-                  className="w-full bg-white border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-800 outline-none focus:border-[#0f172a] font-medium text-xs cursor-pointer"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white outline-none focus:border-[#D9AD5A] font-medium text-xs cursor-pointer"
                 >
                   <option value="">Automático (Calculado pela Data)</option>
                   <option value="APROVADO">APROVADO</option>
@@ -1818,33 +1828,33 @@ export default function Checklist() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Nº da O.S</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Nº da O.S</label>
                   <input
                     type="text"
                     value={editingItem.manutencaoOs || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, manutencaoOs: e.target.value.toUpperCase() })}
                     placeholder="EX: 900382"
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 uppercase font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white uppercase font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Data Agendamento O.S</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Agendamento O.S</label>
                   <input
                     type="date"
                     value={editingItem.dataAgendamento || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, dataAgendamento: e.target.value })}
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Status da O.S</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Status da O.S</label>
                   <select
                     value={editingItem.osStatus || 'PENDENTE'}
                     onChange={(e) => setEditingItem({ ...editingItem, osStatus: e.target.value as any })}
-                    className="w-full bg-white border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-800 outline-none focus:border-[#0f172a] font-bold text-xs cursor-pointer"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white outline-none focus:border-[#D9AD5A] font-bold text-xs cursor-pointer"
                   >
                     <option value="PENDENTE">🔴 PENDENTE</option>
                     <option value="AGENDADO">🔵 AGENDADO</option>
@@ -1854,11 +1864,11 @@ export default function Checklist() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Checklist Realizado</label>
+                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Checklist Realizado</label>
                   <select
                     value={editingItem.checklistRealizado || 'não'}
                     onChange={(e) => setEditingItem({ ...editingItem, checklistRealizado: e.target.value as any })}
-                    className="w-full bg-white border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-800 outline-none focus:border-[#0f172a] font-bold text-xs cursor-pointer"
+                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white outline-none focus:border-[#D9AD5A] font-bold text-xs cursor-pointer"
                   >
                     <option value="não">❌ NÃO</option>
                     <option value="sim">✔️ SIM</option>
@@ -1867,36 +1877,36 @@ export default function Checklist() {
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Periférico</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Periférico</label>
                 <input
                   type="text"
                   value={editingItem.periferico || ''}
                   onChange={(e) => setEditingItem({ ...editingItem, periferico: e.target.value.toUpperCase() })}
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 uppercase font-mono text-xs focus:outline-none focus:border-[#0f172a]"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white uppercase font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-stone-700 uppercase mb-1 block">Observação</label>
+                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Observação</label>
                 <textarea
                   value={editingItem.observacao || ''}
                   onChange={(e) => setEditingItem({ ...editingItem, observacao: e.target.value })}
-                  className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 text-stone-900 text-xs focus:outline-none focus:border-[#0f172a] h-16 resize-none"
+                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#D9AD5A] h-16 resize-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#e7dac9]">
+              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold uppercase text-xs cursor-pointer border border-stone-300"
+                  className="px-4 py-2 bg-[#171A1C] hover:bg-[#202428] text-[#A8A39A] rounded-xl font-bold uppercase text-xs cursor-pointer border border-white/10"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={handleUpdate}
-                  className="px-6 py-2 bg-[#0f172a] hover:bg-[#851221] text-white rounded-xl font-bold uppercase text-xs shadow-sm cursor-pointer active:scale-97 border border-red-600/40"
+                  className="px-6 py-2 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black rounded-xl uppercase text-xs shadow-md cursor-pointer hover:brightness-110 active:scale-97 border border-[#E5C27A]"
                 >
                   Salvar Alterações
                 </button>

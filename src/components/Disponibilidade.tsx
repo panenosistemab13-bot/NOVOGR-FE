@@ -439,7 +439,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#f8fafc] text-[#1e293b] font-sans flex flex-col justify-between p-3 sm:p-6 select-none overflow-x-hidden">
+    <div className="w-full min-h-screen bg-[#080A0C] text-[#F4F0E8] font-sans flex flex-col justify-between p-3 sm:p-6 select-none overflow-x-hidden">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -448,9 +448,9 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-5 right-5 z-50 px-5 py-3.5 rounded-2xl bg-[#0f172a] text-white border border-slate-700 text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
+            className="fixed top-5 right-5 z-50 px-5 py-3.5 rounded-2xl bg-[#131619] text-[#F4F0E8] border border-[#C9973E]/40 text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
           >
-            <Check size={18} className="text-emerald-400" />
+            <Check size={18} className="text-[#E5C27A]" />
             <span>{notification}</span>
           </motion.div>
         )}
@@ -459,22 +459,22 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
       <div className="w-full max-w-full mx-auto space-y-6">
         
         {/* ========================================================================= */}
-        {/* ENTERPRISE HEADER BANNER                                                 */}
+        {/* ENTERPRISE HEADER BANNER (Dark Luxury & Gold)                            */}
         {/* ========================================================================= */}
-        <div className="w-full bg-[#0f172a] text-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="w-full bg-[#131619] text-white p-6 sm:p-8 rounded-2xl shadow-xl border border-[#C9973E]/25 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-96 h-96 bg-[#C9973E]/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-1.5 text-left relative z-10">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono font-black text-blue-400 uppercase tracking-widest flex items-center gap-1.5 bg-slate-800/80 px-3.5 py-1 rounded-full border border-slate-700">
-                <Truck size={14} className="text-blue-400" />
+              <span className="text-[11px] font-mono font-black text-[#E5C27A] uppercase tracking-widest flex items-center gap-1.5 bg-[#080A0C] px-3.5 py-1 rounded-full border border-[#C9973E]/30">
+                <Truck size={14} className="text-[#E5C27A]" />
                 CENTRAL GR 3 CORAÇÕES • GESTÃO DE PÁTIO EMPRESARIAL
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-heading">
-              DISPONIBILIDADE <span className="text-blue-400">DE VEÍCULOS</span>
+              DISPONIBILIDADE <span className="text-[#E5C27A]">DE VEÍCULOS</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 font-sans">
+            <p className="text-xs sm:text-sm text-[#A8A39A] font-sans">
               Painel analítico corporativo expandido de frotas e liberação de carregamentos.
             </p>
           </div>
@@ -482,7 +482,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
           <div className="flex items-center gap-3 flex-wrap relative z-10">
             <button
               onClick={handleLoadSample}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-black uppercase px-5 py-3 rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-2 hover:scale-[1.02]"
+              className="bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] font-mono text-xs font-black uppercase px-5 py-3 rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-2 border border-[#E5C27A]"
             >
               <Sparkles size={15} />
               <span>Carregar Dados Exemplo</span>
@@ -491,7 +491,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
             {onBack && (
               <button
                 onClick={onBack}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 p-3 rounded-xl border border-slate-700 cursor-pointer transition-all"
+                className="bg-[#171A1C] hover:bg-[#202428] text-[#F4F0E8] p-3 rounded-xl border border-white/10 cursor-pointer transition-all shadow-sm"
                 title="Voltar ao Início"
               >
                 <RefreshCw size={17} />
@@ -506,84 +506,84 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
           
           {/* Card 1: Total Veículos */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider block">
+          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+            <div className="space-y-1 text-left">
+              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
                 Total de Veículos
               </span>
-              <div className="text-2xl font-black text-[#0f172a] font-heading">
-                {rows.length} <span className="text-xs font-sans font-bold text-slate-400">unidades</span>
+              <div className="text-2xl font-black text-white font-heading">
+                {rows.length} <span className="text-xs font-sans font-bold text-[#A8A39A]">unidades</span>
               </div>
-              <div className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+              <div className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
                 <TrendingUp size={13} />
                 <span>100% integrados no pátio</span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 border border-[#C9973E]/30 flex items-center justify-center text-[#E5C27A] shadow-inner">
               <Truck size={22} />
             </div>
           </div>
 
           {/* Card 2: Frota vs Agregado */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider block">
+          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+            <div className="space-y-1 text-left flex-1 mr-3">
+              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
                 Frota Própria vs Agregados
               </span>
-              <div className="text-lg font-black text-[#0f172a] font-heading flex items-center gap-2">
-                <span className="text-blue-600">{totalFrota} Frota</span>
-                <span className="text-slate-300">•</span>
-                <span className="text-red-600">{totalAgregado} Agregados</span>
+              <div className="text-lg font-black text-white font-heading flex items-center gap-2">
+                <span className="text-[#E5C27A]">{totalFrota} Frota</span>
+                <span className="text-white/20">•</span>
+                <span className="text-amber-400">{totalAgregado} Agregados</span>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex mt-1">
+              <div className="w-full bg-[#080A0C] h-2 rounded-full overflow-hidden flex mt-1 border border-white/5">
                 <div 
-                  className="bg-blue-600 h-full transition-all" 
+                  className="bg-[#C9973E] h-full transition-all" 
                   style={{ width: `${rows.length ? (totalFrota / rows.length) * 100 : 0}%` }} 
                 />
                 <div 
-                  className="bg-red-600 h-full transition-all" 
+                  className="bg-amber-600 h-full transition-all" 
                   style={{ width: `${rows.length ? (totalAgregado / rows.length) * 100 : 0}%` }} 
                 />
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 border border-[#C9973E]/30 flex items-center justify-center text-[#E5C27A] shadow-inner shrink-0">
               <PieChart size={22} />
             </div>
           </div>
 
           {/* Card 3: Origens Principais */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider block">
+          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+            <div className="space-y-1 text-left">
+              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
                 Origens Ativas
               </span>
-              <div className="text-2xl font-black text-[#0f172a] font-heading">
-                {origensList.length} <span className="text-xs font-sans font-bold text-slate-400">cidades</span>
+              <div className="text-2xl font-black text-white font-heading">
+                {origensList.length} <span className="text-xs font-sans font-bold text-[#A8A39A]">cidades</span>
               </div>
-              <div className="text-[11px] text-purple-600 font-bold flex items-center gap-1">
+              <div className="text-[11px] text-[#E5C27A] font-bold flex items-center gap-1">
                 <MapPin size={13} />
                 <span>Santa Luzia, Viana, Montes Claros</span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 border border-[#C9973E]/30 flex items-center justify-center text-[#E5C27A] shadow-inner">
               <BarChart3 size={22} />
             </div>
           </div>
 
           {/* Card 4: Status do Pátio */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider block">
+          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+            <div className="space-y-1 text-left">
+              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
                 Status Operacional
               </span>
-              <div className="text-xl font-black text-emerald-700 font-heading">
+              <div className="text-xl font-black text-emerald-400 font-heading">
                 Liberado p/ Vistoria
               </div>
-              <div className="text-[11px] text-slate-500 font-medium">
+              <div className="text-[11px] text-[#A8A39A] font-medium">
                 Doca e liberação imediata
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
               <Activity size={22} />
             </div>
           </div>
@@ -593,14 +593,17 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         {/* ========================================================================= */}
         {/* MODERN PASTE FIELD FOR SPREADSHEET DATA                                  */}
         {/* ========================================================================= */}
-        <div className="w-full bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm text-left space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        {/* ========================================================================= */}
+        {/* MODERN PASTE FIELD FOR SPREADSHEET DATA (Dark Luxury & Gold)              */}
+        {/* ========================================================================= */}
+        <div className="w-full bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-6 sm:p-8 shadow-lg text-left space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
             <div>
-              <h3 className="text-xs sm:text-sm font-mono font-black text-[#0f172a] uppercase tracking-wide flex items-center gap-2 font-heading">
-                <Clipboard size={17} className="text-blue-600" />
+              <h3 className="text-xs sm:text-sm font-mono font-black text-[#E5C27A] uppercase tracking-wide flex items-center gap-2 font-heading">
+                <Clipboard size={17} className="text-[#D9AD5A]" />
                 CAMPO DE ENTRADA • COLE AS INFORMAÇÕES DA PLANILHA (TSV / EXCEL)
               </h3>
-              <p className="text-xs font-sans text-slate-500 mt-0.5">
+              <p className="text-xs font-sans text-[#A8A39A] mt-0.5">
                 Cole abaixo as colunas copiadas do Excel ou Google Sheets para atualizar e formatar instantaneamente:
               </p>
             </div>
@@ -608,15 +611,15 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
             <div className="flex items-center gap-2.5 flex-wrap shrink-0">
               <button
                 onClick={handlePasteFromClipboard}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-xs"
+                className="px-4 py-2.5 bg-[#171A1C] hover:bg-[#202428] text-[#E5C27A] border border-[#C9973E]/30 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-xs"
               >
-                <Clipboard size={14} className="text-blue-600" />
+                <Clipboard size={14} className="text-[#E5C27A]" />
                 <span>Colar da Área de Transferência</span>
               </button>
 
               <button
                 onClick={handleClearInputAndTable}
-                className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer"
+                className="px-4 py-2.5 bg-rose-950/40 hover:bg-rose-950/60 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer"
               >
                 Limpar
               </button>
@@ -637,19 +640,19 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
                 }
               }}
               placeholder="Cole aqui os dados copiados da planilha (origem, data, hora, status, carreta, cavalo, destino, condutor, etc.)..."
-              className="w-full bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white rounded-2xl p-5 font-mono text-xs text-slate-900 outline-none transition-all resize-y shadow-inner"
+              className="w-full bg-[#080A0C] border border-[#C9973E]/20 focus:border-[#D9AD5A] rounded-2xl p-5 font-mono text-xs text-white outline-none transition-all resize-y shadow-inner placeholder-[#7A756D]"
             />
 
             <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
-              <span className="text-xs font-mono text-slate-500 font-bold">
+              <span className="text-xs font-mono text-[#A8A39A] font-bold">
                 {tsvInput.trim() ? `${tsvInput.trim().split('\n').length} linhas prontas no buffer` : 'Aguardando inserção de dados...'}
               </span>
 
               <button
                 onClick={handleProcessTsv}
-                className="px-7 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center gap-2"
+                className="px-7 py-3 bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center gap-2 border border-[#E5C27A]"
               >
-                <Zap size={15} className="text-amber-300" />
+                <Zap size={15} className="text-[#080A0C]" />
                 <span>PROCESSAR E GERAR TABELA</span>
               </button>
             </div>
@@ -659,16 +662,16 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         {/* ========================================================================= */}
         {/* EMAIL SUBJECT & PREVIEW COPY BANNER                                      */}
         {/* ========================================================================= */}
-        <div className="w-full bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm text-left space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
-            <span className="text-xs font-mono font-black uppercase text-slate-700 flex items-center gap-2">
-              <MailIcon className="text-blue-600" size={16} />
+        <div className="w-full bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-6 sm:p-8 shadow-lg text-left space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
+            <span className="text-xs font-mono font-black uppercase text-[#E5C27A] flex items-center gap-2">
+              <MailIcon className="text-[#D9AD5A]" size={16} />
               ASSUNTO E PRÉ-VISUALIZAÇÃO DO E-MAIL
             </span>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={copySubjectText}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-blue-700 border border-slate-200 rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+                className="px-4 py-2.5 bg-[#171A1C] hover:bg-[#202428] text-[#E5C27A] border border-[#C9973E]/30 rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
               >
                 <Copy size={13} />
                 <span>{copiedSubject ? 'ASSUNTO COPIADO!' : 'COPIAR ASSUNTO'}</span>
@@ -676,29 +679,29 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
 
               <button
                 onClick={copyFormattedEmail}
-                className="px-6 py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center gap-2"
+                className="px-6 py-2.5 bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center gap-2 border border-[#E5C27A]"
               >
-                <Copy size={14} className="text-blue-400" />
+                <Copy size={14} className="text-[#080A0C]" />
                 <span>{copiedFormat ? 'E-MAIL COPIADO!' : 'COPIAR FORMATADO (PARA E-MAIL)'}</span>
               </button>
             </div>
           </div>
 
           {/* Subject Box */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-3">
+          <div className="bg-[#080A0C] border border-[#C9973E]/20 rounded-xl p-4 flex items-center justify-between gap-3">
             <div className="space-y-0.5">
-              <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Assunto do E-mail (Atualizado com o Dia e Data de Hoje):</span>
-              <div className="text-xs sm:text-sm font-mono font-black text-blue-600">
+              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">Assunto do E-mail (Atualizado com o Dia e Data de Hoje):</span>
+              <div className="text-xs sm:text-sm font-mono font-black text-[#E5C27A]">
                 {getEmailSubject()}
               </div>
             </div>
           </div>
 
-          <div className="text-xs sm:text-sm font-sans font-medium text-slate-800 leading-relaxed bg-slate-50 p-5 rounded-xl border border-slate-200">
-            <p className="font-bold text-slate-900 mb-1">Prezados, boa tarde!</p>
-            <p className="mb-2.5 text-slate-700">Segue a disponibilidade de veículos.</p>
+          <div className="text-xs sm:text-sm font-sans font-medium text-[#F4F0E8] leading-relaxed bg-[#080A0C] p-5 rounded-xl border border-white/10">
+            <p className="font-bold text-white mb-1">Prezados, boa tarde!</p>
+            <p className="mb-2.5 text-[#A8A39A]">Segue a disponibilidade de veículos.</p>
             <p>
-              <span className="bg-red-50 text-red-700 font-bold px-3 py-1.5 rounded-lg border border-red-200 inline-block text-xs">
+              <span className="bg-red-950/50 text-red-300 font-bold px-3 py-1.5 rounded-lg border border-red-500/30 inline-block text-xs font-mono">
                 ⚠️ Favor ficarem atentos à origem de cada carregamento.
               </span>
             </p>
@@ -708,47 +711,47 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         {/* ========================================================================= */}
         {/* CONTROLS & SEARCH BAR                                                    */}
         {/* ========================================================================= */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+        <div className="bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
           
           <div className="relative flex-1 w-full">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A39A]" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Filtrar por origem, destino, placa, condutor, transportador..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-xs font-mono font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-600 transition-all shadow-inner"
+              className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-xl pl-11 pr-4 py-3 text-xs font-mono font-bold text-white outline-none focus:border-[#D9AD5A] transition-all shadow-inner placeholder-[#7A756D]"
             />
           </div>
 
           <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
             {/* Origem Filter Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-mono text-xs font-bold text-slate-800">
-              <Filter size={14} className="text-blue-600" />
-              <span>ORIGEM:</span>
+            <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/20 rounded-xl px-4 py-2.5 font-mono text-xs font-bold text-[#F4F0E8]">
+              <Filter size={14} className="text-[#E5C27A]" />
+              <span className="text-[#A8A39A]">ORIGEM:</span>
               <select
                 value={selectedOrigem}
                 onChange={(e) => setSelectedOrigem(e.target.value)}
-                className="bg-transparent outline-none uppercase font-black cursor-pointer text-blue-600"
+                className="bg-transparent outline-none uppercase font-black cursor-pointer text-[#E5C27A]"
               >
-                <option value="ALL">TODAS ({rows.length})</option>
+                <option value="ALL" className="bg-[#131619] text-white">TODAS ({rows.length})</option>
                 {origensList.map(o => (
-                  <option key={o} value={o}>{o}</option>
+                  <option key={o} value={o} className="bg-[#131619] text-white">{o}</option>
                 ))}
               </select>
             </div>
 
             {/* Categoria Filter Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-mono text-xs font-bold text-slate-800">
-              <span>CATEGORIA:</span>
+            <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/20 rounded-xl px-4 py-2.5 font-mono text-xs font-bold text-[#F4F0E8]">
+              <span className="text-[#A8A39A]">CATEGORIA:</span>
               <select
                 value={selectedCategoria}
                 onChange={(e) => setSelectedCategoria(e.target.value)}
-                className="bg-transparent outline-none uppercase font-black cursor-pointer text-blue-600"
+                className="bg-transparent outline-none uppercase font-black cursor-pointer text-[#E5C27A]"
               >
-                <option value="ALL">TODAS</option>
-                <option value="FROTA">FROTA</option>
-                <option value="AGREGADO">AGREGADO</option>
+                <option value="ALL" className="bg-[#131619] text-white">TODAS</option>
+                <option value="FROTA" className="bg-[#131619] text-white">FROTA</option>
+                <option value="AGREGADO" className="bg-[#131619] text-white">AGREGADO</option>
               </select>
             </div>
           </div>

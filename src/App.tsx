@@ -83,6 +83,7 @@ import factoryEscalaBg from './assets/images/factory_wallpaper_escala_1791328684
 import factoryDisponibilidadeBg from './assets/images/factory_wallpaper_disponibilidade_1791328698210.jpg';
 import factoryPresenceBg from './assets/images/factory_wallpaper_presence_1791328708994.jpg';
 import factoryRotasBg from './assets/images/factory_wallpaper_rotas_1791328719413.jpg';
+import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
 export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade';
 
@@ -444,12 +445,13 @@ export default function App() {
       onOpenSettings={handleOpenPageSelector}
       showPresenceList={Boolean(pageVisibility['presence'])}
       showRotasPage={Boolean(pageVisibility['rotas'])}
-      onOpenWallpaper={() => setShowWallpaperModal(true)}
+      onOpenWallpaper={() => setShowWallpaperModal(prev => !prev)}
+      isWallpaperOpen={showWallpaperModal}
     >
       <div 
         className="w-full h-full overflow-y-auto relative"
         style={{
-          backgroundImage: `linear-gradient(rgba(7, 8, 12, 0.75), rgba(7, 8, 12, 0.75)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
+          backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
@@ -458,52 +460,38 @@ export default function App() {
         {activeTab === 'menu' ? (
           <MainDashboard onNavigate={(id) => setActiveTab(id as Tab)} />
         ) : (
-          renderActiveModuleContent()
+          <div className="internal-pages-wrapper w-full min-h-full">
+            {renderActiveModuleContent()}
+          </div>
         )}
       </div>
 
-      {/* Full screen immersive wallpaper view modal */}
+      {/* Full screen 360° 4K immersive wallpaper view occupying entire screen */}
       {showWallpaperModal && (
-        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col items-center justify-center p-4 backdrop-blur-md">
-          <div className="absolute top-4 right-4 flex items-center gap-3">
-            <span className="text-white/90 text-xs font-bold uppercase tracking-widest bg-stone-900/80 px-4 py-2 rounded-xl border border-white/10 shadow-lg">
-              Fábrica Três Corações · 360° 4K
-            </span>
-            <button
-              onClick={() => setShowWallpaperModal(false)}
-              className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-extrabold uppercase text-xs rounded-xl shadow-lg transition-all hover:scale-105 cursor-pointer border border-red-500/30"
-            >
-              ✕ Fechar View
-            </button>
-          </div>
-          <div className="w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center relative overflow-hidden rounded-3xl border border-white/10 shadow-[0_24px_50px_rgba(0,0,0,0.8)]">
-            <img 
-              src={backgroundImages[activeTab] || backgroundImages.menu} 
-              alt="Papel de Parede 360° 4K da Fábrica" 
-              className="w-full h-full object-cover select-none"
-            />
-          </div>
-        </div>
+        <Wallpaper360Viewer
+          imageUrl={backgroundImages[activeTab] || backgroundImages.menu}
+          onClose={() => setShowWallpaperModal(false)}
+        />
       )}
 
       {/* Global Password Modal Overlay - 3D Cyber Security Clearance Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-[#ede6dc]/90 backdrop-blur-xl z-[999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#080a0c]/90 backdrop-blur-xl z-[999] flex items-center justify-center p-4">
           <motion.div 
             initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 relative border border-[#d6ccbe] text-stone-900 shadow-[0_32px_64px_rgba(45,28,14,0.15)]"
+            className="w-full max-w-md bg-[#131619] rounded-3xl p-6 sm:p-8 relative border border-[rgba(201,151,62,0.3)] text-white shadow-[0_32px_64px_rgba(0,0,0,0.85)]"
           >
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ff2a4b] to-[#800609] flex items-center justify-center mb-4 border border-red-400/40 text-white shadow-[0_0_25px_rgba(255,42,75,0.4)]">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] flex items-center justify-center mb-4 border border-[#fff5db]/40 text-[#080a0c] shadow-[0_0_25px_rgba(201,151,62,0.35)]">
                 <Lock size={26} className="stroke-[2.5]" />
               </div>
               
-              <h3 className="text-xl font-black uppercase tracking-tight text-white font-heading mb-1">
+              <h3 className="text-xl font-black uppercase tracking-tight text-white font-sans mb-1">
                 Acesso de Segurança Restrito
               </h3>
 
-              <p className="text-xs text-stone-500 max-w-xs mb-6 leading-relaxed font-sans">
+              <p className="text-xs text-[#a8a39a] max-w-xs mb-6 leading-relaxed font-sans">
                 Insira a chave mestra de administrador para gerenciar as páginas e visibilidade operacional.
               </p>
 
@@ -517,10 +505,10 @@ export default function App() {
                   }}
                   placeholder="••••••••••••"
                   className={cn(
-                    "w-full bg-[#fbf9f5] text-stone-900 placeholder-stone-300 border rounded-xl px-4 py-3 text-center font-mono tracking-widest text-lg focus:outline-none transition-all shadow-inner",
+                    "w-full bg-[#171a1c] text-white placeholder-stone-500 border rounded-xl px-4 py-3 text-center font-mono tracking-widest text-lg focus:outline-none transition-all shadow-inner",
                     passwordError 
-                      ? "border-red-500 text-red-600 focus:ring-2 focus:ring-red-500" 
-                      : "border-stone-200 focus:border-[#0f172a] focus:ring-1 focus:ring-[#0f172a]"
+                      ? "border-red-500 text-red-500 focus:ring-2 focus:ring-red-500" 
+                      : "border-[rgba(201,151,62,0.25)] focus:border-[#e5c27a] focus:ring-1 focus:ring-[#e5c27a]"
                   )}
                   autoFocus
                 />
@@ -539,13 +527,13 @@ export default function App() {
                       setPasswordInput('');
                       setPasswordError(false);
                     }}
-                    className="flex-1 py-3 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold uppercase text-xs tracking-wider transition-colors border border-stone-200 cursor-pointer font-mono"
+                    className="flex-1 py-3 px-4 rounded-xl bg-[#171a1c] hover:bg-[#232628] text-[#d8d3c8] font-bold uppercase text-xs tracking-wider transition-colors border border-[rgba(201,151,62,0.2)] cursor-pointer font-sans"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 px-4 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-white font-bold uppercase text-xs tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer font-mono"
+                    className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] hover:brightness-110 text-[#080a0c] font-black uppercase text-xs tracking-wider shadow-lg transition-all cursor-pointer font-sans"
                   >
                     Autorizar
                   </button>

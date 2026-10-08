@@ -2366,34 +2366,34 @@ export default function Controle({ onBack }: ControleProps) {
         </div>
 
         <!-- TABELA 1: PRÉ-ALERTA DE ISCA EMBARCADA METÁLICA -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 11px; text-align: center; font-weight: 500; color: #151B20; margin-bottom: 22px; border: 1px solid #929FA9; border-radius: 8px; overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 12px rgba(30,40,50,0.12);">
+        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 11px; text-align: center; font-weight: 500; color: #151B20; margin-bottom: 22px; border: 1px solid ${themeStyles.border}; border-radius: 8px; overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 12px rgba(30,40,50,0.12);">
           <thead>
-            <tr style="background: linear-gradient(180deg, #FFFFFF 0%, #E8EDF1 25%, #C2CCD4 50%, #E8EDF1 75%, #B7C2CA 100%); color: #151B20;">
-              <th colspan="2" style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; font-weight: 800; padding: 8px 10px; text-transform: uppercase; font-size: 10.5px; width: 25%; color: #202930; letter-spacing: 0.5px;">NÚMERO DA NF:</th>
+            <tr style="background: ${themeStyles.headerBg}; color: #151B20;">
+              <th colspan="2" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; font-weight: 800; padding: 8px 10px; text-transform: uppercase; font-size: 10.5px; width: 25%; color: #202930; letter-spacing: 0.5px;">NÚMERO DA NF:</th>
               <th colspan="1" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 5px; width: 15%; background-color: #FFFFFF; text-align: center; font-family: sans-serif; font-size: 11.5px; line-height: 1.2;">
                 <div style="font-weight: 800; color: #151B20; text-align: center; width: 100%;">${nfInicio.replace(/-/g, '') || '&nbsp;'}</div>
                 ${numCarretas === 2 && isca2 && isca2 !== "SEM ISCA" ? `
                   <div style="font-weight: 800; color: #151B20; text-align: center; width: 100%;">${nfFim.replace(/-/g, '') || nfInicio.replace(/-/g, '') || '&nbsp;'}</div>
                 ` : ''}
               </th>
-              <th colspan="1" style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; font-weight: 800; padding: 8px 10px; text-transform: uppercase; font-size: 10.5px; width: 18%; color: #202930; letter-spacing: 0.5px;">TRANSPORTADORA:</th>
-              <th colspan="2" style="border-right: 1px solid #BFC9D1; border-bottom: 1px solid #929FA9; padding: 5px; width: 25%; background-color: #FFFFFF; text-transform: uppercase; font-weight: 800; color: #151B20; font-size: 11.5px;">${transportadora}</th>
-              <th colspan="2" style="border-bottom: 1px solid #929FA9; width: 17%; text-align: center; vertical-align: middle; padding: 6px; background: linear-gradient(180deg, #FFFFFF 0%, #E8EDF1 40%, #BFC9D1 100%);">
+              <th colspan="1" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; font-weight: 800; padding: 8px 10px; text-transform: uppercase; font-size: 10.5px; width: 18%; color: #202930; letter-spacing: 0.5px;">TRANSPORTADORA:</th>
+              <th colspan="2" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 5px; width: 25%; background-color: #FFFFFF; text-transform: uppercase; font-weight: 800; color: #151B20; font-size: 11.5px;">${transportadora}</th>
+              <th colspan="2" style="border-bottom: 1px solid ${themeStyles.border}; width: 17%; text-align: center; vertical-align: middle; padding: 6px; background: ${themeStyles.headerBg};">
                 ${valorCarga ? `
                   <div style="font-size: 8px; color: #46525C; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1;">VALOR DA CARGA</div>
                   <div style="font-size: 12px; color: #151B20; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px;">${valorCarga}</div>
                 ` : ''}
               </th>
             </tr>
-            <tr style="background: linear-gradient(180deg, #F4F7FA 0%, #E8EDF1 30%, #C2CCD4 50%, #E8EDF1 70%, #AAB6C0 100%); color: #202930; text-transform: uppercase; font-size: 9.5px; font-weight: 800; letter-spacing: 0.4px;">
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 18%; color: #202930;">MOTORISTA</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 12%; color: #202930;">CAVALO</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 12%; color: #202930;">CARRETAS</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 12%; color: #202930;">N° ISCA</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 14%; color: #202930;">PRODUTO EMBARCADO</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 14%; color: #202930;">CÓDIGO U.M.A.</th>
-              <th style="border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 11%; color: #202930;">DESTINO</th>
-              <th style="border-bottom: 1px solid #929FA9; padding: 8px 6px; width: 11%; color: #202930;">DATA PARTIDA</th>
+            <tr style="background: ${themeStyles.table1Header}; color: #202930; text-transform: uppercase; font-size: 9.5px; font-weight: 800; letter-spacing: 0.4px;">
+              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 18%; color: #202930;">MOTORISTA</th>
+              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 12%; color: #202930;">CAVALO</th>
+              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 12%; color: #202930;">CARRETAS</th>
+              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 12%; color: #202930;">N° ISCA</th>
+              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 14%; color: #202930;">PRODUTO EMBARCADO</th>
+              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 14%; color: #202930;">CÓDIGO U.M.A.</th>
+              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 11%; color: #202930;">DESTINO</th>
+              <th style="border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 11%; color: #202930;">DATA PARTIDA</th>
             </tr>
           </thead>
           <tbody>
@@ -2428,12 +2428,12 @@ export default function Controle({ onBack }: ControleProps) {
             <td colspan="4" style="padding: 9px 12px; border-bottom: 1px solid ${themeStyles.border}; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; color: #202930;">‹─── PARAMETRIZAÇÃO DAS ISCAS ───›</td>
           </tr>
           <tr style="background: ${themeStyles.subHeaderBg}; color: #202930; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 800;">
-            <td style="padding: 8px; border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; width: 25%;">
+            <td style="padding: 8px; border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; width: 25%;">
               PLACA / CÓDIGO DE VENDA ⇅
             </td>
-            <td style="padding: 8px; border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
-            <td style="padding: 8px; border-right: 1px solid #929FA9; border-bottom: 1px solid #929FA9; width: 18%;">DATA POSIÇÃO ⇅</td>
-            <td style="padding: 8px; border-bottom: 1px solid #929FA9; width: 12%;">BATERIA ISCA _ RF ⇅</td>
+            <td style="padding: 8px; border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
+            <td style="padding: 8px; border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; width: 18%;">DATA POSIÇÃO ⇅</td>
+            <td style="padding: 8px; border-bottom: 1px solid ${themeStyles.border}; width: 12%;">BATERIA ISCA _ RF ⇅</td>
           </tr>
           ${
             numCarretas === 2 && isca2 && isca2 !== "SEM ISCA"
@@ -2672,45 +2672,46 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
   return (
     <div className="w-full relative z-10 max-w-full mx-auto flex flex-col font-sans space-y-5 text-stone-900 min-h-screen">
       
-      {/* 1. TOP HEADER (INTERFACE PRESIDENTE) */}
-      <div className="bg-gradient-to-r from-[#7a0c16] via-[#c4161c] to-[#910d14] rounded-2xl p-4 sm:p-5 border-b-4 border-[#ffd54f] shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 text-white">
-        <div className="flex items-center gap-4">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 cursor-pointer transition-all shrink-0 flex items-center justify-center shadow-xs"
-              title="Voltar"
-            >
-              <ArrowRight size={18} className="rotate-180" />
-            </button>
-          )}
+      {/* CINEMATIC HERO BANNER */}
+      <div 
+        className="relative w-full rounded-2xl sm:rounded-3xl p-6 sm:p-8 overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 border border-[rgba(229,194,122,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(7, 10, 12, 0.85), rgba(7, 10, 12, 0.92)), url(${heroRotas})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] flex items-center justify-center text-[#080a0c] shadow-[0_0_25px_rgba(217,173,90,0.4)] border border-[#fff5db]/50 shrink-0">
+            <Radio size={30} className="stroke-[2.5]" />
+          </div>
+
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-black/20 border border-white/20 text-[#ffd54f] text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
-              <span>// OPERACIONAL 3 CORAÇÕES</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(229,194,122,0.15)] border border-[rgba(229,194,122,0.3)] text-[#e5c27a] text-[10px] font-mono font-black uppercase tracking-wider mb-2">
+              <span>// OPERAÇÃO 3C</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight font-heading flex items-center gap-2 text-white">
-              <Sliders size={22} className="text-[#ffd54f]" />
-              Central de Controle PGR
+            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans drop-shadow-md">
+              CENTRAL DE CONTROLE PGR
             </h1>
-            <p className="text-xs text-red-100/90 font-sans">
+            <p className="text-xs text-[#a8a39a] font-sans mt-1 max-w-xl leading-relaxed">
               Gerador inteligente de controle, pré-alerta, monitoramento e gestão de frota integrada.
             </p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center bg-black/25 p-1.5 rounded-2xl border border-white/20 shadow-inner gap-1.5 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center bg-[#0d1113]/90 p-1.5 rounded-2xl border border-[rgba(229,194,122,0.2)] shadow-inner gap-2 flex-wrap sm:flex-nowrap relative z-10">
           <button
             type="button"
             onClick={() => setActiveTab("gerador")}
             className={cn(
-              "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all cursor-pointer",
+              "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer",
               activeTab === "gerador"
-                ? "bg-[#5c0810] text-white shadow-md border-b-2 border-[#ffd54f]"
-                : "text-red-100/80 hover:text-white hover:bg-white/10"
+                ? "bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] shadow-[0_4px_16px_rgba(217,173,90,0.4)] border border-[#fff5db]/50"
+                : "text-[#d8d3c8] hover:text-white hover:bg-white/5"
             )}
           >
-            <Sliders size={14} />
+            <Sliders size={15} />
             <span>PRE ALERTA GR</span>
           </button>
 
@@ -2718,23 +2719,19 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             type="button"
             onClick={() => setActiveTab("placas")}
             className={cn(
-              "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all cursor-pointer relative",
+              "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer relative",
               activeTab === "placas"
-                ? "bg-[#5c0810] text-white shadow-md border-b-2 border-[#ffd54f]"
-                : "text-red-100/80 hover:text-white hover:bg-white/10"
+                ? "bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] shadow-[0_4px_16px_rgba(217,173,90,0.4)] border border-[#fff5db]/50"
+                : "text-[#d8d3c8] hover:text-white hover:bg-white/5"
             )}
           >
-            <Truck size={14} />
+            <Truck size={15} />
             <span>SANTA LUZIA / MG</span>
             {parsedPlacas.length > 0 && (
-              <span
-                className={cn(
-                  "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
-                  activeTab === "placas"
-                    ? "bg-[#ffd54f] text-[#5c3c00]"
-                    : "bg-white/20 text-white"
-                )}
-              >
+              <span className={cn(
+                "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
+                activeTab === "placas" ? "bg-[#080a0c] text-[#e5c27a]" : "bg-white/20 text-white"
+              )}>
                 {parsedPlacas.length}
               </span>
             )}
@@ -2744,23 +2741,19 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             type="button"
             onClick={() => setActiveTab("unidades")}
             className={cn(
-              "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all cursor-pointer relative",
+              "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer relative",
               activeTab === "unidades"
-                ? "bg-[#5c0810] text-white shadow-md border-b-2 border-[#ffd54f]"
-                : "text-red-100/80 hover:text-white hover:bg-white/10"
+                ? "bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] shadow-[0_4px_16px_rgba(217,173,90,0.4)] border border-[#fff5db]/50"
+                : "text-[#d8d3c8] hover:text-white hover:bg-white/5"
             )}
           >
-            <Compass size={14} />
+            <Compass size={15} />
             <span>CUIABÁ / MT</span>
             {parsedUnidades.carretas.length > 0 && (
-              <span
-                className={cn(
-                  "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
-                  activeTab === "unidades"
-                    ? "bg-[#ffd54f] text-[#5c3c00]"
-                    : "bg-white/20 text-white"
-                )}
-              >
+              <span className={cn(
+                "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
+                activeTab === "unidades" ? "bg-[#080a0c] text-[#e5c27a]" : "bg-white/20 text-white"
+              )}>
                 {parsedUnidades.carretas.length}
               </span>
             )}
@@ -3633,41 +3626,41 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             ? "col-span-1 xl:col-span-2"
             : "col-span-1 xl:col-span-1"
         )}>
-          <div className="flex-1 rounded-2xl sm:rounded-3xl bg-[#f8fafc]/92 backdrop-blur-md border border-[#929FA9]/50 shadow-xl relative overflow-hidden flex flex-col p-4 sm:p-6 text-[#00163a]">
+          <div className="flex-1 rounded-[20px] bg-[#0e1315]/88 backdrop-blur-[18px] border border-[rgba(229,194,122,0.16)] shadow-[0_20px_50px_rgba(0,0,0,0.40)] relative overflow-hidden flex flex-col p-4 sm:p-6 text-white">
 
           {/* Module Title */}
           <div className={cn(
-            "flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4",
+            "flex flex-col sm:flex-row sm:items-center justify-between border-b border-[rgba(229,194,122,0.2)] pb-5 gap-4",
             preAlertaMode === "minimized" ? "mb-0" : "mb-6"
           )}>
             <div className="flex items-center gap-3">
               <div className={cn(
                 "p-3 rounded-2xl shadow-md border transition-colors",
                 isVianaOrigem
-                  ? "bg-emerald-600/10 border-emerald-500/30 text-emerald-700"
+                  ? "bg-emerald-600/20 border-emerald-500/40 text-emerald-400"
                   : isCuiabaOrigem
-                    ? "bg-amber-500/10 border-amber-500/30 text-amber-700"
-                    : "bg-[#002366]/10 border-[#002366]/30 text-[#002366]"
+                    ? "bg-amber-500/20 border-amber-500/40 text-amber-400"
+                    : "bg-[rgba(229,194,122,0.15)] border-[rgba(229,194,122,0.3)] text-[#e5c27a]"
               )}>
                 <Sliders size={22} className="stroke-[2.5]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#00163a] uppercase tracking-tight">
-                    PRE ALERTA GR
+                  <h2 className="text-xl sm:text-2xl font-bold text-white uppercase tracking-tight font-sans">
+                    PRÉ-ALERTA GR
                   </h2>
                   {preAlertaMode === "minimized" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
                       Minimizado
                     </span>
                   )}
                   {preAlertaMode === "maximized" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                       100% Largura
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-[#4a5d78] font-mono uppercase tracking-widest mt-0.5">
+                <p className="text-[10px] text-[#a8a39a] font-mono uppercase tracking-widest mt-0.5">
                   Gerador corporativo de pré-alerta e iscas
                 </p>
               </div>
@@ -3850,15 +3843,15 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               </button>
             </div>
 
-            {/* PREVIEW CONTAINER - METALLIC CHROME EXECUTIVE DASHBOARD */}
-            <div className="bg-gradient-to-b from-[#F4F7FA] via-[#E8EDF1] to-[#DCE3E8] border border-[#BFC9D1] rounded-[2rem] p-6 sm:p-7 shadow-[0_20px_45px_-10px_rgba(32,41,48,0.18),inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(146,159,169,0.35)] overflow-x-auto relative">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#46525C] block mb-5 border-b border-[#BFC9D1] pb-2">
+            {/* PREVIEW CONTAINER - DARK GLASS EXECUTIVE DASHBOARD */}
+            <div className="bg-[#080d0f]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] rounded-[2rem] p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-x-auto relative text-white">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#d4a94f] block mb-5 border-b border-[rgba(212,169,79,0.2)] pb-2">
                 Visualização do Pré-Alerta (Template do E-mail)
               </span>
 
-              <div className="min-w-[850px] font-sans text-xs text-[#1a1614]">
+              <div className="min-w-[850px] font-sans text-xs text-white">
                 {/* 1. Greeting Output */}
-                <div className="mb-4 font-sans font-black text-sm text-[#1a1614] ml-0 pl-0">
+                <div className="mb-4 font-sans font-black text-sm text-white ml-0 pl-0">
                   {saudacao}
                 </div>
 
@@ -3904,41 +3897,41 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
 
                 {/* 3. Atentar às informações */}
-                <div className="mb-3.5 font-black text-[#1a1614] text-[13px] ml-0 pl-0">
+                <div className="mb-3.5 font-black text-white text-[13px] ml-0 pl-0">
                   <input
                     type="text"
                     value={infoAbaixo}
                     onChange={(e) => setInfoAbaixo(e.target.value)}
-                    className="bg-transparent border-none outline-none hover:bg-stone-200/50 focus:bg-stone-200/70 rounded px-1.5 py-0.5 w-full font-black text-[#1a1614] transition-all"
+                    className="bg-transparent border-none outline-none hover:bg-white/10 focus:bg-white/20 rounded px-1.5 py-0.5 w-full font-black text-white transition-all"
                   />
                 </div>
 
                 {/* 4. Routes and Instructions Selector Box with executive left highlight */}
-                <div className="border border-[#e8ded2] bg-[#fbf8f3] p-4 mb-6 font-bold leading-relaxed max-w-xl rounded-2xl shadow-2xs border-l-4 border-l-[#c4161c] transition-all text-[#1a1614]">
+                <div className="border border-[rgba(212,169,79,0.25)] bg-[#11181B]/9odecoration-none p-4 mb-6 font-bold leading-relaxed max-w-xl rounded-2xl shadow-md border-l-4 border-l-[#d71920] transition-all text-white">
                   <div className="flex items-center gap-2">
-                    <span className="text-[#c4161c] text-sm font-black">•</span>
+                    <span className="text-[#d71920] text-sm font-black">•</span>
                     <input
                       type="text"
                       value={rota1}
                       onChange={(e) => setRota1(e.target.value)}
-                      className="bg-transparent border-none w-full outline-none font-bold py-0.5 px-1.5 hover:bg-stone-200/50 focus:bg-stone-200 rounded text-xs text-[#1a1614] transition-all"
+                      className="bg-transparent border-none w-full outline-none font-bold py-0.5 px-1.5 hover:bg-white/10 focus:bg-white/20 rounded text-xs text-white transition-all"
                       placeholder="· SANTA LUZIA/MG x GUARULHOS/SP;"
                     />
                   </div>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[#c4161c] text-sm font-black">•</span>
+                    <span className="text-[#d71920] text-sm font-black">•</span>
                     <input
                       type="text"
                       value={instrucao1}
                       onChange={(e) => setInstrucao1(e.target.value)}
-                      className="bg-transparent border-none w-full outline-none font-bold py-0.5 px-1.5 hover:bg-stone-200/50 focus:bg-stone-200 rounded text-xs text-[#1a1614] transition-all"
+                      className="bg-transparent border-none w-full outline-none font-bold py-0.5 px-1.5 hover:bg-white/10 focus:bg-white/20 rounded text-xs text-white transition-all"
                       placeholder="· Favor, acusar o recebimento do pré-alerta;"
                     />
                   </div>
                   {!pastePlanilha.trim() && (
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[#c4161c] text-sm font-black">•</span>
-                      <span className="font-extrabold text-xs text-red-700 uppercase tracking-wide py-0.5 px-1.5 rounded bg-red-50 border border-red-200 w-full">
+                      <span className="text-[#d71920] text-sm font-black">•</span>
+                      <span className="font-extrabold text-xs text-red-400 uppercase tracking-wide py-0.5 px-1.5 rounded bg-red-950/60 border border-red-800/60 w-full">
                         O site das iscas está temporariamente fora do ar.
                       </span>
                     </div>
@@ -5021,21 +5014,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               </div>
             </div>
 
-            {/* Quick action helper card inside main container */}
-            <div className="bg-[#FAF6ED] border border-[#e1ccb0] rounded-2xl p-4 flex gap-3 items-start mt-2">
-              <Info className={cn("shrink-0 mt-0.5", isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#9b1526]")} size={16} />
-              <div className="flex flex-col">
-                <span className="text-xs font-black text-[#5c3e29] uppercase tracking-wide">
-                  Dica do Gerador
-                </span>
-                <p className="text-[11px] text-stone-600 mt-0.5 leading-relaxed">
-                  Você pode clicar diretamente nos campos da tabela acima para
-                  preenchê-los manualmente de forma ágil, ou utilizar a coluna
-                  de preenchimento rápido ao lado para carregar dados
-                  corporativos específicos.
-                </p>
-              </div>
-            </div>
+
           </div>
           )}
         </div>
@@ -5050,11 +5029,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         style={preAlertaMode === "minimized" ? { zoom: colunasZoom } : undefined}
       >
         <div className={cn(
-          "rounded-2xl bg-white border border-stone-200 shadow-md relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all",
+          "rounded-2xl bg-[#080d0f]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all text-white",
           preAlertaMode === "minimized" && "border-amber-400/50 shadow-xl ring-1 ring-amber-400/20"
         )}>
           {/* Form Header */}
-          <div className="border-b border-stone-200 pb-4 mb-5">
+          <div className="border-b border-[rgba(212,169,79,0.2)] pb-4 mb-5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-stone-500 block">
                 Painel Lateral
@@ -5066,7 +5045,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               )}
             </div>
             <div className="flex items-center justify-between mt-1">
-              <h3 className="text-base font-sans font-extrabold text-stone-900 uppercase tracking-tight flex items-center gap-2">
+              <h3 className="text-base font-sans font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
                 <Sliders size={18} className={isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-red-600"} /> Formulário de Controle
               </h3>
               <div className="flex items-center gap-1.5">
@@ -5107,8 +5086,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           <div className="flex flex-col gap-4">
             {/* ORIGEM (MENU SUSPENSO) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                <MapPin size={12} className="text-stone-500" /> ORIGEM
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <MapPin size={12} className="text-red-400" /> ORIGEM
               </label>
               <select
                 value={origem}
@@ -5142,8 +5121,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* SELECIONAR ROTA (MENU SUSPENSO) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                <MapPin size={12} className="text-stone-500" /> SELECIONAR ROTA (DESTINO)
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <MapPin size={12} className="text-red-400" /> SELECIONAR ROTA (DESTINO)
               </label>
 
               {/* Search input for filtering */}
@@ -5224,8 +5203,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* TRANSPORTADORA input */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                <Truck size={12} className="text-stone-500" /> TRANSPORTADORA
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <Truck size={12} className="text-red-400" /> TRANSPORTADORA
               </label>
               <select
                 value={sidebarTransportadora}
@@ -5292,8 +5271,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* COLAR DA PLANILHA (PARAMETRIZAÇÃO) textarea */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                <FileText size={12} className="text-stone-500" /> COLAR DA PLANILHA (PARAMETRIZAÇÃO)
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <FileText size={12} className="text-red-400" /> COLAR DA PLANILHA (PARAMETRIZAÇÃO)
               </label>
               <textarea
                 value={pastePlanilha}
@@ -5306,8 +5285,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* NOME MOTORISTA input */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                <User size={12} className="text-stone-500" /> NOME MOTORISTA
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <User size={12} className="text-red-400" /> NOME MOTORISTA
               </label>
               <input
                 type="text"
@@ -5321,8 +5300,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* PREFIXOS & BATERIA ISCAS */}
             <div className="flex flex-col gap-3 bg-stone-50 border border-stone-200 rounded-xl p-3 shadow-2xs">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-800 flex items-center gap-1">
-                  <Sliders size={12} className="text-stone-500" /> N° ISCAS (PREFIXOS & BATERIA)
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-500 flex items-center gap-1">
+                  <Sliders size={12} className="text-red-500" /> N° ISCAS (PREFIXOS & BATERIA)
                 </label>
                 <button
                   type="button"
@@ -5357,7 +5336,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   </span>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="text-[8px] font-extrabold uppercase text-stone-500 block mb-0.5">
+                      <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
                         PREFIXO:
                       </span>
                       <select
@@ -5381,7 +5360,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       </select>
                     </div>
                     <div>
-                      <span className="text-[8px] font-extrabold uppercase text-stone-500 block mb-0.5">
+                      <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
                         RESTO:
                       </span>
                       <input
@@ -5420,7 +5399,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </span>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <span className="text-[8px] font-extrabold uppercase text-stone-500 block mb-0.5">
+                        <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
                           PREFIXO:
                         </span>
                         <select
@@ -5444,7 +5423,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         </select>
                       </div>
                       <div>
-                        <span className="text-[8px] font-extrabold uppercase text-stone-500 block mb-0.5">
+                        <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
                           RESTO:
                         </span>
                         <input
@@ -5678,17 +5657,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               </button>
             </div>
 
-            {/* DICA DE GESTÃO CARD */}
-            <div className="bg-[#1f1915] text-white rounded-xl p-3.5 border border-stone-800 shadow-sm mt-2">
-              <span className="text-[9px] font-extrabold uppercase tracking-widest text-sky-400 block mb-1">
-                Dica de Gestão PGR
-              </span>
-              <p className="text-[10px] font-medium text-stone-300 leading-relaxed">
-                Verifique os dados cuidadosamente antes de enviar. O pré-alerta
-                gerado deve estar 100% de acordo com a nota fiscal e a ordem de
-                coleta de iscas do pátio para mitigar sinistros.
-              </p>
-            </div>
+
           </div>
         </div>
       </div>
@@ -5702,11 +5671,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         style={preAlertaMode === "minimized" ? { zoom: colunasZoom } : undefined}
       >
         <div className={cn(
-          "rounded-2xl bg-white border border-stone-200 shadow-md relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all",
+          "rounded-2xl bg-[#080d0f]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all text-white",
           preAlertaMode === "minimized" && "border-amber-400/50 shadow-xl ring-1 ring-amber-400/20"
         )}>
           {/* Form Header */}
-          <div className="border-b border-stone-200 pb-4 mb-5 flex items-center justify-between">
+          <div className="border-b border-[rgba(212,169,79,0.2)] pb-4 mb-5 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-stone-500 block">
@@ -5718,7 +5687,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   </span>
                 )}
               </div>
-              <h3 className="text-base font-sans font-extrabold text-stone-900 uppercase tracking-tight mt-0.5 flex items-center gap-2">
+              <h3 className="text-base font-sans font-extrabold text-white uppercase tracking-tight mt-0.5 flex items-center gap-2">
                 <Truck size={18} className="text-red-600" /> Veículo & Carga
               </h3>
             </div>
@@ -5759,8 +5728,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           <div className="flex flex-col gap-4">
             {/* CAVALO / PLACA */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                <Truck size={12} className="text-stone-500" /> Placa
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <Truck size={12} className="text-red-400" /> Placa
               </label>
               <input
                 type="text"
@@ -5775,8 +5744,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             <div className="flex flex-col gap-3 p-3 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs">
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                    <Truck size={10} className="text-stone-500" /> Carreta 1
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                    <Truck size={10} className="text-red-400" /> Carreta 1
                   </label>
                   <input
                     type="text"
@@ -5787,8 +5756,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                    <Package size={10} className="text-stone-500" /> Produto 1
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                    <Package size={10} className="text-red-400" /> Produto 1
                   </label>
                   <input
                     type="text"
@@ -5801,8 +5770,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                    <Hash size={10} className="text-stone-500" /> U.M.A. 1
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                    <Hash size={10} className="text-red-400" /> U.M.A. 1
                   </label>
                   <input
                     type="text"
@@ -5813,8 +5782,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                    <FileText size={10} className="text-stone-500" /> NF Início
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                    <FileText size={10} className="text-red-400" /> NF Início
                   </label>
                   <input
                     type="text"
@@ -5832,8 +5801,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               <div className="flex flex-col gap-3 p-3 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                      <Truck size={10} className="text-stone-500" /> Carreta 2
+                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                      <Truck size={10} className="text-red-400" /> Carreta 2
                     </label>
                     <input
                       type="text"
@@ -5844,8 +5813,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                      <Package size={10} className="text-stone-500" /> Produto 2
+                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                      <Package size={10} className="text-red-400" /> Produto 2
                     </label>
                     <input
                       type="text"
@@ -5858,8 +5827,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className={isca2 === "SEM ISCA" ? "col-span-2 flex flex-col gap-1" : "flex flex-col gap-1"}>
-                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                      <Hash size={10} className="text-stone-500" /> U.M.A. 2
+                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                      <Hash size={10} className="text-red-400" /> U.M.A. 2
                     </label>
                     <input
                       type="text"
@@ -5871,8 +5840,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   </div>
                   {isca2 !== "SEM ISCA" && (
                     <div className="flex flex-col gap-1">
-                      <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                        <FileText size={10} className="text-stone-500" /> NF Fim
+                      <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                        <FileText size={10} className="text-red-400" /> NF Fim
                       </label>
                       <input
                         type="text"
@@ -5889,7 +5858,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* QUICK ACTIONS BAR (SWAP CARRETAS) */}
             <div className="bg-stone-100 border border-stone-200 rounded-xl p-2.5 flex flex-col gap-2 shadow-2xs">
-              <span className="text-[9px] font-black uppercase tracking-wider text-stone-700 flex items-center gap-1">
+              <span className="text-[9px] font-black uppercase tracking-wider text-red-600 flex items-center gap-1">
                 <Sliders size={11} className={isCuiabaOrigem ? "text-amber-600" : "text-red-600"} /> Trocar Placas:
               </span>
               <button
@@ -5905,7 +5874,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* VALOR DA CARGA (SANTA LUZIA) */}
             <div className="flex flex-col gap-1 p-2.5 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs">
-              <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
+              <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
                 <span className="flex items-center gap-1">
                   <DollarSign size={10} className="text-amber-600" /> Valor da Carga (NF)
                 </span>
@@ -5927,8 +5896,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* TEMA DO PRÉ-ALERTA */}
             <div className="flex flex-col gap-1 p-2.5 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs mt-2">
-              <label className="text-[9px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1">
-                <Sliders size={10} className="text-[#9b1526]" /> Tema
+              <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <Sliders size={10} className="#9b1526" /> Tema
               </label>
               <select
                 value={preAlertaTheme}

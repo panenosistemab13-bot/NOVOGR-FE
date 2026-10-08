@@ -1,42 +1,57 @@
 @import "tailwindcss";
 
 /* =========================================================
-   EXECUTIVE OPERATIONAL DASHBOARD — DESIGN SYSTEM (1920x1080)
-   Paleta: #0B1018 (Fundo), #121A26 (Secundário), #172231 / #202D3C (Superfícies)
-   Destaques: #A31324 (Vermelho Institucional), #D6A84F (Dourado), #4DD6D8 (Ciano), #43D17A (Verde)
+   CENTRAL GR / 3 CORAÇÕES — DESIGN SYSTEM GLOBAL LUXURY DARK & GOLD
+   Inspirado na Central de Operações Executiva da Referência
+   Paleta: #080A0C (Fundo Principal), #0D1012 (Secundário), #131619 (Superfícies)
+   Destaques: Dourado / Champagne / Bronze Premium (#C9973E, #D9AD5A, #E5C27A, #B77A25)
    ========================================================= */
 
 :root {
-  --bg-primary: #0B1018;
-  --bg-secondary: #121A26;
-  --bg-surface-1: #172231;
-  --bg-surface-2: #202D3C;
-  --text-main: #F3F6F8;
-  --text-muted: #94A3B8;
-  --red-inst: #A31324;
-  --red-alert: #E63946;
-  --gold: #D6A84F;
-  --cyan: #4DD6D8;
-  --green: #43D17A;
+  --bg-primary: #080A0C;
+  --bg-secondary: #0D1012;
+  --bg-tertiary: #121517;
+  --surface: #171A1C;
+  --surface-card: #131619;
+  --surface-hover: #1D2022;
+  --surface-elevated: #232628;
+
+  --gold-primary: #C9973E;
+  --gold-secondary: #D9AD5A;
+  --gold-light: #E5C27A;
+  --gold-dark: #B77A25;
+  --gold-glow: rgba(201, 151, 62, 0.35);
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #F4F0E8;
+  --text-muted: #A8A39A;
+  --text-subtle: #7A756D;
+
+  --border: rgba(201, 151, 62, 0.22);
+  --border-gold: rgba(217, 173, 90, 0.35);
   --border-subtle: rgba(255, 255, 255, 0.08);
+
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+
+  --radius: 16px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-main: 0 16px 40px rgba(0, 0, 0, 0.65);
+  --shadow-gold: 0 8px 30px rgba(201, 151, 62, 0.25);
 }
 
 @theme {
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Manrope", "Inter", sans-serif;
+  --font-heading: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  --color-exec-bg: #0B1018;
-  --color-exec-card: #121A26;
-  --color-exec-surface: #172231;
-  --color-exec-border: rgba(255, 255, 255, 0.08);
-  --color-exec-red: #A31324;
-  --color-exec-red-bright: #E63946;
-  --color-exec-gold: #D6A84F;
-  --color-exec-cyan: #4DD6D8;
-  --color-exec-green: #43D17A;
-  --color-exec-text: #F3F6F8;
-  --color-exec-muted: #94A3B8;
+  --color-gold-400: #E5C27A;
+  --color-gold-500: #D9AD5A;
+  --color-gold-600: #C9973E;
+  --color-gold-700: #B77A25;
 }
 
 * {
@@ -50,15 +65,15 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #0B1018;
-  color: #F3F6F8;
+  background-color: #080A0C;
+  color: #FFFFFF;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
 body {
-  background-color: #0B1018;
+  background-color: #080A0C;
 }
 
 /* Scrollbar sutil elegante */
@@ -68,74 +83,68 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B1018;
+  background: #080A0C;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #202D3C;
+  background: #232628;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #A31324;
+  background: #C9973E;
 }
 
-/* Visual Cards & Glassmorphism executivo */
-.exec-card {
-  background-color: #121A26;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+/* =========================================================
+   CLASSES DO DESIGN SYSTEM CORPORATIVO PREMIUM
+   ========================================================= */
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #E5C27A 0%, #C9973E 50%, #B77A25 100%);
+}
+
+.gold-text-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F4F0E8 30%, #E5C27A 70%, #C9973E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-glow {
+  border: 1px solid rgba(217, 173, 90, 0.35);
+  box-shadow: 0 0 20px rgba(201, 151, 62, 0.2);
+}
+
+.premium-card {
+  background: linear-gradient(180deg, #15181B 0%, #101214 100%);
+  border: 1px solid rgba(201, 151, 62, 0.18);
+  border-radius: 20px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.exec-card:hover {
-  border-color: rgba(214, 168, 79, 0.3);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+.premium-card:hover {
+  border-color: rgba(217, 173, 90, 0.35);
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.75), 0 0 15px rgba(201, 151, 62, 0.15);
 }
 
-.exec-card-glass {
-  background: linear-gradient(135deg, rgba(23, 34, 49, 0.85) 0%, rgba(18, 26, 38, 0.95) 100%);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+.premium-card-glass {
+  background: linear-gradient(135deg, rgba(23, 26, 28, 0.85) 0%, rgba(13, 16, 18, 0.95) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(201, 151, 62, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
-/* Nav Item Capsule */
-.nav-tab-capsule {
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.nav-tab-capsule.active {
-  background: linear-gradient(180deg, #A31324 0%, #700C18 100%);
-  color: #F3F6F8;
-  border: 1px solid rgba(214, 168, 79, 0.5);
-  box-shadow: 0 2px 10px rgba(163, 19, 36, 0.4);
-}
-
-.nav-tab-capsule.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  background-color: #D6A84F;
-  border-radius: 2px;
-  box-shadow: 0 0 8px #D6A84F;
-}
-
-/* Keyframes de pulso para nós do mapa e alertas */
-@keyframes map-pulse {
+/* Pulse animation for map & logistics nodes */
+@keyframes gold-node-pulse {
   0% {
     transform: scale(1);
     opacity: 0.8;
   }
   50% {
     transform: scale(1.6);
-    opacity: 0.3;
+    opacity: 0.25;
   }
   100% {
     transform: scale(1);
@@ -143,6 +152,6 @@ body {
   }
 }
 
-.animate-node-pulse {
-  animation: map-pulse 2.5s infinite ease-in-out;
+.animate-gold-pulse {
+  animation: gold-node-pulse 2.5s infinite ease-in-out;
 }
