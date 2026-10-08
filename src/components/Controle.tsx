@@ -1217,18 +1217,10 @@ export default function Controle({ onBack }: ControleProps) {
     "CAVALO: ISCA NO PAINEL / CARRETA 1: ISCA NO MEIO DA CARGA / CARRETA 2: ISCA NO FUNDO DA CARGA",
   );
 
-  const [preAlertaTheme, setPreAlertaTheme] = useState<'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo' | 'azul'>('azul');
+  const [preAlertaTheme, setPreAlertaTheme] = useState<'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo'>('prata');
 
   const getThemeStyles = () => {
     switch (preAlertaTheme) {
-      case 'azul':
-        return {
-          headerBg: 'linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 30%, #3B82F6 50%, #93C5FD 70%, #1D4ED8 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #DBEAFE 35%, #93C5FD 50%, #EFF6FF 70%, #1D4ED8 100%)',
-          border: '#1D4ED8',
-          table1Header: 'linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 30%, #3B82F6 50%, #93C5FD 70%, #1D4ED8 100%)',
-          table2Header: 'linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 30%, #3B82F6 50%, #93C5FD 70%, #1D4ED8 100%)',
-        };
       case 'ouro':
         return {
           headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
@@ -3799,33 +3791,33 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           {preAlertaMode !== "minimized" && (
             <div className="flex flex-col gap-6">
             {/* GREETING SELECTION (Menu Suspenso para Saudação) */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#edf1f6] border border-slate-200 rounded-2xl p-4 shadow-xs">
-              <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#4a5d78] shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#0e1315]/90 border border-[rgba(212,169,79,0.25)] rounded-2xl p-4 shadow-xs">
+              <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-400 shrink-0">
                 Saudação:
               </label>
               <div className="relative flex-1 max-w-[200px]">
                 <select
                   value={saudacao}
                   onChange={(e) => setSaudacao(e.target.value)}
-                  className="w-full bg-white border border-slate-300 focus:border-[#002f87] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#00163a] outline-none transition-all cursor-pointer shadow-2xs"
+                  className="w-full bg-[#141c21] border border-stone-700 focus:border-red-600 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none transition-all cursor-pointer shadow-2xs"
                 >
                   <option value="Boa tarde,">Boa tarde,</option>
                   <option value="Bom dia,">Bom dia,</option>
                   <option value="Boa noite,">Boa noite,</option>
                 </select>
               </div>
-              <p className="text-[10px] font-mono text-[#4a5d78] uppercase tracking-wider">
+              <p className="text-[10px] font-mono text-stone-300 uppercase tracking-wider">
                 Define a saudação inicial do pré-alerta
               </p>
             </div>
 
-            {/* EMAIL SUBJECT HEADER BLOCK - ACABAMENTO METÁLICO CROMADO */}
-            <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F7FA] to-[#E8EDF1] border border-[#BFC9D1] rounded-2xl p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_4px_15px_rgba(30,40,50,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] mb-3">
+            {/* EMAIL SUBJECT HEADER BLOCK - DARK GLASS */}
+            <div className="bg-[#0e1315]/90 border border-[rgba(212,169,79,0.25)] rounded-2xl p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl mb-3">
               <div className="flex-1 text-left">
-                <span className="text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider text-[#46525C] block mb-1">
+                <span className="text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider text-red-400 block mb-1">
                   ASSUNTO DO E-MAIL (COPIAR SEPARADAMENTE)
                 </span>
-                <h1 className="text-base sm:text-[18px] md:text-[20px] font-sans font-black text-[#151B20] uppercase tracking-tight m-0 select-all leading-tight">
+                <h1 className="text-base sm:text-[18px] md:text-[20px] font-sans font-black text-white uppercase tracking-tight m-0 select-all leading-tight">
                   PRÉ-ALERTA DE ISCA - {destino || "BRASÍLIA"} - {cavalo.replace(/-/g, "") || "TYQ6F51"}
                 </h1>
               </div>
@@ -3833,10 +3825,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 type="button"
                 onClick={handleCopySubject}
                 className={cn(
-                  "flex items-center gap-2 font-black uppercase text-[11px] tracking-wider px-5 py-2.5 rounded-xl shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.8)] transition-all cursor-pointer select-none active:scale-95 shrink-0 border border-[#929FA9]",
+                  "flex items-center gap-2 font-black uppercase text-[11px] tracking-wider px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer select-none active:scale-95 shrink-0 border border-stone-700",
                   copiedAssunto
                     ? "bg-emerald-600 text-white shadow-emerald-900/20"
-                    : "bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#151B20]"
+                    : "bg-[#141c21] hover:bg-[#1a2329] text-white"
                 )}
               >
                 {copiedAssunto ? (
@@ -3845,7 +3837,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   </>
                 ) : (
                   <>
-                    <Copy size={14} className="stroke-[2.5] text-[#303A42]" /> COPIAR ASSUNTO
+                    <Copy size={14} className="stroke-[2.5] text-red-400" /> COPIAR ASSUNTO
                   </>
                 )}
               </button>
@@ -5001,20 +4993,20 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                 {/* 7. GERENCIAMENTO DE RISCO (OCULTO AUTOMATICAMENTE QUANDO PREFIXO FOR 30D10000) */}
                 {!isDescartavel && (
-                  <div className="mt-6 bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-xl text-left shadow-2xs">
-                    <p className="text-[11px] font-black text-[#0F172A] mb-2 uppercase tracking-wide">
+                  <div className="mt-6 bg-[#12181b] border border-stone-700/80 p-4 rounded-2xl text-left shadow-md">
+                    <p className="text-[11px] font-black text-red-400 mb-2 uppercase tracking-wide">
                       GERENCIAMENTO DE RISCO
                     </p>
-                    <p className="text-[11px] text-[#334155] mb-1.5 font-medium leading-relaxed">
+                    <p className="text-[11px] text-white mb-1.5 font-medium leading-relaxed">
                       • Ressalto a importância de encaminhar todas as iscas resgatadas para suas respectivas unidades de origem.
                     </p>
-                    <p className="text-[11px] text-[#334155] mb-1.5 font-medium leading-relaxed">
+                    <p className="text-[11px] text-white mb-1.5 font-medium leading-relaxed">
                       Agradeço antecipadamente pelo compromisso em assegurar que esses envios sejam efetuados via veículos dedicados ou postagem de maneira a evitar qualquer inconveniente em nossa operação.
                     </p>
-                    <p className="text-[11px] text-[#334155] mb-1.5 font-medium leading-relaxed">
+                    <p className="text-[11px] text-white mb-1.5 font-medium leading-relaxed">
                       A devolução dos rastreadores móveis é essencial, porém, muitos ainda não foram devolvidos prejudicando nossos processos. Por gentileza, devolvam as iscas o quanto antes para mantermos nossa excelência operacional.
                     </p>
-                    <p className="text-[11px] text-[#334155] font-medium leading-relaxed">
+                    <p className="text-[11px] text-white font-medium leading-relaxed">
                       Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </p>
                   </div>
@@ -5043,36 +5035,36 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           {/* Form Header */}
           <div className="border-b border-[rgba(212,169,79,0.2)] pb-4 mb-5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-stone-500 block">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-400 block">
                 Painel Lateral
               </span>
               {preAlertaMode === "minimized" && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
                   Zoom {Math.round(colunasZoom * 100)}%
                 </span>
               )}
             </div>
             <div className="flex items-center justify-between mt-1">
-              <h3 className="text-base font-sans font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
-                <Sliders size={18} className={isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-red-600"} /> Formulário de Controle
+              <h3 className="text-base font-sans font-black text-white uppercase tracking-tight flex items-center gap-2">
+                <Sliders size={18} className="text-red-500" /> Formulário de Controle
               </h3>
               <div className="flex items-center gap-1.5">
                 {preAlertaMode === "minimized" && (
-                  <div className="flex items-center bg-stone-100 border border-stone-300 rounded-lg p-0.5 text-[10px] font-black shadow-xs">
+                  <div className="flex items-center bg-[#141c21] border border-stone-700 rounded-lg p-0.5 text-[10px] font-black shadow-xs">
                     <button
                       type="button"
                       onClick={() => setColunasZoom((z) => Math.max(0.8, parseFloat((z - 0.05).toFixed(2))))}
                       title="Diminuir Zoom"
-                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-white text-stone-700 active:scale-95 transition-colors cursor-pointer"
+                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
                     >
                       -
                     </button>
-                    <span className="px-1.5 font-mono text-stone-800">{Math.round(colunasZoom * 100)}%</span>
+                    <span className="px-1.5 font-mono text-white">{Math.round(colunasZoom * 100)}%</span>
                     <button
                       type="button"
                       onClick={() => setColunasZoom((z) => Math.min(1.35, parseFloat((z + 0.05).toFixed(2))))}
                       title="Aumentar Zoom"
-                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-white text-stone-700 active:scale-95 transition-colors cursor-pointer"
+                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
                     >
                       +
                     </button>
@@ -5081,7 +5073,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                  className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-pointer"
                   title="Limpar formulário"
                 >
                   <Trash2 size={16} />
@@ -5095,7 +5087,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* ORIGEM (MENU SUSPENSO) */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <MapPin size={12} className="text-red-400" /> ORIGEM
+                <MapPin size={12} className="text-red-500" /> ORIGEM
               </label>
               <select
                 value={origem}
@@ -5113,13 +5105,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     }
                   }
                 }}
-                className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3.5 py-2 text-xs font-extrabold uppercase text-stone-900 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 hover:bg-white outline-none transition-all shadow-2xs cursor-pointer"
+                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md cursor-pointer"
               >
                 {ORIGEM_OPCOES.map((opt) => (
                   <option
                     key={opt}
                     value={opt}
-                    className="text-stone-900 uppercase text-xs font-bold"
+                    className="bg-[#141c21] text-white uppercase text-xs font-bold"
                   >
                     {opt.toUpperCase()}
                   </option>
@@ -5130,7 +5122,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* SELECIONAR ROTA (MENU SUSPENSO) */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <MapPin size={12} className="text-red-400" /> SELECIONAR ROTA (DESTINO)
+                <MapPin size={12} className="text-red-500" /> SELECIONAR ROTA (DESTINO)
               </label>
 
               {/* Search input for filtering */}
@@ -5142,14 +5134,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   type="text"
                   value={searchRota}
                   onChange={(e) => setSearchRota(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-300 rounded-lg pl-8 pr-3 py-1.5 text-xs font-bold uppercase text-stone-900 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 hover:bg-white outline-none transition-all shadow-2xs placeholder:text-stone-400"
+                  className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl pl-8 pr-3 py-2 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md placeholder:text-stone-500"
                   placeholder="PESQUISAR ROTA..."
                 />
                 {searchRota && (
                   <button
                     type="button"
                     onClick={() => setSearchRota("")}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[10px] font-black text-red-600 hover:text-red-700 uppercase cursor-pointer"
+                    className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[10px] font-black text-red-500 hover:text-red-400 uppercase cursor-pointer"
                   >
                     Limpar
                   </button>
@@ -5172,9 +5164,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     setDestino("");
                   }
                 }}
-                className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3.5 py-2 text-xs font-extrabold uppercase text-stone-900 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 hover:bg-white outline-none transition-all shadow-2xs cursor-pointer"
+                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md cursor-pointer"
               >
-                <option value="">
+                <option value="" className="bg-[#141c21] text-stone-400">
                   {searchRota
                     ? "RESULTADOS DA BUSCA..."
                     : "SELECIONE A ROTA..."}
@@ -5187,7 +5179,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   ) && (
                     <option
                       value={rota1}
-                      className="text-stone-900 uppercase text-xs font-bold"
+                      className="bg-[#141c21] text-white uppercase text-xs font-bold"
                     >
                       {rota1.toUpperCase()}
                     </option>
@@ -5200,7 +5192,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     <option
                       key={dest}
                       value={displayDest}
-                      className="text-stone-900 uppercase text-xs font-bold"
+                      className="bg-[#141c21] text-white uppercase text-xs font-bold"
                     >
                       {displayDest.toUpperCase()}
                     </option>
@@ -5212,19 +5204,19 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* TRANSPORTADORA input */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <Truck size={12} className="text-red-400" /> TRANSPORTADORA
+                <Truck size={12} className="text-red-500" /> TRANSPORTADORA
               </label>
               <select
                 value={sidebarTransportadora}
                 onChange={(e) => handleSidebarTranspChange(e.target.value)}
-                className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3.5 py-2 text-xs font-extrabold uppercase text-stone-900 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 hover:bg-white outline-none transition-all shadow-2xs cursor-pointer"
+                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md cursor-pointer"
               >
-                <option value="">SELECIONE...</option>
+                <option value="" className="bg-[#141c21] text-stone-400">SELECIONE...</option>
                 {allTransportadoras.map((t) => (
                   <option
                     key={t}
                     value={t}
-                    className="text-stone-900 uppercase text-xs font-bold"
+                    className="bg-[#141c21] text-white uppercase text-xs font-bold"
                   >
                     {t}
                   </option>
@@ -5235,18 +5227,18 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 <button
                   type="button"
                   onClick={() => setIsAddingTransp(true)}
-                  className="self-start text-[10px] font-extrabold text-red-600 hover:text-red-700 flex items-center gap-1 mt-0.5 transition-colors uppercase tracking-wider cursor-pointer"
+                  className="self-start text-[10px] font-black text-red-500 hover:text-red-400 flex items-center gap-1 mt-0.5 transition-colors uppercase tracking-wider cursor-pointer"
                 >
                   <Plus size={12} /> Adicionar Transportadora
                 </button>
               ) : (
-                <div className="flex flex-col gap-1.5 p-2 bg-stone-100 rounded-lg border border-stone-200 mt-0.5 shadow-2xs">
+                <div className="flex flex-col gap-1.5 p-2 bg-[#12181b] rounded-xl border border-stone-700/80 mt-0.5 shadow-md">
                   <input
                     type="text"
                     placeholder="NOME DA TRANSPORTADORA"
                     value={newTranspName}
                     onChange={(e) => setNewTranspName(e.target.value)}
-                    className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 focus:ring-1 focus:ring-red-600/20 outline-none transition-all"
+                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-white focus:border-red-500 focus:ring-1 focus:ring-red-500/20 outline-none transition-all"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -5261,7 +5253,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         setIsAddingTransp(false);
                         setNewTranspName("");
                       }}
-                      className="px-2 py-0.5 text-[10px] font-extrabold text-stone-600 hover:bg-stone-200 rounded uppercase transition-colors cursor-pointer"
+                      className="px-2 py-0.5 text-[10px] font-extrabold text-stone-400 hover:bg-white/10 rounded uppercase transition-colors cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -5280,13 +5272,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* COLAR DA PLANILHA (PARAMETRIZAÇÃO) textarea */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <FileText size={12} className="text-red-400" /> COLAR DA PLANILHA (PARAMETRIZAÇÃO)
+                <FileText size={12} className="text-red-500" /> COLAR DA PLANILHA (PARAMETRIZAÇÃO)
               </label>
               <textarea
                 value={pastePlanilha}
                 onChange={(e) => handlePastePlanilhaChange(e.target.value)}
                 rows={3}
-                className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 hover:bg-white outline-none transition-all shadow-2xs resize-none placeholder:text-stone-400"
+                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3 py-2 text-xs font-bold text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md resize-none placeholder:text-stone-500"
                 placeholder="Cole as linhas da planilha de iscas aqui..."
               />
             </div>
@@ -5294,21 +5286,21 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* NOME MOTORISTA input */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <User size={12} className="text-red-400" /> NOME MOTORISTA
+                <User size={12} className="text-red-500" /> NOME MOTORISTA
               </label>
               <input
                 type="text"
                 value={sidebarMotorista}
                 onChange={(e) => handleSidebarMotoristaChange(e.target.value)}
-                className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3.5 py-2 text-xs font-extrabold uppercase text-stone-900 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 hover:bg-white outline-none transition-all shadow-2xs"
+                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md placeholder:text-stone-500"
                 placeholder="NOME COMPLETO"
               />
             </div>
 
             {/* PREFIXOS & BATERIA ISCAS */}
-            <div className="flex flex-col gap-3 bg-stone-50 border border-stone-200 rounded-xl p-3 shadow-2xs">
+            <div className="flex flex-col gap-3 bg-[#12181b] border border-stone-700/80 rounded-2xl p-4 shadow-md">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-500 flex items-center gap-1">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
                   <Sliders size={12} className="text-red-500" /> N° ISCAS (PREFIXOS & BATERIA)
                 </label>
                 <button
@@ -5316,7 +5308,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   onClick={handleCopyIscasWithSpace}
                   title="Copiar números das iscas com espaço (ex: R100002466 R100000876)"
                   className={cn(
-                    "flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md transition-all cursor-pointer select-none shadow-2xs",
+                    "flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition-all cursor-pointer select-none shadow-sm",
                     copiedIscasSpace
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white hover:shadow-xs active:scale-95"
@@ -5338,13 +5330,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
               <div className="flex flex-col gap-3">
                 {/* ISCA 1 SECTION */}
-                <div className="border-b border-stone-200 pb-2.5">
-                  <span className="text-[9px] font-extrabold uppercase text-red-600 block mb-1">
+                <div className="border-b border-stone-700/60 pb-2.5">
+                  <span className="text-[9px] font-extrabold uppercase text-red-400 block mb-1">
                     DISPOSITIVO ISCA 1:
                   </span>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
+                      <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
                         PREFIXO:
                       </span>
                       <select
@@ -5360,15 +5352,15 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             setAlertaResgate(FRASE_RESGATE_PADRAO);
                           }
                         }}
-                        className="w-full bg-white border border-stone-300 rounded-md px-1 py-1 text-[10px] font-extrabold text-stone-900 focus:border-red-600 outline-none cursor-pointer transition-all"
+                        className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white focus:border-red-500 outline-none cursor-pointer transition-all"
                       >
-                        <option value="R100000">R100000</option>
-                        <option value="R10000">R10000</option>
-                        <option value="30D10000">30D10000</option>
+                        <option value="R100000" className="bg-[#141c21] text-white">R100000</option>
+                        <option value="R10000" className="bg-[#141c21] text-white">R10000</option>
+                        <option value="30D10000" className="bg-[#141c21] text-white">30D10000</option>
                       </select>
                     </div>
                     <div>
-                      <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
+                      <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
                         RESTO:
                       </span>
                       <input
@@ -5392,7 +5384,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             setAlertaResgate(FRASE_RESGATE_PADRAO);
                           }
                         }}
-                        className="w-full bg-white border border-stone-300 rounded-md px-1.5 py-1 text-[10px] font-black text-stone-900 uppercase focus:border-red-600 outline-none transition-all"
+                        className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white uppercase focus:border-red-500 outline-none transition-all"
                         placeholder="RESTO..."
                       />
                     </div>
@@ -5402,12 +5394,12 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 {/* ISCA 2 SECTION */}
                 {numCarretas === 2 && (
                   <div>
-                    <span className="text-[9px] font-extrabold uppercase text-red-600 block mb-1">
+                    <span className="text-[9px] font-extrabold uppercase text-red-400 block mb-1">
                       DISPOSITIVO ISCA 2:
                     </span>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
+                        <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
                           PREFIXO:
                         </span>
                         <select
@@ -5423,15 +5415,15 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               setAlertaResgate(FRASE_RESGATE_PADRAO);
                             }
                           }}
-                          className="w-full bg-white border border-stone-300 rounded-md px-1 py-1 text-[10px] font-extrabold text-stone-900 focus:border-red-600 outline-none cursor-pointer transition-all"
+                          className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white focus:border-red-500 outline-none cursor-pointer transition-all"
                         >
-                          <option value="R100000">R100000</option>
-                          <option value="R10000">R10000</option>
-                          <option value="30D10000">30D10000</option>
+                          <option value="R100000" className="bg-[#141c21] text-white">R100000</option>
+                          <option value="R10000" className="bg-[#141c21] text-white">R10000</option>
+                          <option value="30D10000" className="bg-[#141c21] text-white">30D10000</option>
                         </select>
                       </div>
                       <div>
-                        <span className="text-[8px] font-extrabold uppercase text-red-400 block mb-0.5">
+                        <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
                           RESTO:
                         </span>
                         <input
@@ -5455,7 +5447,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               setAlertaResgate(FRASE_RESGATE_PADRAO);
                             }
                           }}
-                          className="w-full bg-white border border-stone-300 rounded-md px-1.5 py-1 text-[10px] font-black text-stone-900 uppercase focus:border-red-600 outline-none transition-all"
+                          className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white uppercase focus:border-red-500 outline-none transition-all"
                           placeholder="RESTO..."
                         />
                       </div>
@@ -5469,21 +5461,21 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <div
                     onClick={handleCopyIscasWithSpace}
                     title="Clique para copiar com espaço"
-                    className="flex items-center justify-between bg-white border border-stone-300 hover:border-red-400 rounded-lg px-2.5 py-1.5 cursor-pointer transition-all group shadow-2xs"
+                    className="flex items-center justify-between bg-[#141c21] border border-stone-700 hover:border-red-500 rounded-xl px-3 py-2 cursor-pointer transition-all group shadow-sm"
                   >
                     <div className="flex items-center gap-1.5 overflow-hidden">
                       <span className="text-[8px] font-extrabold uppercase text-stone-400 shrink-0">ISCAS:</span>
-                      <span className="text-[11px] font-mono font-black text-red-600 group-hover:text-red-700 tracking-wider truncate">
+                      <span className="text-[11px] font-mono font-black text-white group-hover:text-red-400 tracking-wider truncate">
                         {getIscasSpaceSeparated()}
                       </span>
                     </div>
-                    <div className="shrink-0 ml-1.5 flex items-center gap-1 text-[8px] font-black uppercase text-stone-400 group-hover:text-red-600 transition-colors">
+                    <div className="shrink-0 ml-1.5 flex items-center gap-1 text-[8px] font-black uppercase text-stone-400 group-hover:text-red-400 transition-colors">
                       {copiedIscasSpace ? (
-                        <span className="text-emerald-600 font-black flex items-center gap-0.5">
+                        <span className="text-emerald-400 font-black flex items-center gap-0.5">
                           <Check size={11} className="stroke-[3]" /> Copiado
                         </span>
                       ) : (
-                        <span className="flex items-center gap-0.5">
+                        <span className="flex items-center gap-0.5 text-white">
                           <Copy size={11} /> Copiar
                         </span>
                       )}
@@ -5496,10 +5488,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
 
             {/* EMBARQUE (CARRETA 1) */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-stone-200">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
+            <div className="flex flex-col gap-2 pt-2 border-t border-stone-700/60">
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
                 <span>Embarque (carreta 1)</span>
-                {carreta1 && <span className="text-[9px] font-mono text-red-600 font-black">{carreta1}</span>}
+                {carreta1 && <span className="text-[9px] font-mono text-white font-black">{carreta1}</span>}
               </label>
 
               <div className="grid grid-cols-2 gap-1.5">
@@ -5518,10 +5510,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       type="button"
                       onClick={() => setSidebarEmbarque1(img.value)}
                       className={cn(
-                        "px-1.5 py-2 rounded-lg text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[36px]",
+                        "px-2 py-2 rounded-xl text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[38px]",
                         isSelected
-                          ? "bg-red-600 text-white border-red-600 shadow-xs"
-                          : "bg-white text-stone-700 border-stone-300 hover:bg-stone-100"
+                          ? "bg-red-600 text-white border-red-500 shadow-md"
+                          : "bg-[#141c21] text-white border-stone-700 hover:bg-[#1a2329]"
                       )}
                     >
                       {displayLabel}
@@ -5531,7 +5523,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               </div>
 
               {/* Preview Box Carreta 1 */}
-              <div className="mt-1 bg-stone-50 border border-stone-200 rounded-xl p-2 flex flex-col items-center justify-center min-h-[95px]">
+              <div className="mt-1 bg-[#12181b] border border-stone-700/80 rounded-xl p-2.5 flex flex-col items-center justify-center min-h-[95px]">
                 {sidebarEmbarque1 && sidebarEmbarque1 !== "none" ? (
                   <div className="flex flex-col items-center w-full">
                     <img
@@ -5545,14 +5537,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         }
                       }}
                     />
-                    <span className="text-[9px] font-black text-stone-700 uppercase mt-1 text-center">
+                    <span className="text-[9px] font-black text-white uppercase mt-1.5 text-center">
                       CARRETA 1: {carreta1 || "S/ PLACA"}
                     </span>
                   </div>
                 ) : sidebarEmbarque1 === "" ? (
                   <div className="text-center">
-                    <span className="text-[10px] font-extrabold text-stone-800 uppercase block">Grade Interativa Ativa</span>
-                    <span className="text-[9px] text-stone-500">Clique nas células no gerador.</span>
+                    <span className="text-[10px] font-extrabold text-white uppercase block">Grade Interativa Ativa</span>
+                    <span className="text-[9px] text-stone-400">Clique nas células no gerador.</span>
                   </div>
                 ) : (
                   <span className="text-[9px] font-extrabold text-stone-400 uppercase">SEM ISCA NA CARRETA 1</span>
@@ -5562,10 +5554,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* EMBARQUE (CARRETA 2) */}
             {numCarretas === 2 && (
-              <div className="flex flex-col gap-2 pt-2 border-t border-stone-200">
-                <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
+              <div className="flex flex-col gap-2 pt-2 border-t border-stone-700/60">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
                   <span>Embarque (carreta 2)</span>
-                  {carreta2 && <span className="text-[9px] font-mono text-red-600 font-black">{carreta2}</span>}
+                  {carreta2 && <span className="text-[9px] font-mono text-white font-black">{carreta2}</span>}
                 </label>
 
                 <div className="grid grid-cols-2 gap-1.5">
@@ -5584,10 +5576,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         type="button"
                         onClick={() => setSidebarEmbarque2(img.value)}
                         className={cn(
-                          "px-1.5 py-2 rounded-lg text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[36px]",
+                          "px-2 py-2 rounded-xl text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[38px]",
                           isSelected
-                            ? "bg-red-600 text-white border-red-600 shadow-xs"
-                            : "bg-white text-stone-700 border-stone-300 hover:bg-stone-100"
+                            ? "bg-red-600 text-white border-red-500 shadow-md"
+                            : "bg-[#141c21] text-white border-stone-700 hover:bg-[#1a2329]"
                         )}
                       >
                         {displayLabel}
@@ -5597,7 +5589,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
 
                 {/* Preview Box Carreta 2 */}
-                <div className="mt-1 bg-stone-50 border border-stone-200 rounded-xl p-2 flex flex-col items-center justify-center min-h-[95px]">
+                <div className="mt-1 bg-[#12181b] border border-stone-700/80 rounded-xl p-2.5 flex flex-col items-center justify-center min-h-[95px]">
                   {sidebarEmbarque2 && sidebarEmbarque2 !== "none" ? (
                     <div className="flex flex-col items-center w-full">
                       <img
@@ -5611,14 +5603,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           }
                         }}
                       />
-                      <span className="text-[9px] font-black text-stone-700 uppercase mt-1 text-center">
+                      <span className="text-[9px] font-black text-white uppercase mt-1.5 text-center">
                         CARRETA 2: {carreta2 || "S/ PLACA"}
                       </span>
                     </div>
                   ) : sidebarEmbarque2 === "" ? (
                     <div className="text-center">
-                      <span className="text-[10px] font-extrabold text-stone-800 uppercase block">Grade Interativa Ativa</span>
-                      <span className="text-[9px] text-stone-500">Clique nas células no gerador.</span>
+                      <span className="text-[10px] font-extrabold text-white uppercase block">Grade Interativa Ativa</span>
+                      <span className="text-[9px] text-stone-400">Clique nas células no gerador.</span>
                     </div>
                   ) : (
                     <span className="text-[9px] font-extrabold text-stone-400 uppercase">SEM ISCA NA CARRETA 2</span>
@@ -5686,36 +5678,36 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           <div className="border-b border-[rgba(212,169,79,0.2)] pb-4 mb-5 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-stone-500 block">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-400 block">
                   Painel de Viagem
                 </span>
                 {preAlertaMode === "minimized" && (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
                     Zoom {Math.round(colunasZoom * 100)}%
                   </span>
                 )}
               </div>
-              <h3 className="text-base font-sans font-extrabold text-white uppercase tracking-tight mt-0.5 flex items-center gap-2">
-                <Truck size={18} className="text-red-600" /> Veículo & Carga
+              <h3 className="text-base font-sans font-black text-white uppercase tracking-tight mt-0.5 flex items-center gap-2">
+                <Truck size={18} className="text-red-500" /> Veículo & Carga
               </h3>
             </div>
             <div className="flex items-center gap-1.5">
               {preAlertaMode === "minimized" && (
-                <div className="flex items-center bg-stone-100 border border-stone-300 rounded-lg p-0.5 text-[10px] font-black shadow-xs">
+                <div className="flex items-center bg-[#141c21] border border-stone-700 rounded-lg p-0.5 text-[10px] font-black shadow-xs">
                   <button
                     type="button"
                     onClick={() => setColunasZoom((z) => Math.max(0.8, parseFloat((z - 0.05).toFixed(2))))}
                     title="Diminuir Zoom"
-                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-white text-stone-700 active:scale-95 transition-colors cursor-pointer"
+                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
                   >
                     -
                   </button>
-                  <span className="px-1.5 font-mono text-stone-800">{Math.round(colunasZoom * 100)}%</span>
+                  <span className="px-1.5 font-mono text-white">{Math.round(colunasZoom * 100)}%</span>
                   <button
                     type="button"
                     onClick={() => setColunasZoom((z) => Math.min(1.35, parseFloat((z + 0.05).toFixed(2))))}
                     title="Aumentar Zoom"
-                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-white text-stone-700 active:scale-95 transition-colors cursor-pointer"
+                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
                   >
                     +
                   </button>
@@ -5724,7 +5716,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               <button
                 type="button"
                 onClick={handleClearVeiculo}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-pointer"
                 title="Limpar formulário de Veículo & Carga"
               >
                 <Trash2 size={16} />
@@ -5737,41 +5729,41 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* CAVALO / PLACA */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <Truck size={12} className="text-red-400" /> Placa
+                <Truck size={12} className="text-red-500" /> Placa
               </label>
               <input
                 type="text"
                 value={cavalo}
                 onChange={(e) => setCavalo(e.target.value.replace(/-/g, "").toUpperCase())}
-                className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3.5 py-2 text-xs font-extrabold uppercase text-stone-900 focus:border-red-600 focus:ring-2 focus:ring-red-600/10 hover:bg-white outline-none transition-all shadow-2xs"
+                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md placeholder:text-stone-500"
                 placeholder="PLACA"
               />
             </div>
 
             {/* CARRETA 1 GROUP */}
-            <div className="flex flex-col gap-3 p-3 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs">
+            <div className="flex flex-col gap-3 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md">
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <Truck size={10} className="text-red-400" /> Carreta 1
+                    <Truck size={10} className="text-red-500" /> Carreta 1
                   </label>
                   <input
                     type="text"
                     value={carreta1}
                     onChange={(e) => setCarreta1(e.target.value.toUpperCase())}
-                    className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                     placeholder="CARRETA 1"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <Package size={10} className="text-red-400" /> Produto 1
+                    <Package size={10} className="text-red-500" /> Produto 1
                   </label>
                   <input
                     type="text"
                     value={produto1}
                     onChange={(e) => setProduto1(e.target.value.toUpperCase())}
-                    className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                     placeholder="PRODUTO 1"
                   />
                 </div>
@@ -5779,25 +5771,25 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <Hash size={10} className="text-red-400" /> U.M.A. 1
+                    <Hash size={10} className="text-red-500" /> U.M.A. 1
                   </label>
                   <input
                     type="text"
                     value={uma1}
                     onChange={(e) => setUma1(formatUMA(e.target.value))}
-                    className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                     placeholder="0XX.XXX.XXX.XXX"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <FileText size={10} className="text-red-400" /> NF Início
+                    <FileText size={10} className="text-red-500" /> NF Início
                   </label>
                   <input
                     type="text"
                     value={nfInicio}
                     onChange={(e) => setNfInicio(e.target.value.replace(/-/g, "").toUpperCase())}
-                    className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                     placeholder="INÍCIO"
                   />
                 </div>
@@ -5806,29 +5798,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* CARRETA 2 GROUP */}
             {numCarretas === 2 && (
-              <div className="flex flex-col gap-3 p-3 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs">
+              <div className="flex flex-col gap-3 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                      <Truck size={10} className="text-red-400" /> Carreta 2
+                      <Truck size={10} className="text-red-500" /> Carreta 2
                     </label>
                     <input
                       type="text"
                       value={carreta2}
                       onChange={(e) => setCarreta2(e.target.value.toUpperCase())}
-                      className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                      className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                       placeholder="CARRETA 2"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                      <Package size={10} className="text-red-400" /> Produto 2
+                      <Package size={10} className="text-red-500" /> Produto 2
                     </label>
                     <input
                       type="text"
                       value={produto2}
                       onChange={(e) => setProduto2(e.target.value.toUpperCase())}
-                      className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                      className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                       placeholder="PRODUTO 2"
                     />
                   </div>
@@ -5836,26 +5828,26 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 <div className="grid grid-cols-2 gap-2">
                   <div className={isca2 === "SEM ISCA" ? "col-span-2 flex flex-col gap-1" : "flex flex-col gap-1"}>
                     <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                      <Hash size={10} className="text-red-400" /> U.M.A. 2
+                      <Hash size={10} className="text-red-500" /> U.M.A. 2
                     </label>
                     <input
                       type="text"
                       value={uma2}
                       onChange={(e) => setUma2(formatUMA(e.target.value))}
-                      className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                      className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                       placeholder="0XX.XXX.XXX.XXX"
                     />
                   </div>
                   {isca2 !== "SEM ISCA" && (
                     <div className="flex flex-col gap-1">
                       <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                        <FileText size={10} className="text-red-400" /> NF Fim
+                        <FileText size={10} className="text-red-500" /> NF Fim
                       </label>
                       <input
                         type="text"
                         value={nfFim}
                         onChange={(e) => setNfFim(e.target.value.replace(/-/g, "").toUpperCase())}
-                        className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                        className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                         placeholder="FIM"
                       />
                     </div>
@@ -5865,29 +5857,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             )}
 
             {/* QUICK ACTIONS BAR (SWAP CARRETAS) */}
-            <div className="bg-stone-100 border border-stone-200 rounded-xl p-2.5 flex flex-col gap-2 shadow-2xs">
-              <span className="text-[9px] font-black uppercase tracking-wider text-red-600 flex items-center gap-1">
-                <Sliders size={11} className={isCuiabaOrigem ? "text-amber-600" : "text-red-600"} /> Trocar Placas:
+            <div className="bg-[#12181b] border border-stone-700/80 rounded-2xl p-3 flex flex-col gap-2 shadow-md">
+              <span className="text-[9px] font-black uppercase tracking-wider text-red-400 flex items-center gap-1">
+                <Sliders size={11} className="text-red-500" /> Trocar Placas:
               </span>
               <button
                 type="button"
                 onClick={handleSwapCarretas}
                 title="Inverter as placas das colunas Carreta 1 e Carreta 2"
-                className="w-full flex items-center justify-center gap-1 bg-white hover:bg-stone-200/80 text-stone-800 border border-stone-300 font-extrabold uppercase text-[9px] py-1.5 px-2 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="w-full flex items-center justify-center gap-1.5 bg-[#141c21] hover:bg-[#1a2329] text-white border border-stone-700 font-black uppercase text-[10px] py-2 px-3 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               >
-                <ArrowUpDown size={11} className="text-red-600 stroke-[2.5]" />
+                <ArrowUpDown size={12} className="text-red-500 stroke-[2.5]" />
                 <span>Carreta 1 ⇄ 2</span>
               </button>
             </div>
 
             {/* VALOR DA CARGA (SANTA LUZIA) */}
-            <div className="flex flex-col gap-1 p-2.5 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs">
+            <div className="flex flex-col gap-1.5 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md">
               <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
                 <span className="flex items-center gap-1">
-                  <DollarSign size={10} className="text-amber-600" /> Valor da Carga (NF)
+                  <DollarSign size={10} className="text-red-500" /> Valor da Carga (NF)
                 </span>
                 {valorCarga && (
-                  <span className="text-[8px] bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-black border border-amber-300/60">
+                  <span className="text-[8px] bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded font-black border border-red-800/80">
                     SANTA LUZIA
                   </span>
                 )}
@@ -5896,28 +5888,27 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 type="text"
                 value={valorCarga}
                 onChange={(e) => setValorCarga(e.target.value)}
-                className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-stone-900 focus:border-red-600 outline-none transition-all shadow-2xs"
+                className="w-full bg-[#141c21] border border-stone-700 rounded-xl px-3 py-2 text-xs font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
                 placeholder="R$ 0,00"
                 title="Importado da coluna VALOR NF na aba SANTA LUZIA"
               />
             </div>
 
             {/* TEMA DO PRÉ-ALERTA */}
-            <div className="flex flex-col gap-1 p-2.5 bg-stone-50 rounded-xl border border-stone-200 shadow-2xs mt-2">
+            <div className="flex flex-col gap-1.5 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md mt-2">
               <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <Sliders size={10} className="#9b1526" /> Tema
+                <Sliders size={10} className="text-red-500" /> Tema
               </label>
               <select
                 value={preAlertaTheme}
                 onChange={(e) => setPreAlertaTheme(e.target.value as any)}
-                className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-[11px] font-black uppercase text-stone-900 focus:border-[#9b1526] outline-none transition-all shadow-2xs cursor-pointer"
+                className="w-full bg-[#141c21] border border-stone-700 rounded-xl px-3 py-2 text-xs font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm cursor-pointer"
               >
-                <option value="azul">Azul (Padrão)</option>
-                <option value="prata">Prata</option>
-                <option value="ouro">Ouro</option>
-                <option value="bronze">Bronze</option>
-                <option value="rubi">Rubi</option>
-                <option value="gelo">Gelo</option>
+                <option value="prata" className="bg-[#141c21] text-white">Prata (Padrão)</option>
+                <option value="ouro" className="bg-[#141c21] text-white">Ouro</option>
+                <option value="bronze" className="bg-[#141c21] text-white">Bronze</option>
+                <option value="rubi" className="bg-[#141c21] text-white">Rubi</option>
+                <option value="gelo" className="bg-[#141c21] text-white">Gelo</option>
               </select>
             </div>
           </div>
@@ -5926,23 +5917,23 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
       </div>
 
       {/* SEÇÃO DE CÓPIA PARA PLANILHA GOOGLE (LINHAS DE ISCA) */}
-      <div className="w-full mt-8 bg-[#F4F8FA] border border-[#CBD5E1] rounded-3xl shadow-sm overflow-hidden flex flex-col p-5 sm:p-7">
+      <div className="w-full mt-8 bg-[#0e1315]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col p-5 sm:p-7 text-white">
         {/* Header banner */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-5 border-b border-[#CBD5E1]">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-5 border-b border-stone-700/60">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-[#0F172A] text-white rounded-2xl shadow-sm shrink-0">
+            <div className="p-3 bg-red-600 text-white rounded-2xl shadow-md shrink-0">
               <FileSpreadsheet size={24} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#64748B] bg-white px-2.5 py-0.5 rounded-md border border-[#CBD5E1]">
+                <span className="text-[10px] font-black uppercase tracking-widest text-red-400 bg-[#141c21] px-2.5 py-0.5 rounded-md border border-stone-700">
                   Planilha Google / Excel
                 </span>
               </div>
-              <h3 className="text-base font-sans font-extrabold text-[#0F172A] uppercase tracking-tight mt-1 flex items-center gap-2">
-                <FileSpreadsheet size={18} className="text-[#0F172A]" /> Copiar Linhas de Iscas para Planilha Google
+              <h3 className="text-base font-sans font-black text-white uppercase tracking-tight mt-1 flex items-center gap-2">
+                <FileSpreadsheet size={18} className="text-red-500" /> Copiar Linhas de Iscas para Planilha Google
               </h3>
-              <p className="text-xs text-[#64748B] font-semibold mt-0.5">
+              <p className="text-xs text-stone-300 font-semibold mt-0.5">
                 Copie a frase de embarque das iscas, linhas individuais ou a tabela completa para colar no Google Sheets (Ctrl+V)
               </p>
             </div>
@@ -5972,7 +5963,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 "px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm border flex items-center gap-2 transition-all cursor-pointer active:scale-95",
                 copiedIscaDataOnly
                   ? "bg-emerald-600 text-white border-emerald-500"
-                  : "bg-[#0F172A] hover:bg-[#2d241e] text-white border-stone-700"
+                  : "bg-[#141c21] hover:bg-[#1a2329] text-white border-stone-700"
               )}
               title="Copiar todas as linhas de iscas da tabela (Ctrl+V)"
             >
@@ -5983,7 +5974,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         </div>
 
         {/* Spreadsheet Mock Preview Table */}
-        <div className="mt-5 w-full rounded-2xl border border-[#D1E1EB] overflow-x-auto shadow-sm bg-white">
+        <div className="mt-5 w-full rounded-2xl border border-stone-700/80 overflow-x-auto shadow-md bg-[#12181b]">
           <div className="min-w-[1000px]">
             {/* Column Letters Bar A-H */}
             <div className="grid grid-cols-[130px_160px_140px_140px_110px_110px_110px_1fr_120px] bg-[#F4F8FA] border-b border-[#D1E1EB] text-[10px] font-black text-[#64748B] text-center py-1 divide-x divide-[#D1E1EB]">
