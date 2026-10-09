@@ -29,7 +29,8 @@ import {
   RotateCcw,
   StickyNote,
   ArrowLeft,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowDownUp
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
@@ -91,6 +92,43 @@ const formatNfValue = (value: string) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(amount);
+};
+
+export const parseNfNumeric = (val: string | undefined | null): number => {
+  if (!val) return 0;
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return 0;
+  return parseFloat(digits) / 100;
+};
+
+export const isValorNfEmpty = (val: string | undefined | null): boolean => {
+  if (!val) return true;
+  const trimmed = val.trim();
+  if (trimmed === '' || trimmed === '-' || trimmed === '--') return true;
+  const num = parseNfNumeric(trimmed);
+  return num <= 0;
+};
+
+export const sortSMRowsByValorNf = (rows: SMRow[]): SMRow[] => {
+  if (!rows || rows.length === 0) return [];
+  return [...rows].sort((a, b) => {
+    const aEmpty = isValorNfEmpty(a.valorNf);
+    const bEmpty = isValorNfEmpty(b.valorNf);
+
+    // Linhas com valor adicionado vão para o topo
+    if (!aEmpty && bEmpty) return -1;
+    // Linhas vazias vão para o final
+    if (aEmpty && !bEmpty) return 1;
+
+    // Se ambas tiverem valor adicionado: maior valor no topo (ordem decrescente)
+    if (!aEmpty && !bEmpty) {
+      const aVal = parseNfNumeric(a.valorNf);
+      const bVal = parseNfNumeric(b.valorNf);
+      return bVal - aVal;
+    }
+
+    return 0;
+  });
 };
 
 interface SMRow {
@@ -248,10 +286,13 @@ const findRouteCode = (trechoStr: string, section: 'ida' | 'volta', routes: Rout
 
 const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
   if (rows.length === 0) return '';
-  const headerBg = type === 'ida' ? '#0F2D59' : type === 'volta' ? '#801414' : type === 'nordeste' ? '#000000' : '#166534';
+  const headerBg = type === 'ida' ? '#080A0C' : type === 'volta' ? '#801414' : type === 'nordeste' ? '#000000' : '#166534';
+  const headerBorder = type === 'ida' ? '#D9AD5A' : headerBg;
+  const headerColor = type === 'ida' ? '#E5C27A' : '#ffffff';
   
   let rowsHtml = '';
   rows.forEach((r, idx) => {
+    const isValFilled = !isValorNfEmpty(r.valorNf);
     const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
     rowsHtml += `
       <tr style="background-color: ${bg}; height: 32px;">
@@ -261,22 +302,22 @@ const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasi
         <td style="width: 11%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.bau1 || '-'}</td>
         <td style="width: 11%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.bau2 || '-'}</td>
         <td style="width: 18%; padding: 6px 4px; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; text-transform: uppercase;">${r.trecho || '-'}</td>
-        <td style="width: 12%; padding: 6px 8px; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; color: #0f172a; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;">${r.valorNf || '0,00'}</td>
+        <td style="width: 12%; padding: 6px 8px; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; color: ${type === 'ida' && isValFilled ? '#946c15' : '#0f172a'}; font-weight: bold; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;">${r.valorNf || '0,00'}</td>
       </tr>`;
   });
 
   return `
     <div style="width: 100%; max-width: 950px; box-sizing: border-box; margin: 10px 0;">
-      <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; border: 1px solid #94a3b8; background-color: #ffffff;">
+      <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; border: 1px solid ${type === 'ida' ? '#D9AD5A' : '#94a3b8'}; background-color: #ffffff;">
         <thead>
-          <tr style="background-color: ${headerBg}; color: #ffffff; height: 36px;">
-            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">DATA</th>
-            <th style="width: 25%; text-align: left; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 8px; border: 1px solid ${headerBg};">MOTORISTA</th>
-            <th style="width: 12%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">PLACA</th>
-            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">BAÚ 1</th>
-            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">BAÚ 2</th>
-            <th style="width: 18%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBg};">TRECHO</th>
-            <th style="width: 12%; text-align: right; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 8px; border: 1px solid ${headerBg};">VALOR NF</th>
+          <tr style="background-color: ${headerBg}; color: ${headerColor}; height: 36px;">
+            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBorder}; color: ${headerColor};">DATA</th>
+            <th style="width: 25%; text-align: left; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 8px; border: 1px solid ${headerBorder}; color: ${headerColor};">MOTORISTA</th>
+            <th style="width: 12%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBorder}; color: ${headerColor};">PLACA</th>
+            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBorder}; color: ${headerColor};">BAÚ 1</th>
+            <th style="width: 11%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBorder}; color: ${headerColor};">BAÚ 2</th>
+            <th style="width: 18%; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 4px; border: 1px solid ${headerBorder}; color: ${headerColor};">TRECHO</th>
+            <th style="width: 12%; text-align: right; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 8px; border: 1px solid ${headerBorder}; color: ${headerColor};">VALOR NF</th>
           </tr>
         </thead>
         <tbody>
@@ -307,7 +348,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     const unsubscribeSM = onValue(smRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        if (data.ida) setIdaRows(data.ida);
+        if (data.ida) setIdaRows(sortSMRowsByValorNf(data.ida));
         if (data.volta) setVoltaRows(data.volta);
         if (data.nordeste) setNordesteRows(data.nordeste);
         if (data.vespasiano) setVespasianoRows(data.vespasiano);
@@ -1042,6 +1083,30 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     saveVolta([...voltaRows, ...newVoltaRows], true);
   };
 
+  const sortRowsByValorNf = (section: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
+    const currentRows = section === 'ida' 
+      ? [...idaRows] 
+      : section === 'volta' 
+      ? [...voltaRows] 
+      : section === 'nordeste' 
+      ? [...nordesteRows] 
+      : [...vespasianoRows];
+
+    if (currentRows.length === 0) return;
+
+    const sorted = sortSMRowsByValorNf(currentRows);
+
+    if (section === 'ida') {
+      saveIda(sorted, true);
+    } else if (section === 'volta') {
+      saveVolta(sorted, true);
+    } else if (section === 'nordeste') {
+      saveNordeste(sorted, true);
+    } else {
+      saveVespasiano(sorted, true);
+    }
+  };
+
   const calculateTotal = () => {
     const sum = calcValues.reduce((acc, curr) => {
       const val = parseFloat(curr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
@@ -1131,7 +1196,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         <p>Segue relatórios de SM - Ida, Volta, Nordeste e Vespasiano.</p>
         
         <div style="margin-top: 20px;">
-          <h3 style="color: #14325c; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA IDA ---</h3>
+          <h3 style="color: #D9AD5A; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 800;">--- ROTA IDA (PRETO E DOURADO) ---</h3>
           <p style="font-size: 13px;">${greeting},</p>
           <p style="font-size: 13px;">Seguem em anexo as solicitações de monitoramento para as escalas de viagem para o dia: <strong>${getJourneyDate(idaRows)}</strong>!</p>
           ${generateStyledTableHtml(idaRows, 'ida')}
@@ -1228,7 +1293,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             const countVesp = vespasianoRows.length;
 
             const routesStats = [
-              { name: 'ROTA IDA (AZUL)', count: countIda, percentage: totalSmVehicles > 0 ? (countIda / totalSmVehicles) * 100 : 100, barColor: 'from-[#D9AD5A] to-[#B77A25]', dotBg: 'bg-[#D9AD5A]', badge: 'IDA' },
+              { name: 'ROTA IDA (PRETO E DOURADO)', count: countIda, percentage: totalSmVehicles > 0 ? (countIda / totalSmVehicles) * 100 : 100, barColor: 'from-[#D9AD5A] to-[#B77A25]', dotBg: 'bg-[#D9AD5A]', badge: 'IDA' },
               { name: 'ROTA VOLTA (VERMELHO)', count: countVolta, percentage: totalSmVehicles > 0 ? (countVolta / totalSmVehicles) * 100 : 0, barColor: 'from-rose-600 to-red-800', dotBg: 'bg-rose-600', badge: 'VOLTA' },
               { name: 'ROTA VESPASIANO (VERDE)', count: countVesp, percentage: totalSmVehicles > 0 ? (countVesp / totalSmVehicles) * 100 : 0, barColor: 'from-emerald-600 to-green-800', dotBg: 'bg-emerald-600', badge: 'VESP' }
             ].sort((a, b) => b.count - a.count);
@@ -1326,42 +1391,58 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             {/* Main Work Area */}
             <div className="xl:col-span-3 space-y-4">
               
-              {/* ROTA IDA (Azul) */}
+              {/* ROTA IDA (Preto com Dourado) */}
               {(internalView === 'all' || internalView === 'ida') && (
               <section className="space-y-3 font-sans">
-                <div className="flex items-center justify-between bg-[#131619] text-white p-3.5 rounded-xl shadow-lg border border-[#C9973E]/25">
+                <div className="flex items-center justify-between bg-gradient-to-r from-[#080A0C] via-[#101316] to-[#1C160B] text-white p-3.5 rounded-xl shadow-xl border border-[#D9AD5A]/40">
                   <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#E5C27A] animate-pulse" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#E5C27A] shadow-[0_0_10px_#D9AD5A] animate-pulse" />
                     <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                      <TrendingUp size={16} className="text-[#E5C27A]" /> Rota Ida
+                      <TrendingUp size={16} className="text-[#E5C27A]" /> 
+                      <span className="text-[#FFE4A0] drop-shadow-sm">Rota Ida</span>
                     </h3>
-                    <span className="text-[10px] font-mono font-bold bg-[#C9973E]/20 text-[#E5C27A] border border-[#C9973E]/30 px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-xs">
-                      DOURADO / VIP
+                    <span className="text-[10px] font-mono font-black bg-gradient-to-r from-[#D9AD5A]/25 to-[#B77A25]/25 text-[#E5C27A] border border-[#D9AD5A]/50 px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-[0_0_12px_rgba(217,173,90,0.2)]">
+                      PRETO & DOURADO / VIP
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => setIsIdaMaximized(!isIdaMaximized)}
-                      className="px-3 py-1.5 rounded-lg text-[10px] bg-[#171A1C] hover:bg-[#202428] text-[#A8A39A] hover:text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-white/10"
+                      className="px-3 py-1.5 rounded-lg text-[10px] bg-[#0A0D0F] hover:bg-[#1A150B] text-[#E5C27A] hover:text-[#FFE4A0] font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#D9AD5A]/30"
                     >
                       {isIdaMaximized ? 'Minimizar' : 'Maximizar'}
                     </button>
+
+                    {/* Botão de Ordenar por Valor NF: Valores no topo, vazios no final */}
+                    {idaRows.length > 0 && (
+                      <button
+                        onClick={() => sortRowsByValorNf('ida')}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#120F08] hover:bg-[#20180B] text-[#E5C27A] hover:text-[#FFE4A0] border border-[#D9AD5A]/50 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer group/sortBtn"
+                        title="Mandar informações vazias para o final e valores adicionados para o topo"
+                      >
+                        <ArrowDownUp size={12} className="text-[#D9AD5A] group-hover/sortBtn:scale-125 transition-transform" />
+                        <span>Ordenar por Valor</span>
+                      </button>
+                    )}
+
                     <button 
                       onClick={() => addNewRow('ida')}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-mono font-black uppercase tracking-wider transition-all shadow-md cursor-pointer hover:brightness-110"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] text-[#080A0C] font-mono font-black uppercase tracking-wider transition-all shadow-md cursor-pointer hover:brightness-110 active:scale-95"
                     >
                       <Plus size={12} /> Add Linha
                     </button>
+
                     {idaRows.length > 0 && (
                       <button 
                         onClick={copyIdaToVolta}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-emerald-500/30"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-emerald-950/70 hover:bg-emerald-900/90 text-emerald-300 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-emerald-500/30"
                         title="Enviar dados da Ida para Volta (Invertendo Trecho)"
                       >
                         <ArrowRightLeft size={12} /> Enviar para Volta
                       </button>
                     )}
+
                     {idaRows.length > 0 && (
                       <button 
                         onClick={() => copySection(idaRows, 'ROTA IDA', setIdaCopied)}
@@ -1369,13 +1450,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                           "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
                           idaCopied 
                             ? "bg-emerald-600 text-white border-emerald-500" 
-                            : "bg-[#171A1C] hover:bg-[#202428] text-[#E5C27A] border-[#C9973E]/30"
+                            : "bg-[#0A0D0F] hover:bg-[#1A150B] text-[#E5C27A] border-[#D9AD5A]/40"
                         )}
                       >
                         {idaCopied ? <Check size={12} /> : <Copy size={12} />}
                         {idaCopied ? 'Copiado!' : 'Copiar Ida'}
                       </button>
                     )}
+
                     <button onClick={() => saveIda([], true)} className="text-[10px] font-mono font-bold text-red-400 hover:text-red-300 uppercase tracking-tight cursor-pointer pl-2">Limpar</button>
                   </div>
                 </div>
@@ -1385,187 +1467,213 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   isIdaMaximized ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"
                 )}>
                   {/* Styled Table Frame */}
-                  <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-2 shadow-xl overflow-hidden relative">
+                  <div className="bg-[#0A0D0F] border border-[#D9AD5A]/35 rounded-2xl p-2.5 shadow-2xl overflow-hidden relative">
                     {idaRows.length === 0 ? (
-                      <div className="p-8 flex flex-col items-center justify-center text-center bg-[#080A0C] border border-dashed border-[#C9973E]/25 rounded-xl">
-                        <Clipboard className="text-[#C9973E]/40 w-8 h-8 mb-2" />
-                        <p className="text-xs text-[#A8A39A] mb-3 font-bold font-mono">Cole aqui as informações da Rota Ida ou adicione manualmente</p>
+                      <div className="p-8 flex flex-col items-center justify-center text-center bg-[#050708] border border-dashed border-[#D9AD5A]/30 rounded-xl">
+                        <Clipboard className="text-[#D9AD5A]/60 w-8 h-8 mb-2" />
+                        <p className="text-xs text-[#E5C27A]/90 mb-3 font-bold font-mono">Cole aqui as informações da Rota Ida ou adicione manualmente</p>
                         <div className="flex flex-col gap-2.5 w-full max-w-md">
                           <textarea 
                             onPaste={(e) => handlePaste(e, 'ida')}
                             placeholder="Ctrl+V aqui para colar escala..."
-                            className="w-full h-20 bg-[#131619] border border-[#C9973E]/30 rounded-xl p-3 text-xs font-mono text-white font-bold outline-none placeholder-[#7A756D] focus:border-[#D9AD5A] resize-none"
+                            className="w-full h-20 bg-[#0A0D0F] border border-[#D9AD5A]/40 rounded-xl p-3 text-xs font-mono text-white font-bold outline-none placeholder-[#7A756D] focus:border-[#D9AD5A] focus:ring-1 focus:ring-[#D9AD5A]/40 resize-none shadow-inner"
                           />
                           <button 
                             onClick={() => addNewRow('ida')}
-                            className="w-full py-2.5 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] hover:brightness-110 text-[#080A0C] rounded-xl text-xs font-mono font-black uppercase transition-colors cursor-pointer shadow-md"
+                            className="w-full py-2.5 bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] rounded-xl text-xs font-mono font-black uppercase transition-colors cursor-pointer shadow-md active:scale-[0.98]"
                           >
                             <Plus size={14} className="inline mr-1" /> Adicionar linha manualmente
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto rounded-lg border border-[#C9973E]/20 shadow-xs">
+                      <div className="overflow-x-auto rounded-xl border border-[#D9AD5A]/25 shadow-inner">
                         <table className="w-full text-left border-collapse font-sans">
                           <thead>
-                            <tr className="bg-gradient-to-r from-[#080A0C] via-[#101214] to-[#1C160F] border-b border-[#C9973E]/30 text-[#E5C27A] text-[11px] uppercase font-mono font-bold tracking-wider h-10">
-                              <th className="px-2 py-2 w-8 text-center text-[#E5C27A]">#</th>
-                              <th className="px-2 py-2 w-10 text-center text-[#E5C27A]">OK</th>
-                              <th className="px-2 py-2 w-28 text-center text-[#E5C27A]">DATA</th>
-                              <th className="px-2 py-2 text-[#E5C27A]">MOTORISTA</th>
-                              <th className="px-2 py-2 w-28 text-center text-white">PLACA</th>
-                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 1</th>
-                              <th className="px-2 py-2 w-24 text-center text-white">BAÚ 2</th>
-                              <th className="px-2 py-2 text-center text-white">TRECHO</th>
-                              <th className="px-2 py-2 w-20 text-center text-white">ROTAS</th>
-                              <th className="px-2 py-2 w-32 text-right text-white">VALOR NF</th>
-                              <th className="px-2 py-2 w-12 text-center text-white">AÇÕES</th>
+                            <tr className="bg-gradient-to-r from-[#050708] via-[#0E1114] to-[#181309] border-b-2 border-[#D9AD5A]/40 text-[#E5C27A] text-[11px] uppercase font-mono font-bold tracking-wider h-11">
+                              <th className="px-2 py-2.5 w-8 text-center text-[#D9AD5A]">#</th>
+                              <th className="px-2 py-2.5 w-10 text-center text-[#D9AD5A]">OK</th>
+                              <th className="px-2 py-2.5 w-28 text-center text-[#E5C27A]">DATA</th>
+                              <th className="px-2 py-2.5 text-[#E5C27A]">MOTORISTA</th>
+                              <th className="px-2 py-2.5 w-28 text-center text-[#E5C27A]">PLACA</th>
+                              <th className="px-2 py-2.5 w-24 text-center text-[#E5C27A]">BAÚ 1</th>
+                              <th className="px-2 py-2.5 w-24 text-center text-[#E5C27A]">BAÚ 2</th>
+                              <th className="px-2 py-2.5 text-center text-[#E5C27A]">TRECHO</th>
+                              <th className="px-2 py-2.5 w-20 text-center text-[#E5C27A]">ROTAS</th>
+                              <th 
+                                onClick={() => sortRowsByValorNf('ida')}
+                                className="px-2 py-2.5 w-36 text-right text-[#E5C27A] hover:text-[#FFE4A0] cursor-pointer select-none group/sort transition-colors"
+                                title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                              >
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <span>VALOR NF</span>
+                                  <ArrowDownUp size={12} className="text-[#D9AD5A] group-hover/sort:scale-125 transition-transform" />
+                                </div>
+                              </th>
+                              <th className="px-2 py-2.5 w-12 text-center text-[#E5C27A]">AÇÕES</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-[#131619] divide-y divide-white/5">
-                            {idaRows.map((row, i) => (
-                              <tr key={i} className="text-xs text-white group/row font-bold hover:bg-white/[0.04] transition-colors">
-                                <td className="p-1.5 text-center text-[#7A756D] font-mono text-xs w-8">
-                                  {i + 1}
-                                </td>
-                                <td className="p-1.5 text-center w-10">
-                                  <button
-                                    type="button"
-                                    onClick={() => updateRowValue(i, 'ok', !row.ok, 'ida')}
-                                    className={cn(
-                                      "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
-                                      row.ok 
-                                        ? "bg-emerald-600 border-emerald-500 text-white shadow-xs" 
-                                        : "bg-[#080A0C] border-white/20 text-transparent hover:border-emerald-500"
-                                    )}
-                                    title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
-                                  >
-                                    <Check size={12} className="stroke-[3]" />
-                                  </button>
-                                </td>
-                                <td className="p-1.5">
-                                  <input 
-                                    type="text"
-                                    value={row.dataSaida}
-                                    onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'ida')}
-                                    className="w-full bg-[#080A0C] border border-[#C9973E]/25 text-white font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] outline-none transition-all uppercase text-xs"
-                                  />
-                                </td>
-                                <td className="p-1.5 group/cell">
-                                  <div className="flex items-center gap-1.5">
+                          <tbody className="bg-[#080A0C] divide-y divide-[#D9AD5A]/10">
+                            {idaRows.map((row, i) => {
+                              const hasValue = !isValorNfEmpty(row.valorNf);
+                              return (
+                                <tr 
+                                  key={i} 
+                                  className={cn(
+                                    "text-xs text-white group/row font-bold transition-colors",
+                                    hasValue 
+                                      ? "bg-[#141008]/50 hover:bg-[#1E170B]/70" 
+                                      : "hover:bg-white/[0.03]"
+                                  )}
+                                >
+                                  <td className="p-1.5 text-center text-[#D9AD5A]/70 font-mono text-xs w-8">
+                                    {i + 1}
+                                  </td>
+                                  <td className="p-1.5 text-center w-10">
+                                    <button
+                                      type="button"
+                                      onClick={() => updateRowValue(i, 'ok', !row.ok, 'ida')}
+                                      className={cn(
+                                        "w-5 h-5 mx-auto flex items-center justify-center rounded border transition-all cursor-pointer",
+                                        row.ok 
+                                          ? "bg-gradient-to-br from-[#D9AD5A] to-[#B77A25] border-[#FFE4A0] text-[#080A0C] shadow-xs" 
+                                          : "bg-[#050708] border-[#D9AD5A]/30 text-transparent hover:border-[#D9AD5A]"
+                                      )}
+                                      title={row.ok ? "Marcar como pendente" : "Marcar como OK"}
+                                    >
+                                      <Check size={12} className="stroke-[3]" />
+                                    </button>
+                                  </td>
+                                  <td className="p-1.5">
                                     <input 
                                       type="text"
-                                      value={row.motorista}
-                                      onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'ida')}
-                                      className="w-full bg-[#080A0C] border border-[#C9973E]/25 text-white font-extrabold rounded-md py-1.5 px-2.5 focus:border-[#D9AD5A] outline-none transition-all uppercase text-xs"
+                                      value={row.dataSaida}
+                                      onChange={(e) => updateRowValue(i, 'dataSaida', e.target.value, 'ida')}
+                                      className="w-full bg-[#050708] border border-[#D9AD5A]/25 text-[#F4F0E8] font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] focus:ring-1 focus:ring-[#D9AD5A]/30 outline-none transition-all uppercase text-xs"
                                     />
-                                    <button 
-                                      onClick={() => safeCopyText(row.motorista)}
-                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#C9973E]/20 hover:bg-[#C9973E]/40 rounded text-[#E5C27A] transition-all shrink-0 cursor-pointer"
-                                      title="Copiar Motorista"
-                                    >
-                                      <Copy size={12} />
-                                    </button>
-                                  </div>
-                                </td>
-                                <td className="p-1.5 text-center">
-                                  <input 
-                                    type="text"
-                                    value={row.placa}
-                                    onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'ida')}
-                                    className="w-full bg-[#080A0C] border border-[#C9973E]/25 text-[#E5C27A] font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] outline-none transition-all uppercase text-xs font-mono"
-                                  />
-                                </td>
-                                <td className="p-1.5 text-center">
-                                  <input 
-                                    type="text"
-                                    value={row.bau1}
-                                    onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'ida')}
-                                    className="w-full bg-[#080A0C] border border-[#C9973E]/25 text-white font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] outline-none transition-all uppercase text-xs"
-                                  />
-                                </td>
-                                <td className="p-1.5 text-center">
-                                  <input 
-                                    type="text"
-                                    value={row.bau2}
-                                    onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'ida')}
-                                    className="w-full bg-[#080A0C] border border-[#C9973E]/25 text-white font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] outline-none transition-all uppercase text-xs"
-                                  />
-                                </td>
-                                <td className="p-1.5 text-center">
-                                  <input 
-                                    type="text"
-                                    value={row.trecho}
-                                    onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'ida')}
-                                    className="w-full bg-[#080A0C] border border-[#C9973E]/25 text-white font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] outline-none transition-all uppercase text-xs"
-                                  />
-                                </td>
-                                <td className="p-1.5 text-center">
-                                  <div className="bg-[#080A0C] border border-[#C9973E]/30 text-[#E5C27A] font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center" title="Código da rota obtido da página de Rotas">
-                                    {findRouteCode(row.trecho, 'ida', routesList)}
-                                  </div>
-                                </td>
-                                <td className="p-1.5 text-right font-extrabold group/cell">
-                                  <div className="flex items-center justify-end gap-1">
-                                    <button 
-                                      onClick={() => openPdfModal('ida', i)}
-                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#C9973E]/15 hover:bg-[#C9973E]/30 rounded text-[#E5C27A] transition-all shrink-0 cursor-pointer"
-                                      title="Importar PDFs de NFs para esta linha"
-                                    >
-                                      <FileText size={12} />
-                                    </button>
-                                    <button 
-                                      onClick={() => safeCopyText(row.valorNf)}
-                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-red-600/10 hover:bg-red-600/20 rounded text-[#0F2D59] transition-all shrink-0 cursor-pointer"
-                                      title="Copiar Valor"
-                                    >
-                                      <Copy size={12} />
-                                    </button>
-                                    <input 
-                                      type="text"
-                                      value={row.valorNf}
-                                      onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
-                                      className="w-full bg-[#080A0C] border border-[#C9973E]/25 text-white font-extrabold rounded-md py-1.5 px-2 text-right focus:border-[#D9AD5A] outline-none transition-all text-xs"
-                                    />
-                                  </div>
-                                </td>
-                                <td className="p-1.5 text-center">
-                                  <div className="flex items-center justify-center gap-1">
-                                    <div className="flex flex-col gap-0.5">
+                                  </td>
+                                  <td className="p-1.5 group/cell">
+                                    <div className="flex items-center gap-1.5">
+                                      <input 
+                                        type="text"
+                                        value={row.motorista}
+                                        onChange={(e) => updateRowValue(i, 'motorista', e.target.value, 'ida')}
+                                        className="w-full bg-[#050708] border border-[#D9AD5A]/25 text-[#F4F0E8] font-extrabold rounded-md py-1.5 px-2.5 focus:border-[#D9AD5A] focus:ring-1 focus:ring-[#D9AD5A]/30 outline-none transition-all uppercase text-xs"
+                                      />
                                       <button 
-                                        onClick={() => moveRow(i, 'up', 'ida')}
-                                        disabled={i === 0}
-                                        className={cn(
-                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
-                                          i === 0 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
-                                        )}
-                                        title="Mover para cima"
+                                        onClick={() => safeCopyText(row.motorista)}
+                                        className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#D9AD5A]/15 hover:bg-[#D9AD5A]/30 border border-[#D9AD5A]/30 rounded text-[#E5C27A] transition-all shrink-0 cursor-pointer"
+                                        title="Copiar Motorista"
                                       >
-                                        <ChevronUp size={14} />
-                                      </button>
-                                      <button 
-                                        onClick={() => moveRow(i, 'down', 'ida')}
-                                        disabled={i === idaRows.length - 1}
-                                        className={cn(
-                                          "p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer",
-                                          i === idaRows.length - 1 ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-indigo-600"
-                                        )}
-                                        title="Mover para baixo"
-                                      >
-                                        <ChevronDown size={14} />
+                                        <Copy size={12} />
                                       </button>
                                     </div>
-                                    <button 
-                                      onClick={() => saveIda(idaRows.filter((_, idx) => idx !== i), true)} 
-                                      className="p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors cursor-pointer"
-                                      title="Remover Linha"
-                                    >
-                                      <Trash2 size={15} />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
+                                  </td>
+                                  <td className="p-1.5 text-center">
+                                    <input 
+                                      type="text"
+                                      value={row.placa}
+                                      onChange={(e) => updateRowValue(i, 'placa', e.target.value, 'ida')}
+                                      className="w-full bg-[#050708] border border-[#D9AD5A]/35 text-[#E5C27A] font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] focus:ring-1 focus:ring-[#D9AD5A]/30 outline-none transition-all uppercase text-xs font-mono tracking-wider"
+                                    />
+                                  </td>
+                                  <td className="p-1.5 text-center">
+                                    <input 
+                                      type="text"
+                                      value={row.bau1}
+                                      onChange={(e) => updateRowValue(i, 'bau1', e.target.value, 'ida')}
+                                      className="w-full bg-[#050708] border border-[#D9AD5A]/25 text-[#F4F0E8] font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] focus:ring-1 focus:ring-[#D9AD5A]/30 outline-none transition-all uppercase text-xs"
+                                    />
+                                  </td>
+                                  <td className="p-1.5 text-center">
+                                    <input 
+                                      type="text"
+                                      value={row.bau2}
+                                      onChange={(e) => updateRowValue(i, 'bau2', e.target.value, 'ida')}
+                                      className="w-full bg-[#050708] border border-[#D9AD5A]/25 text-[#F4F0E8] font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] focus:ring-1 focus:ring-[#D9AD5A]/30 outline-none transition-all uppercase text-xs"
+                                    />
+                                  </td>
+                                  <td className="p-1.5 text-center">
+                                    <input 
+                                      type="text"
+                                      value={row.trecho}
+                                      onChange={(e) => updateRowValue(i, 'trecho', e.target.value, 'ida')}
+                                      className="w-full bg-[#050708] border border-[#D9AD5A]/25 text-[#F4F0E8] font-extrabold rounded-md py-1.5 px-2 text-center focus:border-[#D9AD5A] focus:ring-1 focus:ring-[#D9AD5A]/30 outline-none transition-all uppercase text-xs"
+                                    />
+                                  </td>
+                                  <td className="p-1.5 text-center">
+                                    <div className="bg-gradient-to-br from-[#080A0C] to-[#181308] border border-[#D9AD5A]/40 text-[#E5C27A] font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center shadow-[0_0_8px_rgba(217,173,90,0.1)]" title="Código da rota obtido da página de Rotas">
+                                      {findRouteCode(row.trecho, 'ida', routesList)}
+                                    </div>
+                                  </td>
+                                  <td className="p-1.5 text-right font-extrabold group/cell">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <button 
+                                        onClick={() => openPdfModal('ida', i)}
+                                        className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#D9AD5A]/15 hover:bg-[#D9AD5A]/30 border border-[#D9AD5A]/30 rounded text-[#E5C27A] transition-all shrink-0 cursor-pointer"
+                                        title="Importar PDFs de NFs para esta linha"
+                                      >
+                                        <FileText size={12} />
+                                      </button>
+                                      <button 
+                                        onClick={() => safeCopyText(row.valorNf)}
+                                        className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#D9AD5A]/15 hover:bg-[#D9AD5A]/30 border border-[#D9AD5A]/30 rounded text-[#E5C27A] transition-all shrink-0 cursor-pointer"
+                                        title="Copiar Valor"
+                                      >
+                                        <Copy size={12} />
+                                      </button>
+                                      <input 
+                                        type="text"
+                                        value={row.valorNf}
+                                        onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
+                                        placeholder="0,00"
+                                        className={cn(
+                                          "w-full rounded-md py-1.5 px-2 text-right outline-none transition-all text-xs font-mono font-extrabold",
+                                          hasValue 
+                                            ? "bg-[#141008] border border-[#D9AD5A]/60 text-[#FFE4A0] shadow-[0_0_10px_rgba(217,173,90,0.15)] focus:border-[#FFE4A0] focus:ring-1 focus:ring-[#D9AD5A]" 
+                                            : "bg-[#050708] border border-[#D9AD5A]/20 text-[#8C867A] placeholder-[#555048] focus:border-[#D9AD5A] focus:text-white"
+                                        )}
+                                      />
+                                    </div>
+                                  </td>
+                                  <td className="p-1.5 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <div className="flex flex-col gap-0.5">
+                                        <button 
+                                          onClick={() => moveRow(i, 'up', 'ida')}
+                                          disabled={i === 0}
+                                          className={cn(
+                                            "p-0.5 rounded transition-colors cursor-pointer",
+                                            i === 0 ? "text-[#4A453E] cursor-not-allowed" : "text-[#A8A39A] hover:bg-[#1A150B] hover:text-[#E5C27A]"
+                                          )}
+                                          title="Mover para cima"
+                                        >
+                                          <ChevronUp size={14} />
+                                        </button>
+                                        <button 
+                                          onClick={() => moveRow(i, 'down', 'ida')}
+                                          disabled={i === idaRows.length - 1}
+                                          className={cn(
+                                            "p-0.5 rounded transition-colors cursor-pointer",
+                                            i === idaRows.length - 1 ? "text-[#4A453E] cursor-not-allowed" : "text-[#A8A39A] hover:bg-[#1A150B] hover:text-[#E5C27A]"
+                                          )}
+                                          title="Mover para baixo"
+                                        >
+                                          <ChevronDown size={14} />
+                                        </button>
+                                      </div>
+                                      <button 
+                                        onClick={() => saveIda(idaRows.filter((_, idx) => idx !== i), true)} 
+                                        className="p-1.5 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 rounded-lg transition-colors cursor-pointer border border-rose-500/20"
+                                        title="Remover Linha"
+                                      >
+                                        <Trash2 size={15} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -1596,6 +1704,16 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                     >
                       {isVoltaMaximized ? 'Minimizar' : 'Maximizar'}
                     </button>
+                    {voltaRows.length > 0 && (
+                      <button
+                        onClick={() => sortRowsByValorNf('volta')}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-[#200D10] hover:bg-[#301216] text-rose-300 hover:text-white border border-rose-500/40 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer group/sortBtn"
+                        title="Mandar informações vazias para o final e valores adicionados para o topo"
+                      >
+                        <ArrowDownUp size={12} className="text-rose-400 group-hover/sortBtn:scale-125 transition-transform" />
+                        <span>Ordenar por Valor</span>
+                      </button>
+                    )}
                     <button 
                       onClick={() => addNewRow('volta')}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-gradient-to-r from-rose-700 to-red-900 text-white font-mono font-bold uppercase tracking-wider transition-all shadow-md cursor-pointer hover:brightness-110 border border-rose-500/40"
@@ -1658,7 +1776,16 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2 w-24 text-center text-rose-300">BAÚ 2</th>
                               <th className="px-2 py-2 text-center text-rose-300">TRECHO</th>
                               <th className="px-2 py-2 w-20 text-center text-rose-300">ROTAS</th>
-                              <th className="px-2 py-2 w-32 text-right text-rose-300">VALOR NF</th>
+                              <th 
+                                onClick={() => sortRowsByValorNf('volta')}
+                                className="px-2 py-2 w-32 text-right text-rose-300 hover:text-white cursor-pointer select-none group/sort transition-colors"
+                                title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                              >
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <span>VALOR NF</span>
+                                  <ArrowDownUp size={11} className="text-rose-400 group-hover/sort:scale-125 transition-transform" />
+                                </div>
+                              </th>
                               <th className="px-2 py-2 w-12 text-center text-rose-300">AÇÕES</th>
                             </tr>
                           </thead>
@@ -1848,6 +1975,16 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                     >
                       {isNordesteMaximized ? 'Minimizar' : 'Maximizar'}
                     </button>
+                    {nordesteRows.length > 0 && (
+                      <button
+                        onClick={() => sortRowsByValorNf('nordeste')}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-stone-900 hover:bg-stone-800 text-[#E5C27A] hover:text-[#FFE4A0] border border-[#D9AD5A]/30 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer group/sortBtn"
+                        title="Mandar informações vazias para o final e valores adicionados para o topo"
+                      >
+                        <ArrowDownUp size={12} className="text-[#D9AD5A] group-hover/sortBtn:scale-125 transition-transform" />
+                        <span>Ordenar por Valor</span>
+                      </button>
+                    )}
                     <button 
                       onClick={() => addNewRow('nordeste')}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] bg-stone-900 hover:bg-stone-800 text-white font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-stone-700"
@@ -1910,7 +2047,16 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2 w-24 text-center text-[#E5C27A]">BAÚ 2</th>
                               <th className="px-2 py-2 text-center text-[#E5C27A]">TRECHO</th>
                               <th className="px-2 py-2 w-20 text-center text-[#E5C27A]">ROTAS</th>
-                              <th className="px-2 py-2 w-32 text-right text-[#E5C27A]">VALOR NF</th>
+                              <th 
+                                onClick={() => sortRowsByValorNf('nordeste')}
+                                className="px-2 py-2 w-32 text-right text-[#E5C27A] hover:text-[#FFE4A0] cursor-pointer select-none group/sort transition-colors"
+                                title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                              >
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <span>VALOR NF</span>
+                                  <ArrowDownUp size={11} className="text-[#D9AD5A] group-hover/sort:scale-125 transition-transform" />
+                                </div>
+                              </th>
                               <th className="px-2 py-2 w-12 text-center text-[#E5C27A]">AÇÕES</th>
                             </tr>
                           </thead>
@@ -2122,6 +2268,16 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                       </div>
                       
                       <div className="lg:col-span-3 flex items-end justify-start gap-3">
+                        {vespasianoRows.length > 0 && (
+                          <button 
+                            onClick={() => sortRowsByValorNf('vespasiano')}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-[#0C1A14] border border-emerald-500/40 text-emerald-300 hover:text-white hover:bg-emerald-950/60 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer group/sortBtn"
+                            title="Mandar informações vazias para o final e valores adicionados para o topo"
+                          >
+                            <ArrowDownUp size={14} className="text-emerald-400 group-hover/sortBtn:scale-125 transition-transform" />
+                            <span>Ordenar por Valor</span>
+                          </button>
+                        )}
                         <button 
                           onClick={() => addNewRow('vespasiano')}
                           className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:brightness-110 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md cursor-pointer border border-emerald-500/30"
@@ -2150,7 +2306,16 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                             <th className="p-3 text-center border-r border-white/5">Baú 2</th>
                             <th className="p-3 text-center border-r border-white/5">Trecho</th>
                             <th className="p-3 text-center border-r border-white/5">Code</th>
-                            <th className="p-3 text-right border-r border-white/5">Valor NF</th>
+                            <th 
+                              onClick={() => sortRowsByValorNf('vespasiano')}
+                              className="p-3 text-right border-r border-white/5 cursor-pointer select-none group/th text-emerald-300 hover:text-white transition-colors"
+                              title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                            >
+                              <div className="flex items-center justify-end gap-1.5">
+                                <span>Valor NF</span>
+                                <ArrowDownUp size={11} className="text-emerald-400 group-hover/th:scale-125 transition-transform" />
+                              </div>
+                            </th>
                             <th className="p-3 text-center">Ações</th>
                           </tr>
                         </thead>

@@ -51,6 +51,9 @@ import {
   Barcode,
   Container,
   ChevronDown,
+  Crown,
+  Gem,
+  Award,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { rtdb as db } from "../firebase";
@@ -1223,48 +1226,199 @@ export default function Controle({ onBack }: ControleProps) {
     switch (preAlertaTheme) {
       case 'ouro':
         return {
-          headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFEF7 0%, #FEF3C7 35%, #FDE68A 50%, #FDF8E8 70%, #F59E0B 100%)',
-          border: '#D97706',
-          table1Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
-          table2Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 30%, #F59E0B 50%, #FDE68A 70%, #D97706 100%)',
+          headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 22%, #F59E0B 48%, #FDE68A 72%, #B45309 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #FFFEF7 0%, #FEF3C7 28%, #FDE68A 50%, #FDF8E8 72%, #C27803 100%)',
+          border: '#B45309',
+          table1Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
+          table2Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
+          accentColor: '#D97706',
+          glowColor: 'rgba(217, 119, 6, 0.45)',
+          textColor: '#1E1605',
+          texturePattern: 'radial-gradient(circle at 50% 50%, rgba(245,158,11,0.15) 1px, transparent 1px)',
+          name: 'Ouro Imperial',
+          badge: 'OURO 24K • 8K HDR',
+          officeMaterial: 'Gabinete Presidencial • Ouro Nobre & Nogueira Escura',
         };
       case 'bronze':
         return {
-          headerBg: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 30%, #D97757 50%, #F3D2C1 70%, #B45309 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFAF6 0%, #FDE8E1 35%, #F3D2C1 50%, #FAF0EC 70%, #C25E38 100%)',
-          border: '#B45309',
-          table1Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 30%, #D97757 50%, #F3D2C1 70%, #B45309 100%)',
-          table2Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 30%, #D97757 50%, #F3D2C1 70%, #B45309 100%)',
+          headerBg: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #9A3412 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #FFFAF6 0%, #FDE8E1 28%, #F3D2C1 52%, #FAF0EC 74%, #B45309 100%)',
+          border: '#9A3412',
+          table1Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
+          table2Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
+          accentColor: '#C2410C',
+          glowColor: 'rgba(194, 65, 12, 0.4)',
+          textColor: '#2A1208',
+          texturePattern: 'radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 0 0, radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 4px 4px',
+          name: 'Bronze Corporativo',
+          badge: 'BRONZE NOBRE • 8K',
+          officeMaterial: 'Sala de Reuniões • Bronze Nobre & Couro Cognac Escuro',
         };
       case 'rubi':
         return {
-          headerBg: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 30%, #FEB2B2 50%, #FEB2B2 70%, #9B1526 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFAFA 0%, #FED7D7 35%, #FEB2B2 50%, #FFF5F5 70%, #9B1526 100%)',
-          border: '#9B1526',
-          table1Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 30%, #FEB2B2 50%, #FEB2B2 70%, #9B1526 100%)',
-          table2Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 30%, #FEB2B2 50%, #FEB2B2 70%, #9B1526 100%)',
+          headerBg: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #FEB2B2 46%, #FFF5F5 70%, #881337 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #FFFAFA 0%, #FED7D7 28%, #FEB2B2 50%, #FFF5F5 72%, #881337 100%)',
+          border: '#881337',
+          table1Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
+          table2Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
+          accentColor: '#BE123C',
+          glowColor: 'rgba(190, 18, 60, 0.45)',
+          textColor: '#24060E',
+          texturePattern: 'repeating-linear-gradient(45deg, rgba(225,29,72,0.1) 0px, rgba(225,29,72,0.1) 1px, transparent 1px, transparent 6px)',
+          name: 'Rubi Diretoria',
+          badge: 'RUBI REAL • 8K HDR',
+          officeMaterial: 'Sala do Conselho • Laca Rubi Real & Couro Preto Perfurado',
         };
       case 'gelo':
         return {
-          headerBg: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 30%, #BAE6FD 50%, #E0F2FE 70%, #0284C7 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #E0F2FE 35%, #BAE6FD 50%, #F0F9FF 70%, #0284C7 100%)',
-          border: '#0284C7',
-          table1Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 30%, #BAE6FD 50%, #E0F2FE 70%, #0284C7 100%)',
-          table2Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 30%, #BAE6FD 50%, #E0F2FE 70%, #0284C7 100%)',
+          headerBg: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #BAE6FD 48%, #E0F2FE 72%, #0369A1 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #E0F2FE 28%, #BAE6FD 50%, #F0F9FF 72%, #0369A1 100%)',
+          border: '#0369A1',
+          table1Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
+          table2Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
+          accentColor: '#0284C7',
+          glowColor: 'rgba(2, 132, 199, 0.45)',
+          textColor: '#032030',
+          texturePattern: 'radial-gradient(circle at 50% 50%, rgba(56,189,248,0.14) 1px, transparent 1px)',
+          name: 'Gelo Safira',
+          badge: 'SAFIRA CRISTAL • 8K',
+          officeMaterial: 'Centro de Comando Executivo • Titânio Fosco & Safira Polar',
         };
       case 'prata':
       default:
         return {
-          headerBg: 'linear-gradient(180deg,#FFFFFF_0%,#E8EDF1_25%,#C2CCD4_50%,#E8EDF1_75%,#B0BAC3_100%)',
-          subHeaderBg: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
-          border: '#929FA9',
-          table1Header: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
-          table2Header: 'linear-gradient(180deg,#FFFFFF_0%,#DDE4E9_35%,#AAB6C0_50%,#EEF2F5_70%,#B7C2CA_100%)',
+          headerBg: 'linear-gradient(180deg, #FFFFFF 0%, #F1F4F7 25%, #C5D0D9 50%, #E8EDF2 75%, #9AA7B2 100%)',
+          subHeaderBg: 'linear-gradient(180deg, #FFFFFF 0%, #E3E9EE 30%, #AEBAC4 55%, #EDF2F5 75%, #9AA7B2 100%)',
+          border: '#7B8893',
+          table1Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
+          table2Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
+          accentColor: '#8B98A3',
+          glowColor: 'rgba(160, 175, 190, 0.4)',
+          textColor: '#151B20',
+          texturePattern: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px)',
+          name: 'Prata Executiva',
+          badge: 'CROMO & AÇO 8K',
+          officeMaterial: 'Mesa de Diretoria • Aço Escovado & Titânio Platinum',
         };
     }
   };
   const themeStyles = getThemeStyles();
+
+  const PRE_ALERTA_THEME_LIST: Array<{
+    id: 'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo';
+    name: string;
+    badge: string;
+    officeMaterial: string;
+    resolution: string;
+    accent: string;
+    border: string;
+    textColor: string;
+    headerBg: string;
+    subHeaderBg: string;
+    table1Header: string;
+    table2Header: string;
+    cardPreviewGradient: string;
+    orbGradient: string;
+    glow: string;
+    texturePattern: string;
+    icon: React.ReactNode;
+  }> = [
+    {
+      id: 'prata',
+      name: 'Prata Executiva',
+      badge: 'CROMO & AÇO 8K',
+      officeMaterial: 'Mesa de Diretoria • Aço Escovado & Titânio',
+      resolution: '8K ULTRA-HD',
+      accent: '#8B98A3',
+      border: '#7B8893',
+      textColor: '#151B20',
+      headerBg: 'linear-gradient(180deg, #FFFFFF 0%, #F1F4F7 25%, #C5D0D9 50%, #E8EDF2 75%, #9AA7B2 100%)',
+      subHeaderBg: 'linear-gradient(180deg, #FFFFFF 0%, #E3E9EE 30%, #AEBAC4 55%, #EDF2F5 75%, #9AA7B2 100%)',
+      table1Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
+      table2Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
+      cardPreviewGradient: 'linear-gradient(135deg, #242B32 0%, #151A1E 50%, #0D1013 100%)',
+      orbGradient: 'radial-gradient(circle at 35% 35%, #FFFFFF 0%, #DDE4E9 35%, #7A8995 70%, #2A333A 100%)',
+      glow: 'rgba(160, 175, 190, 0.4)',
+      texturePattern: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px)',
+      icon: <Award size={14} className="text-[#151B20]" />,
+    },
+    {
+      id: 'ouro',
+      name: 'Ouro Imperial',
+      badge: 'OURO 24K • 8K HDR',
+      officeMaterial: 'Gabinete Presidencial • Ouro Nobre & Nogueira',
+      resolution: '8K ULTRA-HD',
+      accent: '#D97706',
+      border: '#B45309',
+      textColor: '#1E1605',
+      headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 22%, #F59E0B 48%, #FDE68A 72%, #B45309 100%)',
+      subHeaderBg: 'linear-gradient(180deg, #FFFEF7 0%, #FEF3C7 28%, #FDE68A 50%, #FDF8E8 72%, #C27803 100%)',
+      table1Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
+      table2Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
+      cardPreviewGradient: 'linear-gradient(135deg, #2A210F 0%, #1A1407 50%, #0E0B04 100%)',
+      orbGradient: 'radial-gradient(circle at 35% 35%, #FFFDF0 0%, #FDE68A 35%, #D97706 70%, #78350F 100%)',
+      glow: 'rgba(217, 119, 6, 0.45)',
+      texturePattern: 'radial-gradient(circle at 50% 50%, rgba(245,158,11,0.15) 1px, transparent 1px)',
+      icon: <Crown size={14} className="text-[#3A2402]" />,
+    },
+    {
+      id: 'bronze',
+      name: 'Bronze Corporativo',
+      badge: 'BRONZE NOBRE • 8K',
+      officeMaterial: 'Sala de Reuniões • Bronze Nobre & Couro Cognac',
+      resolution: '8K ULTRA-HD',
+      accent: '#C2410C',
+      border: '#9A3412',
+      textColor: '#2A1208',
+      headerBg: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #9A3412 100%)',
+      subHeaderBg: 'linear-gradient(180deg, #FFFAF6 0%, #FDE8E1 28%, #F3D2C1 52%, #FAF0EC 74%, #B45309 100%)',
+      table1Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
+      table2Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
+      cardPreviewGradient: 'linear-gradient(135deg, #281912 0%, #1A100B 50%, #100A06 100%)',
+      orbGradient: 'radial-gradient(circle at 35% 35%, #FFF7ED 0%, #FDBA74 35%, #EA580C 70%, #6C2710 100%)',
+      glow: 'rgba(194, 65, 12, 0.4)',
+      texturePattern: 'radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 0 0, radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 4px 4px',
+      icon: <Building2 size={14} className="text-[#200E06]" />,
+    },
+    {
+      id: 'rubi',
+      name: 'Rubi Diretoria',
+      badge: 'RUBI REAL • 8K HDR',
+      officeMaterial: 'Sala do Conselho • Laca Rubi & Couro Preto',
+      resolution: '8K ULTRA-HD',
+      accent: '#BE123C',
+      border: '#881337',
+      textColor: '#24060E',
+      headerBg: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #FEB2B2 46%, #FFF5F5 70%, #881337 100%)',
+      subHeaderBg: 'linear-gradient(180deg, #FFFAFA 0%, #FED7D7 28%, #FEB2B2 50%, #FFF5F5 72%, #881337 100%)',
+      table1Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
+      table2Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
+      cardPreviewGradient: 'linear-gradient(135deg, #2A1017 0%, #1B0A0F 50%, #100609 100%)',
+      orbGradient: 'radial-gradient(circle at 35% 35%, #FFF1F2 0%, #FDA4AF 35%, #E11D48 70%, #4C0519 100%)',
+      glow: 'rgba(190, 18, 60, 0.45)',
+      texturePattern: 'repeating-linear-gradient(45deg, rgba(225,29,72,0.1) 0px, rgba(225,29,72,0.1) 1px, transparent 1px, transparent 6px)',
+      icon: <Gem size={14} className="text-[#FFFFFF]" />,
+    },
+    {
+      id: 'gelo',
+      name: 'Gelo Safira',
+      badge: 'SAFIRA CRISTAL • 8K',
+      officeMaterial: 'Centro de Comando • Titânio Fosco & Safira Polar',
+      resolution: '8K ULTRA-HD',
+      accent: '#0284C7',
+      border: '#0369A1',
+      textColor: '#032030',
+      headerBg: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #BAE6FD 48%, #E0F2FE 72%, #0369A1 100%)',
+      subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #E0F2FE 28%, #BAE6FD 50%, #F0F9FF 72%, #0369A1 100%)',
+      table1Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
+      table2Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
+      cardPreviewGradient: 'linear-gradient(135deg, #0F2332 0%, #091721 50%, #050E15 100%)',
+      orbGradient: 'radial-gradient(circle at 35% 35%, #F0F9FF 0%, #7DD3FC 35%, #0284C7 70%, #082F49 100%)',
+      glow: 'rgba(2, 132, 199, 0.45)',
+      texturePattern: 'radial-gradient(circle at 50% 50%, rgba(56,189,248,0.14) 1px, transparent 1px)',
+      icon: <Sparkles size={14} className="text-[#022336]" />,
+    },
+  ];
 
   // Isca positions (addresses, times and battery level) matching the image exactly
   const [isca1Endereco, setIsca1Endereco] = useState("");
@@ -3940,15 +4094,51 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                 {/* 5. BIG INTERACTIVE SPREADSHEET TABLE 1 */}
                 <div className="flex items-center justify-between gap-2 mb-3 bg-gradient-to-b from-[#FFFFFF] via-[#F4F7FA] to-[#E8EDF1] p-2.5 rounded-2xl border border-[#BFC9D1] shadow-[0_4px_12px_rgba(30,40,50,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => setIsColumnConfigOpen(true)}
-                    className="flex items-center gap-2 bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#151B20] font-black uppercase text-[9.5px] tracking-wider px-3.5 py-1.5 rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.9)] border border-[#929FA9] transition-all cursor-pointer select-none active:scale-95"
-                    title="Mover colunas e ajustar tamanhos manualmente"
-                  >
-                    <Sliders size={13} className="text-[#303A42]" />
-                    <span>⚙️ Organizar Colunas & Tamanhos</span>
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setIsColumnConfigOpen(true)}
+                      className="flex items-center gap-2 bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#151B20] font-black uppercase text-[9.5px] tracking-wider px-3.5 py-1.5 rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.9)] border border-[#929FA9] transition-all cursor-pointer select-none active:scale-95"
+                      title="Mover colunas e ajustar tamanhos manualmente"
+                    >
+                      <Sliders size={13} className="text-[#303A42]" />
+                      <span>⚙️ Organizar Colunas & Tamanhos</span>
+                    </button>
+
+                    {/* Quick 3D Executive Theme Switcher */}
+                    <div className="flex items-center gap-1 bg-[#10161C] p-1 rounded-xl border border-stone-700/70 shadow-inner">
+                      <span className="text-[9px] font-mono font-black text-[#F2CE78] uppercase px-1.5 flex items-center gap-1 select-none">
+                        <Sparkles size={10} className="text-[#D4A94F]" /> Temas 3D:
+                      </span>
+                      {PRE_ALERTA_THEME_LIST.map((t) => {
+                        const isSel = preAlertaTheme === t.id;
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setPreAlertaTheme(t.id)}
+                            className={cn(
+                              "flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono font-black uppercase tracking-wider transition-all cursor-pointer select-none",
+                              isSel
+                                ? "bg-stone-800 text-white shadow-sm border"
+                                : "text-stone-400 hover:text-white hover:bg-white/5"
+                            )}
+                            style={{
+                              borderColor: isSel ? t.border : 'transparent',
+                              boxShadow: isSel ? `0 0 8px ${t.glow}` : undefined,
+                            }}
+                            title={`${t.name} • ${t.officeMaterial}`}
+                          >
+                            <span 
+                              className="w-2 h-2 rounded-full inline-block shadow-xs" 
+                              style={{ background: t.orbGradient }}
+                            />
+                            <span>{t.name.split(' ')[0]}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2">
                     {numCarretas === 1 ? (
                       <button
@@ -4776,11 +4966,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                 {/* 6. INTERACTIVE ESQUEMA DE EMBARQUE (LADDERS) */}
                 {!ocultarNotas && (
-                  <div className="mt-6 border-t border-stone-300/80 pt-5">
-                    <span className="text-[13px] font-extrabold uppercase block mt-[20px] mb-[15px] text-stone-900 font-sans border-b border-stone-200 pb-2">
+                  <div className="mt-6 border-t border-stone-700/60 pt-5">
+                    <span className="text-[13px] font-black uppercase block mt-[20px] mb-[15px] text-red-400 font-sans border-b border-stone-700/60 pb-2">
                       ESQUEMA DE EMBARQUE DAS ISCAS:
                     </span>
-                    <p className="text-[10px] text-stone-500 font-extrabold uppercase tracking-wider mb-4">
+                    <p className="text-[10px] text-stone-300 font-extrabold uppercase tracking-wider mb-4">
                       {sidebarEmbarque1 || sidebarEmbarque2
                         ? "Imagem do esquema de embarque selecionada! Ela será incluída no e-mail."
                         : 'Clique nas células para marcar/desmarcar a isca ("P"). Esse esquema será copiado visualmente para o e-mail!'}
@@ -4798,7 +4988,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         )}>
                           {sidebarEmbarque1 ? (
                             <div className="w-full flex flex-col">
-                              <div className="bg-white border border-stone-300 p-2.5 text-center shadow-sm w-[320px] h-[420px] flex items-center justify-center box-border rounded-lg">
+                              <div className="bg-[#12181b] border border-stone-700/80 p-3 text-center shadow-xl w-[320px] h-[420px] flex items-center justify-center box-border rounded-2xl">
                                 <img
                                   src={sidebarEmbarque1}
                                   alt="Esquema"
@@ -4809,22 +4999,22 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       e.currentTarget.src = fallback;
                                     }
                                   }}
-                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-white mx-auto block border-0"
+                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-[#141c21] rounded-xl mx-auto block border border-stone-800 p-2"
                                 />
                               </div>
                               <div className="text-center mt-[15px]">
-                                <span className="text-[11px] font-black text-stone-900 uppercase">
-                                  CARRETA 1: {carreta1}
+                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                  CARRETA 1: {carreta1 || "S/ PLACA"}
                                 </span>
                               </div>
                             </div>
                           ) : (
                             <div className="flex flex-col items-center w-full">
                               <div className="h-[350px] flex flex-col items-center justify-start pt-[15px]">
-                                <div className="bg-[#1f1915] text-white font-extrabold text-[8px] uppercase w-[50px] py-[3px] text-center border border-stone-900 tracking-normal rounded-t">
+                                <div className="bg-[#1f1915] text-white font-extrabold text-[8px] uppercase w-[50px] py-[3px] text-center border border-stone-700 tracking-normal rounded-t">
                                   ESCALA 01
                                 </div>
-                                <div className="grid grid-cols-2 gap-0 border border-stone-400 bg-white w-[50px]">
+                                <div className="grid grid-cols-2 gap-0 border border-stone-700 bg-[#12181b] w-[50px]">
                                   {ladder1.map((row, rIndex) =>
                                     row.map((cell, cIndex) => (
                                       <button
@@ -4838,7 +5028,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                           setLadder1(copy);
                                         }}
                                         className={cn(
-                                          "w-full h-[12px] border-[0.5px] border-stone-400 font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
+                                          "w-full h-[12px] border-[0.5px] border-stone-700 font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
                                           cell === "P"
                                             ? isGreenOrigem
                                               ? "bg-emerald-600 text-white"
@@ -4847,7 +5037,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                                 : isCuiabaOrigem
                                                   ? "bg-amber-500 text-stone-950 font-black"
                                                   : "bg-red-600 text-white"
-                                            : "bg-white hover:bg-stone-100 text-stone-900",
+                                            : "bg-[#141c21] hover:bg-stone-800 text-white",
                                         )}
                                       >
                                         {cell}
@@ -4857,8 +5047,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 </div>
                               </div>
                               <div className="text-center mt-[10px]">
-                                <span className="text-[11px] font-black text-stone-900 uppercase">
-                                  CARRETA 1: {carreta1}
+                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                  CARRETA 1: {carreta1 || "S/ PLACA"}
                                 </span>
                               </div>
                             </div>
@@ -4874,7 +5064,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         )}>
                           {sidebarEmbarque2 ? (
                             <div className="w-full flex flex-col">
-                              <div className="bg-white border border-stone-300 p-2.5 text-center shadow-sm w-[320px] h-[420px] flex items-center justify-center box-border rounded-lg">
+                              <div className="bg-[#12181b] border border-stone-700/80 p-3 text-center shadow-xl w-[320px] h-[420px] flex items-center justify-center box-border rounded-2xl">
                                 <img
                                   src={sidebarEmbarque2}
                                   alt="Esquema"
@@ -4885,22 +5075,22 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       e.currentTarget.src = fallback;
                                     }
                                   }}
-                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-white mx-auto block border-0"
+                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-[#141c21] rounded-xl mx-auto block border border-stone-800 p-2"
                                 />
                               </div>
                               <div className="text-center mt-[15px]">
-                                <span className="text-[11px] font-black text-stone-900 uppercase">
-                                  CARRETA 2: {carreta2}
+                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                  CARRETA 2: {carreta2 || "S/ PLACA"}
                                 </span>
                               </div>
                             </div>
                           ) : (
                             <div className="flex flex-col items-center w-full">
                               <div className="h-[350px] flex flex-col items-center justify-start pt-[15px]">
-                                <div className="bg-[#1f1915] text-white font-extrabold text-[9px] uppercase w-[75px] py-[5px] text-center border border-stone-900 tracking-normal rounded-t">
+                                <div className="bg-[#1f1915] text-white font-extrabold text-[9px] uppercase w-[75px] py-[5px] text-center border border-stone-700 tracking-normal rounded-t">
                                   ESCALA 02
                                 </div>
-                                <div className="grid grid-cols-2 gap-0 border border-stone-400 bg-white w-[75px]">
+                                <div className="grid grid-cols-2 gap-0 border border-stone-700 bg-[#12181b] w-[75px]">
                                   {ladder2.map((row, rIndex) =>
                                     row.map((cell, cIndex) => (
                                       <button
@@ -4914,7 +5104,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                           setLadder2(copy);
                                         }}
                                         className={cn(
-                                          "w-full h-[12px] border-[0.5px] border-stone-400 font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
+                                          "w-full h-[12px] border-[0.5px] border-stone-700 font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
                                           cell === "P"
                                             ? isGreenOrigem
                                               ? "bg-emerald-600 text-white"
@@ -4923,7 +5113,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                                 : isCuiabaOrigem
                                                   ? "bg-amber-500 text-stone-950 font-black"
                                                   : "bg-red-600 text-white"
-                                            : "bg-white hover:bg-stone-100 text-stone-900",
+                                            : "bg-[#141c21] hover:bg-stone-800 text-white",
                                         )}
                                       >
                                         {cell}
@@ -4933,8 +5123,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 </div>
                               </div>
                               <div className="text-center mt-[15px]">
-                                <span className="text-[11px] font-black text-stone-900 uppercase">
-                                  CARRETA 2: {carreta2}
+                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                  CARRETA 2: {carreta2 || "S/ PLACA"}
                                 </span>
                               </div>
                             </div>
@@ -5894,22 +6084,150 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               />
             </div>
 
-            {/* TEMA DO PRÉ-ALERTA */}
-            <div className="flex flex-col gap-1.5 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md mt-2">
-              <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <Sliders size={10} className="text-red-500" /> Tema
-              </label>
-              <select
-                value={preAlertaTheme}
-                onChange={(e) => setPreAlertaTheme(e.target.value as any)}
-                className="w-full bg-[#141c21] border border-stone-700 rounded-xl px-3 py-2 text-xs font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm cursor-pointer"
-              >
-                <option value="prata" className="bg-[#141c21] text-white">Prata (Padrão)</option>
-                <option value="ouro" className="bg-[#141c21] text-white">Ouro</option>
-                <option value="bronze" className="bg-[#141c21] text-white">Bronze</option>
-                <option value="rubi" className="bg-[#141c21] text-white">Rubi</option>
-                <option value="gelo" className="bg-[#141c21] text-white">Gelo</option>
-              </select>
+            {/* TEMA DO PRÉ-ALERTA: INTERFACE EXECUTIVA 3D COM TEXTURA & 8K */}
+            <div className="flex flex-col gap-3 p-4 bg-gradient-to-b from-[#141A21] via-[#0F1418] to-[#0A0E11] rounded-2xl border border-[#D4A94F]/30 shadow-[0_16px_36px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.12)] mt-3 relative overflow-hidden">
+              {/* 3D Texture background pattern */}
+              <div 
+                className="absolute inset-0 pointer-events-none opacity-20"
+                style={{
+                  backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(212,169,79,0.2) 0%, transparent 60%), repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 8px)'
+                }}
+              />
+
+              {/* Header: Executive Office 3D Badge */}
+              <div className="relative z-10 flex flex-col gap-1 pb-2.5 border-b border-white/10">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#D4A94F] via-[#A87922] to-[#5A3F0E] p-[1px] shadow-[0_3px_10px_rgba(212,169,79,0.35),inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center shrink-0">
+                      <div className="w-full h-full rounded-[7px] bg-[#12171B] flex items-center justify-center">
+                        <Crown size={14} className="text-[#F2CE78]" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono font-black text-[#F2CE78] uppercase tracking-wider flex items-center gap-1">
+                      <Sparkles size={11} className="text-[#D4A94F]" /> TEMAS EXECUTIVOS 3D
+                    </span>
+                  </div>
+                  <span className="text-[8px] font-mono font-black px-1.5 py-0.5 rounded bg-[#D4A94F]/20 text-[#F5D58A] border border-[#D4A94F]/40 shadow-xs uppercase">
+                    8K ULTRA-HD
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-0.5">
+                  <span className="text-[10px] font-bold text-white uppercase tracking-tight">
+                    Acabamentos de Escritório & Diretoria
+                  </span>
+                  <span className="text-[9px] font-mono text-stone-300 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: themeStyles.accentColor }} />
+                    <strong className="text-white uppercase">{themeStyles.name}</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* 3D THEME CARDS LIST */}
+              <div className="flex flex-col gap-2 relative z-10">
+                {PRE_ALERTA_THEME_LIST.map((theme) => {
+                  const isActive = preAlertaTheme === theme.id;
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      onClick={() => setPreAlertaTheme(theme.id)}
+                      className={cn(
+                        "relative text-left p-2.5 rounded-xl transition-all duration-200 cursor-pointer select-none group/card overflow-hidden",
+                        "border shadow-[0_6px_16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.15)]",
+                        isActive
+                          ? "ring-2 ring-[#F2CE78] ring-offset-2 ring-offset-[#0A0D10] shadow-[0_10px_24px_rgba(0,0,0,0.85)] scale-[1.01]"
+                          : "hover:scale-[1.008] hover:border-white/25 hover:shadow-[0_8px_18px_rgba(0,0,0,0.6)]"
+                      )}
+                      style={{
+                        background: theme.cardPreviewGradient,
+                        borderColor: isActive ? theme.border : 'rgba(255,255,255,0.12)'
+                      }}
+                    >
+                      {/* 3D Texture Overlay */}
+                      <div 
+                        className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay"
+                        style={{ backgroundImage: theme.texturePattern }}
+                      />
+
+                      {/* Specular Bevel Top Highlight */}
+                      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+
+                      <div className="relative z-10 flex items-center justify-between gap-2.5">
+                        {/* Left: 3D Volumetric Metallic Sphere Orb & Info */}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div 
+                            className="w-9 h-9 rounded-full shrink-0 relative p-[2px] shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transition-transform group-hover/card:scale-105"
+                            style={{
+                              background: `linear-gradient(135deg, rgba(255,255,255,0.8) 0%, ${theme.border} 50%, #000000 100%)`
+                            }}
+                          >
+                            <div 
+                              className="w-full h-full rounded-full flex items-center justify-center relative overflow-hidden shadow-inner"
+                              style={{ background: theme.orbGradient }}
+                            >
+                              <div className="absolute top-0.5 left-1.5 w-1.5 h-1 rounded-full bg-white/70 blur-[0.5px]" />
+                              {theme.icon}
+                            </div>
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-sans font-black text-[11px] text-white uppercase tracking-wide truncate group-hover/card:text-[#F2CE78] transition-colors">
+                                {theme.name}
+                              </span>
+                              <span 
+                                className="text-[7.5px] font-mono font-black px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 border"
+                                style={{
+                                  backgroundColor: 'rgba(0,0,0,0.45)',
+                                  borderColor: theme.border,
+                                  color: theme.id === 'ouro' ? '#FDE68A' : theme.id === 'rubi' ? '#FECDD3' : theme.id === 'gelo' ? '#BAE6FD' : theme.id === 'bronze' ? '#FED7AA' : '#F1F5F9'
+                                }}
+                              >
+                                {theme.badge}
+                              </span>
+                            </div>
+                            <p className="text-[9.5px] text-stone-300 font-medium truncate mt-0.5">
+                              {theme.officeMaterial}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right: 3D Mini Live Preview Strip & Active State Badge */}
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <div 
+                            className="w-16 h-4 rounded overflow-hidden border shadow-inner flex flex-col relative"
+                            style={{ borderColor: theme.border }}
+                            title="Amostra 3D de alta definição das cores da tabela"
+                          >
+                            <div className="h-2 w-full" style={{ background: theme.headerBg }} />
+                            <div className="h-2 w-full" style={{ background: theme.table1Header }} />
+                          </div>
+
+                          {isActive ? (
+                            <span className="flex items-center gap-1 text-[8px] font-mono font-black uppercase text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-600/80 shadow-xs">
+                              <Check size={8} className="stroke-[3]" /> ATIVO
+                            </span>
+                          ) : (
+                            <span className="text-[8px] font-mono font-bold uppercase text-stone-400 group-hover/card:text-white transition-colors">
+                              Ativar ➔
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Informative Footer */}
+              <div className="relative z-10 pt-2 border-t border-white/10 flex items-center justify-between text-[8.5px] font-mono text-stone-400">
+                <span className="flex items-center gap-1 text-[#F2CE78]">
+                  <Sparkles size={10} /> Textura 3D aplicada na tabela e e-mail
+                </span>
+                <span className="uppercase text-stone-400">
+                  {preAlertaTheme.toUpperCase()} • 8K GRAPHICS
+                </span>
+              </div>
             </div>
           </div>
         </div>

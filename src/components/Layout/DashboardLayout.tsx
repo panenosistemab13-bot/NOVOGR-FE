@@ -22,11 +22,11 @@ export default function DashboardLayout({
         </header>
       )}
 
-      {/* 2 & 3. CONTAINER COM CONTEÚDO 100% E MENU OVERLAY */}
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0 relative">
+      {/* 2 & 3. WORKSPACE: CONTINUOUS VERTICAL MENU ON LEFT + ADJACENT MAIN CONTENT */}
+      <div className="flex-1 flex flex-row overflow-hidden min-h-0 relative">
         {drawer}
 
-        <main className="flex-1 h-full overflow-y-auto w-full relative z-10">
+        <main className="flex-1 h-full overflow-y-auto w-full relative z-10 min-w-0">
           {children}
         </main>
       </div>
