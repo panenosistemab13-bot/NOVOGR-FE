@@ -1604,18 +1604,18 @@ export default function Escala({ onBack }: EscalaProps) {
   const uniqueDestinations = Array.from(new Set(editableRows.map(r => r.destino).filter(Boolean)));
 
   return (
-    <div className="w-full max-w-full mx-auto p-2 sm:p-3 md:p-4 space-y-5 cinema-container-2160p">
+    <div className="w-full max-w-full mx-auto p-3 sm:p-4 md:p-6 space-y-6 cinema-container-2160p bg-[#F5F0E6] text-[#25231F] min-h-screen rounded-3xl border border-[#EDE2CE] shadow-sm">
       {/* 1. FAIXA DE TÍTULO PRINCIPAL (Premium Cinematic Header) */}
-      <div className="bg-[#fbf9f5] rounded-3xl p-6 shadow-sm border border-[#d6ccbe] relative overflow-hidden text-stone-900">
+      <div className="bg-[#FFFCF6] rounded-3xl p-6 shadow-sm border border-[#E6D2A3] relative overflow-hidden text-[#25231F]">
         {/* Subtle decorative background detail */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#8a1424]/5 to-transparent rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#C49A45]/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4">
             {onBack && (
               <button
                 onClick={onBack}
-                className="p-3 bg-white hover:bg-stone-50 text-[#8a1424] border border-[#cfc5b6] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-95"
+                className="p-3 bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#292820] border border-[#E6D2A3] rounded-2xl transition-all cursor-pointer shadow-xs active:scale-95"
                 title="Voltar ao Menu"
               >
                 <ChevronLeft size={22} className="stroke-[2.5]" />
@@ -1623,8 +1623,8 @@ export default function Escala({ onBack }: EscalaProps) {
             )}
             <div>
               {/* Unboxed Metadata Header matching Zero-Pill rule */}
-              <div className="flex items-center gap-2 text-[11px] font-mono text-stone-500 uppercase tracking-wider font-semibold mb-1.5">
-                <span className="flex items-center gap-1.5 text-[#8a1424] font-bold">
+              <div className="flex items-center gap-2 text-[11px] font-mono text-[#77736B] uppercase tracking-wider font-semibold mb-1.5">
+                <span className="flex items-center gap-1.5 text-[#C49A45] font-black">
                   <FileSpreadsheet size={14} /> Módulo Escala 3C
                 </span>
                 <span>·</span>
@@ -1633,10 +1633,10 @@ export default function Escala({ onBack }: EscalaProps) {
                 <span>Santa Luzia | MG</span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 uppercase font-sans">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#292820] uppercase font-sans">
                 Gestão de Viagens & Escala 3C
               </h1>
-              <p className="text-xs text-stone-500 font-medium mt-1">
+              <p className="text-xs text-[#77736B] font-medium mt-1">
                 Alocação de motoristas, controle de apontamento de horários e geração de planilha de disponibilidade.
               </p>
             </div>
@@ -1649,12 +1649,12 @@ export default function Escala({ onBack }: EscalaProps) {
                 onClick={handleCopyToClipboard}
                 disabled={editableRows.length === 0}
                 className={cn(
-                  "px-6 py-3.5 rounded-2xl font-mono font-bold uppercase tracking-wider text-xs sm:text-sm shadow-sm transition-all cursor-pointer flex items-center gap-2.5 border",
+                  "px-6 py-3.5 rounded-2xl font-mono font-bold uppercase tracking-wider text-xs sm:text-sm shadow-xs transition-all cursor-pointer flex items-center gap-2.5 border",
                   copiedStatus
                     ? "bg-emerald-600 text-white border-emerald-700"
                     : editableRows.length === 0
-                      ? "bg-stone-100 text-stone-400 border-stone-200 cursor-not-allowed opacity-50"
-                      : "bg-[#002366] hover:bg-[#00348c] text-white border-[#002366] active:scale-95 shadow-md shadow-[#002366]/10"
+                      ? "bg-[#EDE2CE] text-[#77736B] border-[#EDE2CE] cursor-not-allowed opacity-50"
+                      : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40 active:scale-95 shadow-md shadow-[#292820]/10"
                 )}
               >
                 {copiedStatus ? (
@@ -1664,7 +1664,7 @@ export default function Escala({ onBack }: EscalaProps) {
                   </>
                 ) : (
                   <>
-                    <Clipboard size={18} />
+                    <Clipboard size={18} className="text-[#C49A45]" />
                     <span>Copiar para Planilha de Disponibilidade</span>
                   </>
                 )}
@@ -1674,20 +1674,20 @@ export default function Escala({ onBack }: EscalaProps) {
         </div>
 
         {/* Tab Navigation Segmented Control matching ESCALA.png */}
-        <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-[#ded5c6]">
+        <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-[#EDE2CE]">
           {/* 1. Conversor de Escala */}
           <button
             onClick={() => setActiveTab('escala')}
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border shadow-xs",
               activeTab === 'escala'
-                ? "bg-gradient-to-r from-[#8d1118] to-[#58090e] text-white border-red-500/40 shadow-sm"
-                : "bg-white text-stone-700 border-[#ded5c6] hover:bg-stone-50"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] border-[#C49A45]/40 shadow-xs font-black"
+                : "bg-[#FFFCF6] text-[#77736B] border-[#EDE2CE] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
           >
-            <Clipboard size={14} className={activeTab === 'escala' ? 'text-amber-300' : 'text-[#8d1118]'} />
+            <Clipboard size={14} className={activeTab === 'escala' ? 'text-[#292820]' : 'text-[#C49A45]'} />
             <span>1. CONVERSOR DE ESCALA</span>
-            <span className={cn("ml-1 font-mono text-[10px] font-black px-1.5 py-0.2 rounded-full", activeTab === 'escala' ? "bg-red-950 text-amber-300" : "bg-stone-100 text-stone-700")}>
+            <span className={cn("ml-1 font-mono text-[10px] font-black px-1.5 py-0.2 rounded-full", activeTab === 'escala' ? "bg-[#292820] text-[#E6D2A3]" : "bg-[#EDE2CE] text-[#292820]")}>
               {editableRows.length}
             </span>
           </button>
@@ -1698,11 +1698,11 @@ export default function Escala({ onBack }: EscalaProps) {
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border shadow-xs",
               activeTab === 'terceiros'
-                ? "bg-gradient-to-r from-[#8d1118] to-[#58090e] text-white border-red-500/40 shadow-sm"
-                : "bg-white text-stone-700 border-[#ded5c6] hover:bg-stone-50"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] border-[#C49A45]/40 shadow-xs font-black"
+                : "bg-[#FFFCF6] text-[#77736B] border-[#EDE2CE] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
           >
-            <Truck size={14} className="text-[#8d1118]" />
+            <Truck size={14} className={activeTab === 'terceiros' ? 'text-[#292820]' : 'text-[#C49A45]'} />
             <span>2. CONVERSOR DE TERCEIROS</span>
             <span className="ml-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-300">
               PDF OS
@@ -1715,12 +1715,12 @@ export default function Escala({ onBack }: EscalaProps) {
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border shadow-xs",
               activeTab === 'motoristas'
-                ? "bg-gradient-to-r from-[#8d1118] to-[#58090e] text-white border-red-500/40 shadow-sm"
-                : "bg-white text-stone-700 border-[#ded5c6] hover:bg-stone-50"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] border-[#C49A45]/40 shadow-xs font-black"
+                : "bg-[#FFFCF6] text-[#77736B] border-[#EDE2CE] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
             title={isProtectedUnlocked ? "Acesso desbloqueado" : "Aba protegida por senha"}
           >
-            <Users size={14} className="text-[#8d1118]" />
+            <Users size={14} className={activeTab === 'motoristas' ? 'text-[#292820]' : 'text-[#C49A45]'} />
             <span>3. MOTORISTAS 3C</span>
             {isProtectedUnlocked ? (
               <Unlock size={11} className="text-emerald-600" />
@@ -1738,12 +1738,12 @@ export default function Escala({ onBack }: EscalaProps) {
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border shadow-xs",
               activeTab === 'apolice'
-                ? "bg-gradient-to-r from-[#8d1118] to-[#58090e] text-white border-red-500/40 shadow-sm"
-                : "bg-white text-stone-700 border-[#ded5c6] hover:bg-stone-50"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] border-[#C49A45]/40 shadow-xs font-black"
+                : "bg-[#FFFCF6] text-[#77736B] border-[#EDE2CE] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
             title={isProtectedUnlocked ? "Acesso desbloqueado" : "Aba protegida por senha"}
           >
-            <ShieldCheck size={14} className="text-[#8d1118]" />
+            <ShieldCheck size={14} className={activeTab === 'apolice' ? 'text-[#292820]' : 'text-[#C49A45]'} />
             <span>4. APÓLICE</span>
             {isProtectedUnlocked ? (
               <Unlock size={11} className="text-emerald-600" />
@@ -1761,12 +1761,12 @@ export default function Escala({ onBack }: EscalaProps) {
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border shadow-xs",
               activeTab === 'transportador'
-                ? "bg-gradient-to-r from-[#8d1118] to-[#58090e] text-white border-red-500/40 shadow-sm"
-                : "bg-white text-stone-700 border-[#ded5c6] hover:bg-stone-50"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] border-[#C49A45]/40 shadow-xs font-black"
+                : "bg-[#FFFCF6] text-[#77736B] border-[#EDE2CE] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
             title={isProtectedUnlocked ? "Acesso desbloqueado" : "Aba protegida por senha"}
           >
-            <Truck size={14} className="text-[#8d1118]" />
+            <Truck size={14} className={activeTab === 'transportador' ? 'text-[#292820]' : 'text-[#C49A45]'} />
             <span>5. TRANSPORTADOR</span>
             {isProtectedUnlocked ? (
               <Unlock size={11} className="text-emerald-600" />
@@ -1783,7 +1783,7 @@ export default function Escala({ onBack }: EscalaProps) {
             {isProtectedUnlocked && (
               <button
                 onClick={handleLockProtected}
-                className="px-3 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer bg-white hover:bg-stone-50 text-stone-700 border border-[#ded5c6] shadow-sm"
+                className="px-3 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#292820] border border-[#EDE2CE] shadow-xs"
                 title="Bloquear abas com senha novamente"
               >
                 <Lock size={13} />
@@ -1793,10 +1793,10 @@ export default function Escala({ onBack }: EscalaProps) {
 
             <button
               onClick={() => setIsDestinosModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer bg-[#122b52] hover:bg-[#18396d] text-red-100 border border-red-400/40 shadow-xs"
+              className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 shadow-xs"
               title="Visualizar a lista completa de 58 destinos padronizados"
             >
-              <MapPin size={14} className="text-red-300" />
+              <MapPin size={14} className="text-[#C49A45]" />
               <span>DESTINOS PADRÃO ({DESTINOS_PADRAO.length})</span>
             </button>
           </div>
@@ -1872,20 +1872,20 @@ export default function Escala({ onBack }: EscalaProps) {
             
             {/* Left Column: Textarea Paste Area (full width when defaults are hidden) */}
             <div className={cn(
-              "bg-white rounded-3xl p-6 space-y-4 flex flex-col justify-between transition-all border border-[#d6ccbe] shadow-sm relative overflow-hidden text-stone-900",
+              "bg-[#FFFCF6] rounded-3xl p-6 space-y-4 flex flex-col justify-between transition-all border border-[#E6D2A3] shadow-sm relative overflow-hidden text-[#25231F]",
               showDefaults ? "lg:col-span-7" : "lg:col-span-12"
             )}>
               <div>
                 <div className="flex items-center justify-between gap-4 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-100 text-[#8a1424] flex items-center justify-center font-bold shadow-sm">
-                      <Clipboard size={18} />
+                    <div className="w-10 h-10 rounded-2xl bg-[#EDE2CE] border border-[#E6D2A3] text-[#292820] flex items-center justify-center font-bold shadow-xs">
+                      <Clipboard size={18} className="text-[#C49A45]" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold uppercase tracking-tight text-stone-900 flex items-center gap-2">
+                      <h3 className="text-base font-bold uppercase tracking-tight text-[#292820] flex items-center gap-2">
                         1. Cole os Dados da Escala
                       </h3>
-                      <p className="text-xs text-stone-500 font-medium">
+                      <p className="text-xs text-[#77736B] font-medium">
                         Copie a tabela da escala e cole no campo abaixo para formatação automática.
                       </p>
                     </div>
@@ -1895,16 +1895,16 @@ export default function Escala({ onBack }: EscalaProps) {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setInputText(SAMPLE_INPUT_TEXT)}
-                      className="px-3 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-950 text-white border border-stone-800 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                      className="px-3 py-1.5 rounded-xl bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs active:scale-95"
                       title="Carregar exemplo da imagem anexa"
                     >
-                      <Sparkles size={14} className="text-amber-400" />
+                      <Sparkles size={14} className="text-[#C49A45]" />
                       <span>Exemplo com Motoristas 3C</span>
                     </button>
 
                     <button
                       onClick={() => setInputText('')}
-                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-600 border border-[#cfc5b6] text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                      className="px-3 py-1.5 rounded-xl bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#77736B] hover:text-[#292820] border border-[#EDE2CE] text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs active:scale-95"
                       title="Limpar campo"
                     >
                       <Trash2 size={14} />
@@ -1920,25 +1920,25 @@ export default function Escala({ onBack }: EscalaProps) {
                     onChange={(e) => setInputText(e.target.value)}
                     placeholder="Cole aqui as linhas copiadas da tabela de escala..."
                     rows={7}
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] focus:border-stone-400 rounded-2xl p-4 font-mono text-xs text-stone-900 placeholder-stone-400 focus:outline-none shadow-sm resize-y leading-relaxed font-bold"
+                    className="w-full bg-[#FFFFFF] border border-[#EDE2CE] focus:border-[#C49A45] rounded-2xl p-4 font-mono text-xs text-[#25231F] placeholder-[#77736B] focus:outline-none shadow-xs resize-y leading-relaxed font-bold"
                   />
-                  <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-white text-stone-700 border border-[#d6ccbe] font-mono text-[10px] font-bold shadow-sm">
+                  <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-[#FFFCF6] text-[#292820] border border-[#E6D2A3] font-mono text-[10px] font-bold shadow-xs">
                     {editableRows.length} linha(s) final(is)
                   </div>
                 </div>
               </div>
 
-              <div className="pt-3 flex items-center justify-between text-xs text-stone-500 border-t border-stone-100">
+              <div className="pt-3 flex items-center justify-between text-xs text-[#77736B] border-t border-[#EDE2CE]">
                 <span className="font-mono">
                   Status: <strong className="text-emerald-700 font-extrabold">{editableRows.length} linhas prontas</strong>
                 </span>
                 <div className="flex items-center gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer font-sans font-bold select-none text-[11px] uppercase text-stone-700 bg-[#fbf9f5] px-3 py-1.5 rounded-xl border border-[#d6ccbe] hover:bg-stone-50 transition-colors shadow-sm">
+                  <label className="flex items-center gap-2 cursor-pointer font-sans font-bold select-none text-[11px] uppercase text-[#292820] bg-[#FFFCF6] px-3 py-1.5 rounded-xl border border-[#EDE2CE] hover:bg-[#EDE2CE]/50 transition-colors shadow-xs">
                     <input
                       type="checkbox"
                       checked={includeHeaderInCopy}
                       onChange={(e) => setIncludeHeaderInCopy(e.target.checked)}
-                      className="rounded text-[#8a1424] focus:ring-[#8a1424] w-4 h-4 cursor-pointer accent-[#8a1424]"
+                      className="rounded text-[#C49A45] focus:ring-[#C49A45] w-4 h-4 cursor-pointer accent-[#C49A45]"
                     />
                     <span>Incluir linha de cabeçalho ao copiar</span>
                   </label>
@@ -1948,16 +1948,16 @@ export default function Escala({ onBack }: EscalaProps) {
 
             {/* Right Column: Default Operational Configs (5 cols) - HIDDEN BY DEFAULT */}
             {showDefaults && (
-              <div className="lg:col-span-5 bg-white rounded-3xl p-6 space-y-4 border border-[#d6ccbe] shadow-sm relative overflow-hidden text-stone-900">
+              <div className="lg:col-span-5 bg-[#FFFCF6] rounded-3xl p-6 space-y-4 border border-[#E6D2A3] shadow-sm relative overflow-hidden text-[#25231F]">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-100 text-[#8a1424] flex items-center justify-center font-bold shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl bg-[#F5F0E6] border border-[#E6D2A3] text-[#C49A45] flex items-center justify-center font-bold shadow-xs">
                     <Sliders size={18} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold uppercase tracking-tight text-stone-900">
+                    <h3 className="text-base font-bold uppercase tracking-tight text-[#25231F]">
                       2. Padrões da Planilha
                     </h3>
-                    <p className="text-xs text-stone-500 font-medium">
+                    <p className="text-xs text-[#7A756D] font-medium">
                       Propriedades operacionais aplicadas às linhas.
                     </p>
                   </div>
@@ -1966,26 +1966,26 @@ export default function Escala({ onBack }: EscalaProps) {
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   {/* Transportador */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Transportador
                     </label>
                     <input
                       type="text"
                       value={defaults.transportador}
                       onChange={(e) => setDefaults(prev => ({ ...prev, transportador: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     />
                   </div>
 
                   {/* Categoria */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Categoria (FROTA)
                     </label>
                     <select
                       value={defaults.categoria}
                       onChange={(e) => setDefaults(prev => ({ ...prev, categoria: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     >
                       <option value="FROTA">FROTA</option>
                       <option value="AGREGADO">AGREGADO</option>
@@ -1995,13 +1995,13 @@ export default function Escala({ onBack }: EscalaProps) {
 
                   {/* Tecnologia */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Tecnologia (SASCAR)
                     </label>
                     <select
                       value={defaults.tecnologia}
                       onChange={(e) => setDefaults(prev => ({ ...prev, tecnologia: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     >
                       <option value="SASCAR">SASCAR</option>
                       <option value="ONIXSAT">ONIXSAT</option>
@@ -2011,13 +2011,13 @@ export default function Escala({ onBack }: EscalaProps) {
 
                   {/* Modelo Cavalo */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Modelo Cavalo
                     </label>
                     <select
                       value={defaults.modeloCavalo}
                       onChange={(e) => setDefaults(prev => ({ ...prev, modeloCavalo: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     >
                       <option value="TRUCADO">TRUCADO</option>
                       <option value="TOCO">TOCO</option>
@@ -2027,13 +2027,13 @@ export default function Escala({ onBack }: EscalaProps) {
 
                   {/* Modelo Carreta (2 Baús) */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Modelo (2 Baús)
                     </label>
                     <select
                       value={defaults.modeloCarreta2}
                       onChange={(e) => setDefaults(prev => ({ ...prev, modeloCarreta2: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     >
                       <option value="RODOTREM BAÚ">RODOTREM BAÚ</option>
                       <option value="RODOTREM SIDER">RODOTREM SIDER</option>
@@ -2043,58 +2043,58 @@ export default function Escala({ onBack }: EscalaProps) {
 
                   {/* Status */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Status
                     </label>
                     <input
                       type="text"
                       value={defaults.status}
                       onChange={(e) => setDefaults(prev => ({ ...prev, status: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     />
                   </div>
 
                   {/* Hora Liberado */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Hora Liberado
                     </label>
                     <input
                       type="text"
                       value={defaults.horaLiberado}
                       onChange={(e) => setDefaults(prev => ({ ...prev, horaLiberado: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     />
                   </div>
 
                   {/* Vigência do Cadastro */}
                   <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase text-stone-400 mb-1">
+                    <label className="block text-[10px] font-mono font-bold uppercase text-[#7A756D] mb-1">
                       Vigência Cadastro
                     </label>
                     <input
                       type="text"
                       value={defaults.vigenciaCadastro}
                       onChange={(e) => setDefaults(prev => ({ ...prev, vigenciaCadastro: e.target.value }))}
-                      className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl px-3 py-2 font-mono font-bold text-stone-900 focus:outline-none focus:border-stone-400"
+                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl px-3 py-2 font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
                     />
                   </div>
                 </div>
 
                 {/* Checklist Legend Box */}
-                <div className="bg-[#fbf9f5] text-stone-900 rounded-2xl p-3 border border-[#d6ccbe] space-y-1.5 text-xs font-mono">
-                  <div className="flex items-center gap-1.5 font-bold uppercase text-[10px] text-[#8a1424]">
+                <div className="bg-[#F5F0E6] text-[#25231F] rounded-2xl p-3 border border-[#E6D2A3] space-y-1.5 text-xs font-mono">
+                  <div className="flex items-center gap-1.5 font-bold uppercase text-[10px] text-[#C91F2D]">
                     <ShieldAlert size={14} />
                     <span>Legenda da Validação do Checklist (Cavalo):</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 text-[10px] font-bold text-center">
-                    <div className="p-1 rounded bg-rose-50 border border-rose-200 text-rose-700 uppercase shadow-sm">
+                    <div className="p-1 rounded bg-rose-50 border border-rose-200 text-[#C91F2D] uppercase shadow-xs">
                       🔴 Vencido
                     </div>
-                    <div className="p-1 rounded bg-amber-50 border border-amber-200 text-amber-800 uppercase shadow-sm font-black">
+                    <div className="p-1 rounded bg-[#EDE2CE] border border-[#E6D2A3] text-[#25231F] uppercase shadow-xs font-black">
                       🟡 Vence em 2d
                     </div>
-                    <div className="p-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 uppercase shadow-sm">
+                    <div className="p-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 uppercase shadow-xs">
                       🟢 Checklist OK
                     </div>
                   </div>
@@ -2105,23 +2105,23 @@ export default function Escala({ onBack }: EscalaProps) {
 
           {/* Conjuntos (Veículos / Viagens) Section - Copiar por Conjunto */}
           {conjuntosList.length > 0 && (
-            <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 border border-[#d6ccbe] relative overflow-hidden text-stone-900">
+            <div className="bg-[#FFFCF6] rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 border border-[#E6D2A3] relative overflow-hidden text-[#25231F]">
               {/* Section Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EDE2CE]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-100 text-[#8a1424] flex items-center justify-center font-bold shadow-sm shrink-0">
-                    <Truck size={20} />
+                  <div className="w-10 h-10 rounded-2xl bg-[#EDE2CE] border border-[#E6D2A3] text-[#292820] flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <Truck size={20} className="text-[#C49A45]" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold uppercase tracking-tight text-stone-900 flex items-center gap-2">
+                    <h3 className="text-base font-bold uppercase tracking-tight text-[#292820] flex items-center gap-2">
                       Copiar por Conjunto Individual ({conjuntosList.length} {conjuntosList.length === 1 ? 'Conjunto' : 'Conjuntos'})
                     </h3>
-                    <p className="text-xs text-stone-500 font-medium">
+                    <p className="text-xs text-[#77736B] font-medium">
                       Lista de veículos e motoristas agrupados por viagem.
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-[#fbf9f5] text-stone-700 border border-[#d6ccbe] shadow-sm self-start sm:self-auto shrink-0">
+                <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-[#FFFCF6] text-[#292820] border border-[#EDE2CE] shadow-xs self-start sm:self-auto shrink-0">
                   {editableRows.length} {editableRows.length === 1 ? 'linha' : 'linhas'} em {conjuntosList.length} {conjuntosList.length === 1 ? 'conjunto' : 'conjuntos'}
                 </span>
               </div>
@@ -2139,15 +2139,15 @@ export default function Escala({ onBack }: EscalaProps) {
                   return (
                     <div
                       key={conjunto.id}
-                      className="bg-[#fcfaf7] border border-[#d6ccbe] hover:border-stone-400 rounded-2xl p-4 shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                      className="bg-[#F5F0E6] border border-[#EDE2CE] hover:border-[#C49A45] rounded-2xl p-4 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
                     >
                       {/* Left Info Column */}
                       <div className="space-y-2 flex-1 min-w-0">
                         {/* Unboxed Zero-Pill Metadata row */}
-                        <div className="flex items-center gap-2 text-[11px] font-mono text-stone-500 uppercase tracking-wider font-semibold">
-                          <span className="text-stone-900 font-black">CONJUNTO #{cIdx + 1}</span>
+                        <div className="flex items-center gap-2 text-[11px] font-mono text-[#77736B] uppercase tracking-wider font-semibold">
+                          <span className="text-[#292820] font-black">CONJUNTO #{cIdx + 1}</span>
                           <span>·</span>
-                          <span className={isMultiRow ? "text-[#8a1424] font-bold" : "text-stone-600"}>
+                          <span className={isMultiRow ? "text-[#C91F2D] font-bold" : "text-[#77736B]"}>
                             {isMultiRow ? "RODOTREM (2 LINHAS)" : "BAÚ ÚNICO (1 LINHA)"}
                           </span>
                           {conjunto.rows[0]?.data && (
@@ -2160,10 +2160,10 @@ export default function Escala({ onBack }: EscalaProps) {
 
                         {/* Driver Name Header */}
                         <div className="flex items-center gap-2 pt-1">
-                          <div className="w-6 h-6 rounded-lg bg-red-50 text-[#8a1424] flex items-center justify-center shrink-0 border border-red-100">
+                          <div className="w-6 h-6 rounded-lg bg-[#EDE2CE] text-[#292820] flex items-center justify-center shrink-0 border border-[#E6D2A3]">
                             <User size={13} className="stroke-[2.5]" />
                           </div>
-                          <h4 className="text-sm font-bold uppercase text-stone-900 truncate font-sans" title={conjunto.conductor}>
+                          <h4 className="text-sm font-bold uppercase text-[#292820] truncate font-sans" title={conjunto.conductor}>
                             {conjunto.conductor}
                           </h4>
                         </div>
@@ -2171,19 +2171,19 @@ export default function Escala({ onBack }: EscalaProps) {
                         {/* Vehicle & Route Details - Unboxed */}
                         <div className="flex items-center gap-4 text-xs font-mono flex-wrap pt-0.5">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-stone-400 font-semibold uppercase">Cavalo:</span>
-                            <span className="text-stone-900 font-bold tracking-wider">{conjunto.cavalo}</span>
+                            <span className="text-[#77736B] font-semibold uppercase">Cavalo:</span>
+                            <span className="text-[#292820] font-bold tracking-wider">{conjunto.cavalo}</span>
                           </div>
-                          <span className="text-stone-300">|</span>
+                          <span className="text-[#EDE2CE]">|</span>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-stone-400 font-semibold uppercase">Carreta:</span>
-                            <span className="text-stone-900 font-bold tracking-wider">{carretasStr}</span>
+                            <span className="text-[#77736B] font-semibold uppercase">Carreta:</span>
+                            <span className="text-[#292820] font-bold tracking-wider">{carretasStr}</span>
                           </div>
-                          <span className="text-stone-300">|</span>
+                          <span className="text-[#EDE2CE]">|</span>
                           <div className="flex items-center gap-1.5">
-                            <MapPin size={13} className="text-[#8a1424]" />
-                            <span className="text-stone-400 font-semibold uppercase">Destino:</span>
-                            <span className="text-[#8a1424] font-extrabold">{conjunto.destino}</span>
+                            <MapPin size={13} className="text-[#C49A45]" />
+                            <span className="text-[#77736B] font-semibold uppercase">Destino:</span>
+                            <span className="text-[#292820] font-extrabold">{conjunto.destino}</span>
                           </div>
                         </div>
                       </div>
@@ -2192,10 +2192,10 @@ export default function Escala({ onBack }: EscalaProps) {
                       <button
                         onClick={() => handleCopyConjunto(conjunto.rows, conjunto.conductor)}
                         className={cn(
-                          "w-full md:w-auto px-5 py-2.5 rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-sm border shrink-0",
+                          "w-full md:w-auto px-5 py-2.5 rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs border shrink-0",
                           isCopied
                             ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700"
-                            : "bg-[#8a1424] hover:bg-[#6f0f1d] text-white border-[#6f0f1d] active:scale-95"
+                            : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 active:scale-95"
                         )}
                       >
                         {isCopied ? (
@@ -2205,7 +2205,7 @@ export default function Escala({ onBack }: EscalaProps) {
                           </>
                         ) : (
                           <>
-                            <Copy size={16} />
+                            <Copy size={16} className="text-[#C49A45]" />
                             <span>Copiar Conjunto ({conjunto.rows.length} {conjunto.rows.length === 1 ? 'Linha' : 'Linhas'})</span>
                           </>
                         )}
@@ -2232,20 +2232,20 @@ export default function Escala({ onBack }: EscalaProps) {
         />
       ) : !isProtectedUnlocked ? (
         /* Password Lock Screen for Tabs 3 (Motoristas 3C), 4 (Apólice), 5 (Transportador) */
-        <div className="bg-white border border-[#d6ccbe] rounded-3xl p-8 sm:p-12 shadow-xs text-center max-w-xl mx-auto my-8 space-y-6 relative overflow-hidden text-stone-900">
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-700 shadow-xs">
+        <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-8 sm:p-12 shadow-sm text-center max-w-xl mx-auto my-8 space-y-6 relative overflow-hidden text-[#25231F]">
+          <div className="w-16 h-16 rounded-2xl bg-[#F5F0E6] border border-[#E6D2A3] flex items-center justify-center mx-auto text-[#C49A45] shadow-xs">
             <Lock size={32} />
           </div>
 
           <div className="space-y-2">
-            <span className="text-[10px] font-mono font-bold tracking-widest text-stone-600 uppercase bg-[#fbf9f5] px-3 py-1 rounded-full border border-[#d6ccbe] shadow-xs">
+            <span className="text-[10px] font-mono font-bold tracking-widest text-[#7A756D] uppercase bg-[#F5F0E6] px-3 py-1 rounded-full border border-[#E6D2A3] shadow-xs">
               Terminal de Segurança • Acesso Restrito
             </span>
-            <h3 className="text-2xl font-mono font-bold uppercase text-stone-900 tracking-tight">
+            <h3 className="text-2xl font-mono font-bold uppercase text-[#25231F] tracking-tight">
               Aba Protegida por Senha
             </h3>
-            <p className="text-xs text-stone-500 font-mono max-w-md mx-auto leading-relaxed">
-              A aba <span className="font-bold text-[#0f172a] uppercase">{activeTab === 'motoristas' ? '3. Motoristas 3C' : activeTab === 'apolice' ? '4. Apólice' : '5. Transportador'}</span> requer credencial autorizada para visualização e edição da base de dados.
+            <p className="text-xs text-[#7A756D] font-mono max-w-md mx-auto leading-relaxed">
+              A aba <span className="font-bold text-[#25231F] uppercase">{activeTab === 'motoristas' ? '3. Motoristas 3C' : activeTab === 'apolice' ? '4. Apólice' : '5. Transportador'}</span> requer credencial autorizada para visualização e edição da base de dados.
             </p>
           </div>
 
@@ -2260,12 +2260,12 @@ export default function Escala({ onBack }: EscalaProps) {
                 }}
                 placeholder="Digite a senha de acesso..."
                 autoFocus
-                className="w-full px-4 py-3.5 bg-[#fbf9f5] border border-[#d6ccbe] focus:border-stone-500 rounded-2xl text-stone-900 placeholder:text-stone-400 text-sm font-mono tracking-wider outline-none transition-all pr-11 text-center shadow-xs font-bold"
+                className="w-full px-4 py-3.5 bg-[#F5F0E6] border border-[#E6D2A3] focus:border-[#C49A45] rounded-2xl text-[#25231F] placeholder:text-[#A8A39A] text-sm font-mono tracking-wider outline-none transition-all pr-11 text-center shadow-xs font-bold"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 cursor-pointer p-1"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7A756D] hover:text-[#25231F] cursor-pointer p-1"
                 title={showPassword ? 'Ocultar senha' : 'Ver senha'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -2276,7 +2276,7 @@ export default function Escala({ onBack }: EscalaProps) {
               <motion.p
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-xs font-mono font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl py-2 px-3 flex items-center justify-center gap-1.5"
+                className="text-xs font-mono font-bold text-[#C91F2D] bg-rose-50 border border-rose-200 rounded-xl py-2 px-3 flex items-center justify-center gap-1.5"
               >
                 <AlertCircle size={14} />
                 <span>{passwordError}</span>
@@ -2286,7 +2286,7 @@ export default function Escala({ onBack }: EscalaProps) {
             <div className="flex flex-col gap-2 pt-2">
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#0f172a] hover:bg-[#1e293b] text-white font-mono font-bold uppercase text-xs tracking-wider rounded-2xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 border border-red-700 active:scale-95"
+                className="w-full py-3.5 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] font-mono font-black uppercase text-xs tracking-wider rounded-2xl shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 border border-[#C49A45] active:scale-95"
               >
                 <Key size={16} />
                 <span>Desbloquear Acesso</span>
@@ -2295,7 +2295,7 @@ export default function Escala({ onBack }: EscalaProps) {
               <button
                 type="button"
                 onClick={() => setActiveTab('escala')}
-                className="w-full py-2.5 bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-900 text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-[#d6ccbe]"
+                className="w-full py-2.5 bg-[#FFFCF6] hover:bg-[#F5F0E6] text-[#7A756D] hover:text-[#25231F] text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-[#E6D2A3]"
               >
                 Voltar para Conversor de Escala
               </button>
@@ -2304,18 +2304,18 @@ export default function Escala({ onBack }: EscalaProps) {
         </div>
       ) : activeTab === 'motoristas' ? (
         /* Tab 3: Motoristas 3C Database Management */
-        <div className="bg-white border border-[#d6ccbe] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 relative overflow-hidden text-stone-900">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
+        <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 relative overflow-hidden text-[#25231F]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E6D2A3]/50">
             <div>
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-red-50 text-[#0f172a] border border-red-200 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#F5F0E6] text-[#C49A45] border border-[#E6D2A3] flex items-center justify-center shadow-xs">
                   <Users size={18} />
                 </div>
-                <h3 className="text-xl font-mono font-bold uppercase tracking-tight text-stone-900">
+                <h3 className="text-xl font-mono font-bold uppercase tracking-tight text-[#25231F]">
                   Cadastro de Motoristas 3C
                 </h3>
               </div>
-              <p className="text-xs text-stone-500 font-mono mt-1">
+              <p className="text-xs text-[#7A756D] font-mono mt-1">
                 Sempre que um motorista desta lista aparecer nos dados colados da escala, seu CPF e RG serão inseridos automaticamente.
               </p>
             </div>
@@ -2323,20 +2323,20 @@ export default function Escala({ onBack }: EscalaProps) {
             <div className="flex items-center gap-3">
               {/* Search Bar */}
               <div className="relative w-full sm:w-64">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7A756D]" />
                 <input
                   type="text"
                   placeholder="Buscar Nome, CPF ou RG..."
                   value={searchMotorista}
                   onChange={(e) => setSearchMotorista(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-500 font-mono font-bold"
+                  className="w-full pl-9 pr-3 py-2 bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl text-xs text-[#25231F] placeholder:text-[#A8A39A] focus:outline-none focus:border-[#C49A45] font-mono font-bold"
                 />
               </div>
 
               {/* Add Motorista Button */}
               <button
                 onClick={handleOpenAddMotoristaModal}
-                className="px-4 py-2 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center gap-2 shrink-0 active:scale-95 border border-red-700"
+                className="px-4 py-2 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm flex items-center gap-2 shrink-0 active:scale-95 border border-[#C49A45]"
               >
                 <UserPlus size={16} />
                 <span>Novo Motorista</span>
@@ -2345,51 +2345,51 @@ export default function Escala({ onBack }: EscalaProps) {
           </div>
 
           {/* Motoristas Table Master Light */}
-          <div className="overflow-x-auto border border-[#d6ccbe] rounded-2xl shadow-xs">
+          <div className="overflow-x-auto border border-[#E6D2A3] rounded-2xl shadow-xs">
             <table className="w-full text-left border-collapse text-xs font-mono">
-              <thead className="bg-[#fbf9f5] text-stone-700 text-[10px] uppercase tracking-wider border-b border-[#d6ccbe]">
+              <thead className="bg-[#F5F0E6] text-[#25231F] text-[10px] uppercase tracking-wider border-b border-[#E6D2A3]">
                 <tr>
-                  <th className="p-3.5 text-center w-12">#</th>
+                  <th className="p-3.5 text-center w-12 text-[#C49A45]">#</th>
                   <th className="p-3.5">NOME DO MOTORISTA</th>
                   <th className="p-3.5">CPF</th>
                   <th className="p-3.5">RG / SAP</th>
                   <th className="p-3.5 text-center w-28">AÇÕES</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-200 bg-white">
+              <tbody className="divide-y divide-[#E6D2A3]/30 bg-[#FFFCF6]">
                 {filteredMotoristas.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-stone-400 font-mono">
+                    <td colSpan={5} className="p-8 text-center text-[#7A756D] font-mono">
                       Nenhum motorista encontrado com os termos pesquisados.
                     </td>
                   </tr>
                 ) : (
                   filteredMotoristas.map((motorista, index) => (
-                    <tr key={motorista.id} className="hover:bg-stone-50 transition-colors">
-                      <td className="p-3.5 text-center font-bold text-stone-400">
+                    <tr key={motorista.id} className="hover:bg-[#F5F0E6]/50 transition-colors">
+                      <td className="p-3.5 text-center font-bold text-[#C49A45]">
                         {index + 1}
                       </td>
-                      <td className="p-3.5 font-bold text-stone-900 uppercase">
+                      <td className="p-3.5 font-bold text-[#25231F] uppercase">
                         {motorista.nome}
                       </td>
-                      <td className="p-3.5 text-stone-700 font-mono font-bold">
+                      <td className="p-3.5 text-[#25231F] font-mono font-bold">
                         {motorista.cpf || '-'}
                       </td>
-                      <td className="p-3.5 text-stone-700 font-mono font-bold">
+                      <td className="p-3.5 text-[#25231F] font-mono font-bold">
                         {motorista.rg || '-'}
                       </td>
                       <td className="p-3.5 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleOpenEditMotoristaModal(motorista)}
-                            className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-[#25231F] hover:text-[#C49A45] bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded-lg transition-colors cursor-pointer shadow-xs"
                             title="Editar Dados"
                           >
                             <Edit2 size={14} />
                           </button>
                           <button
                             onClick={() => handleDeleteMotorista(motorista.id, motorista.nome)}
-                            className="p-1.5 text-stone-400 hover:text-rose-600 bg-stone-100 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-[#7A756D] hover:text-[#C91F2D] bg-[#F5F0E6] hover:bg-rose-50 border border-[#E6D2A3] rounded-lg transition-colors cursor-pointer shadow-xs"
                             title="Excluir Motorista"
                           >
                             <Trash2 size={14} />
@@ -2425,20 +2425,20 @@ export default function Escala({ onBack }: EscalaProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#d6ccbe] rounded-3xl p-6 shadow-xl w-full max-w-md space-y-5 text-stone-900 relative overflow-hidden"
+              className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-6 shadow-xl w-full max-w-md space-y-5 text-[#25231F] relative overflow-hidden"
             >
-              <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+              <div className="flex items-center justify-between border-b border-[#E6D2A3]/50 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-red-50 text-[#0f172a] border border-red-200 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-[#F5F0E6] text-[#C49A45] border border-[#E6D2A3] flex items-center justify-center shadow-xs">
                     <Users size={18} />
                   </div>
-                  <h3 className="text-lg font-mono font-bold uppercase text-stone-900">
+                  <h3 className="text-lg font-mono font-bold uppercase text-[#25231F]">
                     {editingDriver ? 'Editar Motorista 3C' : 'Novo Motorista 3C'}
                   </h3>
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1 text-stone-400 hover:text-stone-700 rounded-lg cursor-pointer"
+                  className="p-1 text-[#7A756D] hover:text-[#25231F] rounded-lg cursor-pointer"
                 >
                   <X size={20} />
                 </button>
@@ -2446,7 +2446,7 @@ export default function Escala({ onBack }: EscalaProps) {
 
               <form onSubmit={handleSaveMotorista} className="space-y-4 text-xs font-mono">
                 <div>
-                  <label className="block text-stone-600 font-bold uppercase mb-1">
+                  <label className="block text-[#7A756D] font-bold uppercase mb-1">
                     Nome Completo do Motorista *
                   </label>
                   <input
@@ -2455,12 +2455,12 @@ export default function Escala({ onBack }: EscalaProps) {
                     value={formData.nome}
                     onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
                     placeholder="EX: ADILSON DOS REIS SILVA"
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl p-2.5 font-bold text-stone-900 focus:outline-none focus:border-stone-500 uppercase"
+                    className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl p-2.5 font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45] uppercase"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-stone-600 font-bold uppercase mb-1">
+                  <label className="block text-[#7A756D] font-bold uppercase mb-1">
                     CPF
                   </label>
                   <input
@@ -2468,12 +2468,12 @@ export default function Escala({ onBack }: EscalaProps) {
                     value={formData.cpf}
                     onChange={(e) => setFormData(prev => ({ ...prev, cpf: e.target.value }))}
                     placeholder="EX: 599.612.106.97"
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl p-2.5 text-stone-900 focus:outline-none focus:border-stone-500 font-bold"
+                    className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl p-2.5 text-[#25231F] focus:outline-none focus:border-[#C49A45] font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-stone-600 font-bold uppercase mb-1">
+                  <label className="block text-[#7A756D] font-bold uppercase mb-1">
                     RG / SAP
                   </label>
                   <input
@@ -2481,7 +2481,7 @@ export default function Escala({ onBack }: EscalaProps) {
                     value={formData.rg}
                     onChange={(e) => setFormData(prev => ({ ...prev, rg: e.target.value }))}
                     placeholder="EX: MG3330429"
-                    className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-xl p-2.5 text-stone-900 focus:outline-none focus:border-stone-500 uppercase font-bold"
+                    className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl p-2.5 text-[#25231F] focus:outline-none focus:border-[#C49A45] uppercase font-bold"
                   />
                 </div>
 
@@ -2489,14 +2489,14 @@ export default function Escala({ onBack }: EscalaProps) {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 bg-white hover:bg-stone-50 text-stone-600 rounded-xl font-bold uppercase tracking-wider cursor-pointer border border-[#d6ccbe]"
+                    className="px-4 py-2 bg-[#FFFCF6] hover:bg-[#F5F0E6] text-[#7A756D] rounded-xl font-bold uppercase tracking-wider cursor-pointer border border-[#E6D2A3]"
                   >
                     Cancelar
                   </button>
 
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#0f172a] hover:bg-[#1e293b] text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer shadow-xs flex items-center gap-1.5 border border-red-700 active:scale-95"
+                    className="px-5 py-2 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] rounded-xl font-bold uppercase tracking-wider cursor-pointer shadow-sm flex items-center gap-1.5 border border-[#C49A45] active:scale-95"
                   >
                     <Save size={15} />
                     <span>Salvar</span>

@@ -38,6 +38,7 @@ import {
   Radio,
   Minimize2,
   Maximize2,
+  ChevronUp,
   LayoutGrid,
   List,
   ClipboardPaste,
@@ -51,9 +52,8 @@ import {
   Barcode,
   Container,
   ChevronDown,
-  Crown,
-  Gem,
-  Award,
+  ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { rtdb as db } from "../firebase";
@@ -832,6 +832,8 @@ export default function Controle({ onBack }: ControleProps) {
 
   // PRE ALERTA GR Column View Mode: 'normal' (padrão), 'minimized' (recolhido), 'maximized' (largura total)
   const [preAlertaMode, setPreAlertaMode] = useState<"normal" | "minimized" | "maximized">("normal");
+  const [carreta1Minimized, setCarreta1Minimized] = useState<boolean>(true);
+  const [carreta2Minimized, setCarreta2Minimized] = useState<boolean>(true);
   // Zoom state for Formulário de Controle and Veículo & Carga when preAlertaMode === 'minimized'
   const [colunasZoom, setColunasZoom] = useState<number>(0.9);
 
@@ -1220,205 +1222,17 @@ export default function Controle({ onBack }: ControleProps) {
     "CAVALO: ISCA NO PAINEL / CARRETA 1: ISCA NO MEIO DA CARGA / CARRETA 2: ISCA NO FUNDO DA CARGA",
   );
 
-  const [preAlertaTheme, setPreAlertaTheme] = useState<'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo'>('prata');
-
   const getThemeStyles = () => {
-    switch (preAlertaTheme) {
-      case 'ouro':
-        return {
-          headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 22%, #F59E0B 48%, #FDE68A 72%, #B45309 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFEF7 0%, #FEF3C7 28%, #FDE68A 50%, #FDF8E8 72%, #C27803 100%)',
-          border: '#B45309',
-          table1Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
-          table2Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
-          accentColor: '#D97706',
-          glowColor: 'rgba(217, 119, 6, 0.45)',
-          textColor: '#1E1605',
-          texturePattern: 'radial-gradient(circle at 50% 50%, rgba(245,158,11,0.15) 1px, transparent 1px)',
-          name: 'Ouro Imperial',
-          badge: 'OURO 24K • 8K HDR',
-          officeMaterial: 'Gabinete Presidencial • Ouro Nobre & Nogueira Escura',
-        };
-      case 'bronze':
-        return {
-          headerBg: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #9A3412 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFAF6 0%, #FDE8E1 28%, #F3D2C1 52%, #FAF0EC 74%, #B45309 100%)',
-          border: '#9A3412',
-          table1Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
-          table2Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
-          accentColor: '#C2410C',
-          glowColor: 'rgba(194, 65, 12, 0.4)',
-          textColor: '#2A1208',
-          texturePattern: 'radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 0 0, radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 4px 4px',
-          name: 'Bronze Corporativo',
-          badge: 'BRONZE NOBRE • 8K',
-          officeMaterial: 'Sala de Reuniões • Bronze Nobre & Couro Cognac Escuro',
-        };
-      case 'rubi':
-        return {
-          headerBg: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #FEB2B2 46%, #FFF5F5 70%, #881337 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFAFA 0%, #FED7D7 28%, #FEB2B2 50%, #FFF5F5 72%, #881337 100%)',
-          border: '#881337',
-          table1Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
-          table2Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
-          accentColor: '#BE123C',
-          glowColor: 'rgba(190, 18, 60, 0.45)',
-          textColor: '#24060E',
-          texturePattern: 'repeating-linear-gradient(45deg, rgba(225,29,72,0.1) 0px, rgba(225,29,72,0.1) 1px, transparent 1px, transparent 6px)',
-          name: 'Rubi Diretoria',
-          badge: 'RUBI REAL • 8K HDR',
-          officeMaterial: 'Sala do Conselho • Laca Rubi Real & Couro Preto Perfurado',
-        };
-      case 'gelo':
-        return {
-          headerBg: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #BAE6FD 48%, #E0F2FE 72%, #0369A1 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #E0F2FE 28%, #BAE6FD 50%, #F0F9FF 72%, #0369A1 100%)',
-          border: '#0369A1',
-          table1Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
-          table2Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
-          accentColor: '#0284C7',
-          glowColor: 'rgba(2, 132, 199, 0.45)',
-          textColor: '#032030',
-          texturePattern: 'radial-gradient(circle at 50% 50%, rgba(56,189,248,0.14) 1px, transparent 1px)',
-          name: 'Gelo Safira',
-          badge: 'SAFIRA CRISTAL • 8K',
-          officeMaterial: 'Centro de Comando Executivo • Titânio Fosco & Safira Polar',
-        };
-      case 'prata':
-      default:
-        return {
-          headerBg: 'linear-gradient(180deg, #FFFFFF 0%, #F1F4F7 25%, #C5D0D9 50%, #E8EDF2 75%, #9AA7B2 100%)',
-          subHeaderBg: 'linear-gradient(180deg, #FFFFFF 0%, #E3E9EE 30%, #AEBAC4 55%, #EDF2F5 75%, #9AA7B2 100%)',
-          border: '#7B8893',
-          table1Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
-          table2Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
-          accentColor: '#8B98A3',
-          glowColor: 'rgba(160, 175, 190, 0.4)',
-          textColor: '#151B20',
-          texturePattern: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px)',
-          name: 'Prata Executiva',
-          badge: 'CROMO & AÇO 8K',
-          officeMaterial: 'Mesa de Diretoria • Aço Escovado & Titânio Platinum',
-        };
-    }
+    return {
+      headerBg: 'linear-gradient(135deg, #181A1D 0%, #22262B 50%, #181A1D 100%)',
+      subHeaderBg: '#F5EDDA',
+      border: '#C5A059',
+      borderSoft: '#E5D5B5',
+      table1Header: 'linear-gradient(180deg, #22262B 0%, #181A1D 100%)',
+      table2Header: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)',
+    };
   };
   const themeStyles = getThemeStyles();
-
-  const PRE_ALERTA_THEME_LIST: Array<{
-    id: 'prata' | 'ouro' | 'bronze' | 'rubi' | 'gelo';
-    name: string;
-    badge: string;
-    officeMaterial: string;
-    resolution: string;
-    accent: string;
-    border: string;
-    textColor: string;
-    headerBg: string;
-    subHeaderBg: string;
-    table1Header: string;
-    table2Header: string;
-    cardPreviewGradient: string;
-    orbGradient: string;
-    glow: string;
-    texturePattern: string;
-    icon: React.ReactNode;
-  }> = [
-    {
-      id: 'prata',
-      name: 'Prata Executiva',
-      badge: 'CROMO & AÇO 8K',
-      officeMaterial: 'Mesa de Diretoria • Aço Escovado & Titânio',
-      resolution: '8K ULTRA-HD',
-      accent: '#8B98A3',
-      border: '#7B8893',
-      textColor: '#151B20',
-      headerBg: 'linear-gradient(180deg, #FFFFFF 0%, #F1F4F7 25%, #C5D0D9 50%, #E8EDF2 75%, #9AA7B2 100%)',
-      subHeaderBg: 'linear-gradient(180deg, #FFFFFF 0%, #E3E9EE 30%, #AEBAC4 55%, #EDF2F5 75%, #9AA7B2 100%)',
-      table1Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
-      table2Header: 'linear-gradient(180deg, #FFFFFF 0%, #E8EDF2 25%, #BFCAD3 50%, #E3E9EE 75%, #8B98A3 100%)',
-      cardPreviewGradient: 'linear-gradient(135deg, #242B32 0%, #151A1E 50%, #0D1013 100%)',
-      orbGradient: 'radial-gradient(circle at 35% 35%, #FFFFFF 0%, #DDE4E9 35%, #7A8995 70%, #2A333A 100%)',
-      glow: 'rgba(160, 175, 190, 0.4)',
-      texturePattern: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px)',
-      icon: <Award size={14} className="text-[#151B20]" />,
-    },
-    {
-      id: 'ouro',
-      name: 'Ouro Imperial',
-      badge: 'OURO 24K • 8K HDR',
-      officeMaterial: 'Gabinete Presidencial • Ouro Nobre & Nogueira',
-      resolution: '8K ULTRA-HD',
-      accent: '#D97706',
-      border: '#B45309',
-      textColor: '#1E1605',
-      headerBg: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 22%, #F59E0B 48%, #FDE68A 72%, #B45309 100%)',
-      subHeaderBg: 'linear-gradient(180deg, #FFFEF7 0%, #FEF3C7 28%, #FDE68A 50%, #FDF8E8 72%, #C27803 100%)',
-      table1Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
-      table2Header: 'linear-gradient(180deg, #FFFDF0 0%, #FEF3C7 24%, #F59E0B 50%, #FDE68A 75%, #B45309 100%)',
-      cardPreviewGradient: 'linear-gradient(135deg, #2A210F 0%, #1A1407 50%, #0E0B04 100%)',
-      orbGradient: 'radial-gradient(circle at 35% 35%, #FFFDF0 0%, #FDE68A 35%, #D97706 70%, #78350F 100%)',
-      glow: 'rgba(217, 119, 6, 0.45)',
-      texturePattern: 'radial-gradient(circle at 50% 50%, rgba(245,158,11,0.15) 1px, transparent 1px)',
-      icon: <Crown size={14} className="text-[#3A2402]" />,
-    },
-    {
-      id: 'bronze',
-      name: 'Bronze Corporativo',
-      badge: 'BRONZE NOBRE • 8K',
-      officeMaterial: 'Sala de Reuniões • Bronze Nobre & Couro Cognac',
-      resolution: '8K ULTRA-HD',
-      accent: '#C2410C',
-      border: '#9A3412',
-      textColor: '#2A1208',
-      headerBg: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #9A3412 100%)',
-      subHeaderBg: 'linear-gradient(180deg, #FFFAF6 0%, #FDE8E1 28%, #F3D2C1 52%, #FAF0EC 74%, #B45309 100%)',
-      table1Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
-      table2Header: 'linear-gradient(180deg, #FFFDFB 0%, #FDE8E1 24%, #D97757 48%, #F3D2C1 72%, #8C2C0B 100%)',
-      cardPreviewGradient: 'linear-gradient(135deg, #281912 0%, #1A100B 50%, #100A06 100%)',
-      orbGradient: 'radial-gradient(circle at 35% 35%, #FFF7ED 0%, #FDBA74 35%, #EA580C 70%, #6C2710 100%)',
-      glow: 'rgba(194, 65, 12, 0.4)',
-      texturePattern: 'radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 0 0, radial-gradient(rgba(217,119,87,0.15) 15%, transparent 16%) 4px 4px',
-      icon: <Building2 size={14} className="text-[#200E06]" />,
-    },
-    {
-      id: 'rubi',
-      name: 'Rubi Diretoria',
-      badge: 'RUBI REAL • 8K HDR',
-      officeMaterial: 'Sala do Conselho • Laca Rubi & Couro Preto',
-      resolution: '8K ULTRA-HD',
-      accent: '#BE123C',
-      border: '#881337',
-      textColor: '#24060E',
-      headerBg: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #FEB2B2 46%, #FFF5F5 70%, #881337 100%)',
-      subHeaderBg: 'linear-gradient(180deg, #FFFAFA 0%, #FED7D7 28%, #FEB2B2 50%, #FFF5F5 72%, #881337 100%)',
-      table1Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
-      table2Header: 'linear-gradient(180deg, #FFF5F5 0%, #FED7D7 24%, #F43F5E 48%, #FDA4AF 72%, #700C1F 100%)',
-      cardPreviewGradient: 'linear-gradient(135deg, #2A1017 0%, #1B0A0F 50%, #100609 100%)',
-      orbGradient: 'radial-gradient(circle at 35% 35%, #FFF1F2 0%, #FDA4AF 35%, #E11D48 70%, #4C0519 100%)',
-      glow: 'rgba(190, 18, 60, 0.45)',
-      texturePattern: 'repeating-linear-gradient(45deg, rgba(225,29,72,0.1) 0px, rgba(225,29,72,0.1) 1px, transparent 1px, transparent 6px)',
-      icon: <Gem size={14} className="text-[#FFFFFF]" />,
-    },
-    {
-      id: 'gelo',
-      name: 'Gelo Safira',
-      badge: 'SAFIRA CRISTAL • 8K',
-      officeMaterial: 'Centro de Comando • Titânio Fosco & Safira Polar',
-      resolution: '8K ULTRA-HD',
-      accent: '#0284C7',
-      border: '#0369A1',
-      textColor: '#032030',
-      headerBg: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #BAE6FD 48%, #E0F2FE 72%, #0369A1 100%)',
-      subHeaderBg: 'linear-gradient(180deg, #F8FAFC 0%, #E0F2FE 28%, #BAE6FD 50%, #F0F9FF 72%, #0369A1 100%)',
-      table1Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
-      table2Header: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 24%, #38BDF8 48%, #BAE6FD 72%, #075985 100%)',
-      cardPreviewGradient: 'linear-gradient(135deg, #0F2332 0%, #091721 50%, #050E15 100%)',
-      orbGradient: 'radial-gradient(circle at 35% 35%, #F0F9FF 0%, #7DD3FC 35%, #0284C7 70%, #082F49 100%)',
-      glow: 'rgba(2, 132, 199, 0.45)',
-      texturePattern: 'radial-gradient(circle at 50% 50%, rgba(56,189,248,0.14) 1px, transparent 1px)',
-      icon: <Sparkles size={14} className="text-[#022336]" />,
-    },
-  ];
 
   // Isca positions (addresses, times and battery level) matching the image exactly
   const [isca1Endereco, setIsca1Endereco] = useState("");
@@ -1446,21 +1260,29 @@ export default function Controle({ onBack }: ControleProps) {
 
   // Sidebar specific inputs (COLUNA.PNG layout)
   const [sidebarTransportadora, setSidebarTransportadora] =
-    useState("moedense");
-  const [sidebarTecnologia, setSidebarTecnologia] = useState("SASCAR");
-  const [sidebarMotorista, setSidebarMotorista] = useState(
-    "MARISON REZENDE LEMOS",
-  );
-  const [sidebarEmbarque1, setSidebarEmbarque1] = useState("https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF");
-  const [sidebarEmbarque2, setSidebarEmbarque2] = useState("https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF");
+    useState("");
+  const [sidebarTecnologia, setSidebarTecnologia] = useState("");
+  const [sidebarMotorista, setSidebarMotorista] = useState("");
+  const [sidebarEmbarque1, setSidebarEmbarque1] = useState("none");
+  const [sidebarEmbarque2, setSidebarEmbarque2] = useState("none");
   const [searchRota, setSearchRota] = useState("");
   const [pastePlanilha, setPastePlanilha] = useState("");
 
   // Prefixes and Suffixes for N° ISCAS (individual prefixes)
   const [iscaPrefix1, setIscaPrefix1] = useState("R10000");
   const [iscaPrefix2, setIscaPrefix2] = useState("R10000");
-  const [iscaSuffix1, setIscaSuffix1] = useState("2195");
-  const [iscaSuffix2, setIscaSuffix2] = useState("3797");
+  const [iscaSuffix1, setIscaSuffix1] = useState("");
+  const [iscaSuffix2, setIscaSuffix2] = useState("");
+
+  // Código mostrado na parametrização: prioriza o valor digitado e, se estiver vazio,
+  // monta o código a partir do prefixo/sufixo configurados no próprio formulário.
+  const getIscaDisplayCode = (raw: string, prefix: string, suffix: string) => {
+    const entered = (raw || "").trim();
+    if (entered.toUpperCase() === "SEM ISCA" || entered === "---") return "";
+    return entered || `${prefix || ""}${suffix || ""}`.trim();
+  };
+  const isca1DisplayCode = getIscaDisplayCode(isca1, iscaPrefix1, iscaSuffix1);
+  const isca2DisplayCode = isca2 === "SEM ISCA" ? "" : getIscaDisplayCode(isca2, iscaPrefix2, iscaSuffix2);
 
   const isDescartavel = useMemo(() => {
     return isDispositivoDescartavel(
@@ -2487,116 +2309,227 @@ export default function Controle({ onBack }: ControleProps) {
       `;
     };
 
-    const htmlEmail = `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #FFFFFF; padding: 24px; color: #0F172A; max-width: 850px; border-radius: 8px; border: 1px solid #E2E8F0;">
-        
-        <!-- Saudação -->
-        <p style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: 700; color: #0F172A; font-size: 15px; margin-bottom: 16px; margin-top: 0; padding: 0;">${saudacao || "Boa tarde,"}</p>
-        
-        <!-- Alerta Resgate Corporate Banner -->
-        <div style="background-color: ${alertBg}; color: ${alertTextColor}; font-weight: 900; padding: 10px 18px; display: inline-block; margin-bottom: 20px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 6px; line-height: 1.45; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          ${(alertaResgate || "FAVOR SE ATENTAR AO RESGATE!").replace(/\n/g, "<br>")}
-        </div>
-        
-        <p style="font-weight: 800; font-size: 13px; margin-bottom: 14px; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px;">${infoAbaixo || "Atentar às informações abaixo:"}</p>
-        
-        <!-- Caixa de Observações (Executive Blue Left Card) -->
-        <div style="border: 1px solid #CBD5E1; border-left: 5px solid #ff5500; background-color: #edf1f6; padding: 14px 18px; margin-bottom: 24px; max-width: 620px; border-radius: 6px;">
-          <div style="font-size: 12px; font-weight: 700; color: #00163a; line-height: 1.6;">
-            <div style="margin-bottom: 8px; display: flex; align-items: center;">
-              <span style="color: #ff5500; font-weight: 900; margin-right: 10px; font-size: 14px;">•</span> ${rota1}
-            </div>
-            <div style="display: flex; align-items: center;">
-              <span style="color: #ff5500; font-weight: 900; margin-right: 10px; font-size: 14px;">•</span> ${instrucao1}
-            </div>
-            ${
-              !pastePlanilha.trim()
-                ? `<div style="margin-top: 8px; display: flex; align-items: center; color: #DC2626; font-weight: 800;">
-                    <span style="color: #DC2626; font-weight: 900; margin-right: 10px; font-size: 14px;">•</span> O site das iscas está temporariamente fora do ar.
-                  </div>`
-                : ""
-            }
-          </div>
-        </div>
+    const headerTruckImgUrl =
+      typeof window !== "undefined" && window.location?.origin
+        ? `${window.location.origin}/images/panoramic_truck_sunset.jpg`
+        : "/images/panoramic_truck_sunset.jpg";
 
-        <!-- TABELA 1: PRÉ-ALERTA DE ISCA EMBARCADA METÁLICA -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 11px; text-align: center; font-weight: 500; color: #151B20; margin-bottom: 22px; border: 1px solid ${themeStyles.border}; border-radius: 8px; overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 12px rgba(30,40,50,0.12);">
-          <thead>
-            <tr style="background: ${themeStyles.headerBg}; color: #151B20;">
-              <th colspan="2" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; font-weight: 800; padding: 8px 10px; text-transform: uppercase; font-size: 10.5px; width: 25%; color: #202930; letter-spacing: 0.5px;">NÚMERO DA NF:</th>
-              <th colspan="1" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 5px; width: 15%; background-color: #FFFFFF; text-align: center; font-family: sans-serif; font-size: 11.5px; line-height: 1.2;">
-                <div style="font-weight: 800; color: #151B20; text-align: center; width: 100%;">${nfInicio.replace(/-/g, '') || '&nbsp;'}</div>
-                ${numCarretas === 2 && isca2 && isca2 !== "SEM ISCA" ? `
-                  <div style="font-weight: 800; color: #151B20; text-align: center; width: 100%;">${nfFim.replace(/-/g, '') || nfInicio.replace(/-/g, '') || '&nbsp;'}</div>
-                ` : ''}
-              </th>
-              <th colspan="1" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; font-weight: 800; padding: 8px 10px; text-transform: uppercase; font-size: 10.5px; width: 18%; color: #202930; letter-spacing: 0.5px;">TRANSPORTADORA:</th>
-              <th colspan="2" style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 5px; width: 25%; background-color: #FFFFFF; text-transform: uppercase; font-weight: 800; color: #151B20; font-size: 11.5px;">${transportadora}</th>
-              <th colspan="2" style="border-bottom: 1px solid ${themeStyles.border}; width: 17%; text-align: center; vertical-align: middle; padding: 6px; background: ${themeStyles.headerBg};">
-                ${valorCarga ? `
-                  <div style="font-size: 8px; color: #46525C; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1;">VALOR DA CARGA</div>
-                  <div style="font-size: 12px; color: #151B20; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px;">${valorCarga}</div>
-                ` : ''}
-              </th>
-            </tr>
-            <tr style="background: ${themeStyles.table1Header}; color: #202930; text-transform: uppercase; font-size: 9.5px; font-weight: 800; letter-spacing: 0.4px;">
-              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 18%; color: #202930;">MOTORISTA</th>
-              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 12%; color: #202930;">CAVALO</th>
-              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 12%; color: #202930;">CARRETAS</th>
-              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 12%; color: #202930;">N° ISCA</th>
-              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 14%; color: #202930;">PRODUTO EMBARCADO</th>
-              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 14%; color: #202930;">CÓDIGO U.M.A.</th>
-              <th style="border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 11%; color: #202930;">DESTINO</th>
-              <th style="border-bottom: 1px solid ${themeStyles.border}; padding: 8px 6px; width: 11%; color: #202930;">DATA PARTIDA</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #DCE3E8; text-align: center; background-color: #FFFFFF;">
-              <td rowspan="${numCarretas}" style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 700; text-transform: uppercase; font-size: 11px; color: #151B20;">${motorista}</td>
-              <td rowspan="${numCarretas}" style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 900; text-transform: uppercase; font-size: 12.5px; color: #151B20; letter-spacing: 0.5px;">${cavalo.replace(/-/g, '')}</td>
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; text-transform: uppercase; font-weight: 700; font-size: 11px; color: #202930;">${carreta1}</td>
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 900; font-size: 12px; color: #C62845;">${isca1}</td>
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 600; font-size: 11px; color: #202930;">${produto1}</td>
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 600; font-size: 11px; color: #202930;">${uma1}</td>
-              <td rowspan="${numCarretas}" style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 700; text-transform: uppercase; font-size: 11px; color: #151B20;">${destino}</td>
-              <td rowspan="${numCarretas}" style="padding: 8px; font-weight: 700; font-size: 11px; color: #151B20;">${dataEnviada}</td>
-            </tr>
-            ${
-              numCarretas === 2
-                ? `
-            <tr style="border-bottom: 1px solid #DCE3E8; text-align: center; background-color: #FFFFFF;">
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; text-transform: uppercase; font-weight: 700; font-size: 11px; color: #202930;">${carreta2}</td>
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 900; font-size: 12px; color: #C62845;">${isca2}</td>
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 600; font-size: 11px; color: #202930;">${produto2}</td>
-              <td style="border-right: 1px solid #DCE3E8; padding: 8px; font-weight: 600; font-size: 11px; color: #202930;">${uma2}</td>
-            </tr>
-            `
-                : ""
-            }
-          </tbody>
+    const htmlEmail = `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #FAF7F0; padding: 18px 20px; color: #1A1D20; width: 100%; max-width: 100%; box-sizing: border-box; margin: 0; border-radius: 12px; border: 1px solid #C5A059; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+        
+        <!-- BANNER DE CABEÇALHO PANORÂMICO CORPORATIVO (3 CORAÇÕES) COM FOTOGRAFIA DE CAMINHÃO E RODOVIA -->
+        <table cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #14171A; background: linear-gradient(90deg, #121417 0%, #1A1D22 35%, #24272D 60%, #181A1E 100%); border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1.5px solid #C5A059; box-shadow: 0 4px 15px rgba(0,0,0,0.25);">
+          <tr>
+            <!-- Coluna Esquerda: Marca e Títulos Institucionais -->
+            <td style="padding: 14px 18px; vertical-align: middle; width: 44%; background-color: #14171A;">
+              <table cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                <tr>
+                  <td style="vertical-align: middle; padding-right: 14px;">
+                    <div style="width: 48px; height: 48px; background: radial-gradient(circle, #D92332 0%, #9B1526 100%); border: 2px solid #D4AF37; border-radius: 50%; text-align: center; line-height: 46px; color: #FFFFFF; font-weight: 900; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+                      3♥C
+                    </div>
+                  </td>
+                  <td style="vertical-align: middle;">
+                    <div style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: 900; font-size: 20px; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.8px; margin: 0; line-height: 1.1;">
+                      SANTA LUZIA <span style="color: #D4AF37;">GR</span>
+                    </div>
+                    <div style="font-size: 10px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px;">
+                      CENTRAL DE CONTROLE
+                    </div>
+                    <div style="font-size: 8px; font-weight: 600; color: #C4C9D0; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px;">
+                      MONITORAMENTO INTELIGENTE · MAIS SEGURANÇA · SUA CARGA SEMPRE EM FOCO
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            
+            <!-- Coluna Centro: Fotografia Panorâmica de Rodovia, Montanhas e Caminhão -->
+            <td style="width: 38%; vertical-align: middle; padding: 0; text-align: center; background-color: #181A1E; overflow: hidden;">
+              <img src="${headerTruckImgUrl}" alt="Caminhão em rodovia ao pôr do sol" width="340" height="118" style="width: 100%; height: 118px; max-height: 118px; object-fit: cover; display: block; border: 0;" />
+            </td>
+
+            <!-- Coluna Direita: Frase 'Juntos fazemos mais!' com detalhes dourados -->
+            <td style="padding: 14px 18px; text-align: right; vertical-align: middle; width: 18%; background-color: #14171A; border-left: 1px solid #332E22;">
+              <div style="color: #D4AF37; font-weight: bold; font-style: italic; font-size: 15px; font-family: 'Georgia', serif; letter-spacing: 0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); line-height: 1.2;">
+                Juntos fazemos mais!
+              </div>
+            </td>
+          </tr>
         </table>
 
-        <!-- TABELA 2: PARAMETRIZAÇÃO DAS ISCAS METÁLICA -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 10.5px; text-align: center; font-weight: 500; color: #151B20; margin-bottom: 25px; border: 1px solid ${themeStyles.border}; border-radius: 8px; overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 12px rgba(30,40,50,0.12);">
-          <tr style="background: ${themeStyles.headerBg}; color: #202930; font-size: 11px;">
-            <td colspan="4" style="padding: 9px 12px; border-bottom: 1px solid ${themeStyles.border}; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; color: #202930;">‹─── PARAMETRIZAÇÃO DAS ISCAS ───›</td>
-          </tr>
-          <tr style="background: ${themeStyles.subHeaderBg}; color: #202930; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 800;">
-            <td style="padding: 8px; border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; width: 25%;">
-              PLACA / CÓDIGO DE VENDA ⇅
+        <!-- Saudação -->
+        <p style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: 800; color: #1A1D20; font-size: 14px; margin: 0 0 12px; padding: 0;">${saudacao || "Boa tarde,"}</p>
+
+        <!-- FAIXA ÚNICA DE ALERTA + ORIENTAÇÕES: VERMELHO À ESQUERDA, INFORMAÇÕES À DIREITA -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-spacing:0;margin:0 0 18px;border:1px solid #C5A059;border-radius:12px;overflow:hidden;background:#FFF9ED;font-family:'Segoe UI',Arial,sans-serif;">
+          <tr>
+            <td width="38%" valign="middle" style="width:38%;padding:16px 18px;background-color:${alertBg};background-image:linear-gradient(135deg,${alertBg},#74101A);color:${alertTextColor};border-right:2px solid #D4AF37;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
+                <tr>
+                  <td width="34" valign="middle" style="width:34px;padding-right:10px;font-size:26px;line-height:1;">⚠</td>
+                  <td valign="middle" style="font-size:15px;line-height:1.25;font-weight:900;text-transform:uppercase;letter-spacing:.3px;">
+                    ${(alertaResgate || "FAVOR SE ATENTAR AO RESGATE!").replace(/\n/g, "<br>")}
+                  </td>
+                </tr>
+              </table>
             </td>
-            <td style="padding: 8px; border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
-            <td style="padding: 8px; border-right: 1px solid ${themeStyles.border}; border-bottom: 1px solid ${themeStyles.border}; width: 18%;">DATA POSIÇÃO ⇅</td>
-            <td style="padding: 8px; border-bottom: 1px solid ${themeStyles.border}; width: 12%;">BATERIA ISCA _ RF ⇅</td>
+            <td width="62%" valign="middle" style="width:62%;padding:13px 18px;background-color:#FFF9ED;color:#211C19;">
+              <div style="font-size:12px;line-height:1.3;font-weight:900;text-transform:uppercase;margin:0 0 7px;color:#211C19;">${infoAbaixo || "Atentar às informações abaixo:"}</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;font-size:11px;line-height:1.45;">
+                <tr><td valign="top" style="width:16px;padding:2px 7px 2px 0;color:#C91F2D;font-weight:900;">•</td><td style="padding:2px 0;color:#211C19;">${rota1 || ""}</td></tr>
+                <tr><td valign="top" style="width:16px;padding:2px 7px 2px 0;color:#C91F2D;font-weight:900;">•</td><td style="padding:2px 0;color:#211C19;">${instrucao1 || ""}</td></tr>
+                ${!pastePlanilha.trim() ? `<tr><td valign="top" style="width:16px;padding:2px 7px 2px 0;color:#C91F2D;font-weight:900;">•</td><td style="padding:3px 7px;color:#C91F2D;font-weight:800;background:#FFF0EF;border:1px solid #FFD0CC;">O site das iscas está temporariamente fora do ar.</td></tr>` : ""}
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- RESUMO DA CARGA: 3 GRUPOS HORIZONTAIS GRAFITE E DOURADO -->
+        <table style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #181A1D 0%, #202429 50%, #181A1D 100%); border: 1px solid #C5A059; border-radius: 8px; overflow: hidden; margin-bottom: 20px; font-family: 'Segoe UI', Arial, sans-serif; box-shadow: 0 3px 10px rgba(0,0,0,0.15);">
+          <tr>
+            <!-- Grupo 1: Número da NF -->
+            <td style="padding: 12px 14px; border-right: 1px solid #3F3B32; text-align: center; width: 34%; vertical-align: middle;">
+              <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="vertical-align: middle; padding-right: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #2D3238 0%, #1A1D20 100%); border: 1.5px solid #D4AF37; text-align: center; line-height: 29px; color: #D4AF37; font-size: 14px;">
+                      📄
+                    </div>
+                  </td>
+                  <td style="vertical-align: middle; text-align: left;">
+                    <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">NÚMERO DA NF:</div>
+                    <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px;">
+                      ${nfInicio.replace(/-/g, '') || '---'} ${numCarretas === 2 && isca2 !== "SEM ISCA" && nfFim ? `/ ${nfFim.replace(/-/g, '')}` : ''}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <!-- Grupo 2: Transportadora -->
+            <td style="padding: 12px 14px; border-right: 1px solid #3F3B32; text-align: center; width: 33%; vertical-align: middle;">
+              <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="vertical-align: middle; padding-right: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #2D3238 0%, #1A1D20 100%); border: 1.5px solid #D4AF37; text-align: center; line-height: 29px; color: #D4AF37; font-size: 14px;">
+                      🚚
+                    </div>
+                  </td>
+                  <td style="vertical-align: middle; text-align: left;">
+                    <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">TRANSPORTADORA:</div>
+                    <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px; text-transform: uppercase;">
+                      ${transportadora || '---'}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <!-- Grupo 3: Valor da Carga -->
+            <td style="padding: 12px 14px; text-align: center; width: 33%; vertical-align: middle;">
+              <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="vertical-align: middle; padding-right: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #2D3238 0%, #1A1D20 100%); border: 1.5px solid #D4AF37; text-align: center; line-height: 29px; color: #D4AF37; font-size: 14px;">
+                      💰
+                    </div>
+                  </td>
+                  <td style="vertical-align: middle; text-align: left;">
+                    <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">VALOR DA CARGA:</div>
+                    <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px;">
+                      ${valorCarga || '---'}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- TABELA 1: DADOS DA OPERAÇÃO (CABEÇALHOS GRAFITE, BORDAS DOURADAS, LINHAS MARFIM) -->
+        <table style="width: 100%; border-collapse: collapse; background-color: #FDFBF7; font-size: 10px; text-align: center; color: #1A1D20; margin-bottom: 20px; border: 1px solid #C5A059; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+          <tr style="background: linear-gradient(180deg, #22262B 0%, #181A1D 100%); color: #FFFFFF; font-weight: 800; text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.5px;">
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">MOTORISTA</td>
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">CAVALO</td>
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">CARRETAS</td>
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">N° ISCA</td>
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">PROD. EMBARCADO</td>
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">CÓD. U.M.A.</td>
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">DESTINO</td>
+            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">DATA PARTIDA</td>
+          </tr>
+          <tr style="background-color: #FFFFFF; border-bottom: 1px solid #E5D5B5;">
+            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${motorista}</td>
+            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${cavalo}</td>
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${carreta1}</td>
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #C91F2D;">
+              ${isca1 || 'ISCA 1'}
+            </td>
+            <!-- PRODUTO EMBARCADO: TEXTO LIMPO EM NEGRITO -->
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+              ${produto1 || "PROD 1"}
+            </td>
+            <!-- CÓDIGO U.M.A.: TEXTO LIMPO EM NEGRITO -->
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+              ${uma1 || "CÓDIGO U.M.A."}
+            </td>
+            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${destino}</td>
+            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${dataEnviada}</td>
           </tr>
           ${
-            numCarretas === 2 && isca2 && isca2 !== "SEM ISCA"
+            numCarretas === 2
               ? `
-          <tr style="background-color: #FFFFFF; border-bottom: 1px solid #DCE3E8;">
-            <td style="padding: 8px; border-right: 1px solid #DCE3E8; text-transform: uppercase; font-weight: 900; color: #C62845;">${isca2}</td>
-            <td style="padding: 8px; border-right: 1px solid #DCE3E8; text-align: left; padding-left: 12px; font-weight: 600; color: ${!pastePlanilha.trim() && !isca2Endereco ? "#C62845" : "#202930"};">${isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
-            <td style="padding: 8px; border-right: 1px solid #DCE3E8; font-weight: 600; color: #202930;">${isca2Data}</td>
-            <td style="padding: 8px;">
+          <tr style="background-color: #FBF8F1; border-bottom: 1px solid #E5D5B5;">
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${carreta2}</td>
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #C91F2D;">
+              ${isca2 || 'ISCA 2'}
+            </td>
+            <!-- PROD 2: TEXTO LIMPO EM NEGRITO -->
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+              ${produto2 || "PROD 2"}
+            </td>
+            <!-- UMA 2: TEXTO LIMPO EM NEGRITO -->
+            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+              ${uma2 || "CÓDIGO U.M.A."}
+            </td>
+          </tr>
+          `
+              : ""
+          }
+        </table>
+
+        <!-- TABELA 2: PARAMETRIZAÇÃO DAS ISCAS CORPORATIVA DOURADA & GRAFITE -->
+        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 10px; text-align: center; color: #1A1D20; margin-bottom: 22px; border: 1px solid #C5A059; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+          <tr style="background: linear-gradient(180deg, #1A1D20 0%, #252A30 100%); color: #FFFFFF; font-size: 11px;">
+            <td colspan="4" style="padding: 10px 14px; border-bottom: 1px solid #C5A059; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+              <table cellpadding="0" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                <tr>
+                  <td style="width: 28px; vertical-align: middle;">
+                    <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #F59E0B 0%, #B8860B 100%); border: 1px solid #D4AF37; border-radius: 50%; text-align: center; line-height: 22px; color: #111111; font-weight: 900; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">⚙</div>
+                  </td>
+                  <td style="vertical-align: middle; color: #FFFFFF; font-weight: 900; font-size: 11px; letter-spacing: 1.2px; text-align: center;">
+                    PARAMETRIZAÇÃO DAS ISCAS
+                  </td>
+                  <td style="width: 28px; text-align: right;"></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr style="background-color: #F5EDDA; color: #1A1D20; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; border-bottom: 1px solid #C5A059;">
+            <td style="padding: 8px 6px; border-right: 1px solid #C5A059; width: 25%;">
+              PLACA / CÓDIGO DE VENDA ⇅
+            </td>
+            <td style="padding: 8px 6px; border-right: 1px solid #C5A059; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
+            <td style="padding: 8px 6px; border-right: 1px solid #C5A059; width: 18%;">DATA POSIÇÃO ⇅</td>
+            <td style="padding: 8px 6px; width: 12%;">BATERIA ISCA _ RF ⇅</td>
+          </tr>
+          ${
+            numCarretas === 2 && !!isca2DisplayCode
+              ? `
+          <tr style="background-color: #FFFFFF; border-bottom: 1px solid #E5D5B5;">
+            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 800; color: #C91F2D; text-align: center;">${isca2DisplayCode}</td>
+            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-align: left; padding-left: 12px; font-weight: 800; color: ${!pastePlanilha.trim() && !isca2Endereco ? "#C91F2D" : "#1A1D20"};">${isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
+            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${isca2Data}</td>
+            <td style="padding: 8px 6px;">
               ${
                 ((isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
                   ? ""
@@ -2616,10 +2549,10 @@ export default function Controle({ onBack }: ControleProps) {
               : ""
           }
           <tr style="background-color: #FFFFFF;">
-            <td style="padding: 8px; border-right: 1px solid #DCE3E8; text-transform: uppercase; font-weight: 900; color: #C62845;">${isca1 === "SEM ISCA" ? "" : isca1}</td>
-            <td style="padding: 8px; border-right: 1px solid #DCE3E8; text-align: left; padding-left: 12px; font-weight: 600; color: ${!pastePlanilha.trim() && !isca1Endereco ? "#C62845" : "#202930"};">${isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
-            <td style="padding: 8px; border-right: 1px solid #DCE3E8; font-weight: 600; color: #202930;">${isca1Data}</td>
-            <td style="padding: 8px;">
+            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 800; color: #C91F2D; text-align: center;">${isca1DisplayCode}</td>
+            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-align: left; padding-left: 12px; font-weight: 800; color: ${!pastePlanilha.trim() && !isca1Endereco ? "#C91F2D" : "#1A1D20"};">${isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
+            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${isca1Data}</td>
+            <td style="padding: 8px 6px;">
               ${
                 ((isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
                   ? ""
@@ -2636,6 +2569,8 @@ export default function Controle({ onBack }: ControleProps) {
             </td>
           </tr>
         </table>
+
+
 
         <!-- SEÇÃO: ESQUEMA DE EMBARQUE -->
         ${
@@ -2657,7 +2592,7 @@ export default function Controle({ onBack }: ControleProps) {
                   <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: ${isPaletizado1 ? '6px' : '12px'}; margin-bottom: ${isPaletizado1 ? '8px' : '15px'}; width: ${isPaletizado1 ? '150px' : '320px'}; height: ${isPaletizado1 ? '200px' : '420px'}; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 6px; shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <img src="${getEmbarqueImgSrc(sidebarEmbarque1)}" alt="Esquema" style="max-width: 95%; max-height: 95%; width: auto; height: auto; object-fit: contain; display: block; margin: auto;">
                   </div>
-                  <p style="font-size: ${isPaletizado1 ? '9px' : '11px'}; font-weight: 800; color: #0F172A; margin-top: ${isPaletizado1 ? '6px' : '12px'}; text-transform: uppercase;">${carreta1}</p>
+                  <p style="font-size: ${isPaletizado1 ? '9px' : '11px'}; font-weight: 800; color: #0F172A; margin-top: ${isPaletizado1 ? '6px' : '12px'}; text-transform: uppercase;">CARRETA 1: ${carreta1}</p>
                 </div>
               `
                 : `<div style="text-align: center; width: 100px;">
@@ -2676,7 +2611,7 @@ export default function Controle({ onBack }: ControleProps) {
                   <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: ${isPaletizado2 ? '6px' : '12px'}; margin-bottom: ${isPaletizado2 ? '8px' : '15px'}; width: ${isPaletizado2 ? '150px' : '320px'}; height: ${isPaletizado2 ? '200px' : '420px'}; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 6px; shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <img src="${getEmbarqueImgSrc(sidebarEmbarque2)}" alt="Esquema" style="max-width: 95%; max-height: 95%; width: auto; height: auto; object-fit: contain; display: block; margin: auto;">
                   </div>
-                  <p style="font-size: ${isPaletizado2 ? '9px' : '11px'}; font-weight: 800; color: #0F172A; margin-top: ${isPaletizado2 ? '6px' : '12px'}; text-transform: uppercase;">${carreta2}</p>
+                  <p style="font-size: ${isPaletizado2 ? '9px' : '11px'}; font-weight: 800; color: #0F172A; margin-top: ${isPaletizado2 ? '6px' : '12px'}; text-transform: uppercase;">CARRETA 2: ${carreta2}</p>
                 </div>
                 `
                   : `<div style="text-align: center; width: 100px;">
@@ -2824,45 +2759,45 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
   };
 
   return (
-    <div className="w-full relative z-10 max-w-full mx-auto flex flex-col font-sans space-y-5 text-stone-900 min-h-screen">
+    <div className="w-full relative z-10 max-w-full mx-auto flex flex-col font-sans space-y-5 text-[#292820] min-h-screen bg-[#F5F0E6] p-4 sm:p-6 rounded-3xl border border-[#EDE2CE] shadow-sm">
       
       {/* CINEMATIC HERO BANNER */}
       <div 
-        className="relative w-full rounded-2xl sm:rounded-3xl p-6 sm:p-8 overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 border border-[rgba(229,194,122,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+        className="relative w-full rounded-2xl sm:rounded-3xl p-6 sm:p-8 overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 border border-[#E6D2A3] shadow-md"
         style={{
-          backgroundImage: `linear-gradient(rgba(7, 10, 12, 0.85), rgba(7, 10, 12, 0.92)), url(${heroRotas})`,
+          backgroundImage: `linear-gradient(135deg, rgba(255, 252, 246, 0.94) 0%, rgba(245, 240, 230, 0.95) 50%, rgba(237, 226, 206, 0.96) 100%), url(${heroRotas})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
         <div className="flex items-center gap-5 relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] flex items-center justify-center text-[#080a0c] shadow-[0_0_25px_rgba(217,173,90,0.4)] border border-[#fff5db]/50 shrink-0">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E6D2A3] via-[#C49A45] to-[#B08632] flex items-center justify-center text-[#292820] shadow-md border border-[#E6D2A3] shrink-0">
             <Radio size={30} className="stroke-[2.5]" />
           </div>
 
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(229,194,122,0.15)] border border-[rgba(229,194,122,0.3)] text-[#e5c27a] text-[10px] font-mono font-black uppercase tracking-wider mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDE2CE] border border-[#E6D2A3] text-[#292820] text-[10px] font-mono font-black uppercase tracking-wider mb-2">
               <span>// OPERAÇÃO 3C</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans drop-shadow-md">
+            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-[#292820] font-sans drop-shadow-xs">
               CENTRAL DE CONTROLE PGR
             </h1>
-            <p className="text-xs text-[#a8a39a] font-sans mt-1 max-w-xl leading-relaxed">
+            <p className="text-xs text-[#77736B] font-sans mt-1 max-w-xl leading-relaxed">
               Gerador inteligente de controle, pré-alerta, monitoramento e gestão de frota integrada.
             </p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center bg-[#0d1113]/90 p-1.5 rounded-2xl border border-[rgba(229,194,122,0.2)] shadow-inner gap-2 flex-wrap sm:flex-nowrap relative z-10">
+        <div className="flex items-center bg-[#FFFCF6] p-1.5 rounded-2xl border border-[#EDE2CE] shadow-xs gap-2 flex-wrap sm:flex-nowrap relative z-10">
           <button
             type="button"
             onClick={() => setActiveTab("gerador")}
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer",
               activeTab === "gerador"
-                ? "bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] shadow-[0_4px_16px_rgba(217,173,90,0.4)] border border-[#fff5db]/50"
-                : "text-[#d8d3c8] hover:text-white hover:bg-white/5"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] shadow-xs border border-[#C49A45]/40"
+                : "text-[#77736B] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
           >
             <Sliders size={15} />
@@ -2875,8 +2810,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer relative",
               activeTab === "placas"
-                ? "bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] shadow-[0_4px_16px_rgba(217,173,90,0.4)] border border-[#fff5db]/50"
-                : "text-[#d8d3c8] hover:text-white hover:bg-white/5"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] shadow-xs border border-[#C49A45]/40"
+                : "text-[#77736B] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
           >
             <Truck size={15} />
@@ -2884,7 +2819,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {parsedPlacas.length > 0 && (
               <span className={cn(
                 "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
-                activeTab === "placas" ? "bg-[#080a0c] text-[#e5c27a]" : "bg-white/20 text-white"
+                activeTab === "placas" ? "bg-[#292820] text-[#E6D2A3]" : "bg-[#EDE2CE] text-[#292820]"
               )}>
                 {parsedPlacas.length}
               </span>
@@ -2897,8 +2832,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer relative",
               activeTab === "unidades"
-                ? "bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] shadow-[0_4px_16px_rgba(217,173,90,0.4)] border border-[#fff5db]/50"
-                : "text-[#d8d3c8] hover:text-white hover:bg-white/5"
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] shadow-xs border border-[#C49A45]/40"
+                : "text-[#77736B] hover:text-[#292820] hover:bg-[#EDE2CE]/50"
             )}
           >
             <Compass size={15} />
@@ -2906,7 +2841,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {parsedUnidades.carretas.length > 0 && (
               <span className={cn(
                 "px-2 py-0.5 rounded-full text-[10px] font-black font-mono shadow-xs",
-                activeTab === "unidades" ? "bg-[#080a0c] text-[#e5c27a]" : "bg-white/20 text-white"
+                activeTab === "unidades" ? "bg-[#292820] text-[#E6D2A3]" : "bg-[#EDE2CE] text-[#292820]"
               )}>
                 {parsedUnidades.carretas.length}
               </span>
@@ -2923,26 +2858,23 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         {activeTab === "placas" && (
           <div className="flex flex-col gap-6 max-w-full mx-auto w-full animate-fade-in">
             {/* Main Station Cockpit */}
-            <div className="bg-[#f8fafc]/90 backdrop-blur-md rounded-3xl border border-[#929FA9]/40 shadow-xl p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden">
-              {/* Decorative top accent line */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#B32025] via-red-600 to-amber-500" />
-
+            <div className="bg-[#FFFCF6] rounded-3xl border border-[#E6D2A3] shadow-sm p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden text-[#292820]">
               {/* Station Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EDE2CE]">
                 <div className="flex items-start sm:items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#B32025] to-[#7f1317] text-white p-3 shadow-md shadow-red-900/30 flex items-center justify-center shrink-0 border border-red-800">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] p-3 shadow-md flex items-center justify-center shrink-0 border border-[#E6D2A3]">
                     <Truck size={24} className="stroke-[2.5]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-[#9b1526] border border-red-300">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#EDE2CE] text-[#292820] border border-[#E6D2A3]">
                         Hub Logístico
                       </span>
-                      <span className="text-xs font-mono font-bold text-stone-400">
+                      <span className="text-xs font-mono font-bold text-[#77736B]">
                         SANTA LUZIA / MG
                       </span>
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-serif font-black text-[#1E293B] uppercase tracking-tight mt-1 flex items-center gap-2">
+                    <h2 className="text-xl sm:text-2xl font-sans font-black text-[#292820] uppercase tracking-tight mt-1 flex items-center gap-2">
                       Gestão & Importação de Viagens
                     </h2>
                   </div>
@@ -2950,7 +2882,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               </div>
 
               {/* Data Ingestion Deck */}
-              <div className="bg-stone-50 border-2 border-stone-200 rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+              <div className="bg-[#F5F0E6] border border-[#EDE2CE] rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
                 {placasPastedData && (
                   <div className="flex justify-end">
                     <button
@@ -2959,7 +2891,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         setPlacasPastedData("");
                         setPlacasFilter("");
                       }}
-                      className="px-3 py-1 bg-white hover:bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-xs"
+                      className="px-3 py-1 bg-[#FFFCF6] hover:bg-[#EDE2CE] text-[#D92332] border border-[#EDE2CE] rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-xs"
                     >
                       <Trash2 size={13} />
                       <span>Limpar</span>
@@ -2971,7 +2903,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   value={placasPastedData}
                   onChange={(e) => setPlacasPastedData(e.target.value)}
                   placeholder={`Cole aqui as linhas da planilha de Santa Luzia...\nExemplo de colunas suportadas:\nTRANSPORTADOR | CONDUTOR | CAVALO | CARRETA | CARRETA 2 | ORIGEM | DESTINO | VALOR NF | TECNOLOGIA`}
-                  className="w-full h-32 bg-white border-2 border-stone-300 focus:border-[#B32025] rounded-xl p-3.5 text-xs font-mono text-stone-900 outline-none transition-all placeholder:text-stone-400 shadow-inner resize-y leading-relaxed"
+                  className="w-full h-32 bg-white border border-[#EDE2CE] focus:border-[#C49A45] rounded-xl p-3.5 text-xs font-mono text-[#292820] outline-none transition-all placeholder:text-[#77736B] shadow-inner resize-y leading-relaxed font-bold"
                 />
               </div>
 
@@ -2979,7 +2911,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               {parsedPlacas.length > 0 ? (
                 <div className="flex flex-col gap-4 pt-2">
                   {/* Control Toolbar: Search, Filters, and View Switcher */}
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-[#1f1915] text-white p-4 rounded-2xl shadow-md">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-[#292820] text-[#E6D2A3] p-4 rounded-2xl shadow-md border border-[#C49A45]/40">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black uppercase tracking-wider text-stone-300">
@@ -3445,29 +3377,26 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         {activeTab === "unidades" && (
           <div className="flex flex-col gap-6 max-w-full mx-auto w-full animate-fade-in">
             {/* Main Station Cockpit */}
-            <div className="bg-white rounded-3xl border border-[#D1E1EB] shadow-lg p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden">
-              {/* Decorative top accent line */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-700 via-indigo-600 to-amber-500" />
-
+            <div className="bg-[#FFFCF6] rounded-3xl border border-[#E6D2A3] shadow-sm p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden text-[#292820]">
               {/* Station Header */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#E2E8F0]">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#EDE2CE]">
                 <div className="flex items-start sm:items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-700 via-red-800 to-indigo-950 text-white p-3.5 shadow-md shadow-red-900/30 flex items-center justify-center shrink-0 border border-red-900">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#292820] p-3.5 shadow-md flex items-center justify-center shrink-0 border border-[#E6D2A3]">
                     <Compass size={28} className="stroke-[2.5]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-900 border border-red-300">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#EDE2CE] text-[#292820] border border-[#E6D2A3]">
                         Terminal de Embarques
                       </span>
-                      <span className="text-xs font-mono font-bold text-stone-400">
+                      <span className="text-xs font-mono font-bold text-[#77736B]">
                         CUIABÁ / MT
                       </span>
                     </div>
-                    <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#1E293B] uppercase tracking-tight mt-1 flex items-center gap-2">
+                    <h2 className="text-2xl sm:text-3xl font-sans font-black text-[#292820] uppercase tracking-tight mt-1 flex items-center gap-2">
                       Processador de Embarques & Iscas
                     </h2>
-                    <p className="text-xs text-[#64748B] font-medium mt-0.5 max-w-2xl">
+                    <p className="text-xs text-[#77736B] font-medium mt-0.5 max-w-2xl">
                       Recepção de mensagens operacionais da Unidade Cuiabá com extração automatizada das 5 colunas de iscas e despacho direto ao Pré-Alerta PGR.
                     </p>
                   </div>
@@ -3477,17 +3406,17 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <button
                     type="button"
                     onClick={() => setUnidadesPastedText(SAMPLE_UNIDADES_TEXT)}
-                    className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-900 border border-red-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                    className="px-4 py-2 bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
                     title="Carrega a mensagem exemplo recebida da unidade Cuiabá"
                   >
-                    <Sparkles size={14} className="text-red-600" />
+                    <Sparkles size={14} className="text-[#C49A45]" />
                     <span>Carregar Ficha Real Cuiabá</span>
                   </button>
                   {unidadesPastedText && (
                     <button
                       type="button"
                       onClick={() => setUnidadesPastedText("")}
-                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                      className="px-3.5 py-2 bg-[#FFFCF6] hover:bg-[#EDE2CE] text-[#D92332] border border-[#EDE2CE] rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     >
                       <Trash2 size={14} />
                       <span>Limpar</span>
@@ -3780,41 +3709,41 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             ? "col-span-1 xl:col-span-2"
             : "col-span-1 xl:col-span-1"
         )}>
-          <div className="flex-1 rounded-[20px] bg-[#0e1315]/88 backdrop-blur-[18px] border border-[rgba(229,194,122,0.16)] shadow-[0_20px_50px_rgba(0,0,0,0.40)] relative overflow-hidden flex flex-col p-4 sm:p-6 text-white">
+          <div className="flex-1 rounded-3xl bg-[#FFFCF6] border border-[#EDE2CE] shadow-sm relative overflow-hidden flex flex-col p-4 sm:p-6 text-[#292820]">
 
           {/* Module Title */}
           <div className={cn(
-            "flex flex-col sm:flex-row sm:items-center justify-between border-b border-[rgba(229,194,122,0.2)] pb-5 gap-4",
+            "flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EDE2CE] pb-5 gap-4",
             preAlertaMode === "minimized" ? "mb-0" : "mb-6"
           )}>
             <div className="flex items-center gap-3">
               <div className={cn(
-                "p-3 rounded-2xl shadow-md border transition-colors",
+                "p-3 rounded-2xl shadow-xs border transition-colors",
                 isVianaOrigem
-                  ? "bg-emerald-600/20 border-emerald-500/40 text-emerald-400"
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-700"
                   : isCuiabaOrigem
-                    ? "bg-amber-500/20 border-amber-500/40 text-amber-400"
-                    : "bg-[rgba(229,194,122,0.15)] border-[rgba(229,194,122,0.3)] text-[#e5c27a]"
+                    ? "bg-amber-50 border-amber-300 text-amber-700"
+                    : "bg-[#F5F0E6] border-[#E6D2A3] text-[#C49A45]"
               )}>
                 <Sliders size={22} className="stroke-[2.5]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl sm:text-2xl font-bold text-white uppercase tracking-tight font-sans">
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#292820] uppercase tracking-tight font-sans">
                     PRÉ-ALERTA GR
                   </h2>
                   {preAlertaMode === "minimized" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
                       Minimizado
                     </span>
                   )}
                   {preAlertaMode === "maximized" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
                       100% Largura
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-[#a8a39a] font-mono uppercase tracking-widest mt-0.5">
+                <p className="text-[10px] text-[#77736B] font-mono uppercase tracking-widest mt-0.5">
                   Gerador corporativo de pré-alerta e iscas
                 </p>
               </div>
@@ -3823,16 +3752,16 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             {/* A Opção de Minimizar e Maximizar (Tudo numa única opção) */}
             <div className="flex items-center gap-3">
               {preAlertaMode === "minimized" && (
-                <div className="hidden lg:flex items-center gap-2 bg-[#f0f4f9] border border-[#d2deeb] px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-[#0f2438] shadow-xs">
-                  <span className="text-[9px] uppercase text-[#486581] font-sans font-bold">Assunto:</span>
-                  <span className="text-[11px] text-[#0f2438] font-black max-w-[280px] truncate">
+                <div className="hidden lg:flex items-center gap-2 bg-[#F5F0E6] border border-[#EDE2CE] px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-[#292820] shadow-xs">
+                  <span className="text-[9px] uppercase text-[#77736B] font-sans font-bold">Assunto:</span>
+                  <span className="text-[11px] text-[#292820] font-black max-w-[280px] truncate">
                     PRÉ-ALERTA DE ISCA - {destino || "BRASÍLIA"} - {cavalo.replace(/-/g, "") || "TYQ6F51"}
                   </span>
                   <button
                     type="button"
                     onClick={handleCopySubject}
                     title="Copiar Assunto do E-mail"
-                    className="p-1 hover:bg-[#a81423] hover:text-white rounded-lg text-[#a81423] transition-colors cursor-pointer"
+                    className="p-1 hover:bg-[#D92332] hover:text-white rounded-lg text-[#D92332] transition-colors cursor-pointer"
                   >
                     {copiedAssunto ? <Check size={13} className="text-emerald-600 stroke-[3]" /> : <Copy size={13} />}
                   </button>
@@ -3840,7 +3769,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               )}
 
               {/* Segmented Option Group */}
-              <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-xs">
+              <div className="flex items-center bg-[#F5F0E6] p-1 rounded-2xl border border-[#EDE2CE] shadow-xs">
                 <button
                   type="button"
                   onClick={() => setPreAlertaMode(preAlertaMode === "minimized" ? "normal" : "minimized")}
@@ -3848,8 +3777,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   className={cn(
                     "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer select-none active:scale-95",
                     preAlertaMode === "minimized"
-                      ? "bg-[#ff5500] text-white shadow-sm"
-                      : "text-[#4a5d78] hover:text-[#00163a] hover:bg-slate-200"
+                      ? "bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/40 shadow-xs"
+                      : "text-[#77736B] hover:text-[#292820] hover:bg-[#EDE2CE]"
                   )}
                 >
                   <Minimize2 size={14} className="stroke-[2.5]" />
@@ -3863,8 +3792,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   className={cn(
                     "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer select-none active:scale-95",
                     preAlertaMode === "maximized"
-                      ? "bg-[#002f87] text-white shadow-sm"
-                      : "text-[#4a5d78] hover:text-[#00163a] hover:bg-slate-200"
+                      ? "bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/40 shadow-xs"
+                      : "text-[#77736B] hover:text-[#292820] hover:bg-[#EDE2CE]"
                   )}
                 >
                   <Maximize2 size={14} className="stroke-[2.5]" />
@@ -3876,29 +3805,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
           {/* Informational Callout when Minimized */}
           {preAlertaMode === "minimized" && (
-            <div className="mt-4 pt-4 border-t border-slate-200 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 bg-[#edf1f6] p-4 rounded-2xl border border-slate-200">
+            <div className="mt-4 pt-4 border-t border-[#EDE2CE] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 bg-[#F5F0E6] p-4 rounded-2xl border border-[#EDE2CE]">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#002366]/10 text-[#002366] border border-[#002366]/20 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#C49A45]/15 text-[#C49A45] border border-[#C49A45]/30 flex items-center justify-center shrink-0">
                   <Info size={16} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-bold text-[#00163a] uppercase">
+                    <p className="text-xs font-bold text-[#292820] uppercase">
                       Coluna PRE ALERTA GR Minimizada
                     </p>
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
                       Zoom Ativo: {Math.round(colunasZoom * 100)}%
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#4a5d78] mt-0.5 font-sans">
+                  <p className="text-[11px] text-[#77736B] mt-0.5 font-sans">
                     O <strong>Gerador corporativo de pré-alerta e iscas</strong> está recolhido e o <strong>Zoom das colunas</strong> foi aumentado.
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-start lg:justify-end">
                 {/* Zoom presets */}
-                <div className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-xl text-[10px] font-bold shadow-xs">
-                  <span className="text-[#4a5d78] uppercase text-[9px] mr-0.5">Zoom:</span>
+                <div className="flex items-center gap-1 bg-[#FFFCF6] border border-[#EDE2CE] px-2 py-1 rounded-xl text-[10px] font-bold shadow-xs">
+                  <span className="text-[#77736B] uppercase text-[9px] mr-0.5">Zoom:</span>
                   {[1.05, 1.10, 1.15, 1.20, 1.25].map((level) => (
                     <button
                       key={level}
@@ -3907,8 +3836,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       className={cn(
                         "px-1.5 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer active:scale-95",
                         colunasZoom === level
-                          ? "bg-[#002f87] text-white shadow-2xs"
-                          : "text-[#4a5d78] hover:text-[#00163a] hover:bg-slate-100"
+                          ? "bg-[#292820] text-[#E6D2A3] shadow-2xs"
+                          : "text-[#77736B] hover:text-[#292820] hover:bg-[#EDE2CE]"
                       )}
                     >
                       {Math.round(level * 100)}%
@@ -3920,21 +3849,21 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   type="button"
                   onClick={handleCopySubject}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all text-white",
+                    "px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all border",
                     copiedAssunto
-                      ? "bg-emerald-600"
-                      : "bg-[#002f87] hover:bg-[#002366]"
+                      ? "bg-emerald-600 text-white border-emerald-500"
+                      : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40"
                   )}
                 >
-                  {copiedAssunto ? <Check size={13} className="text-white stroke-[3]" /> : <Copy size={13} className="text-white stroke-[2.5]" />}
+                  {copiedAssunto ? <Check size={13} className="text-white stroke-[3]" /> : <Copy size={13} className="text-[#C49A45] stroke-[2.5]" />}
                   <span>Copiar Assunto</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreAlertaMode("normal")}
-                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-[#00163a] rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 border border-slate-200"
+                  className="px-3.5 py-1.5 bg-[#FFFCF6] hover:bg-[#EDE2CE] text-[#292820] rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 border border-[#EDE2CE]"
                 >
-                  <Maximize2 size={13} />
+                  <Maximize2 size={13} className="text-[#C49A45]" />
                   <span>Maximizar Coluna</span>
                 </button>
               </div>
@@ -3945,33 +3874,33 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           {preAlertaMode !== "minimized" && (
             <div className="flex flex-col gap-6">
             {/* GREETING SELECTION (Menu Suspenso para Saudação) */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#0e1315]/90 border border-[rgba(212,169,79,0.25)] rounded-2xl p-4 shadow-xs">
-              <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-400 shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#FFFCF6] border border-[#EDE2CE] rounded-2xl p-4 shadow-xs">
+              <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#D92332] shrink-0">
                 Saudação:
               </label>
               <div className="relative flex-1 max-w-[200px]">
                 <select
                   value={saudacao}
                   onChange={(e) => setSaudacao(e.target.value)}
-                  className="w-full bg-[#141c21] border border-stone-700 focus:border-red-600 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none transition-all cursor-pointer shadow-2xs"
+                  className="w-full bg-[#FFFFFF] border border-[#EDE2CE] focus:border-[#C49A45] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#292820] outline-none transition-all cursor-pointer shadow-xs"
                 >
                   <option value="Boa tarde,">Boa tarde,</option>
                   <option value="Bom dia,">Bom dia,</option>
                   <option value="Boa noite,">Boa noite,</option>
                 </select>
               </div>
-              <p className="text-[10px] font-mono text-stone-300 uppercase tracking-wider">
+              <p className="text-[10px] font-mono text-[#77736B] uppercase tracking-wider">
                 Define a saudação inicial do pré-alerta
               </p>
             </div>
 
-            {/* EMAIL SUBJECT HEADER BLOCK - DARK GLASS */}
-            <div className="bg-[#0e1315]/90 border border-[rgba(212,169,79,0.25)] rounded-2xl p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl mb-3">
+            {/* EMAIL SUBJECT HEADER BLOCK - WARM IVORY/GOLD */}
+            <div className="bg-[#FFFCF6] border border-[#EDE2CE] rounded-2xl p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs mb-3">
               <div className="flex-1 text-left">
-                <span className="text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider text-red-400 block mb-1">
+                <span className="text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider text-[#D92332] block mb-1">
                   ASSUNTO DO E-MAIL (COPIAR SEPARADAMENTE)
                 </span>
-                <h1 className="text-base sm:text-[18px] md:text-[20px] font-sans font-black text-white uppercase tracking-tight m-0 select-all leading-tight">
+                <h1 className="text-base sm:text-[18px] md:text-[20px] font-sans font-black text-[#292820] uppercase tracking-tight m-0 select-all leading-tight">
                   PRÉ-ALERTA DE ISCA - {destino || "BRASÍLIA"} - {cavalo.replace(/-/g, "") || "TYQ6F51"}
                 </h1>
               </div>
@@ -3979,10 +3908,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 type="button"
                 onClick={handleCopySubject}
                 className={cn(
-                  "flex items-center gap-2 font-black uppercase text-[11px] tracking-wider px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer select-none active:scale-95 shrink-0 border border-stone-700",
+                  "flex items-center gap-2 font-black uppercase text-[11px] tracking-wider px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer select-none active:scale-95 shrink-0 border",
                   copiedAssunto
-                    ? "bg-emerald-600 text-white shadow-emerald-900/20"
-                    : "bg-[#141c21] hover:bg-[#1a2329] text-white"
+                    ? "bg-emerald-600 text-white border-emerald-500 shadow-emerald-900/10"
+                    : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40"
                 )}
               >
                 {copiedAssunto ? (
@@ -3991,154 +3920,157 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   </>
                 ) : (
                   <>
-                    <Copy size={14} className="stroke-[2.5] text-red-400" /> COPIAR ASSUNTO
+                    <Copy size={14} className="stroke-[2.5] text-[#C49A45]" /> COPIAR ASSUNTO
                   </>
                 )}
               </button>
             </div>
 
-            {/* PREVIEW CONTAINER - DARK GLASS EXECUTIVE DASHBOARD */}
-            <div className="bg-[#080d0f]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] rounded-[2rem] p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-x-auto relative text-white">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#d4a94f] block mb-5 border-b border-[rgba(212,169,79,0.2)] pb-2">
-                Visualização do Pré-Alerta (Template do E-mail)
-              </span>
+            {/* PREVIEW CONTAINER - CORPORATE WARM IVORY/GOLD DOCUMENT */}
+            <div className="w-full bg-[#FAF7F0] border border-[#C5A059] rounded-3xl p-5 sm:p-7 shadow-[0_10px_35px_rgba(20,22,25,0.06)] overflow-x-auto relative text-[#1A1D20] box-border">
+              <div className="flex items-center justify-between pb-3 mb-5 border-b border-[#E5D5B5]">
+                <span className="text-[10.5px] font-black uppercase tracking-widest text-[#B8860B] flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#C5A059]"></span>
+                  Visualização do Pré-Alerta (Template do E-mail)
+                </span>
+                <span className="text-[10px] font-bold text-[#8C6D2B] uppercase tracking-wider">
+                  Padrão Corporativo 3 Corações
+                </span>
+              </div>
 
-              <div className="min-w-[850px] font-sans text-xs text-white">
+              <div className="w-full min-w-full font-sans text-xs text-[#1A1D20] box-border">
+                {/* BANNER PANORÂMICO INTEGRADO — FOTO OCUPA A FAIXA COMPLETA */}
+                <div
+                  style={{ borderColor: "#C5A059" }}
+                  className="relative isolate w-full min-h-[118px] sm:min-h-[132px] rounded-2xl overflow-hidden mb-5 border shadow-[0_12px_28px_rgba(20,18,14,0.24)] bg-[#121417] flex items-center justify-between gap-3 px-4 py-4 sm:px-5"
+                >
+                  <img
+                    src="/images/panoramic_truck_sunset.jpg"
+                    alt="Caminhão integrado à rodovia panorâmica ao pôr do sol"
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover object-center -z-20"
+                  />
+                  <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,13,14,0.98)_0%,rgba(18,20,23,0.95)_31%,rgba(18,20,23,0.42)_60%,rgba(12,13,14,0.82)_100%)]" />
+                  <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#8C6D2B] via-[#F5D27B] to-[#8C6D2B]" />
+
+                  <div className="relative z-10 flex min-w-0 items-center gap-3 sm:gap-4 max-w-[76%]">
+                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E92D3C] to-[#8C0E1B] border-2 border-[#D4AF37] flex items-center justify-center shrink-0 shadow-[0_0_0_3px_rgba(212,175,55,0.14)]">
+                      <span className="font-black text-xs sm:text-sm text-white tracking-tight">3♥C</span>
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-white m-0 leading-tight">
+                        SANTA LUZIA <span className="text-[#E3BB57]">GR</span>
+                      </h2>
+                      <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[1.5px] text-[#E3BB57] mt-1 mb-0">
+                        CENTRAL DE CONTROLE
+                      </p>
+                      <p className="text-[7px] sm:text-[9px] font-semibold uppercase tracking-wide text-[#FFF7DF] mt-1 mb-0 leading-snug">
+                        MONITORAMENTO INTELIGENTE · MAIS SEGURANÇA · SUA CARGA SEMPRE EM FOCO
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 ml-auto self-center text-right max-w-[25%] sm:max-w-[21%] shrink-0">
+                    <span className="text-[#F4D16E] font-bold italic text-[10px] sm:text-[16px] leading-snug font-serif drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                      Juntos fazemos mais!
+                    </span>
+                  </div>
+                </div>
+
                 {/* 1. Greeting Output */}
-                <div className="mb-4 font-sans font-black text-sm text-white ml-0 pl-0">
+                <div className="mb-4 font-sans font-black text-sm text-[#1A1D20] ml-0 pl-0">
                   {saudacao}
                 </div>
 
-                {/* 2. Executive Alert Banner */}
-                <div className={cn(
-                  "mb-5 font-black text-xs uppercase px-4 py-2.5 tracking-wide shadow-md inline-flex items-center rounded-lg transition-all max-w-max ml-0",
-                  isGreenOrigem
-                    ? "bg-emerald-600 text-white border-emerald-700/40"
-                    : isPurpleOrigem
-                      ? "bg-purple-700 text-white border-purple-800/40"
-                      : isCuiabaOrigem
-                        ? "bg-amber-500 text-stone-950 border-amber-600/40"
-                        : "bg-gradient-to-r from-[#7a0c16] to-[#c4161c] text-white border border-[#dfb15b]/30"
-                )}>
-                  {alertaResgate.includes("\n") ? (
-                    <textarea
-                      rows={2}
-                      value={alertaResgate}
-                      onChange={(e) => setAlertaResgate(e.target.value)}
-                      className={cn(
-                        "bg-transparent border-none outline-none font-black text-xs uppercase p-0.5 rounded px-1 transition-all resize-none leading-snug tracking-wide w-[540px] max-w-full overflow-hidden",
-                        isCuiabaOrigem
-                          ? "text-stone-950 focus:ring-1 focus:ring-stone-950/40 hover:bg-black/10 placeholder:text-stone-800"
-                          : "text-white focus:ring-1 focus:ring-white/40 hover:bg-white/10 placeholder:text-white/70"
-                      )}
-                      placeholder="ALERTA RESGATE"
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      value={alertaResgate}
-                      onChange={(e) => setAlertaResgate(e.target.value)}
-                      size={Math.max(28, alertaResgate.length + 1)}
-                      className={cn(
-                        "bg-transparent border-none outline-none font-black text-xs uppercase p-0.5 rounded px-1.5 transition-all min-w-[280px] max-w-full tracking-wide",
-                        isCuiabaOrigem
-                          ? "text-stone-950 focus:ring-1 focus:ring-stone-950/40 hover:bg-black/10 placeholder:text-stone-800"
-                          : "text-white focus:ring-1 focus:ring-white/40 hover:bg-white/10 placeholder:text-white/70"
-                      )}
-                      placeholder="ALERTA RESGATE"
-                    />
-                  )}
-                </div>
-
-                {/* 3. Atentar às informações */}
-                <div className="mb-3.5 font-black text-white text-[13px] ml-0 pl-0">
-                  <input
-                    type="text"
-                    value={infoAbaixo}
-                    onChange={(e) => setInfoAbaixo(e.target.value)}
-                    className="bg-transparent border-none outline-none hover:bg-white/10 focus:bg-white/20 rounded px-1.5 py-0.5 w-full font-black text-white transition-all"
-                  />
-                </div>
-
-                {/* 4. Routes and Instructions Selector Box with executive left highlight */}
-                <div className="border border-[rgba(212,169,79,0.25)] bg-[#11181B]/9odecoration-none p-4 mb-6 font-bold leading-relaxed max-w-xl rounded-2xl shadow-md border-l-4 border-l-[#d71920] transition-all text-white">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#d71920] text-sm font-black">•</span>
-                    <input
-                      type="text"
-                      value={rota1}
-                      onChange={(e) => setRota1(e.target.value)}
-                      className="bg-transparent border-none w-full outline-none font-bold py-0.5 px-1.5 hover:bg-white/10 focus:bg-white/20 rounded text-xs text-white transition-all"
-                      placeholder="· SANTA LUZIA/MG x GUARULHOS/SP;"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[#d71920] text-sm font-black">•</span>
-                    <input
-                      type="text"
-                      value={instrucao1}
-                      onChange={(e) => setInstrucao1(e.target.value)}
-                      className="bg-transparent border-none w-full outline-none font-bold py-0.5 px-1.5 hover:bg-white/10 focus:bg-white/20 rounded text-xs text-white transition-all"
-                      placeholder="· Favor, acusar o recebimento do pré-alerta;"
-                    />
-                  </div>
-                  {!pastePlanilha.trim() && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[#d71920] text-sm font-black">•</span>
-                      <span className="font-extrabold text-xs text-red-400 uppercase tracking-wide py-0.5 px-1.5 rounded bg-red-950/60 border border-red-800/60 w-full">
-                        O site das iscas está temporariamente fora do ar.
-                      </span>
+                {/* 2. FAIXA INTEGRADA: ALERTA VERMELHO + ORIENTAÇÕES EM UMA ÚNICA PEÇA */}
+                <div className="mb-5 w-full overflow-hidden rounded-2xl border border-[#C5A059] shadow-[0_7px_20px_rgba(45,32,20,0.10)] grid grid-cols-1 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)] bg-[#FFF9ED]">
+                  <div className={cn(
+                    "min-h-[96px] px-4 py-4 sm:px-5 flex items-center border-b md:border-b-0 md:border-r-2 border-[#D4AF37]",
+                    isGreenOrigem
+                      ? "bg-gradient-to-br from-emerald-700 to-emerald-900 text-white"
+                      : isPurpleOrigem
+                        ? "bg-gradient-to-br from-purple-700 to-purple-950 text-white"
+                        : isCuiabaOrigem
+                          ? "bg-gradient-to-br from-amber-400 to-amber-600 text-[#211C19]"
+                          : "bg-gradient-to-br from-[#C91F2D] via-[#A81824] to-[#74101A] text-white"
+                  )}>
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-white/35 bg-black/10 flex items-center justify-center text-2xl font-black shadow-inner">
+                        ⚠
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        {alertaResgate.includes("\n") ? (
+                          <textarea
+                            rows={2}
+                            value={alertaResgate}
+                            onChange={(e) => setAlertaResgate(e.target.value)}
+                            className="w-full resize-none bg-transparent border-none outline-none font-black text-[13px] sm:text-[15px] leading-snug uppercase tracking-wide text-inherit placeholder:text-white/70"
+                            placeholder="FAVOR SE ATENTAR AO RESGATE!"
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={alertaResgate}
+                            onChange={(e) => setAlertaResgate(e.target.value)}
+                            className="w-full min-w-0 bg-transparent border-none outline-none font-black text-[13px] sm:text-[15px] leading-snug uppercase tracking-wide text-inherit placeholder:text-white/70"
+                            placeholder="FAVOR SE ATENTAR AO RESGATE!"
+                          />
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="px-4 py-3 sm:px-5 sm:py-4 bg-gradient-to-br from-[#FFFDF7] to-[#F5EAD1] flex flex-col justify-center min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Info size={17} className="text-[#B8860B] shrink-0" />
+                      <input
+                        type="text"
+                        value={infoAbaixo}
+                        onChange={(e) => setInfoAbaixo(e.target.value)}
+                        className="w-full min-w-0 bg-transparent border-none outline-none font-black text-[11px] sm:text-[12px] uppercase tracking-wide text-[#211C19]"
+                        placeholder="ATENTAR ÀS INFORMAÇÕES ABAIXO:"
+                      />
+                    </div>
+                    <div className="flex items-start gap-2 text-[11px] sm:text-[12px] leading-relaxed py-0.5">
+                      <span className="text-[#C91F2D] font-black shrink-0">•</span>
+                      <input
+                        type="text"
+                        value={rota1}
+                        onChange={(e) => setRota1(e.target.value)}
+                        className="w-full min-w-0 bg-transparent border-none outline-none font-semibold text-[#55483A] rounded px-1 hover:bg-white/70 focus:bg-white"
+                        placeholder="SANTA LUZIA/MG x GUARULHOS/SP;"
+                      />
+                    </div>
+                    <div className="flex items-start gap-2 text-[11px] sm:text-[12px] leading-relaxed py-0.5">
+                      <span className="text-[#C91F2D] font-black shrink-0">•</span>
+                      <input
+                        type="text"
+                        value={instrucao1}
+                        onChange={(e) => setInstrucao1(e.target.value)}
+                        className="w-full min-w-0 bg-transparent border-none outline-none font-semibold text-[#211C19] rounded px-1 hover:bg-white/70 focus:bg-white"
+                        placeholder="Favor, acusar o recebimento do pré-alerta;"
+                      />
+                    </div>
+                    {!pastePlanilha.trim() && (
+                      <div className="flex items-start gap-2 mt-1.5 px-2 py-1 rounded-md bg-[#FFF0EF] border border-[#F6C6C3] text-[#C91F2D] font-black text-[10px] sm:text-[11px] leading-snug">
+                        <span className="shrink-0">•</span>
+                        <span>O SITE DAS ISCAS ESTÁ TEMPORARIAMENTE FORA DO AR.</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* 5. BIG INTERACTIVE SPREADSHEET TABLE 1 */}
-                <div className="flex items-center justify-between gap-2 mb-3 bg-gradient-to-b from-[#FFFFFF] via-[#F4F7FA] to-[#E8EDF1] p-2.5 rounded-2xl border border-[#BFC9D1] shadow-[0_4px_12px_rgba(30,40,50,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] flex-wrap">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setIsColumnConfigOpen(true)}
-                      className="flex items-center gap-2 bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#151B20] font-black uppercase text-[9.5px] tracking-wider px-3.5 py-1.5 rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.9)] border border-[#929FA9] transition-all cursor-pointer select-none active:scale-95"
-                      title="Mover colunas e ajustar tamanhos manualmente"
-                    >
-                      <Sliders size={13} className="text-[#303A42]" />
-                      <span>⚙️ Organizar Colunas & Tamanhos</span>
-                    </button>
-
-                    {/* Quick 3D Executive Theme Switcher */}
-                    <div className="flex items-center gap-1 bg-[#10161C] p-1 rounded-xl border border-stone-700/70 shadow-inner">
-                      <span className="text-[9px] font-mono font-black text-[#F2CE78] uppercase px-1.5 flex items-center gap-1 select-none">
-                        <Sparkles size={10} className="text-[#D4A94F]" /> Temas 3D:
-                      </span>
-                      {PRE_ALERTA_THEME_LIST.map((t) => {
-                        const isSel = preAlertaTheme === t.id;
-                        return (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setPreAlertaTheme(t.id)}
-                            className={cn(
-                              "flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono font-black uppercase tracking-wider transition-all cursor-pointer select-none",
-                              isSel
-                                ? "bg-stone-800 text-white shadow-sm border"
-                                : "text-stone-400 hover:text-white hover:bg-white/5"
-                            )}
-                            style={{
-                              borderColor: isSel ? t.border : 'transparent',
-                              boxShadow: isSel ? `0 0 8px ${t.glow}` : undefined,
-                            }}
-                            title={`${t.name} • ${t.officeMaterial}`}
-                          >
-                            <span 
-                              className="w-2 h-2 rounded-full inline-block shadow-xs" 
-                              style={{ background: t.orbGradient }}
-                            />
-                            <span>{t.name.split(' ')[0]}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between gap-2 mb-3 bg-[#F5EDDA] p-2.5 rounded-2xl border border-[#C5A059] shadow-xs flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setIsColumnConfigOpen(true)}
+                    className="flex items-center gap-2 bg-[#FAF7F0] hover:bg-white text-[#1A1D20] font-black uppercase text-[9.5px] tracking-wider px-3.5 py-1.5 rounded-xl shadow-xs border border-[#C5A059] transition-all cursor-pointer select-none active:scale-95"
+                    title="Mover colunas e ajustar tamanhos manualmente"
+                  >
+                    <Sliders size={13} className="text-[#B8860B]" />
+                    <span>⚙️ Organizar Colunas & Tamanhos</span>
+                  </button>
                   <div className="flex items-center gap-2">
                     {numCarretas === 1 ? (
                       <button
@@ -4151,7 +4083,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             setUma2("");
                           }
                         }}
-                        className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all cursor-pointer select-none active:scale-95 bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#151B20] border border-[#929FA9]"
+                        className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer select-none active:scale-95 bg-[#FAF7F0] hover:bg-white text-[#1A1D20] border border-[#C5A059]"
                       >
                         <Plus size={12} className="stroke-[3] text-emerald-700" /> Adicionar Segunda Carreta
                       </button>
@@ -4165,7 +4097,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               setProduto2("");
                               setUma2("");
                             }}
-                            className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all cursor-pointer select-none active:scale-95 bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#151B20] border border-[#929FA9]"
+                            className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer select-none active:scale-95 bg-[#FAF7F0] hover:bg-white text-[#1A1D20] border border-[#C5A059]"
                           >
                             <Plus size={12} className="stroke-[3] text-emerald-700" /> Adicionar Isca
                           </button>
@@ -4182,9 +4114,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               }
                               setSidebarEmbarque2("none");
                             }}
-                            className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all cursor-pointer select-none active:scale-95 bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#C62845] border border-[#929FA9]"
+                            className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer select-none active:scale-95 bg-[#FAF7F0] hover:bg-white text-[#C91F2D] border border-[#C5A059]"
                           >
-                            <Minus size={12} className="stroke-[3] text-[#C62845]" /> Sem Isca
+                            <Minus size={12} className="stroke-[3] text-[#C91F2D]" /> Sem Isca
                           </button>
                         )}
                         <button
@@ -4194,7 +4126,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             setNfFim("");
                             setSidebarEmbarque2("none");
                           }}
-                          className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all cursor-pointer select-none active:scale-95 bg-gradient-to-b from-[#FFFFFF] via-[#E8EDF1] to-[#BFC9D1] hover:from-[#E8EDF1] hover:to-[#AAB6C0] text-[#46525C] border border-[#929FA9]"
+                          className="flex items-center gap-1.5 font-black uppercase text-[9.5px] tracking-wider px-3 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer select-none active:scale-95 bg-[#FAF7F0] hover:bg-white text-[#77736B] border border-[#C5A059]"
                         >
                           <Minus size={12} className="stroke-[3]" /> Remover Segunda Carreta
                         </button>
@@ -4203,28 +4135,28 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   </div>
                 </div>
 
-                {/* PAINEL METÁLICO CROMADO PRINCIPAL */}
-                <div className="w-full rounded-2xl overflow-hidden shadow-[0_12px_30px_rgba(30,40,50,0.18),inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)] mb-3 bg-[#F4F6F8]" style={{ border: `1px solid ${themeStyles.border}` }}>
-                  {/* BLOCO SUPERIOR METÁLICO: NF, TRANSPORTADORA, VALOR DA CARGA */}
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]" style={{ background: themeStyles.headerBg, borderBottom: `1px solid ${themeStyles.border}` }}>
+                {/* PAINEL CORPORATIVO GRAFITE & DOURADO PRINCIPAL */}
+                <div className="w-full rounded-2xl overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.4)] mb-3 bg-[#121417] border border-[#C5A059]">
+                  {/* BLOCO SUPERIOR GRAFITE & DOURADO: NF, TRANSPORTADORA, VALOR DA CARGA */}
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-0 border-b border-[#C5A059]" style={{ background: 'linear-gradient(135deg, #181A1D 0%, #202429 50%, #181A1D 100%)' }}>
                     {/* MODULE 1: NÚMERO DA NF */}
-                    <div className="md:col-span-5 p-2.5 sm:p-3 border-b md:border-b-0 md:border-r flex items-center justify-between gap-3 relative" style={{ borderColor: themeStyles.border }}>
+                    <div className="md:col-span-5 p-2.5 sm:p-3 border-b md:border-b-0 md:border-r border-[#3F3B32] flex items-center justify-between gap-3 relative">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#FFFFFF] via-[#DDE4E9] to-[#929FA9] p-[2px] shadow-[0_2px_5px_rgba(30,40,50,0.22),inset_0_1px_1px_rgba(255,255,255,0.95)] flex items-center justify-center shrink-0">
-                          <div className="w-full h-full rounded-full bg-gradient-to-b from-[#BFC9D1] via-[#E8EDF1] to-[#66737D] flex items-center justify-center shadow-inner">
-                            <FileText size={16} className="text-[#151B20] drop-shadow-[0_1px_1px_rgba(255,255,255,0.6)]" />
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#F59E0B] via-[#C5A059] to-[#8C6D2B] p-[1.5px] shadow-sm flex items-center justify-center shrink-0">
+                          <div className="w-full h-full rounded-full bg-[#181A1D] flex items-center justify-center">
+                            <FileText size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
-                        <span className="font-extrabold text-[#151B20] text-[11px] uppercase tracking-wider select-none font-sans">
+                        <span className="font-extrabold text-[#C5A059] text-[11px] uppercase tracking-wider select-none font-sans">
                           NÚMERO DA NF:
                         </span>
                       </div>
-                      <div className="bg-white rounded-xl px-3 py-1.5 border border-[#BFC9D1] shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center min-w-[130px] sm:min-w-[150px]">
+                      <div className="bg-[#121417] rounded-xl px-3 py-1.5 border border-[#C5A059] shadow-inner flex flex-col items-center justify-center min-w-[130px] sm:min-w-[150px]">
                         <input
                           type="text"
                           value={nfInicio}
                           onChange={(e) => setNfInicio(e.target.value.replace(/-/g, ""))}
-                          className="w-full text-center font-black bg-transparent border-none outline-none text-xs text-[#151B20] tracking-wide"
+                          className="w-full text-center font-black bg-transparent border-none outline-none text-xs text-[#FAF7F0] tracking-wide"
                           placeholder="3004567"
                           title="NF Início"
                         />
@@ -4233,7 +4165,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             type="text"
                             value={nfFim}
                             onChange={(e) => setNfFim(e.target.value.replace(/-/g, ""))}
-                            className="w-full text-center font-black bg-transparent border-none outline-none text-xs text-[#151B20] tracking-wide mt-0.5 border-t border-[#DCE3E8]"
+                            className="w-full text-center font-black bg-transparent border-none outline-none text-xs text-[#FAF7F0] tracking-wide mt-0.5 border-t border-[#C5A059]"
                             placeholder="3004566"
                             title="NF Fim"
                           />
@@ -4242,54 +4174,54 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </div>
 
                     {/* MODULE 2: TRANSPORTADORA */}
-                    <div className="md:col-span-4 p-2.5 sm:p-3 border-b md:border-b-0 md:border-r border-[#929FA9] flex items-center justify-between gap-3 relative">
+                    <div className="md:col-span-4 p-2.5 sm:p-3 border-b md:border-b-0 md:border-r border-[#3F3B32] flex items-center justify-between gap-3 relative">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#FFFFFF] via-[#DDE4E9] to-[#929FA9] p-[2px] shadow-[0_2px_5px_rgba(30,40,50,0.22),inset_0_1px_1px_rgba(255,255,255,0.95)] flex items-center justify-center shrink-0">
-                          <div className="w-full h-full rounded-full bg-gradient-to-b from-[#BFC9D1] via-[#E8EDF1] to-[#66737D] flex items-center justify-center shadow-inner">
-                            <Truck size={16} className="text-[#151B20] drop-shadow-[0_1px_1px_rgba(255,255,255,0.6)]" />
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#F59E0B] via-[#C5A059] to-[#8C6D2B] p-[1.5px] shadow-sm flex items-center justify-center shrink-0">
+                          <div className="w-full h-full rounded-full bg-[#181A1D] flex items-center justify-center">
+                            <Truck size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
-                        <span className="font-extrabold text-[#151B20] text-[11px] uppercase tracking-wider select-none font-sans">
+                        <span className="font-extrabold text-[#C5A059] text-[11px] uppercase tracking-wider select-none font-sans">
                           TRANSPORTADORA:
                         </span>
                       </div>
-                      <div className="bg-white rounded-xl px-2.5 py-1.5 border border-[#BFC9D1] shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] flex items-center justify-between flex-1 max-w-[170px] relative">
+                      <div className="bg-[#121417] rounded-xl px-2.5 py-1.5 border border-[#C5A059] shadow-inner flex items-center justify-between flex-1 max-w-[170px] relative">
                         <select
                           value={transportadora}
                           onChange={(e) => handleTableTranspChange(e.target.value)}
-                          className="w-full text-center font-black uppercase bg-transparent border-none outline-none text-xs cursor-pointer text-[#151B20] tracking-wide pr-4 appearance-none"
+                          className="w-full text-center font-black uppercase bg-transparent border-none outline-none text-xs cursor-pointer text-[#FAF7F0] tracking-wide pr-4 appearance-none"
                         >
                           <option value="">GTMINAS</option>
                           {allTransportadoras.map((t) => (
-                            <option key={t} value={t} className="text-[#151B20] uppercase text-xs font-bold">
+                            <option key={t} value={t} className="text-[#1A1D20] uppercase text-xs font-bold">
                               {t}
                             </option>
                           ))}
                         </select>
-                        <ChevronDown size={14} className="text-[#66737D] absolute right-2 pointer-events-none" />
+                        <ChevronDown size={14} className="text-[#C5A059] absolute right-2 pointer-events-none" />
                       </div>
                     </div>
 
                     {/* MODULE 3: VALOR DA CARGA */}
-                    <div className="md:col-span-3 p-2.5 sm:p-3 flex items-center justify-between gap-3 relative bg-[linear-gradient(180deg,#FFFFFF_0%,#E8EDF1_35%,#BFC9D1_100%)]">
+                    <div className="md:col-span-3 p-2.5 sm:p-3 flex items-center justify-between gap-3 relative bg-[linear-gradient(135deg,#1F2328_0%,#181A1D_100%)]">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#FFFFFF] via-[#DDE4E9] to-[#929FA9] p-[2px] shadow-[0_2px_5px_rgba(30,40,50,0.22),inset_0_1px_1px_rgba(255,255,255,0.95)] flex items-center justify-center shrink-0">
-                          <div className="w-full h-full rounded-full bg-gradient-to-b from-[#BFC9D1] via-[#E8EDF1] to-[#66737D] flex items-center justify-center shadow-inner">
-                            <Coins size={16} className="text-[#151B20] drop-shadow-[0_1px_1px_rgba(255,255,255,0.6)]" />
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#F59E0B] via-[#C5A059] to-[#8C6D2B] p-[1.5px] shadow-sm flex items-center justify-center shrink-0">
+                          <div className="w-full h-full rounded-full bg-[#181A1D] flex items-center justify-center">
+                            <Coins size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
                         <div className="flex flex-col text-left">
-                          <span className="font-extrabold text-[#46525C] text-[9px] uppercase tracking-wider leading-none">
+                          <span className="font-extrabold text-[#C5A059] text-[10px] uppercase tracking-wider leading-none">
                             VALOR DA CARGA
                           </span>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="bg-[#121417] rounded-xl px-3 py-1.5 border border-[#C5A059] shadow-inner flex items-center justify-center">
                         <input
                           type="text"
                           value={valorCarga}
                           onChange={(e) => setValorCarga(e.target.value)}
-                          className="w-24 sm:w-28 text-right font-black uppercase text-[#151B20] bg-transparent border-none outline-none text-[14px] tracking-tight hover:bg-white/40 focus:bg-white/80 focus:ring-1 focus:ring-[#C62845] rounded px-1 transition-all"
+                          className="w-24 sm:w-28 text-right font-black uppercase text-[#FAF7F0] bg-transparent border-none outline-none text-[13.5px] tracking-tight hover:bg-black/40 focus:bg-black rounded px-1 transition-all"
                           placeholder="355565"
                           title="Valor da Carga"
                         />
@@ -4298,10 +4230,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   </div>
 
                   {/* TABELA 1 CORPO PRINCIPAL */}
-                  <table className="w-full border-collapse text-xs font-sans text-[#151B20] table-fixed">
+                  <table className="w-full border-collapse text-xs font-sans text-[#1A1D20] table-fixed">
                     <thead>
-                      {/* Row: Metallic Silver Chrome Column Headings */}
-                      <tr className="border-b text-[#151B20] text-center font-extrabold uppercase text-[9.5px] tracking-wider h-[32px] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)]" style={{ background: themeStyles.table1Header, borderColor: themeStyles.border }}>
+                      {/* Row: Corporate Graphite Column Headings */}
+                      <tr className="border-b text-[#FAF7F0] text-center font-extrabold uppercase text-[10.5px] tracking-wide h-[42px] shadow-xs" style={{ background: 'linear-gradient(180deg, #22262B 0%, #181A1D 100%)', borderColor: '#C5A059' }}>
                         {table1ColumnOrder.map((colKey, idx) => {
                           const col = TABLE1_COLS[colKey];
                           const widthVal = table1ColumnWidths[colKey] || col.defaultWidth;
@@ -4309,7 +4241,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             <th
                               key={colKey}
                               className={cn(
-                                "border-r border-[#929FA9] p-1 align-middle text-center uppercase relative group/col select-none",
+                                "border-r border-[#C5A059]/60 p-1 align-middle text-center uppercase relative group/col select-none",
                                 idx === table1ColumnOrder.length - 1 && "border-r-0"
                               )}
                               style={{ width: `${widthVal}%` }}
@@ -4319,27 +4251,27 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   type="button"
                                   onClick={() => moveColumnTable1(idx, 'left')}
                                   disabled={idx === 0}
-                                  className="opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity bg-[#303A42] text-white rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                  className="opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
                                   title="Mover Coluna para Esquerda"
                                 >
                                   ◀
                                 </button>
-                                <span className="truncate flex-1 text-center flex items-center justify-center gap-1 font-bold text-[#151B20]">
-                                  {colKey === 'motorista' && <User size={11} className="text-[#303A42] shrink-0 inline-block" />}
-                                  {colKey === 'cavalo' && <Truck size={11} className="text-[#303A42] shrink-0 inline-block" />}
-                                  {colKey === 'carretas' && <Container size={11} className="text-[#303A42] shrink-0 inline-block" />}
-                                  {colKey === 'isca' && <Barcode size={11} className="text-[#303A42] shrink-0 inline-block" />}
-                                  {colKey === 'produto' && <Package size={11} className="text-[#303A42] shrink-0 inline-block" />}
-                                  {colKey === 'uma' && <FileText size={11} className="text-[#303A42] shrink-0 inline-block" />}
-                                  {colKey === 'destino' && <MapPin size={11} className="text-[#303A42] shrink-0 inline-block" />}
-                                  {colKey === 'data' && <Calendar size={11} className="text-[#303A42] shrink-0 inline-block" />}
+                                <span className="truncate flex-1 text-center flex items-center justify-center gap-1 font-bold text-[#211C19]">
+                                  {colKey === 'motorista' && <User size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
+                                  {colKey === 'cavalo' && <Truck size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
+                                  {colKey === 'carretas' && <Container size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
+                                  {colKey === 'isca' && <Barcode size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
+                                  {colKey === 'produto' && <Package size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
+                                  {colKey === 'uma' && <FileText size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
+                                  {colKey === 'destino' && <MapPin size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
+                                  {colKey === 'data' && <Calendar size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
                                   <span>{col.label}</span>
                                 </span>
                                 <div className="flex items-center gap-0.5 opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity">
                                   <button
                                     type="button"
                                     onClick={() => resizeColumnTable1(colKey, -2)}
-                                    className="bg-[#303A42] text-white rounded px-1 text-[8px] font-bold cursor-pointer hover:bg-[#202930]"
+                                    className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded px-1 text-[8px] font-bold cursor-pointer"
                                     title="Diminuir Largura (-)"
                                   >
                                     -
@@ -4347,7 +4279,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   <button
                                     type="button"
                                     onClick={() => resizeColumnTable1(colKey, 2)}
-                                    className="bg-[#303A42] text-white rounded px-1 text-[8px] font-bold cursor-pointer hover:bg-[#202930]"
+                                    className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded px-1 text-[8px] font-bold cursor-pointer"
                                     title="Aumentar Largura (+)"
                                   >
                                     +
@@ -4356,7 +4288,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="button"
                                     onClick={() => moveColumnTable1(idx, 'right')}
                                     disabled={idx === table1ColumnOrder.length - 1}
-                                    className="bg-[#303A42] text-white rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                    className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
                                     title="Mover Coluna para Direita"
                                   >
                                     ▶
@@ -4370,28 +4302,28 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </thead>
                     <tbody>
                       {/* Rows of data with reordered columns */}
-                      <tr className="border-b border-[#DCE3E8] text-center text-xs h-[36px] bg-white">
+                      <tr className="border-b border-[#E5D5B5] text-center text-xs h-[36px] bg-white">
                         {table1ColumnOrder.map((colKey) => {
                           switch (colKey) {
                             case 'motorista':
                               return (
-                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#DCE3E8] p-1 font-bold uppercase text-[10.5px] align-middle">
+                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
                                   <textarea
                                     value={motorista}
                                     onChange={(e) => handleTableMotoristaChange(e.target.value)}
-                                    className="w-full h-full min-h-[40px] text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded resize-none p-1 text-[11px] leading-snug text-[#151B20] transition-all duration-150"
+                                    className="w-full h-full min-h-[40px] text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded resize-none p-1 text-[11px] leading-snug text-[#1A1D20] transition-all duration-150"
                                     placeholder="NOME MOTORISTA"
                                   />
                                 </td>
                               );
                             case 'cavalo':
                               return (
-                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#DCE3E8] p-1 font-black uppercase text-[11.5px] align-middle">
+                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1 font-black uppercase text-[11.5px] align-middle">
                                   <input
                                     type="text"
                                     value={cavalo}
                                     onChange={(e) => setCavalo(e.target.value.replace(/-/g, ""))}
-                                    className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[12.5px] text-[#151B20] tracking-wider transition-all duration-150"
+                                    className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[12.5px] text-[#1A1D20] tracking-wider transition-all duration-150"
                                     placeholder="PLACA"
                                     title="Placa"
                                   />
@@ -4399,75 +4331,72 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               );
                             case 'carretas':
                               return (
-                                <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 align-middle">
                                   <input
                                     type="text"
                                     value={carreta1}
                                     onChange={(e) => setCarreta1(e.target.value)}
-                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#202930] transition-all duration-150"
+                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#1A1D20] transition-all duration-150"
                                     placeholder="CARRETA 1"
                                   />
                                 </td>
                               );
                             case 'isca':
                               return (
-                                <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-black uppercase text-[10.5px] align-middle">
                                   <input
                                     type="text"
                                     value={isca1}
-                                    onChange={(e) => handleIsca1Change(e.target.value)}
-                                    className={cn(
-                                      "w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-black text-[11.5px] transition-all duration-150",
-                                      isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C62845]"
-                                    )}
+                                    onChange={(e) => setIsca1(e.target.value)}
+                                    className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#C91F2D] transition-all duration-150"
                                     placeholder="ISCA 1"
                                   />
                                 </td>
                               );
                             case 'produto':
                               return (
-                                <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
                                   <input
                                     type="text"
                                     value={produto1}
                                     onChange={(e) => setProduto1(e.target.value)}
-                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] text-[#202930] transition-all duration-150"
+                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
                                     placeholder="PROD 1"
                                   />
                                 </td>
                               );
                             case 'uma':
                               return (
-                                <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
                                   <input
                                     type="text"
                                     value={uma1}
                                     onChange={(e) => setUma1(formatUMA(e.target.value))}
-                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] text-[#202930] transition-all duration-150"
-                                    placeholder="0XX.XXX.XXX.XXX"
+                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
+                                    placeholder="CÓDIGO 1"
                                   />
                                 </td>
                               );
                             case 'destino':
                               return (
-                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#DCE3E8] p-1 font-bold uppercase text-[10.5px] align-middle">
+                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
                                   <input
                                     type="text"
                                     value={destino}
                                     onChange={(e) => setDestino(e.target.value)}
-                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-[#151B20] transition-all duration-150"
+                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
                                     placeholder="DESTINO"
                                   />
                                 </td>
                               );
                             case 'data':
                               return (
-                                <td key={colKey} rowSpan={numCarretas} className="p-1 font-bold text-[#151B20] text-[11px] align-middle">
+                                <td key={colKey} rowSpan={numCarretas} className="p-1 font-bold text-[#1A1D20] text-[11px] align-middle">
                                   <input
                                     type="text"
                                     value={dataEnviada}
                                     onChange={(e) => setDataEnviada(e.target.value)}
-                                    className="w-full text-center font-bold bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-[#151B20] transition-all duration-150"
+                                    className="w-full text-center font-bold bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
                                     placeholder="DATA"
                                   />
                                 </td>
@@ -4480,63 +4409,54 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                       {/* Second row of sub-items (Carreta 2, Isca 2, Prod 2, UMA 2) */}
                       {numCarretas === 2 && (
-                        <tr className="border-b border-[#DCE3E8] text-center text-xs h-[36px] bg-[#F4F7FA]">
+                        <tr className="border-b border-[#E5D5B5] text-center text-xs h-[42px] bg-[#FBF8F1]">
                           {table1ColumnOrder.map((colKey) => {
                             switch (colKey) {
                               case 'carretas':
                                 return (
-                                  <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 align-middle">
                                     <input
                                       type="text"
                                       value={carreta2}
                                       onChange={(e) => setCarreta2(e.target.value)}
-                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#202930] transition-all duration-150"
+                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#1A1D20] transition-all duration-150"
                                       placeholder="CARRETA 2"
                                     />
                                   </td>
                                 );
                               case 'isca':
                                 return (
-                                  <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-black uppercase text-[10.5px] align-middle">
                                     <input
                                       type="text"
                                       value={isca2}
-                                      onChange={(e) => handleIsca2Change(e.target.value)}
-                                      className={cn(
-                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-black text-[11.5px] transition-all duration-150",
-                                        isca2 === "SEM ISCA" ? "text-slate-400 font-semibold" : isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C62845]"
-                                      )}
+                                      onChange={(e) => setIsca2(e.target.value)}
+                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#C91F2D] transition-all duration-150"
                                       placeholder="ISCA 2"
                                     />
                                   </td>
                                 );
                               case 'produto':
                                 return (
-                                  <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
                                     <input
                                       type="text"
                                       value={produto2}
                                       onChange={(e) => setProduto2(e.target.value)}
-                                      className={cn(
-                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] transition-all duration-150",
-                                        isca2 === "SEM ISCA" ? "text-slate-400 font-medium" : "text-[#202930]"
-                                      )}
+                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
                                       placeholder="PROD 2"
                                     />
                                   </td>
                                 );
                               case 'uma':
                                 return (
-                                  <td key={colKey} className="border-r border-[#DCE3E8] p-1 align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
                                     <input
                                       type="text"
                                       value={uma2}
                                       onChange={(e) => setUma2(formatUMA(e.target.value))}
-                                      className={cn(
-                                        "w-full text-center bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 uppercase font-semibold text-[11px] transition-all duration-150",
-                                        isca2 === "SEM ISCA" ? "text-slate-400 font-medium" : "text-[#202930]"
-                                      )}
-                                      placeholder="0XX.XXX.XXX.XXX"
+                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
+                                      placeholder="CÓDIGO 2"
                                     />
                                   </td>
                                 );
@@ -4549,27 +4469,28 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </tbody>
                   </table>
 
-                  {/* TABLE 2: PARAMETRIZAÇÃO DAS ISCAS METÁLICA CROMADA */}
-                  <table className="w-full border-collapse text-xs font-sans text-[#151B20] table-fixed mt-0">
+                  {/* TABLE 2: PARAMETRIZAÇÃO DAS ISCAS CORPORATIVA DOURADA & GRAFITE */}
+                  <table className="w-full border-collapse text-xs font-sans text-[#1A1D20] table-fixed mt-0">
                     <tbody>
-                      {/* Header bar: Metallic Silver Chrome Title Bar */}
                       <tr>
                         <td
                           colSpan={4}
-                          className="text-center font-black text-[#151B20] p-2.5 uppercase text-[11px] tracking-widest border-t border-b shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)] relative"
-                          style={{ background: themeStyles.table2Header, borderColor: themeStyles.border }}
+                          className="text-center font-black text-white p-3 uppercase text-[11px] tracking-widest border-t border-b border-[#C5A059] relative shadow-md"
+                          style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}
                         >
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to right, transparent, ${themeStyles.border}, transparent)` }}></div>
-                            <span className="select-none tracking-widest text-[#151B20] font-black">
-                              ‹─── PARAMETRIZAÇÃO DAS ISCAS ───›
+                          <div className="flex items-center justify-between px-2">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#8C6D2B] flex items-center justify-center text-[#111111] font-black text-xs shadow-sm">
+                              ⚙
+                            </div>
+                            <span className="select-none tracking-widest text-white font-black text-xs">
+                              PARAMETRIZAÇÃO DAS ISCAS
                             </span>
-                            <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to right, transparent, ${themeStyles.border}, transparent)` }}></div>
+                            <div className="w-6"></div>
                           </div>
                         </td>
                       </tr>
-                      {/* Subheaders Row with Metallic Silver Chrome & Icons */}
-                      <tr className="text-[#151B20] text-center font-extrabold text-[9.5px] tracking-wider h-[32px] border-b shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(50,60,70,0.25)]" style={{ background: themeStyles.subHeaderBg, borderColor: themeStyles.border }}>
+                      {/* Subheaders Row */}
+                      <tr className="text-[#1A1D20] text-center font-extrabold text-[9.5px] tracking-wider h-[32px] border-b border-[#C5A059]" style={{ background: '#F5EDDA' }}>
                         {table2ColumnOrder.map((colKey, idx) => {
                           const col = TABLE2_COLS[colKey];
                           const widthVal = table2ColumnWidths[colKey] || col.defaultWidth;
@@ -4577,7 +4498,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             <td
                               key={colKey}
                               className={cn(
-                                "border-r border-[#929FA9] p-1 uppercase tracking-wide text-[9.5px] align-middle relative group/col2 select-none",
+                                "border-r border-[#C5A059]/60 p-1 uppercase tracking-wide text-[9.5px] align-middle relative group/col2 select-none",
                                 idx === table2ColumnOrder.length - 1 && "border-r-0"
                               )}
                               style={{ width: `${widthVal}%` }}
@@ -4587,33 +4508,33 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   type="button"
                                   onClick={() => moveColumnTable2(idx, 'left')}
                                   disabled={idx === 0}
-                                  className="opacity-0 group-hover/col2:opacity-100 hover:opacity-100 transition-opacity bg-[#303A42] text-white rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                  className="opacity-0 group-hover/col2:opacity-100 hover:opacity-100 transition-opacity bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
                                   title="Mover Coluna para Esquerda"
                                 >
                                   ◀
                                 </button>
-                                <span className="truncate flex-1 text-center flex items-center justify-center gap-1 font-bold text-[#151B20]">
+                                <span className="truncate flex-1 text-center flex items-center justify-center gap-1 font-bold text-[#1A1D20]">
                                   {colKey === 'isca' && (
                                     <>
-                                      <Barcode size={11} className="text-[#303A42] shrink-0 inline-block" />
+                                      <Barcode size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
                                       <span>PLACA / CÓDIGO DE VENDA ⇅</span>
                                     </>
                                   )}
                                   {colKey === 'endereco' && (
                                     <>
-                                      <MapPin size={11} className="text-[#303A42] shrink-0 inline-block" />
+                                      <MapPin size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
                                       <span>ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</span>
                                     </>
                                   )}
                                   {colKey === 'data' && (
                                     <>
-                                      <Calendar size={11} className="text-[#303A42] shrink-0 inline-block" />
+                                      <Calendar size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
                                       <span>DATA POSIÇÃO ⇅</span>
                                     </>
                                   )}
                                   {colKey === 'bateria' && (
                                     <>
-                                      <Battery size={11} className="text-[#303A42] shrink-0 inline-block" />
+                                      <Battery size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
                                       <span>BATERIA ISCA _ RF ⇅</span>
                                     </>
                                   )}
@@ -4622,7 +4543,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   <button
                                     type="button"
                                     onClick={() => resizeColumnTable2(colKey, -2)}
-                                    className="bg-[#303A42] text-white rounded px-1 text-[8px] font-bold cursor-pointer hover:bg-[#202930]"
+                                    className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded px-1 text-[8px] font-bold cursor-pointer"
                                     title="Diminuir Largura (-)"
                                   >
                                     -
@@ -4630,7 +4551,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   <button
                                     type="button"
                                     onClick={() => resizeColumnTable2(colKey, 2)}
-                                    className="bg-[#303A42] text-white rounded px-1 text-[8px] font-bold cursor-pointer hover:bg-[#202930]"
+                                    className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded px-1 text-[8px] font-bold cursor-pointer"
                                     title="Aumentar Largura (+)"
                                   >
                                     +
@@ -4639,7 +4560,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     type="button"
                                     onClick={() => moveColumnTable2(idx, 'right')}
                                     disabled={idx === table2ColumnOrder.length - 1}
-                                    className="bg-[#303A42] text-white rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                    className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
                                     title="Mover Coluna para Direita"
                                   >
                                     ▶
@@ -4652,29 +4573,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       </tr>
                       {/* Row 1 (Isca 2) - Only rendered if numCarretas === 2 and isca2 is NOT 'SEM ISCA' */}
                       {numCarretas === 2 && isca2 !== "SEM ISCA" && (
-                        <tr className="bg-[#F4F7FA] text-center font-medium text-[#151B20] h-[36px] border-b border-[#DCE3E8]">
+                        <tr className="bg-[#FBF8F1] text-center font-medium text-[#1A1D20] h-[36px] border-b border-[#E5D5B5]">
                           {table2ColumnOrder.map((colKey) => {
                             switch (colKey) {
                               case 'isca':
                                 return (
                                   <td key={colKey} className={cn(
-                                    "border-r border-[#DCE3E8] p-1 font-black uppercase text-[11.5px] text-center align-middle",
-                                    isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C62845]"
+                                    "border-r border-[#E5D5B5] p-1 font-black uppercase text-[11.5px] text-center align-middle",
+                                    "text-[#C91F2D]"
                                   )}>
-                                    {isca2 === "SEM ISCA" ? "" : isca2}
+                                    {isca2DisplayCode ? <span className="font-black text-[11px] text-[#C91F2D] uppercase tracking-wide">{isca2DisplayCode}</span> : ""}
                                   </td>
                                 );
                               case 'endereco':
                                 return (
-                                  <td key={colKey} className="border-r border-[#DCE3E8] p-1 text-left font-medium text-[11px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-left font-medium text-[11px] align-middle">
                                     <textarea
                                       value={isca2 === "SEM ISCA" ? "" : (isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : ""))}
                                       onChange={(e) => setIsca2Endereco(e.target.value)}
                                       disabled={isca2 === "SEM ISCA"}
                                       rows={1}
                                       className={cn(
-                                        "w-full bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150 disabled:opacity-50",
-                                        !pastePlanilha.trim() && !isca2Endereco ? "text-[#C62845] font-black uppercase" : "text-[#151B20]"
+                                        "w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150 disabled:opacity-50",
+                                        !pastePlanilha.trim() && !isca2Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#1A1D20]"
                                       )}
                                       placeholder={isca2 === "SEM ISCA" ? "" : "Endereço da Isca 2..."}
                                     />
@@ -4682,13 +4603,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 );
                               case 'data':
                                 return (
-                                  <td key={colKey} className="border-r border-[#DCE3E8] p-1 text-center font-medium text-[11px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-center font-medium text-[11px] align-middle">
                                     <input
                                       type="text"
                                       value={isca2 === "SEM ISCA" ? "" : isca2Data}
                                       onChange={(e) => setIsca2Data(e.target.value)}
                                       disabled={isca2 === "SEM ISCA"}
-                                      className="w-full bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] text-center text-[#151B20] font-medium transition-all duration-150 disabled:opacity-50"
+                                      className="w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] text-center text-[#1A1D20] font-medium transition-all duration-150 disabled:opacity-50"
                                       placeholder={isca2 === "SEM ISCA" ? "" : "Data/Hora..."}
                                     />
                                   </td>
@@ -4705,7 +4626,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                           value={isca2 === "SEM ISCA" ? "" : isca2Bateria}
                                           onChange={(e) => setIsca2Bateria(e.target.value)}
                                           disabled={isca2 === "SEM ISCA"}
-                                          className="w-10 bg-transparent border-none outline-none hover:bg-slate-200/50 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150 disabled:opacity-50"
+                                          className="w-10 bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-center text-[#1A1D20] font-bold transition-all duration-150 disabled:opacity-50"
                                           placeholder={isca2 === "SEM ISCA" ? "" : "100%"}
                                         />
                                         <div className="relative flex items-center shrink-0">
@@ -4726,28 +4647,28 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         </tr>
                       )}
                       {/* Row 2 (Isca 1) */}
-                      <tr className="bg-white text-center font-medium text-[#151B20] h-[36px] border-b border-[#DCE3E8]">
+                      <tr className="bg-white text-center font-medium text-[#1A1D20] h-[36px] border-b border-[#E5D5B5]">
                         {table2ColumnOrder.map((colKey) => {
                           switch (colKey) {
                             case 'isca':
                               return (
                                 <td key={colKey} className={cn(
-                                  "border-r border-[#DCE3E8] p-1 font-black uppercase text-[11.5px] text-center bg-white align-middle",
-                                  isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C62845]"
+                                  "border-r border-[#E5D5B5] p-1 font-black uppercase text-[11.5px] text-center bg-white align-middle",
+                                  isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C91F2D]"
                                 )}>
-                                  {isca1 === "SEM ISCA" ? "" : isca1}
+                                  {isca1DisplayCode ? <span className="font-black text-[11px] text-[#C91F2D] uppercase tracking-wide">{isca1DisplayCode}</span> : ""}
                                 </td>
                               );
                             case 'endereco':
                               return (
-                                <td key={colKey} className="border-r border-[#DCE3E8] p-1 text-left font-medium text-[11px] bg-white align-middle">
+                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-left font-medium text-[11px] bg-white align-middle">
                                   <textarea
                                     value={isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}
                                     onChange={(e) => setIsca1Endereco(e.target.value)}
                                     rows={1}
                                     className={cn(
-                                      "w-full bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150",
-                                      !pastePlanilha.trim() && !isca1Endereco ? "text-[#C62845] font-black uppercase" : "text-[#151B20]"
+                                      "w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150",
+                                      !pastePlanilha.trim() && !isca1Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#1A1D20]"
                                     )}
                                     placeholder="Endereço da Isca 1..."
                                   />
@@ -4755,12 +4676,12 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               );
                             case 'data':
                               return (
-                                <td key={colKey} className="border-r border-[#DCE3E8] p-1 text-center font-medium text-[11px] bg-white align-middle">
+                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-center font-medium text-[11px] bg-white align-middle">
                                   <input
                                     type="text"
                                     value={isca1Data}
                                     onChange={(e) => setIsca1Data(e.target.value)}
-                                    className="w-full bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1.5 py-0.5 text-[11px] text-center text-[#151B20] font-medium transition-all duration-150"
+                                    className="w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] text-center text-[#1A1D20] font-medium transition-all duration-150"
                                     placeholder="Data/Hora..."
                                   />
                                 </td>
@@ -4776,7 +4697,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                         type="text"
                                         value={isca1Bateria}
                                         onChange={(e) => setIsca1Bateria(e.target.value)}
-                                        className="w-10 bg-transparent border-none outline-none hover:bg-slate-100/70 focus:bg-white focus:ring-1 focus:ring-[#C62845] rounded px-1 py-0.5 text-[11px] text-center text-[#151B20] font-bold transition-all duration-150"
+                                        className="w-10 bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-center text-[#1A1D20] font-bold transition-all duration-150"
                                         placeholder="100%"
                                       />
                                       <div className="relative flex items-center shrink-0">
@@ -4966,11 +4887,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                 {/* 6. INTERACTIVE ESQUEMA DE EMBARQUE (LADDERS) */}
                 {!ocultarNotas && (
-                  <div className="mt-6 border-t border-stone-700/60 pt-5">
-                    <span className="text-[13px] font-black uppercase block mt-[20px] mb-[15px] text-red-400 font-sans border-b border-stone-700/60 pb-2">
+                  <div className="mt-6 border-t border-[#EDE2CE] pt-5">
+                    <span className="text-[13px] font-black uppercase block mt-[20px] mb-[15px] text-[#D92332] font-sans border-b border-[#EDE2CE] pb-2">
                       ESQUEMA DE EMBARQUE DAS ISCAS:
                     </span>
-                    <p className="text-[10px] text-stone-300 font-extrabold uppercase tracking-wider mb-4">
+                    <p className="text-[10px] text-[#77736B] font-extrabold uppercase tracking-wider mb-4">
                       {sidebarEmbarque1 || sidebarEmbarque2
                         ? "Imagem do esquema de embarque selecionada! Ela será incluída no e-mail."
                         : 'Clique nas células para marcar/desmarcar a isca ("P"). Esse esquema será copiado visualmente para o e-mail!'}
@@ -4988,7 +4909,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         )}>
                           {sidebarEmbarque1 ? (
                             <div className="w-full flex flex-col">
-                              <div className="bg-[#12181b] border border-stone-700/80 p-3 text-center shadow-xl w-[320px] h-[420px] flex items-center justify-center box-border rounded-2xl">
+                              <div className="bg-[#F5F0E6] border border-[#EDE2CE] p-3 text-center shadow-xs w-[320px] h-[420px] flex items-center justify-center box-border rounded-2xl">
                                 <img
                                   src={sidebarEmbarque1}
                                   alt="Esquema"
@@ -4999,11 +4920,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       e.currentTarget.src = fallback;
                                     }
                                   }}
-                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-[#141c21] rounded-xl mx-auto block border border-stone-800 p-2"
+                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-white rounded-xl mx-auto block border border-[#EDE2CE] p-2"
                                 />
                               </div>
                               <div className="text-center mt-[15px]">
-                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                <span className="text-[11px] font-black text-[#292820] uppercase tracking-wider">
                                   CARRETA 1: {carreta1 || "S/ PLACA"}
                                 </span>
                               </div>
@@ -5011,10 +4932,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           ) : (
                             <div className="flex flex-col items-center w-full">
                               <div className="h-[350px] flex flex-col items-center justify-start pt-[15px]">
-                                <div className="bg-[#1f1915] text-white font-extrabold text-[8px] uppercase w-[50px] py-[3px] text-center border border-stone-700 tracking-normal rounded-t">
+                                <div className="bg-[#292820] text-[#E6D2A3] font-extrabold text-[8px] uppercase w-[50px] py-[3px] text-center border border-[#C49A45]/40 tracking-normal rounded-t">
                                   ESCALA 01
                                 </div>
-                                <div className="grid grid-cols-2 gap-0 border border-stone-700 bg-[#12181b] w-[50px]">
+                                <div className="grid grid-cols-2 gap-0 border border-[#EDE2CE] bg-[#F5F0E6] w-[50px]">
                                   {ladder1.map((row, rIndex) =>
                                     row.map((cell, cIndex) => (
                                       <button
@@ -5028,7 +4949,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                           setLadder1(copy);
                                         }}
                                         className={cn(
-                                          "w-full h-[12px] border-[0.5px] border-stone-700 font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
+                                          "w-full h-[12px] border-[0.5px] border-[#EDE2CE] font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
                                           cell === "P"
                                             ? isGreenOrigem
                                               ? "bg-emerald-600 text-white"
@@ -5036,8 +4957,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                                 ? "bg-purple-700 text-white font-black"
                                                 : isCuiabaOrigem
                                                   ? "bg-amber-500 text-stone-950 font-black"
-                                                  : "bg-red-600 text-white"
-                                            : "bg-[#141c21] hover:bg-stone-800 text-white",
+                                                  : "bg-[#D92332] text-white"
+                                            : "bg-[#FFFFFF] hover:bg-[#EDE2CE] text-[#292820]",
                                         )}
                                       >
                                         {cell}
@@ -5047,7 +4968,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 </div>
                               </div>
                               <div className="text-center mt-[10px]">
-                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                <span className="text-[11px] font-black text-[#292820] uppercase tracking-wider">
                                   CARRETA 1: {carreta1 || "S/ PLACA"}
                                 </span>
                               </div>
@@ -5064,7 +4985,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         )}>
                           {sidebarEmbarque2 ? (
                             <div className="w-full flex flex-col">
-                              <div className="bg-[#12181b] border border-stone-700/80 p-3 text-center shadow-xl w-[320px] h-[420px] flex items-center justify-center box-border rounded-2xl">
+                              <div className="bg-[#F5F0E6] border border-[#EDE2CE] p-3 text-center shadow-xs w-[320px] h-[420px] flex items-center justify-center box-border rounded-2xl">
                                 <img
                                   src={sidebarEmbarque2}
                                   alt="Esquema"
@@ -5075,11 +4996,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       e.currentTarget.src = fallback;
                                     }
                                   }}
-                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-[#141c21] rounded-xl mx-auto block border border-stone-800 p-2"
+                                  className="max-w-[95%] max-h-[95%] w-auto h-auto object-contain bg-white rounded-xl mx-auto block border border-[#EDE2CE] p-2"
                                 />
                               </div>
                               <div className="text-center mt-[15px]">
-                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                <span className="text-[11px] font-black text-[#292820] uppercase tracking-wider">
                                   CARRETA 2: {carreta2 || "S/ PLACA"}
                                 </span>
                               </div>
@@ -5087,10 +5008,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           ) : (
                             <div className="flex flex-col items-center w-full">
                               <div className="h-[350px] flex flex-col items-center justify-start pt-[15px]">
-                                <div className="bg-[#1f1915] text-white font-extrabold text-[9px] uppercase w-[75px] py-[5px] text-center border border-stone-700 tracking-normal rounded-t">
+                                <div className="bg-[#292820] text-[#E6D2A3] font-extrabold text-[9px] uppercase w-[75px] py-[5px] text-center border border-[#C49A45]/40 tracking-normal rounded-t">
                                   ESCALA 02
                                 </div>
-                                <div className="grid grid-cols-2 gap-0 border border-stone-700 bg-[#12181b] w-[75px]">
+                                <div className="grid grid-cols-2 gap-0 border border-[#EDE2CE] bg-[#F5F0E6] w-[75px]">
                                   {ladder2.map((row, rIndex) =>
                                     row.map((cell, cIndex) => (
                                       <button
@@ -5104,7 +5025,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                           setLadder2(copy);
                                         }}
                                         className={cn(
-                                          "w-full h-[12px] border-[0.5px] border-stone-700 font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
+                                          "w-full h-[12px] border-[0.5px] border-[#EDE2CE] font-black text-[8px] flex items-center justify-center transition-all cursor-pointer select-none",
                                           cell === "P"
                                             ? isGreenOrigem
                                               ? "bg-emerald-600 text-white"
@@ -5112,8 +5033,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                                 ? "bg-purple-700 text-white font-black"
                                                 : isCuiabaOrigem
                                                   ? "bg-amber-500 text-stone-950 font-black"
-                                                  : "bg-red-600 text-white"
-                                            : "bg-[#141c21] hover:bg-stone-800 text-white",
+                                                  : "bg-[#D92332] text-white"
+                                            : "bg-[#FFFFFF] hover:bg-[#EDE2CE] text-[#292820]",
                                         )}
                                       >
                                         {cell}
@@ -5123,7 +5044,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 </div>
                               </div>
                               <div className="text-center mt-[15px]">
-                                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                                <span className="text-[11px] font-black text-[#292820] uppercase tracking-wider">
                                   CARRETA 2: {carreta2 || "S/ PLACA"}
                                 </span>
                               </div>
@@ -5136,19 +5057,19 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 )}
 
                 {/* Notes additional line (HIDDEN PER USER REQUEST) */}
-                <div className="hidden mt-5 max-w-xl mx-auto border-2 border-stone-800 rounded-2xl p-4 bg-[#FFFDFB] shadow-sm">
+                <div className="hidden mt-5 max-w-xl mx-auto border border-[#EDE2CE] rounded-2xl p-4 bg-[#FFFCF6] shadow-xs">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <span className="text-[10px] font-black uppercase text-[#8c6b4e] tracking-wider block">
+                    <span className="text-[10px] font-black uppercase text-[#C49A45] tracking-wider block">
                       Notas adicionais de embarque:
                     </span>
                     <button
                       type="button"
                       onClick={() => setOcultarNotas(!ocultarNotas)}
                       className={cn(
-                        "flex items-center gap-1.5 font-black uppercase text-[9px] tracking-wider px-2.5 py-1 rounded-lg border-2 transition-all cursor-pointer select-none active:scale-95",
+                        "flex items-center gap-1.5 font-black uppercase text-[9px] tracking-wider px-2.5 py-1 rounded-lg border transition-all cursor-pointer select-none active:scale-95",
                         ocultarNotas
-                          ? "bg-[#9b1526] hover:bg-[#8c060a] text-white border-transparent"
-                          : "bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-300",
+                          ? "bg-[#D92332] hover:bg-[#B31D2A] text-white border-transparent"
+                          : "bg-[#F5F0E6] hover:bg-[#EDE2CE] text-[#292820] border-[#EDE2CE]",
                       )}
                     >
                       {ocultarNotas ? (
@@ -5170,11 +5091,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       type="text"
                       value={esquemaEmbarque}
                       onChange={(e) => setEsquemaEmbarque(e.target.value)}
-                      className="w-full bg-transparent border-b-2 border-stone-300 focus:border-[#B32025] py-1 text-xs outline-none uppercase font-mono font-bold text-[#3e2516]"
+                      className="w-full bg-transparent border-b-2 border-[#EDE2CE] focus:border-[#C49A45] py-1 text-xs outline-none uppercase font-mono font-bold text-[#292820]"
                       placeholder="EX: CAVALO: ISCA NO PAINEL / CARRETA 1: ISCA NO MEIO..."
                     />
                   ) : (
-                    <p className="text-[10px] text-stone-500 font-semibold italic">
+                    <p className="text-[10px] text-[#77736B] font-semibold italic">
                       O esquema e as notas de embarque estão ocultos e não serão
                       incluídos no e-mail copiado.
                     </p>
@@ -5183,20 +5104,20 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                 {/* 7. GERENCIAMENTO DE RISCO (OCULTO AUTOMATICAMENTE QUANDO PREFIXO FOR 30D10000) */}
                 {!isDescartavel && (
-                  <div className="mt-6 bg-[#12181b] border border-stone-700/80 p-4 rounded-2xl text-left shadow-md">
-                    <p className="text-[11px] font-black text-red-400 mb-2 uppercase tracking-wide">
+                  <div className="mt-6 bg-[#F5F0E6] border border-[#EDE2CE] p-4 rounded-2xl text-left shadow-xs">
+                    <p className="text-[11px] font-black text-[#D92332] mb-2 uppercase tracking-wide">
                       GERENCIAMENTO DE RISCO
                     </p>
-                    <p className="text-[11px] text-white mb-1.5 font-medium leading-relaxed">
+                    <p className="text-[11px] text-[#292820] mb-1.5 font-medium leading-relaxed">
                       • Ressalto a importância de encaminhar todas as iscas resgatadas para suas respectivas unidades de origem.
                     </p>
-                    <p className="text-[11px] text-white mb-1.5 font-medium leading-relaxed">
+                    <p className="text-[11px] text-[#292820] mb-1.5 font-medium leading-relaxed">
                       Agradeço antecipadamente pelo compromisso em assegurar que esses envios sejam efetuados via veículos dedicados ou postagem de maneira a evitar qualquer inconveniente em nossa operação.
                     </p>
-                    <p className="text-[11px] text-white mb-1.5 font-medium leading-relaxed">
+                    <p className="text-[11px] text-[#292820] mb-1.5 font-medium leading-relaxed">
                       A devolução dos rastreadores móveis é essencial, porém, muitos ainda não foram devolvidos prejudicando nossos processos. Por gentileza, devolvam as iscas o quanto antes para mantermos nossa excelência operacional.
                     </p>
-                    <p className="text-[11px] text-white font-medium leading-relaxed">
+                    <p className="text-[11px] text-[#292820] font-medium leading-relaxed">
                       Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </p>
                   </div>
@@ -5219,42 +5140,42 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         style={preAlertaMode === "minimized" ? { zoom: colunasZoom } : undefined}
       >
         <div className={cn(
-          "rounded-2xl bg-[#080d0f]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all text-white",
-          preAlertaMode === "minimized" && "border-amber-400/50 shadow-xl ring-1 ring-amber-400/20"
+          "rounded-3xl bg-[#FFFCF6] border border-[#EDE2CE] shadow-sm relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all text-[#292820]",
+          preAlertaMode === "minimized" && "border-[#C49A45]/50 shadow-md ring-1 ring-[#C49A45]/20"
         )}>
           {/* Form Header */}
-          <div className="border-b border-[rgba(212,169,79,0.2)] pb-4 mb-5">
+          <div className="border-b border-[#EDE2CE] pb-4 mb-5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-400 block">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#D92332] block">
                 Painel Lateral
               </span>
               {preAlertaMode === "minimized" && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
                   Zoom {Math.round(colunasZoom * 100)}%
                 </span>
               )}
             </div>
             <div className="flex items-center justify-between mt-1">
-              <h3 className="text-base font-sans font-black text-white uppercase tracking-tight flex items-center gap-2">
-                <Sliders size={18} className="text-red-500" /> Formulário de Controle
+              <h3 className="text-base font-sans font-black text-[#292820] uppercase tracking-tight flex items-center gap-2">
+                <Sliders size={18} className="text-[#C49A45]" /> Formulário de Controle
               </h3>
               <div className="flex items-center gap-1.5">
                 {preAlertaMode === "minimized" && (
-                  <div className="flex items-center bg-[#141c21] border border-stone-700 rounded-lg p-0.5 text-[10px] font-black shadow-xs">
+                  <div className="flex items-center bg-[#F5F0E6] border border-[#EDE2CE] rounded-lg p-0.5 text-[10px] font-black shadow-xs">
                     <button
                       type="button"
                       onClick={() => setColunasZoom((z) => Math.max(0.8, parseFloat((z - 0.05).toFixed(2))))}
                       title="Diminuir Zoom"
-                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
+                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-[#EDE2CE] text-[#292820] active:scale-95 transition-colors cursor-pointer"
                     >
                       -
                     </button>
-                    <span className="px-1.5 font-mono text-white">{Math.round(colunasZoom * 100)}%</span>
+                    <span className="px-1.5 font-mono text-[#292820]">{Math.round(colunasZoom * 100)}%</span>
                     <button
                       type="button"
                       onClick={() => setColunasZoom((z) => Math.min(1.35, parseFloat((z + 0.05).toFixed(2))))}
                       title="Aumentar Zoom"
-                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
+                      className="w-5 h-5 rounded flex items-center justify-center hover:bg-[#EDE2CE] text-[#292820] active:scale-95 transition-colors cursor-pointer"
                     >
                       +
                     </button>
@@ -5263,7 +5184,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-pointer"
+                  className="p-2 text-[#77736B] hover:text-[#D92332] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   title="Limpar formulário"
                 >
                   <Trash2 size={16} />
@@ -5276,8 +5197,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           <div className="flex flex-col gap-4">
             {/* ORIGEM (MENU SUSPENSO) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <MapPin size={12} className="text-red-500" /> ORIGEM
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                <MapPin size={12} className="text-[#C49A45]" /> ORIGEM
               </label>
               <select
                 value={origem}
@@ -5295,13 +5216,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     }
                   }
                 }}
-                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md cursor-pointer"
+                className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 hover:border-[#E6D2A3] outline-none transition-all shadow-xs cursor-pointer"
               >
                 {ORIGEM_OPCOES.map((opt) => (
                   <option
                     key={opt}
                     value={opt}
-                    className="bg-[#141c21] text-white uppercase text-xs font-bold"
+                    className="bg-[#FFFFFF] text-[#292820] uppercase text-xs font-bold"
                   >
                     {opt.toUpperCase()}
                   </option>
@@ -5311,27 +5232,27 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* SELECIONAR ROTA (MENU SUSPENSO) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <MapPin size={12} className="text-red-500" /> SELECIONAR ROTA (DESTINO)
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                <MapPin size={12} className="text-[#C49A45]" /> SELECIONAR ROTA (DESTINO)
               </label>
 
               {/* Search input for filtering */}
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search size={12} className="text-stone-400" />
+                  <Search size={12} className="text-[#77736B]" />
                 </span>
                 <input
                   type="text"
                   value={searchRota}
                   onChange={(e) => setSearchRota(e.target.value)}
-                  className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl pl-8 pr-3 py-2 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md placeholder:text-stone-500"
+                  className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl pl-8 pr-3 py-2 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 hover:border-[#E6D2A3] outline-none transition-all shadow-xs placeholder:text-[#77736B]"
                   placeholder="PESQUISAR ROTA..."
                 />
                 {searchRota && (
                   <button
                     type="button"
                     onClick={() => setSearchRota("")}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[10px] font-black text-red-500 hover:text-red-400 uppercase cursor-pointer"
+                    className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[10px] font-black text-[#D92332] hover:text-red-700 uppercase cursor-pointer"
                   >
                     Limpar
                   </button>
@@ -5354,9 +5275,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     setDestino("");
                   }
                 }}
-                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md cursor-pointer"
+                className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 hover:border-[#E6D2A3] outline-none transition-all shadow-xs cursor-pointer"
               >
-                <option value="" className="bg-[#141c21] text-stone-400">
+                <option value="" className="bg-[#FFFFFF] text-[#77736B]">
                   {searchRota
                     ? "RESULTADOS DA BUSCA..."
                     : "SELECIONE A ROTA..."}
@@ -5369,7 +5290,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   ) && (
                     <option
                       value={rota1}
-                      className="bg-[#141c21] text-white uppercase text-xs font-bold"
+                      className="bg-[#FFFFFF] text-[#292820] uppercase text-xs font-bold"
                     >
                       {rota1.toUpperCase()}
                     </option>
@@ -5382,7 +5303,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     <option
                       key={dest}
                       value={displayDest}
-                      className="bg-[#141c21] text-white uppercase text-xs font-bold"
+                      className="bg-[#FFFFFF] text-[#292820] uppercase text-xs font-bold"
                     >
                       {displayDest.toUpperCase()}
                     </option>
@@ -5393,20 +5314,20 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* TRANSPORTADORA input */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <Truck size={12} className="text-red-500" /> TRANSPORTADORA
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                <Truck size={12} className="text-[#C49A45]" /> TRANSPORTADORA
               </label>
               <select
                 value={sidebarTransportadora}
                 onChange={(e) => handleSidebarTranspChange(e.target.value)}
-                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md cursor-pointer"
+                className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 hover:border-[#E6D2A3] outline-none transition-all shadow-xs cursor-pointer"
               >
-                <option value="" className="bg-[#141c21] text-stone-400">SELECIONE...</option>
+                <option value="" className="bg-[#FFFFFF] text-[#77736B]">SELECIONE...</option>
                 {allTransportadoras.map((t) => (
                   <option
                     key={t}
                     value={t}
-                    className="bg-[#141c21] text-white uppercase text-xs font-bold"
+                    className="bg-[#FFFFFF] text-[#292820] uppercase text-xs font-bold"
                   >
                     {t}
                   </option>
@@ -5422,13 +5343,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <Plus size={12} /> Adicionar Transportadora
                 </button>
               ) : (
-                <div className="flex flex-col gap-1.5 p-2 bg-[#12181b] rounded-xl border border-stone-700/80 mt-0.5 shadow-md">
+                <div className="flex flex-col gap-1.5 p-2 bg-[#FFFCF6] rounded-xl border border-[#EDE2CE] mt-0.5 shadow-xs">
                   <input
                     type="text"
                     placeholder="NOME DA TRANSPORTADORA"
                     value={newTranspName}
                     onChange={(e) => setNewTranspName(e.target.value)}
-                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-white focus:border-red-500 focus:ring-1 focus:ring-red-500/20 outline-none transition-all"
+                    className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase text-[#292820] focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/20 outline-none transition-all"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -5443,14 +5364,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         setIsAddingTransp(false);
                         setNewTranspName("");
                       }}
-                      className="px-2 py-0.5 text-[10px] font-extrabold text-stone-400 hover:bg-white/10 rounded uppercase transition-colors cursor-pointer"
+                      className="px-2 py-0.5 text-[10px] font-extrabold text-[#77736B] hover:bg-[#EDE2CE]/50 rounded uppercase transition-colors cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       type="button"
                       onClick={handleAddCustomTransp}
-                      className="px-2.5 py-0.5 text-[10px] font-extrabold text-white bg-red-600 hover:bg-red-700 rounded uppercase shadow-2xs transition-colors cursor-pointer"
+                      className="px-2.5 py-0.5 text-[10px] font-extrabold text-white bg-[#D92332] hover:bg-red-700 rounded uppercase shadow-2xs transition-colors cursor-pointer"
                     >
                       Salvar
                     </button>
@@ -5461,47 +5382,47 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* COLAR DA PLANILHA (PARAMETRIZAÇÃO) textarea */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <FileText size={12} className="text-red-500" /> COLAR DA PLANILHA (PARAMETRIZAÇÃO)
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                <FileText size={12} className="text-[#C49A45]" /> COLAR DA PLANILHA (PARAMETRIZAÇÃO)
               </label>
               <textarea
                 value={pastePlanilha}
                 onChange={(e) => handlePastePlanilhaChange(e.target.value)}
                 rows={3}
-                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3 py-2 text-xs font-bold text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md resize-none placeholder:text-stone-500"
+                className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3 py-2 text-xs font-bold text-[#292820] focus:border-[#C49A45] focus:ring-2 focus:ring-[#C49A45]/20 hover:border-[#E6D2A3] outline-none transition-all shadow-xs resize-none placeholder:text-[#77736B]"
                 placeholder="Cole as linhas da planilha de iscas aqui..."
               />
             </div>
 
             {/* NOME MOTORISTA input */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <User size={12} className="text-red-500" /> NOME MOTORISTA
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                <User size={12} className="text-[#C49A45]" /> NOME MOTORISTA
               </label>
               <input
                 type="text"
                 value={sidebarMotorista}
                 onChange={(e) => handleSidebarMotoristaChange(e.target.value)}
-                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md placeholder:text-stone-500"
+                className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] focus:ring-2 focus:ring-[#C49A45]/20 hover:border-[#E6D2A3] outline-none transition-all shadow-xs placeholder:text-[#77736B]"
                 placeholder="NOME COMPLETO"
               />
             </div>
 
             {/* PREFIXOS & BATERIA ISCAS */}
-            <div className="flex flex-col gap-3 bg-[#12181b] border border-stone-700/80 rounded-2xl p-4 shadow-md">
+            <div className="flex flex-col gap-3 bg-[#FFFCF6] border border-[#EDE2CE] rounded-2xl p-4 shadow-xs">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                  <Sliders size={12} className="text-red-500" /> N° ISCAS (PREFIXOS & BATERIA)
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                  <Sliders size={12} className="text-[#C49A45]" /> N° ISCAS (PREFIXOS & BATERIA)
                 </label>
                 <button
                   type="button"
                   onClick={handleCopyIscasWithSpace}
                   title="Copiar números das iscas com espaço (ex: R100002466 R100000876)"
                   className={cn(
-                    "flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition-all cursor-pointer select-none shadow-sm",
+                    "flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition-all cursor-pointer select-none shadow-xs",
                     copiedIscasSpace
                       ? "bg-emerald-600 text-white shadow-xs"
-                      : "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white hover:shadow-xs active:scale-95"
+                      : "bg-[#292820] hover:bg-[#38372d] active:bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/40 hover:shadow-xs active:scale-95"
                   )}
                 >
                   {copiedIscasSpace ? (
@@ -5511,7 +5432,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </>
                   ) : (
                     <>
-                      <Copy size={11} />
+                      <Copy size={11} className="text-[#C49A45]" />
                       <span>Copiar Iscas</span>
                     </>
                   )}
@@ -5520,13 +5441,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
               <div className="flex flex-col gap-3">
                 {/* ISCA 1 SECTION */}
-                <div className="border-b border-stone-700/60 pb-2.5">
-                  <span className="text-[9px] font-extrabold uppercase text-red-400 block mb-1">
+                <div className="border-b border-[#EDE2CE] pb-2.5">
+                  <span className="text-[9px] font-extrabold uppercase text-[#D92332] block mb-1">
                     DISPOSITIVO ISCA 1:
                   </span>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
+                      <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
                         PREFIXO:
                       </span>
                       <select
@@ -5542,15 +5463,15 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             setAlertaResgate(FRASE_RESGATE_PADRAO);
                           }
                         }}
-                        className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white focus:border-red-500 outline-none cursor-pointer transition-all"
+                        className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] focus:border-[#C49A45] outline-none cursor-pointer transition-all"
                       >
-                        <option value="R100000" className="bg-[#141c21] text-white">R100000</option>
-                        <option value="R10000" className="bg-[#141c21] text-white">R10000</option>
-                        <option value="30D10000" className="bg-[#141c21] text-white">30D10000</option>
+                        <option value="R100000" className="bg-[#FFFFFF] text-[#292820]">R100000</option>
+                        <option value="R10000" className="bg-[#FFFFFF] text-[#292820]">R10000</option>
+                        <option value="30D10000" className="bg-[#FFFFFF] text-[#292820]">30D10000</option>
                       </select>
                     </div>
                     <div>
-                      <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
+                      <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
                         RESTO:
                       </span>
                       <input
@@ -5574,7 +5495,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             setAlertaResgate(FRASE_RESGATE_PADRAO);
                           }
                         }}
-                        className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white uppercase focus:border-red-500 outline-none transition-all"
+                        className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] uppercase focus:border-[#C49A45] outline-none transition-all placeholder:text-[#77736B]"
                         placeholder="RESTO..."
                       />
                     </div>
@@ -5584,12 +5505,12 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 {/* ISCA 2 SECTION */}
                 {numCarretas === 2 && (
                   <div>
-                    <span className="text-[9px] font-extrabold uppercase text-red-400 block mb-1">
+                    <span className="text-[9px] font-extrabold uppercase text-[#D92332] block mb-1">
                       DISPOSITIVO ISCA 2:
                     </span>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
+                        <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
                           PREFIXO:
                         </span>
                         <select
@@ -5605,15 +5526,15 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               setAlertaResgate(FRASE_RESGATE_PADRAO);
                             }
                           }}
-                          className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white focus:border-red-500 outline-none cursor-pointer transition-all"
+                          className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] focus:border-[#C49A45] outline-none cursor-pointer transition-all"
                         >
-                          <option value="R100000" className="bg-[#141c21] text-white">R100000</option>
-                          <option value="R10000" className="bg-[#141c21] text-white">R10000</option>
-                          <option value="30D10000" className="bg-[#141c21] text-white">30D10000</option>
+                          <option value="R100000" className="bg-[#FFFFFF] text-[#292820]">R100000</option>
+                          <option value="R10000" className="bg-[#FFFFFF] text-[#292820]">R10000</option>
+                          <option value="30D10000" className="bg-[#FFFFFF] text-[#292820]">30D10000</option>
                         </select>
                       </div>
                       <div>
-                        <span className="text-[8px] font-extrabold uppercase text-stone-300 block mb-0.5">
+                        <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
                           RESTO:
                         </span>
                         <input
@@ -5637,12 +5558,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               setAlertaResgate(FRASE_RESGATE_PADRAO);
                             }
                           }}
-                          className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2 py-1.5 text-[10px] font-black text-white uppercase focus:border-red-500 outline-none transition-all"
+                          className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] uppercase focus:border-[#C49A45] outline-none transition-all placeholder:text-[#77736B]"
                           placeholder="RESTO..."
                         />
                       </div>
                     </div>
-
                   </div>
                 )}
 
@@ -5651,22 +5571,22 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <div
                     onClick={handleCopyIscasWithSpace}
                     title="Clique para copiar com espaço"
-                    className="flex items-center justify-between bg-[#141c21] border border-stone-700 hover:border-red-500 rounded-xl px-3 py-2 cursor-pointer transition-all group shadow-sm"
+                    className="flex items-center justify-between bg-[#F5F0E6] border border-[#EDE2CE] hover:border-[#C49A45] rounded-xl px-3 py-2 cursor-pointer transition-all group shadow-2xs"
                   >
                     <div className="flex items-center gap-1.5 overflow-hidden">
-                      <span className="text-[8px] font-extrabold uppercase text-stone-400 shrink-0">ISCAS:</span>
-                      <span className="text-[11px] font-mono font-black text-white group-hover:text-red-400 tracking-wider truncate">
+                      <span className="text-[8px] font-extrabold uppercase text-[#77736B] shrink-0">ISCAS:</span>
+                      <span className="text-[11px] font-mono font-black text-[#292820] group-hover:text-[#D92332] tracking-wider truncate">
                         {getIscasSpaceSeparated()}
                       </span>
                     </div>
-                    <div className="shrink-0 ml-1.5 flex items-center gap-1 text-[8px] font-black uppercase text-stone-400 group-hover:text-red-400 transition-colors">
+                    <div className="shrink-0 ml-1.5 flex items-center gap-1 text-[8px] font-black uppercase text-[#77736B] group-hover:text-[#D92332] transition-colors">
                       {copiedIscasSpace ? (
-                        <span className="text-emerald-400 font-black flex items-center gap-0.5">
+                        <span className="text-emerald-700 font-black flex items-center gap-0.5">
                           <Check size={11} className="stroke-[3]" /> Copiado
                         </span>
                       ) : (
-                        <span className="flex items-center gap-0.5 text-white">
-                          <Copy size={11} /> Copiar
+                        <span className="flex items-center gap-0.5 text-[#292820]">
+                          <Copy size={11} className="text-[#C49A45]" /> Copiar
                         </span>
                       )}
                     </div>
@@ -5678,134 +5598,174 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
 
             {/* EMBARQUE (CARRETA 1) */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-stone-700/60">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
-                <span>Embarque (carreta 1)</span>
-                {carreta1 && <span className="text-[9px] font-mono text-white font-black">{carreta1}</span>}
-              </label>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                {EMBARQUE_IMAGES.map((img) => {
-                  const isSelected = sidebarEmbarque1 === img.value;
-                  let displayLabel = img.label.toUpperCase();
-                  if (img.value === "https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF") {
-                    displayLabel = "EMBARQUE (PALETIZADO)";
-                  } else if (img.value === "none") {
-                    displayLabel = "SEM ISCA";
-                  }
-
-                  return (
-                    <button
-                      key={img.value}
-                      type="button"
-                      onClick={() => setSidebarEmbarque1(img.value)}
-                      className={cn(
-                        "px-2 py-2 rounded-xl text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[38px]",
-                        isSelected
-                          ? "bg-red-600 text-white border-red-500 shadow-md"
-                          : "bg-[#141c21] text-white border-stone-700 hover:bg-[#1a2329]"
-                      )}
-                    >
-                      {displayLabel}
-                    </button>
-                  );
-                })}
+            <div className="flex flex-col gap-2 pt-2 border-t border-[#EDE2CE]">
+              <div 
+                onClick={() => setCarreta1Minimized(prev => !prev)}
+                className="flex items-center justify-between cursor-pointer select-none group"
+              >
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1.5 cursor-pointer">
+                  <span>Embarque (carreta 1)</span>
+                  {carreta1 && <span className="text-[9px] font-mono text-[#292820] font-black">({carreta1})</span>}
+                </label>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCarreta1Minimized(prev => !prev);
+                  }}
+                  className="p-1 text-[#C49A45] hover:text-[#292820] rounded transition-colors cursor-pointer"
+                  title={carreta1Minimized ? "Maximizar Carreta 1" : "Minimizar Carreta 1"}
+                >
+                  {carreta1Minimized ? <ChevronDown size={14} className="stroke-[3]" /> : <ChevronUp size={14} className="stroke-[3]" />}
+                </button>
               </div>
 
-              {/* Preview Box Carreta 1 */}
-              <div className="mt-1 bg-[#12181b] border border-stone-700/80 rounded-xl p-2.5 flex flex-col items-center justify-center min-h-[95px]">
-                {sidebarEmbarque1 && sidebarEmbarque1 !== "none" ? (
-                  <div className="flex flex-col items-center w-full">
-                    <img
-                      src={sidebarEmbarque1}
-                      alt="Esquema Carreta 1"
-                      className="max-h-[80px] max-w-full object-contain rounded"
-                      onError={(e) => {
-                        const fallback = getLocalFallbackImg(sidebarEmbarque1);
-                        if (fallback && e.currentTarget.src !== fallback) {
-                          e.currentTarget.src = fallback;
-                        }
-                      }}
-                    />
-                    <span className="text-[9px] font-black text-white uppercase mt-1.5 text-center">
-                      CARRETA 1: {carreta1 || "S/ PLACA"}
-                    </span>
+              {!carreta1Minimized && (
+                <>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {EMBARQUE_IMAGES.map((img) => {
+                      const isSelected = sidebarEmbarque1 === img.value;
+                      let displayLabel = img.label.toUpperCase();
+                      if (img.value === "https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF") {
+                        displayLabel = "EMBARQUE (PALETIZADO)";
+                      } else if (img.value === "none") {
+                        displayLabel = "SEM ISCA";
+                      }
+
+                      return (
+                        <button
+                          key={img.value}
+                          type="button"
+                          onClick={() => setSidebarEmbarque1(img.value)}
+                          className={cn(
+                            "px-2 py-2 rounded-xl text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[38px]",
+                            isSelected
+                              ? "bg-[#292820] text-[#E6D2A3] border-[#C49A45]/40 shadow-xs"
+                              : "bg-[#FFFFFF] text-[#292820] border-[#EDE2CE] hover:bg-[#EDE2CE]/50"
+                          )}
+                        >
+                          {displayLabel}
+                        </button>
+                      );
+                    })}
                   </div>
-                ) : sidebarEmbarque1 === "" ? (
-                  <div className="text-center">
-                    <span className="text-[10px] font-extrabold text-white uppercase block">Grade Interativa Ativa</span>
-                    <span className="text-[9px] text-stone-400">Clique nas células no gerador.</span>
+
+                  {/* Preview Box Carreta 1 */}
+                  <div className="mt-1 bg-[#F5F0E6] border border-[#EDE2CE] rounded-xl p-2.5 flex flex-col items-center justify-center min-h-[95px]">
+                    {sidebarEmbarque1 && sidebarEmbarque1 !== "none" ? (
+                      <div className="flex flex-col items-center w-full">
+                        <img
+                          src={sidebarEmbarque1}
+                          alt="Esquema Carreta 1"
+                          className="max-h-[80px] max-w-full object-contain rounded"
+                          onError={(e) => {
+                            const fallback = getLocalFallbackImg(sidebarEmbarque1);
+                            if (fallback && e.currentTarget.src !== fallback) {
+                              e.currentTarget.src = fallback;
+                            }
+                          }}
+                        />
+                        <span className="text-[9px] font-black text-[#292820] uppercase mt-1.5 text-center">
+                          CARRETA 1: {carreta1 || "S/ PLACA"}
+                        </span>
+                      </div>
+                    ) : sidebarEmbarque1 === "" ? (
+                      <div className="text-center">
+                        <span className="text-[10px] font-extrabold text-[#292820] uppercase block">Grade Interativa Ativa</span>
+                        <span className="text-[9px] text-[#77736B]">Clique nas células no gerador.</span>
+                      </div>
+                    ) : (
+                      <span className="text-[9px] font-extrabold text-[#77736B] uppercase">SEM ISCA NA CARRETA 1</span>
+                    )}
                   </div>
-                ) : (
-                  <span className="text-[9px] font-extrabold text-stone-400 uppercase">SEM ISCA NA CARRETA 1</span>
-                )}
-              </div>
+                </>
+              )}
             </div>
 
             {/* EMBARQUE (CARRETA 2) */}
             {numCarretas === 2 && (
-              <div className="flex flex-col gap-2 pt-2 border-t border-stone-700/60">
-                <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
-                  <span>Embarque (carreta 2)</span>
-                  {carreta2 && <span className="text-[9px] font-mono text-white font-black">{carreta2}</span>}
-                </label>
-
-                <div className="grid grid-cols-2 gap-1.5">
-                  {EMBARQUE_IMAGES.map((img) => {
-                    const isSelected = sidebarEmbarque2 === img.value;
-                    let displayLabel = img.label.toUpperCase();
-                    if (img.value === "https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF") {
-                      displayLabel = "EMBARQUE (PALETIZADO)";
-                    } else if (img.value === "none") {
-                      displayLabel = "SEM ISCA";
-                    }
-
-                    return (
-                      <button
-                        key={img.value}
-                        type="button"
-                        onClick={() => setSidebarEmbarque2(img.value)}
-                        className={cn(
-                          "px-2 py-2 rounded-xl text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[38px]",
-                          isSelected
-                            ? "bg-red-600 text-white border-red-500 shadow-md"
-                            : "bg-[#141c21] text-white border-stone-700 hover:bg-[#1a2329]"
-                        )}
-                      >
-                        {displayLabel}
-                      </button>
-                    );
-                  })}
+              <div className="flex flex-col gap-2 pt-2 border-t border-[#EDE2CE]">
+                <div 
+                  onClick={() => setCarreta2Minimized(prev => !prev)}
+                  className="flex items-center justify-between cursor-pointer select-none group"
+                >
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1.5 cursor-pointer">
+                    <span>Embarque (carreta 2)</span>
+                    {carreta2 && <span className="text-[9px] font-mono text-[#292820] font-black">({carreta2})</span>}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCarreta2Minimized(prev => !prev);
+                    }}
+                    className="p-1 text-[#C49A45] hover:text-[#292820] rounded transition-colors cursor-pointer"
+                    title={carreta2Minimized ? "Maximizar Carreta 2" : "Minimizar Carreta 2"}
+                  >
+                    {carreta2Minimized ? <ChevronDown size={14} className="stroke-[3]" /> : <ChevronUp size={14} className="stroke-[3]" />}
+                  </button>
                 </div>
 
-                {/* Preview Box Carreta 2 */}
-                <div className="mt-1 bg-[#12181b] border border-stone-700/80 rounded-xl p-2.5 flex flex-col items-center justify-center min-h-[95px]">
-                  {sidebarEmbarque2 && sidebarEmbarque2 !== "none" ? (
-                    <div className="flex flex-col items-center w-full">
-                      <img
-                        src={sidebarEmbarque2}
-                        alt="Esquema Carreta 2"
-                        className="max-h-[80px] max-w-full object-contain rounded"
-                        onError={(e) => {
-                          const fallback = getLocalFallbackImg(sidebarEmbarque2);
-                          if (fallback && e.currentTarget.src !== fallback) {
-                            e.currentTarget.src = fallback;
-                          }
-                        }}
-                      />
-                      <span className="text-[9px] font-black text-white uppercase mt-1.5 text-center">
-                        CARRETA 2: {carreta2 || "S/ PLACA"}
-                      </span>
+                {!carreta2Minimized && (
+                  <>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {EMBARQUE_IMAGES.map((img) => {
+                        const isSelected = sidebarEmbarque2 === img.value;
+                        let displayLabel = img.label.toUpperCase();
+                        if (img.value === "https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF") {
+                          displayLabel = "EMBARQUE (PALETIZADO)";
+                        } else if (img.value === "none") {
+                          displayLabel = "SEM ISCA";
+                        }
+
+                        return (
+                          <button
+                            key={img.value}
+                            type="button"
+                            onClick={() => setSidebarEmbarque2(img.value)}
+                            className={cn(
+                              "px-2 py-2 rounded-xl text-[9px] font-black uppercase text-center transition-all cursor-pointer border leading-tight flex items-center justify-center min-h-[38px]",
+                              isSelected
+                                ? "bg-[#292820] text-[#E6D2A3] border-[#C49A45]/40 shadow-xs"
+                                : "bg-[#FFFFFF] text-[#292820] border-[#EDE2CE] hover:bg-[#EDE2CE]/50"
+                            )}
+                          >
+                            {displayLabel}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ) : sidebarEmbarque2 === "" ? (
-                    <div className="text-center">
-                      <span className="text-[10px] font-extrabold text-white uppercase block">Grade Interativa Ativa</span>
-                      <span className="text-[9px] text-stone-400">Clique nas células no gerador.</span>
+
+                    {/* Preview Box Carreta 2 */}
+                    <div className="mt-1 bg-[#F5F0E6] border border-[#EDE2CE] rounded-xl p-2.5 flex flex-col items-center justify-center min-h-[95px]">
+                      {sidebarEmbarque2 && sidebarEmbarque2 !== "none" ? (
+                        <div className="flex flex-col items-center w-full">
+                          <img
+                            src={sidebarEmbarque2}
+                            alt="Esquema Carreta 2"
+                            className="max-h-[80px] max-w-full object-contain rounded"
+                            onError={(e) => {
+                              const fallback = getLocalFallbackImg(sidebarEmbarque2);
+                              if (fallback && e.currentTarget.src !== fallback) {
+                                e.currentTarget.src = fallback;
+                              }
+                            }}
+                          />
+                          <span className="text-[9px] font-black text-[#292820] uppercase mt-1.5 text-center">
+                            CARRETA 2: {carreta2 || "S/ PLACA"}
+                          </span>
+                        </div>
+                      ) : sidebarEmbarque2 === "" ? (
+                        <div className="text-center">
+                          <span className="text-[10px] font-extrabold text-[#292820] uppercase block">Grade Interativa Ativa</span>
+                          <span className="text-[9px] text-[#77736B]">Clique nas células no gerador.</span>
+                        </div>
+                      ) : (
+                        <span className="text-[9px] font-extrabold text-[#77736B] uppercase">SEM ISCA NA CARRETA 2</span>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-[9px] font-extrabold text-stone-400 uppercase">SEM ISCA NA CARRETA 2</span>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -5815,25 +5775,19 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               <button
                 onClick={handleCopyToEmail}
                 className={cn(
-                  "w-full text-[11px] font-extrabold uppercase tracking-widest py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-98 cursor-pointer border border-transparent",
+                  "w-full text-[11px] font-extrabold uppercase tracking-widest py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98 cursor-pointer border",
                   copied
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"
-                    : isGreenOrigem
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20 font-black"
-                      : isPurpleOrigem
-                        ? "bg-purple-700 hover:bg-purple-800 text-white shadow-purple-700/20 font-black"
-                        : isCuiabaOrigem
-                          ? "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black shadow-amber-500/20"
-                          : "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20",
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500 shadow-emerald-900/10"
+                    : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40"
                 )}
               >
                 {copied ? (
                   <>
-                    <Check size={14} className="stroke-[3]" /> COPIADO COM SUCESSO!
+                    <Check size={14} className="stroke-[3] text-white" /> COPIADO COM SUCESSO!
                   </>
                 ) : (
                   <>
-                    <Mail size={14} className="stroke-[2.5]" /> COPIAR PARA EMAIL
+                    <Mail size={14} className="stroke-[2.5] text-[#C49A45]" /> COPIAR PARA EMAIL
                   </>
                 )}
               </button>
@@ -5841,7 +5795,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               {/* LIMPAR INFORMAÇÕES BUTTON */}
               <button
                 onClick={handleClear}
-                className="w-full bg-[#2d241e] hover:bg-[#1f1915] text-stone-200 text-[11px] font-extrabold uppercase tracking-widest py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 border border-stone-700 transition-all active:scale-98 cursor-pointer"
+                className="w-full bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#77736B] hover:text-[#292820] text-[11px] font-extrabold uppercase tracking-widest py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 border border-[#EDE2CE] transition-all active:scale-98 cursor-pointer"
               >
                 <Trash2 size={14} className="stroke-[2.5]" /> LIMPAR INFORMAÇÕES
               </button>
@@ -5861,43 +5815,43 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
         style={preAlertaMode === "minimized" ? { zoom: colunasZoom } : undefined}
       >
         <div className={cn(
-          "rounded-2xl bg-[#080d0f]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all text-white",
-          preAlertaMode === "minimized" && "border-amber-400/50 shadow-xl ring-1 ring-amber-400/20"
+          "rounded-3xl bg-[#FFFCF6] border border-[#E6D2A3] shadow-sm relative overflow-hidden flex flex-col p-4 sm:p-5 transition-all text-[#292820]",
+          preAlertaMode === "minimized" && "border-[#C49A45] shadow-md ring-1 ring-[#C49A45]/30"
         )}>
           {/* Form Header */}
-          <div className="border-b border-[rgba(212,169,79,0.2)] pb-4 mb-5 flex items-center justify-between">
+          <div className="border-b border-[#EDE2CE] pb-4 mb-5 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-400 block">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#D92332] block">
                   Painel de Viagem
                 </span>
                 {preAlertaMode === "minimized" && (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
                     Zoom {Math.round(colunasZoom * 100)}%
                   </span>
                 )}
               </div>
-              <h3 className="text-base font-sans font-black text-white uppercase tracking-tight mt-0.5 flex items-center gap-2">
-                <Truck size={18} className="text-red-500" /> Veículo & Carga
+              <h3 className="text-base font-sans font-black text-[#292820] uppercase tracking-tight mt-0.5 flex items-center gap-2">
+                <Truck size={18} className="text-[#C49A45]" /> Veículo & Carga
               </h3>
             </div>
             <div className="flex items-center gap-1.5">
               {preAlertaMode === "minimized" && (
-                <div className="flex items-center bg-[#141c21] border border-stone-700 rounded-lg p-0.5 text-[10px] font-black shadow-xs">
+                <div className="flex items-center bg-[#F5F0E6] border border-[#EDE2CE] rounded-lg p-0.5 text-[10px] font-black shadow-xs">
                   <button
                     type="button"
                     onClick={() => setColunasZoom((z) => Math.max(0.8, parseFloat((z - 0.05).toFixed(2))))}
                     title="Diminuir Zoom"
-                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
+                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-[#EDE2CE] text-[#292820] active:scale-95 transition-colors cursor-pointer"
                   >
                     -
                   </button>
-                  <span className="px-1.5 font-mono text-white">{Math.round(colunasZoom * 100)}%</span>
+                  <span className="px-1.5 font-mono text-[#292820]">{Math.round(colunasZoom * 100)}%</span>
                   <button
                     type="button"
                     onClick={() => setColunasZoom((z) => Math.min(1.35, parseFloat((z + 0.05).toFixed(2))))}
                     title="Aumentar Zoom"
-                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-white/10 text-white active:scale-95 transition-colors cursor-pointer"
+                    className="w-5 h-5 rounded flex items-center justify-center hover:bg-[#EDE2CE] text-[#292820] active:scale-95 transition-colors cursor-pointer"
                   >
                     +
                   </button>
@@ -5906,7 +5860,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               <button
                 type="button"
                 onClick={handleClearVeiculo}
-                className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-pointer"
+                className="p-2 text-[#77736B] hover:text-[#D92332] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                 title="Limpar formulário de Veículo & Carga"
               >
                 <Trash2 size={16} />
@@ -5918,68 +5872,68 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
           <div className="flex flex-col gap-4">
             {/* CAVALO / PLACA */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <Truck size={12} className="text-red-500" /> Placa
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                <Truck size={12} className="text-[#C49A45]" /> Placa
               </label>
               <input
                 type="text"
                 value={cavalo}
                 onChange={(e) => setCavalo(e.target.value.replace(/-/g, "").toUpperCase())}
-                className="w-full bg-[#141c21] border border-stone-700/80 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 hover:bg-[#1a2329] outline-none transition-all shadow-md placeholder:text-stone-500"
+                className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] focus:ring-2 focus:ring-[#C49A45]/20 hover:border-[#E6D2A3] outline-none transition-all shadow-xs placeholder:text-[#77736B]"
                 placeholder="PLACA"
               />
             </div>
 
             {/* CARRETA 1 GROUP */}
-            <div className="flex flex-col gap-3 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md">
+            <div className="flex flex-col gap-3 p-3 bg-[#F5F0E6] rounded-2xl border border-[#EDE2CE] shadow-xs">
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <Truck size={10} className="text-red-500" /> Carreta 1
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                    <Truck size={10} className="text-[#C49A45]" /> Carreta 1
                   </label>
                   <input
                     type="text"
                     value={carreta1}
                     onChange={(e) => setCarreta1(e.target.value.toUpperCase())}
-                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                    className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                     placeholder="CARRETA 1"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <Package size={10} className="text-red-500" /> Produto 1
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                    <Package size={10} className="text-[#C49A45]" /> Produto 1
                   </label>
                   <input
                     type="text"
                     value={produto1}
                     onChange={(e) => setProduto1(e.target.value.toUpperCase())}
-                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                    className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                     placeholder="PRODUTO 1"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <Hash size={10} className="text-red-500" /> U.M.A. 1
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                    <Hash size={10} className="text-[#C49A45]" /> U.M.A. 1
                   </label>
                   <input
                     type="text"
                     value={uma1}
                     onChange={(e) => setUma1(formatUMA(e.target.value))}
-                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                    className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                     placeholder="0XX.XXX.XXX.XXX"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                    <FileText size={10} className="text-red-500" /> NF Início
+                  <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                    <FileText size={10} className="text-[#C49A45]" /> NF Início
                   </label>
                   <input
                     type="text"
                     value={nfInicio}
                     onChange={(e) => setNfInicio(e.target.value.replace(/-/g, "").toUpperCase())}
-                    className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                    className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                     placeholder="INÍCIO"
                   />
                 </div>
@@ -5988,56 +5942,56 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
             {/* CARRETA 2 GROUP */}
             {numCarretas === 2 && (
-              <div className="flex flex-col gap-3 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md">
+              <div className="flex flex-col gap-3 p-3 bg-[#F5F0E6] rounded-2xl border border-[#EDE2CE] shadow-xs">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                      <Truck size={10} className="text-red-500" /> Carreta 2
+                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                      <Truck size={10} className="text-[#C49A45]" /> Carreta 2
                     </label>
                     <input
                       type="text"
                       value={carreta2}
                       onChange={(e) => setCarreta2(e.target.value.toUpperCase())}
-                      className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                      className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                       placeholder="CARRETA 2"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                      <Package size={10} className="text-red-500" /> Produto 2
+                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                      <Package size={10} className="text-[#C49A45]" /> Produto 2
                     </label>
                     <input
                       type="text"
                       value={produto2}
                       onChange={(e) => setProduto2(e.target.value.toUpperCase())}
-                      className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                      className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                       placeholder="PRODUTO 2"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className={isca2 === "SEM ISCA" ? "col-span-2 flex flex-col gap-1" : "flex flex-col gap-1"}>
-                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                      <Hash size={10} className="text-red-500" /> U.M.A. 2
+                    <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                      <Hash size={10} className="text-[#C49A45]" /> U.M.A. 2
                     </label>
                     <input
                       type="text"
                       value={uma2}
                       onChange={(e) => setUma2(formatUMA(e.target.value))}
-                      className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                      className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                       placeholder="0XX.XXX.XXX.XXX"
                     />
                   </div>
                   {isca2 !== "SEM ISCA" && (
                     <div className="flex flex-col gap-1">
-                      <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1">
-                        <FileText size={10} className="text-red-500" /> NF Fim
+                      <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                        <FileText size={10} className="text-[#C49A45]" /> NF Fim
                       </label>
                       <input
                         type="text"
                         value={nfFim}
                         onChange={(e) => setNfFim(e.target.value.replace(/-/g, "").toUpperCase())}
-                        className="w-full bg-[#141c21] border border-stone-700 rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                        className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2.5 py-2 text-[11px] font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                         placeholder="FIM"
                       />
                     </div>
@@ -6047,29 +6001,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             )}
 
             {/* QUICK ACTIONS BAR (SWAP CARRETAS) */}
-            <div className="bg-[#12181b] border border-stone-700/80 rounded-2xl p-3 flex flex-col gap-2 shadow-md">
-              <span className="text-[9px] font-black uppercase tracking-wider text-red-400 flex items-center gap-1">
-                <Sliders size={11} className="text-red-500" /> Trocar Placas:
+            <div className="bg-[#F5F0E6] border border-[#EDE2CE] rounded-2xl p-3 flex flex-col gap-2 shadow-xs">
+              <span className="text-[9px] font-black uppercase tracking-wider text-[#D92332] flex items-center gap-1">
+                <Sliders size={11} className="text-[#C49A45]" /> Trocar Placas:
               </span>
               <button
                 type="button"
                 onClick={handleSwapCarretas}
                 title="Inverter as placas das colunas Carreta 1 e Carreta 2"
-                className="w-full flex items-center justify-center gap-1.5 bg-[#141c21] hover:bg-[#1a2329] text-white border border-stone-700 font-black uppercase text-[10px] py-2 px-3 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+                className="w-full flex items-center justify-center gap-1.5 bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#292820] border border-[#EDE2CE] font-black uppercase text-[10px] py-2 px-3 rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95"
               >
-                <ArrowUpDown size={12} className="text-red-500 stroke-[2.5]" />
+                <ArrowUpDown size={12} className="text-[#C49A45] stroke-[2.5]" />
                 <span>Carreta 1 ⇄ 2</span>
               </button>
             </div>
 
             {/* VALOR DA CARGA (SANTA LUZIA) */}
-            <div className="flex flex-col gap-1.5 p-3 bg-[#12181b] rounded-2xl border border-stone-700/80 shadow-md">
-              <label className="text-[9px] font-extrabold uppercase tracking-wider text-red-400 flex items-center justify-between">
+            <div className="flex flex-col gap-1.5 p-3 bg-[#F5F0E6] rounded-2xl border border-[#EDE2CE] shadow-xs">
+              <label className="text-[9px] font-extrabold uppercase tracking-wider text-[#D92332] flex items-center justify-between">
                 <span className="flex items-center gap-1">
-                  <DollarSign size={10} className="text-red-500" /> Valor da Carga (NF)
+                  <DollarSign size={10} className="text-[#C49A45]" /> Valor da Carga (NF)
                 </span>
                 {valorCarga && (
-                  <span className="text-[8px] bg-red-950/80 text-red-300 px-1.5 py-0.5 rounded font-black border border-red-800/80">
+                  <span className="text-[8px] bg-[#EDE2CE] text-[#292820] px-1.5 py-0.5 rounded font-black border border-[#E6D2A3]">
                     SANTA LUZIA
                   </span>
                 )}
@@ -6078,180 +6032,36 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 type="text"
                 value={valorCarga}
                 onChange={(e) => setValorCarga(e.target.value)}
-                className="w-full bg-[#141c21] border border-stone-700 rounded-xl px-3 py-2 text-xs font-black uppercase text-white focus:border-red-500 outline-none transition-all shadow-sm placeholder:text-stone-500"
+                className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3 py-2 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
                 placeholder="R$ 0,00"
                 title="Importado da coluna VALOR NF na aba SANTA LUZIA"
               />
             </div>
 
-            {/* TEMA DO PRÉ-ALERTA: INTERFACE EXECUTIVA 3D COM TEXTURA & 8K */}
-            <div className="flex flex-col gap-3 p-4 bg-gradient-to-b from-[#141A21] via-[#0F1418] to-[#0A0E11] rounded-2xl border border-[#D4A94F]/30 shadow-[0_16px_36px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.12)] mt-3 relative overflow-hidden">
-              {/* 3D Texture background pattern */}
-              <div 
-                className="absolute inset-0 pointer-events-none opacity-20"
-                style={{
-                  backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(212,169,79,0.2) 0%, transparent 60%), repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 8px)'
-                }}
-              />
 
-              {/* Header: Executive Office 3D Badge */}
-              <div className="relative z-10 flex flex-col gap-1 pb-2.5 border-b border-white/10">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#D4A94F] via-[#A87922] to-[#5A3F0E] p-[1px] shadow-[0_3px_10px_rgba(212,169,79,0.35),inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center shrink-0">
-                      <div className="w-full h-full rounded-[7px] bg-[#12171B] flex items-center justify-center">
-                        <Crown size={14} className="text-[#F2CE78]" />
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-mono font-black text-[#F2CE78] uppercase tracking-wider flex items-center gap-1">
-                      <Sparkles size={11} className="text-[#D4A94F]" /> TEMAS EXECUTIVOS 3D
-                    </span>
-                  </div>
-                  <span className="text-[8px] font-mono font-black px-1.5 py-0.5 rounded bg-[#D4A94F]/20 text-[#F5D58A] border border-[#D4A94F]/40 shadow-xs uppercase">
-                    8K ULTRA-HD
-                  </span>
-                </div>
-                <div className="flex items-center justify-between mt-0.5">
-                  <span className="text-[10px] font-bold text-white uppercase tracking-tight">
-                    Acabamentos de Escritório & Diretoria
-                  </span>
-                  <span className="text-[9px] font-mono text-stone-300 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: themeStyles.accentColor }} />
-                    <strong className="text-white uppercase">{themeStyles.name}</strong>
-                  </span>
-                </div>
-              </div>
-
-              {/* 3D THEME CARDS LIST */}
-              <div className="flex flex-col gap-2 relative z-10">
-                {PRE_ALERTA_THEME_LIST.map((theme) => {
-                  const isActive = preAlertaTheme === theme.id;
-                  return (
-                    <button
-                      key={theme.id}
-                      type="button"
-                      onClick={() => setPreAlertaTheme(theme.id)}
-                      className={cn(
-                        "relative text-left p-2.5 rounded-xl transition-all duration-200 cursor-pointer select-none group/card overflow-hidden",
-                        "border shadow-[0_6px_16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.15)]",
-                        isActive
-                          ? "ring-2 ring-[#F2CE78] ring-offset-2 ring-offset-[#0A0D10] shadow-[0_10px_24px_rgba(0,0,0,0.85)] scale-[1.01]"
-                          : "hover:scale-[1.008] hover:border-white/25 hover:shadow-[0_8px_18px_rgba(0,0,0,0.6)]"
-                      )}
-                      style={{
-                        background: theme.cardPreviewGradient,
-                        borderColor: isActive ? theme.border : 'rgba(255,255,255,0.12)'
-                      }}
-                    >
-                      {/* 3D Texture Overlay */}
-                      <div 
-                        className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay"
-                        style={{ backgroundImage: theme.texturePattern }}
-                      />
-
-                      {/* Specular Bevel Top Highlight */}
-                      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
-
-                      <div className="relative z-10 flex items-center justify-between gap-2.5">
-                        {/* Left: 3D Volumetric Metallic Sphere Orb & Info */}
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div 
-                            className="w-9 h-9 rounded-full shrink-0 relative p-[2px] shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transition-transform group-hover/card:scale-105"
-                            style={{
-                              background: `linear-gradient(135deg, rgba(255,255,255,0.8) 0%, ${theme.border} 50%, #000000 100%)`
-                            }}
-                          >
-                            <div 
-                              className="w-full h-full rounded-full flex items-center justify-center relative overflow-hidden shadow-inner"
-                              style={{ background: theme.orbGradient }}
-                            >
-                              <div className="absolute top-0.5 left-1.5 w-1.5 h-1 rounded-full bg-white/70 blur-[0.5px]" />
-                              {theme.icon}
-                            </div>
-                          </div>
-
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-sans font-black text-[11px] text-white uppercase tracking-wide truncate group-hover/card:text-[#F2CE78] transition-colors">
-                                {theme.name}
-                              </span>
-                              <span 
-                                className="text-[7.5px] font-mono font-black px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 border"
-                                style={{
-                                  backgroundColor: 'rgba(0,0,0,0.45)',
-                                  borderColor: theme.border,
-                                  color: theme.id === 'ouro' ? '#FDE68A' : theme.id === 'rubi' ? '#FECDD3' : theme.id === 'gelo' ? '#BAE6FD' : theme.id === 'bronze' ? '#FED7AA' : '#F1F5F9'
-                                }}
-                              >
-                                {theme.badge}
-                              </span>
-                            </div>
-                            <p className="text-[9.5px] text-stone-300 font-medium truncate mt-0.5">
-                              {theme.officeMaterial}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Right: 3D Mini Live Preview Strip & Active State Badge */}
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <div 
-                            className="w-16 h-4 rounded overflow-hidden border shadow-inner flex flex-col relative"
-                            style={{ borderColor: theme.border }}
-                            title="Amostra 3D de alta definição das cores da tabela"
-                          >
-                            <div className="h-2 w-full" style={{ background: theme.headerBg }} />
-                            <div className="h-2 w-full" style={{ background: theme.table1Header }} />
-                          </div>
-
-                          {isActive ? (
-                            <span className="flex items-center gap-1 text-[8px] font-mono font-black uppercase text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-600/80 shadow-xs">
-                              <Check size={8} className="stroke-[3]" /> ATIVO
-                            </span>
-                          ) : (
-                            <span className="text-[8px] font-mono font-bold uppercase text-stone-400 group-hover/card:text-white transition-colors">
-                              Ativar ➔
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Informative Footer */}
-              <div className="relative z-10 pt-2 border-t border-white/10 flex items-center justify-between text-[8.5px] font-mono text-stone-400">
-                <span className="flex items-center gap-1 text-[#F2CE78]">
-                  <Sparkles size={10} /> Textura 3D aplicada na tabela e e-mail
-                </span>
-                <span className="uppercase text-stone-400">
-                  {preAlertaTheme.toUpperCase()} • 8K GRAPHICS
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
       </div>
 
       {/* SEÇÃO DE CÓPIA PARA PLANILHA GOOGLE (LINHAS DE ISCA) */}
-      <div className="w-full mt-8 bg-[#0e1315]/90 backdrop-blur-[16px] border border-[rgba(212,169,79,0.25)] rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col p-5 sm:p-7 text-white">
+      <div className="w-full mt-8 bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl shadow-sm overflow-hidden flex flex-col p-5 sm:p-7 text-[#25231F]">
         {/* Header banner */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-5 border-b border-stone-700/60">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-5 border-b border-[#EDE2CE]">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-600 text-white rounded-2xl shadow-md shrink-0">
-              <FileSpreadsheet size={24} />
+            <div className="p-3 bg-[#EDE2CE] text-[#292820] border border-[#E6D2A3] rounded-2xl shadow-xs shrink-0">
+              <FileSpreadsheet size={24} className="text-[#C49A45]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-red-400 bg-[#141c21] px-2.5 py-0.5 rounded-md border border-stone-700">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#292820] bg-[#EDE2CE] px-2.5 py-0.5 rounded-md border border-[#E6D2A3]">
                   Planilha Google / Excel
                 </span>
               </div>
-              <h3 className="text-base font-sans font-black text-white uppercase tracking-tight mt-1 flex items-center gap-2">
-                <FileSpreadsheet size={18} className="text-red-500" /> Copiar Linhas de Iscas para Planilha Google
+              <h3 className="text-base font-sans font-black text-[#292820] uppercase tracking-tight mt-1 flex items-center gap-2">
+                <FileSpreadsheet size={18} className="text-[#C49A45]" /> Copiar Linhas de Iscas para Planilha Google
               </h3>
-              <p className="text-xs text-stone-300 font-semibold mt-0.5">
+              <p className="text-xs text-[#77736B] font-semibold mt-0.5">
                 Copie a frase de embarque das iscas, linhas individuais ou a tabela completa para colar no Google Sheets (Ctrl+V)
               </p>
             </div>
@@ -6263,14 +6073,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               type="button"
               onClick={handleCopyFraseEmbarque}
               className={cn(
-                "px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm border flex items-center gap-2 transition-all cursor-pointer active:scale-95",
+                "px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-xs border flex items-center gap-2 transition-all cursor-pointer active:scale-95",
                 copiedFraseEmbarque
                   ? "bg-emerald-600 text-white border-emerald-500"
-                  : "bg-red-600 hover:bg-red-700 text-white border-red-500"
+                  : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40"
               )}
               title="Copiar frase de embarque com dia/mês e destino do pré-alerta"
             >
-              {copiedFraseEmbarque ? <Check size={14} className="stroke-[3]" /> : <Copy size={14} />}
+              {copiedFraseEmbarque ? <Check size={14} className="stroke-[3]" /> : <Copy size={14} className="text-[#C49A45]" />}
               <span>{copiedFraseEmbarque ? "Frase Copiada!" : "Copiar Frase"}</span>
             </button>
 
@@ -6278,24 +6088,24 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
               type="button"
               onClick={() => copyAllIscaRowsToClipboard(false)}
               className={cn(
-                "px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm border flex items-center gap-2 transition-all cursor-pointer active:scale-95",
+                "px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-xs border flex items-center gap-2 transition-all cursor-pointer active:scale-95",
                 copiedIscaDataOnly
                   ? "bg-emerald-600 text-white border-emerald-500"
-                  : "bg-[#141c21] hover:bg-[#1a2329] text-white border-stone-700"
+                  : "bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#292820] border border-[#EDE2CE]"
               )}
               title="Copiar todas as linhas de iscas da tabela (Ctrl+V)"
             >
-              {copiedIscaDataOnly ? <Check size={14} className="stroke-[3]" /> : <Copy size={14} />}
+              {copiedIscaDataOnly ? <Check size={14} className="stroke-[3]" /> : <Copy size={14} className="text-[#C49A45]" />}
               <span>{copiedIscaDataOnly ? "Linhas Copiadas!" : "Copiar Todas as Linhas"}</span>
             </button>
           </div>
         </div>
 
         {/* Spreadsheet Mock Preview Table */}
-        <div className="mt-5 w-full rounded-2xl border border-stone-700/80 overflow-x-auto shadow-md bg-[#12181b]">
+        <div className="mt-5 w-full rounded-2xl border border-[#EDE2CE] overflow-x-auto shadow-xs bg-[#FFFCF6]">
           <div className="min-w-[1000px]">
             {/* Column Letters Bar A-H */}
-            <div className="grid grid-cols-[130px_160px_140px_140px_110px_110px_110px_1fr_120px] bg-[#F4F8FA] border-b border-[#D1E1EB] text-[10px] font-black text-[#64748B] text-center py-1 divide-x divide-[#D1E1EB]">
+            <div className="grid grid-cols-[130px_160px_140px_140px_110px_110px_110px_1fr_120px] bg-[#F5F0E6] border-b border-[#EDE2CE] text-[10px] font-black text-[#77736B] text-center py-1 divide-x divide-[#EDE2CE]">
               <div>A</div>
               <div>B</div>
               <div>C</div>
@@ -6308,7 +6118,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
             </div>
 
             {/* Header Row */}
-            <div className="grid grid-cols-[130px_160px_140px_140px_110px_110px_110px_1fr_120px] bg-[#0F172A] text-white text-[11px] font-black uppercase py-2.5 divide-x divide-[#CBD5E1] border-b border-[#CBD5E1] items-center">
+            <div className="grid grid-cols-[130px_160px_140px_140px_110px_110px_110px_1fr_120px] bg-[#292820] text-[#E6D2A3] text-[11px] font-black uppercase py-2.5 divide-x divide-[#38372d] border-b border-[#38372d] items-center">
               <div className="px-2 text-center">ID ISCA</div>
               <div className="px-2 text-center">DESTINO</div>
               <div className="px-2 text-center">STATUS</div>

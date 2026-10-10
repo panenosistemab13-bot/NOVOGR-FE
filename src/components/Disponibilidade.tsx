@@ -439,7 +439,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#080A0C] text-[#F4F0E8] font-sans flex flex-col justify-between p-3 sm:p-6 select-none overflow-x-hidden">
+    <div className="w-full min-h-screen bg-[#F5F0E6] text-[#25231F] font-sans flex flex-col justify-between p-3 sm:p-6 select-none overflow-x-hidden rounded-3xl border border-[#EDE2CE] shadow-sm">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -448,9 +448,9 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-5 right-5 z-50 px-5 py-3.5 rounded-2xl bg-[#131619] text-[#F4F0E8] border border-[#C9973E]/40 text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
+            className="fixed top-5 right-5 z-50 px-5 py-3.5 rounded-2xl bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/40 text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
           >
-            <Check size={18} className="text-[#E5C27A]" />
+            <Check size={18} className="text-[#C49A45]" />
             <span>{notification}</span>
           </motion.div>
         )}
@@ -461,20 +461,20 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         {/* ========================================================================= */}
         {/* ENTERPRISE HEADER BANNER (Dark Luxury & Gold)                            */}
         {/* ========================================================================= */}
-        <div className="w-full bg-[#131619] text-white p-6 sm:p-8 rounded-2xl shadow-xl border border-[#C9973E]/25 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-96 h-96 bg-[#C9973E]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="w-full bg-[#FFFCF6] text-[#25231F] p-6 sm:p-8 rounded-3xl shadow-sm border border-[#E6D2A3] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-96 h-96 bg-[#C49A45]/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-1.5 text-left relative z-10">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono font-black text-[#E5C27A] uppercase tracking-widest flex items-center gap-1.5 bg-[#080A0C] px-3.5 py-1 rounded-full border border-[#C9973E]/30">
-                <Truck size={14} className="text-[#E5C27A]" />
+              <span className="text-[11px] font-mono font-black text-[#292820] uppercase tracking-widest flex items-center gap-1.5 bg-[#EDE2CE] px-3.5 py-1 rounded-full border border-[#E6D2A3]">
+                <Truck size={14} className="text-[#C49A45]" />
                 CENTRAL GR 3 CORAÇÕES • GESTÃO DE PÁTIO EMPRESARIAL
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-heading">
-              DISPONIBILIDADE <span className="text-[#E5C27A]">DE VEÍCULOS</span>
+            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-[#292820] font-heading">
+              DISPONIBILIDADE <span className="text-[#C49A45]">DE VEÍCULOS</span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#A8A39A] font-sans">
+            <p className="text-xs sm:text-sm text-[#77736B] font-sans">
               Painel analítico corporativo expandido de frotas e liberação de carregamentos.
             </p>
           </div>
@@ -482,16 +482,16 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
           <div className="flex items-center gap-3 flex-wrap relative z-10">
             <button
               onClick={handleLoadSample}
-              className="bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] font-mono text-xs font-black uppercase px-5 py-3 rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-2 border border-[#E5C27A]"
+              className="bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] font-mono text-xs font-black uppercase px-5 py-3 rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-2 border border-[#C49A45]/40 active:scale-95"
             >
-              <Sparkles size={15} />
+              <Sparkles size={15} className="text-[#C49A45]" />
               <span>Carregar Dados Exemplo</span>
             </button>
 
             {onBack && (
               <button
                 onClick={onBack}
-                className="bg-[#171A1C] hover:bg-[#202428] text-[#F4F0E8] p-3 rounded-xl border border-white/10 cursor-pointer transition-all shadow-sm"
+                className="bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#292820] p-3 rounded-xl border border-[#EDE2CE] cursor-pointer transition-all shadow-xs"
                 title="Voltar ao Início"
               >
                 <RefreshCw size={17} />
@@ -506,38 +506,38 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
           
           {/* Card 1: Total Veículos */}
-          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left">
-              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
+              <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Total de Veículos
               </span>
-              <div className="text-2xl font-black text-white font-heading">
-                {rows.length} <span className="text-xs font-sans font-bold text-[#A8A39A]">unidades</span>
+              <div className="text-2xl font-black text-[#292820] font-heading">
+                {rows.length} <span className="text-xs font-sans font-bold text-[#77736B]">unidades</span>
               </div>
-              <div className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
+              <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                 <TrendingUp size={13} />
                 <span>100% integrados no pátio</span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 border border-[#C9973E]/30 flex items-center justify-center text-[#E5C27A] shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-[#EDE2CE] border border-[#E6D2A3] flex items-center justify-center text-[#C49A45] shadow-xs">
               <Truck size={22} />
             </div>
           </div>
 
           {/* Card 2: Frota vs Agregado */}
-          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left flex-1 mr-3">
-              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
+              <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Frota Própria vs Agregados
               </span>
-              <div className="text-lg font-black text-white font-heading flex items-center gap-2">
-                <span className="text-[#E5C27A]">{totalFrota} Frota</span>
-                <span className="text-white/20">•</span>
-                <span className="text-amber-400">{totalAgregado} Agregados</span>
+              <div className="text-lg font-black text-[#292820] font-heading flex items-center gap-2">
+                <span className="text-[#C49A45]">{totalFrota} Frota</span>
+                <span className="text-[#EDE2CE]">•</span>
+                <span className="text-amber-800">{totalAgregado} Agregados</span>
               </div>
-              <div className="w-full bg-[#080A0C] h-2 rounded-full overflow-hidden flex mt-1 border border-white/5">
+              <div className="w-full bg-[#EDE2CE] h-2 rounded-full overflow-hidden flex mt-1 border border-[#E6D2A3]/30">
                 <div 
-                  className="bg-[#C9973E] h-full transition-all" 
+                  className="bg-[#C49A45] h-full transition-all" 
                   style={{ width: `${rows.length ? (totalFrota / rows.length) * 100 : 0}%` }} 
                 />
                 <div 
@@ -546,44 +546,44 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
                 />
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 border border-[#C9973E]/30 flex items-center justify-center text-[#E5C27A] shadow-inner shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#EDE2CE] border border-[#E6D2A3] flex items-center justify-center text-[#C49A45] shadow-xs shrink-0">
               <PieChart size={22} />
             </div>
           </div>
 
           {/* Card 3: Origens Principais */}
-          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left">
-              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
+              <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Origens Ativas
               </span>
-              <div className="text-2xl font-black text-white font-heading">
-                {origensList.length} <span className="text-xs font-sans font-bold text-[#A8A39A]">cidades</span>
+              <div className="text-2xl font-black text-[#292820] font-heading">
+                {origensList.length} <span className="text-xs font-sans font-bold text-[#77736B]">cidades</span>
               </div>
-              <div className="text-[11px] text-[#E5C27A] font-bold flex items-center gap-1">
+              <div className="text-[11px] text-[#C49A45] font-bold flex items-center gap-1">
                 <MapPin size={13} />
                 <span>Santa Luzia, Viana, Montes Claros</span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 border border-[#C9973E]/30 flex items-center justify-center text-[#E5C27A] shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-[#EDE2CE] border border-[#E6D2A3] flex items-center justify-center text-[#C49A45] shadow-xs">
               <BarChart3 size={22} />
             </div>
           </div>
 
           {/* Card 4: Status do Pátio */}
-          <div className="bg-[#131619] border border-[#C9973E]/20 rounded-2xl p-5 shadow-lg flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left">
-              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">
+              <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Status Operacional
               </span>
-              <div className="text-xl font-black text-emerald-400 font-heading">
+              <div className="text-xl font-black text-emerald-700 font-heading">
                 Liberado p/ Vistoria
               </div>
-              <div className="text-[11px] text-[#A8A39A] font-medium">
+              <div className="text-[11px] text-[#77736B] font-medium">
                 Doca e liberação imediata
               </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-[#EDE2CE] border border-[#E6D2A3] flex items-center justify-center text-emerald-700 shadow-xs">
               <Activity size={22} />
             </div>
           </div>

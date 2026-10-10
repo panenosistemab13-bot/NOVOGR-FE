@@ -662,7 +662,7 @@ export default function Prancheta({ onUseRowInControle }: PranchetaProps) {
       'PRODUTO',
       'U.M.A.',
       'VALOR NF (R$)',
-      'PRE-ALERTA GR',
+      'SANTA LUZIA GR',
       'PLAN. CARREG.',
       'BAIXA GR'
     ].join('\t');

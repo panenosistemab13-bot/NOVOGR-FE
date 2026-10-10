@@ -150,7 +150,7 @@ export default function InitialMenu({
   };
 
   return (
-    <div className="w-full min-h-screen h-screen overflow-hidden flex items-center justify-center bg-[#f4ede1] text-[#171717] font-sans relative select-none">
+    <div className="w-full min-h-screen h-screen overflow-hidden flex items-center justify-center bg-[#090a0c] text-[#FAF7F0] font-sans relative select-none">
 
       {/* ========================================================================= */}
       {/* UNIFORMLY SCALED DESIGN CANVAS (1930px × 820px BASE CANVAS)               */}
@@ -175,13 +175,13 @@ export default function InitialMenu({
             top: 0,
             left: 0,
           }}
-          className="bg-[#f6efe4] shadow-[0_20px_60px_rgba(0,0,0,0.14)] flex flex-col justify-between overflow-hidden"
+          className="bg-[#121417] shadow-[0_20px_60px_rgba(0,0,0,0.4)] flex flex-col justify-between overflow-hidden"
         >
 
           {/* ===================================================================== */}
           {/* 1. TOPBAR OPERACIONAL CAFÉ TRÊS CORAÇÕES (HEIGHT = 65px)              */}
           {/* ===================================================================== */}
-          <header className="w-full h-[65px] px-6 bg-[#f8f1e6]/95 backdrop-blur-md border-b border-[#dfd6c6] flex items-center justify-between shadow-[0_2px_14px_rgba(0,0,0,0.04)] z-40 shrink-0">
+          <header className="w-full h-[65px] px-6 border-b border-[#C5A059] flex items-center justify-between z-40 shrink-0" style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}>
             
             {/* Left: Brand Identity & Sistema Operacional Title */}
             <div className="flex items-center gap-6">
@@ -190,7 +190,7 @@ export default function InitialMenu({
                 className="flex items-center gap-3 cursor-pointer group"
               >
                 {/* 3D Gold Rimmed Red Circle Medal with 3 Corações Heart Logo */}
-                <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(180,130,40,0.35)] group-hover:scale-105 transition-transform flex items-center justify-center bg-transparent">
+                <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(180,130,40,0.35)] group-hover:scale-105 transition-transform flex items-center justify-center bg-transparent border-2 border-[#C5A059]">
                   <img 
                     src={goldMedalLogo} 
                     alt="Café Três Corações"
@@ -199,23 +199,23 @@ export default function InitialMenu({
                 </div>
                 
                 <div className="leading-tight text-left">
-                  <strong className="text-[16px] font-black text-stone-900 tracking-wide font-sans block">
+                  <strong className="text-[16px] font-black text-[#FAF7F0] tracking-wide font-sans block">
                     Café Três Corações
                   </strong>
-                  <span className="text-[8px] font-bold text-stone-500 uppercase tracking-widest block mt-0.5">
+                  <span className="text-[8px] font-bold text-[#C5A059] uppercase tracking-widest block mt-0.5">
                     SEGURANÇA • LOGÍSTICA • RESULTADOS
                   </span>
                 </div>
               </div>
 
-              <div className="h-7 w-px bg-[#dfd6c6] shrink-0" />
+              <div className="h-7 w-px bg-[#C5A059] shrink-0" />
 
               {/* Sistema Operacional Center Title */}
               <div className="flex flex-col text-left leading-tight shrink-0">
-                <span className="text-[13.5px] font-black uppercase tracking-wider text-stone-900 font-sans">
+                <span className="text-[13.5px] font-black uppercase tracking-wider text-[#FAF7F0] font-sans">
                   SISTEMA OPERACIONAL
                 </span>
-                <span className="text-[8px] font-bold uppercase tracking-widest text-stone-500 mt-0.5">
+                <span className="text-[8px] font-bold uppercase tracking-widest text-[#C5A059] mt-0.5">
                   CONTROLE TÁTICO • GESTÃO • RESULTADOS
                 </span>
               </div>
@@ -327,7 +327,7 @@ export default function InitialMenu({
             {/* ------------------------------------------------------------------- */}
             {/* LEFT SIDEBAR (~200px)                                               */}
             {/* ------------------------------------------------------------------- */}
-            <aside className="w-[200px] shrink-0 bg-[#faf8f3]/95 border border-[#dfd6c6] rounded-[22px] p-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between h-full">
+            <aside className="w-[200px] shrink-0 bg-[#121417] border border-[#C5A059] rounded-[22px] p-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex flex-col justify-between h-full">
               
               {/* Navigation Links */}
               <nav className="flex flex-col gap-1.5">
@@ -341,14 +341,14 @@ export default function InitialMenu({
                       className={cn(
                         "w-full h-[45px] flex items-center justify-between px-3 rounded-[16px] text-[12px] font-bold tracking-wide transition-all duration-200 cursor-pointer group text-left relative",
                         isActive
-                          ? "bg-gradient-to-r from-[#8e0b18] via-[#a91625] to-[#6f0712] text-white shadow-[0_4px_16px_rgba(142,11,24,0.4)] border border-red-900/40"
-                          : "text-stone-700 hover:text-stone-950 hover:bg-white/80"
+                          ? "bg-[#C91F2D] text-[#FFFFFF] shadow-[0_4px_16px_rgba(201,31,45,0.4)] border border-[#C91F2D]"
+                          : "text-[#FAF7F0] hover:text-[#C5A059] hover:bg-[#181A1D]"
                       )}
                     >
                       <div className="flex items-center gap-2.5">
                         <div className={cn(
                           "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors shadow-2xs",
-                          isActive ? "bg-white/20 text-white" : "bg-[#f2e8d9] text-[#8e0b18] border border-stone-200"
+                          isActive ? "bg-[#C5A059] text-[#121417]" : "bg-[#181A1D] text-[#C5A059] border border-[#C5A059]"
                         )}>
                           <Icon size={14} />
                         </div>
@@ -360,7 +360,7 @@ export default function InitialMenu({
                         size={14} 
                         className={cn(
                           "shrink-0 transition-transform",
-                          isActive ? "text-white translate-x-0.5" : "text-stone-400 group-hover:text-stone-600"
+                          isActive ? "text-[#C5A059] translate-x-0.5" : "text-[#1A1D20] group-hover:text-[#C5A059]"
                         )} 
                       />
                     </button>
@@ -368,9 +368,9 @@ export default function InitialMenu({
                 })}
               </nav>
 
-              {/* Bottom Coffee Brand Promo Card (Visible, unclipped cup with steam and beans) */}
-              <div className="mt-2 pt-2 border-t border-[#dfd6c6]/60">
-                <div className="relative rounded-[18px] overflow-hidden border border-[#dfd6c6] shadow-sm bg-stone-950 group h-[190px]">
+              {/* Bottom Coffee Brand Promo Card */}
+              <div className="mt-2 pt-2 border-t border-[#C5A059]/60">
+                <div className="relative rounded-[18px] overflow-hidden border border-[#C5A059] shadow-sm bg-[#181A1D] group h-[190px]">
                   <img
                     src={coffeeLatteCup}
                     alt="Café Três Corações"
@@ -379,10 +379,10 @@ export default function InitialMenu({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/45 to-transparent pointer-events-none" />
                   <div className="absolute bottom-3 left-3 right-3 text-left">
-                    <span className="text-[7.5px] font-mono font-bold tracking-[0.2em] text-[#f5d799] uppercase block mb-1">
+                    <span className="text-[7.5px] font-mono font-bold tracking-[0.2em] text-[#C5A059] uppercase block mb-1">
                       CAFÉ TRÊS CORAÇÕES
                     </span>
-                    <span className="text-[13px] font-black text-white leading-snug block drop-shadow-sm font-heading">
+                    <span className="text-[13px] font-black text-[#FAF7F0] leading-snug block drop-shadow-sm font-heading">
                       Mais que café,<br />
                       <em className="font-serif italic font-normal text-stone-200">movemos o Brasil.</em>
                     </span>
@@ -399,16 +399,16 @@ export default function InitialMenu({
               {activeNav === 'menu' ? (
                 <DashboardInicioFuturistic onNavigate={handleItemClick} />
               ) : (
-                <div id="main-scroll-container" className="bg-[#fffdfa] rounded-[22px] h-full overflow-y-auto border border-[#ded5c6] shadow-sm relative z-10 p-5">
-                  <div className="mb-4 pb-3 border-b border-stone-200 flex items-center justify-between">
+                <div id="main-scroll-container" className="bg-[#121417] rounded-[22px] h-full overflow-y-auto border border-[#C5A059] shadow-md relative z-10 p-5">
+                  <div className="mb-4 pb-3 border-b border-[#C5A059] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleItemClick('menu')}
-                        className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-[#181A1D] hover:bg-[#252A30] text-[#FAF7F0] text-xs font-bold transition-colors cursor-pointer"
                       >
                         ‹ Voltar ao Início
                       </button>
-                      <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-[#FAF7F0] uppercase tracking-wider">
                         {sidebarItems.find(i => i.id === activeNav)?.label}
                       </span>
                     </div>
@@ -421,9 +421,9 @@ export default function InitialMenu({
           </main>
 
           {/* ===================================================================== */}
-          {/* 3. CINEMATIC BOTTOM FOOTER BAR (JUNTOS, LEVAMOS O MELHOR DO CAFÉ...)  */}
+          {/* 3. CINEMATIC BOTTOM FOOTER BAR                                        */}
           {/* ===================================================================== */}
-          <footer className="w-full h-[40px] px-6 bg-stone-950 border-t border-[#dfd6c6]/40 flex items-center justify-between relative overflow-hidden shrink-0 z-30 shadow-inner">
+          <footer className="w-full h-[40px] px-6 border-t border-[#C5A059] flex items-center justify-between relative overflow-hidden shrink-0 z-30 shadow-inner" style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}>
             
             {/* Background roasted coffee beans texture on the right */}
             <div className="absolute inset-0 opacity-45 pointer-events-none">
@@ -434,14 +434,14 @@ export default function InitialMenu({
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/80 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#181A1D] via-[#181A1D]/80 to-transparent pointer-events-none" />
 
             {/* Left Spacer */}
             <div className="w-48 z-10" />
 
             {/* Center Slogan */}
             <div className="z-10 text-center">
-              <span className="text-[10px] font-mono font-bold tracking-[0.28em] text-[#e8c07d] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+              <span className="text-[10px] font-mono font-bold tracking-[0.28em] text-[#C5A059] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                 JUNTOS, LEVAMOS O MELHOR DO CAFÉ MAIS LONGE.
               </span>
             </div>

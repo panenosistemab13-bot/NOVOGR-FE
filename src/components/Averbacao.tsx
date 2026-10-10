@@ -451,7 +451,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
   });
 
   return (
-    <div className="w-full h-full flex flex-col relative text-left bg-[#080A0C] p-3 text-[#F4F0E8] font-sans overflow-y-auto">
+    <div className="w-full h-full flex flex-col relative text-left bg-[#F5F0E6] p-3 text-[#25231F] font-sans overflow-y-auto">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -463,11 +463,11 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             className={cn(
               "fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl border text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md",
               notification.type === 'delete'
-                ? "bg-[#180A0C]/90 text-red-300 border-red-500/40"
-                : "bg-[#0A1A12]/90 text-emerald-300 border-emerald-500/40"
+                ? "bg-[#FFF5F5] text-[#C91F2D] border-red-300"
+                : "bg-[#F0FFF4] text-emerald-800 border-emerald-300"
             )}
           >
-            <Check size={15} className={notification.type === 'delete' ? "text-red-400" : "text-emerald-400"} />
+            <Check size={15} className={notification.type === 'delete' ? "text-[#C91F2D]" : "text-emerald-600"} />
             <span>{notification.message}</span>
           </motion.div>
         )}
@@ -482,45 +482,45 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         <div className="flex flex-col gap-3.5 w-full">
           
           {/* TOP CONTROLS: CODES BAR */}
-          <div className="bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-[#F4F0E8]">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-[#25231F]">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-[11px] font-black uppercase text-[#E5C27A] flex items-center gap-1 font-mono">
+              <span className="text-[11px] font-black uppercase text-[#C49A45] flex items-center gap-1 font-mono">
                 ⚡ CÓDIGOS RÁPIDOS OPERACIONAIS:
               </span>
               
               {/* Capsula Field */}
-              <div className="flex items-center bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-1.5 font-bold font-mono text-white gap-2 shadow-inner">
-                <span className="text-[#A8A39A]">CÁPSULA:</span>
-                <span className="text-[#E5C27A] tracking-wider font-extrabold uppercase">
+              <div className="flex items-center bg-white border border-[#E6D2A3] rounded px-3 py-1.5 font-bold font-mono text-[#292820] gap-2 shadow-inner">
+                <span className="text-[#77736B]">CÁPSULA:</span>
+                <span className="text-[#C49A45] tracking-wider font-extrabold uppercase">
                   9000000982
                 </span>
                 <button 
                   onClick={() => copyCodeToClipboard('CÁPSULA', '9000000982')}
-                  className="text-[#A8A39A] hover:text-[#E5C27A] cursor-pointer"
+                  className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
                 >
                   <Copy size={11} />
                 </button>
               </div>
 
               {/* Maquina Field */}
-              <div className="flex items-center bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-1.5 font-bold font-mono text-white gap-2 shadow-inner">
-                <span className="text-[#A8A39A]">MÁQUINA:</span>
-                <span className="text-[#E5C27A] font-black">00008901</span>
+              <div className="flex items-center bg-white border border-[#E6D2A3] rounded px-3 py-1.5 font-bold font-mono text-[#292820] gap-2 shadow-inner">
+                <span className="text-[#77736B]">MÁQUINA:</span>
+                <span className="text-[#C49A45] font-black">00008901</span>
                 <button 
                   onClick={() => copyCodeToClipboard('MÁQUINA', '00008901')}
-                  className="text-[#A8A39A] hover:text-[#E5C27A] cursor-pointer"
+                  className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
                 >
                   <Copy size={11} />
                 </button>
               </div>
 
               {/* Embarques Field */}
-              <div className="flex items-center bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-1.5 font-bold font-mono text-white gap-2 shadow-inner">
-                <span className="text-[#A8A39A]">EMBARQUES:</span>
-                <span className="text-[#E5C27A] font-black">132</span>
+              <div className="flex items-center bg-white border border-[#E6D2A3] rounded px-3 py-1.5 font-bold font-mono text-[#292820] gap-2 shadow-inner">
+                <span className="text-[#77736B]">EMBARQUES:</span>
+                <span className="text-[#C49A45] font-black">132</span>
                 <button 
                   onClick={() => copyCodeToClipboard('EMBARQUES', '132')}
-                  className="text-[#A8A39A] hover:text-[#E5C27A] cursor-pointer"
+                  className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
                 >
                   <Copy size={11} />
                 </button>
@@ -531,20 +531,20 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => setShowPasteModal(true)}
-                className="bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] hover:brightness-110 text-[#080A0C] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-[#E5C27A]"
+                className="bg-gradient-to-r from-[#C49A45] to-[#A07A33] hover:brightness-110 text-white text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-[#E6D2A3]"
               >
                 COLAR PLANILHA TSV
               </button>
               <button
                 onClick={() => parseInput(SAMPLE_TSV_DATA)}
-                className="bg-[#171A1C] hover:bg-[#202428] border border-[#C9973E]/30 text-[#E5C27A] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs flex items-center gap-1 cursor-pointer"
+                className="bg-white hover:bg-[#F5F0E6] border border-[#E6D2A3] text-[#C49A45] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs flex items-center gap-1 cursor-pointer"
               >
-                <Sparkles size={11} className="text-[#E5C27A]" />
+                <Sparkles size={11} className="text-[#C49A45]" />
                 <span>EXEMPLO</span>
               </button>
               <button
                 onClick={handleClearAll}
-                className="bg-red-950/40 hover:bg-red-950/60 border border-red-500/30 text-red-300 text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs cursor-pointer"
+                className="bg-[#FFF5F5] hover:bg-[#FFE3E3] border border-red-300 text-[#C91F2D] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs cursor-pointer"
               >
                 LIMPAR
               </button>
@@ -553,30 +553,55 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
           {/* SEARCH BAR (Wide) */}
           <div className="relative w-full">
-            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A39A]" />
+            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#77736B]" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por placa, nota, protocolo ou destino..."
-              className="w-full bg-[#131619] text-white border border-[#C9973E]/25 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#D9AD5A] shadow-inner placeholder-[#7A756D]"
+              className="w-full bg-[#FFFCF6] text-[#292820] border border-[#E6D2A3] rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#C49A45] shadow-inner placeholder-[#77736B]"
             />
           </div>
 
+          {/* COLOR THEME PICKER */}
+          <div className="flex items-center justify-between bg-[#292820] text-white px-4 py-2.5 rounded-xl border border-[#E6D2A3]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#E6D2A3]">PALETA DE CORES DO E-MAIL</span>
+            <div className="flex items-center gap-2">
+              {(Object.keys(COLOR_THEMES) as Array<keyof typeof COLOR_THEMES>).map((key) => {
+                const theme = COLOR_THEMES[key];
+                const isSelected = emailColor === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setEmailColor(key)}
+                    className={cn(
+                      "w-9 h-6 rounded-full transition-all cursor-pointer flex items-center justify-center font-bold text-xs border",
+                      theme.circleBg,
+                      isSelected ? "ring-2 ring-white scale-110 shadow-md border-white" : "border-transparent opacity-80 hover:opacity-100"
+                    )}
+                    title={theme.name}
+                  >
+                    {isSelected && <Check size={12} className={key === 'amarelo' ? "text-black" : "text-white"} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* EMAIL PREVIEW CARD CONTAINER */}
-          <div className="bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-4 shadow-lg text-xs font-mono space-y-3.5 text-[#F4F0E8]">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm text-xs font-mono space-y-3.5 text-[#25231F]">
             
             {/* Header Area */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E6D2A3]/60 pb-3 gap-2">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#C9973E]/15 text-[#E5C27A] border border-[#C9973E]/30 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[#C49A45]/15 text-[#C49A45] border border-[#E6D2A3] flex items-center justify-center shrink-0">
                   <Mail size={16} />
                 </div>
                 <div className="text-left leading-none">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-[#D9AD5A] block">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-[#C49A45] block">
                     FORMATO PARA CLIENTE DE E-MAIL
                   </span>
-                  <span className="text-[13px] font-black text-white uppercase tracking-tight block mt-1">
+                  <span className="text-[13px] font-black text-[#292820] uppercase tracking-tight block mt-1">
                     CORPO DA MENSAGEM DE AVERBAÇÃO
                   </span>
                 </div>
@@ -585,7 +610,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={copyToEmail}
-                    className="bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] text-[11px] font-black uppercase px-4 py-2 rounded-lg shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#E5C27A]"
+                    className="bg-gradient-to-r from-[#C49A45] via-[#B88938] to-[#9A7230] hover:brightness-110 text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#E6D2A3]"
                   >
                     <Clipboard size={12} />
                     <span>{copied ? 'COPIADO' : 'COPIAR FORMATADO'}</span>
@@ -596,7 +621,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             {/* Inner Message Template */}
             <div 
               ref={emailPreviewRef}
-              className="bg-white border border-stone-200 rounded-2xl p-6 text-left font-sans text-stone-900 space-y-4 shadow-sm leading-relaxed"
+              className="bg-white border border-[#E6D2A3] rounded-2xl p-6 text-left font-sans text-stone-900 space-y-4 shadow-sm leading-relaxed"
             >
               <p className="font-extrabold text-stone-950 text-sm">Bom dia!</p>
               
@@ -606,66 +631,66 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
               {/* Highlights Quote Panel */}
               <div 
-                className="bg-[#f8f9fa] p-4.5 rounded-xl space-y-1.5 shadow-2xs"
+                className="bg-[#FAF7F0] p-4.5 rounded-xl space-y-1.5 shadow-2xs border border-[#E6D2A3]/40"
                 style={{ borderLeft: `5px solid ${activeTheme.accentColor}` }}
               >
                 <div className="text-xs sm:text-[13px] font-black text-stone-950 uppercase">
                   {getRouteTitle(filteredRows.length > 0 ? filteredRows : parsedRows)}
                 </div>
                 <div className="text-xs font-black text-stone-900">
-                  PROTOCOLO: <span className="text-[#2563eb] font-extrabold font-mono">{getProtocolsList(filteredRows.length > 0 ? filteredRows : parsedRows)}</span>
+                  PROTOCOLO: <span className="text-[#C49A45] font-extrabold font-mono">{getProtocolsList(filteredRows.length > 0 ? filteredRows : parsedRows)}</span>
                 </div>
                 <div className="text-xs font-black text-stone-900">
-                  Valor da Carga: <span className="text-[#dc2626] font-extrabold font-mono">{getTotalValue()}</span>
+                  Valor da Carga: <span className="text-[#C91F2D] font-extrabold font-mono">{getTotalValue()}</span>
                 </div>
               </div>
 
               <p className="font-semibold text-stone-800 text-xs sm:text-sm">Segue dados e NFs em anexo:</p>
 
               {/* BLACK & SELECTED ACCENT THEME GRID */}
-              <div className="overflow-x-auto rounded-lg border border-stone-900">
+              <div className="overflow-x-auto rounded-lg border border-[#C49A45]/40">
                 <table className="w-full border-collapse text-xs text-left min-w-[780px] font-mono">
                   <thead>
-                    <tr className="bg-black text-white text-[10px] font-black uppercase tracking-wider">
-                      <th className="p-2.5 border border-stone-800">ORIGEM</th>
-                      <th className="p-2.5 border border-stone-800">DESTINO</th>
-                      <th className="p-2.5 border border-stone-800">TRANSPORTADORA</th>
-                      <th className="p-2.5 border border-stone-800">PLACA CAVALO</th>
-                      <th className="p-2.5 border border-stone-800">PLACAS CARRETAS</th>
-                      <th className="p-2.5 border border-stone-800">TECNOLOGIA</th>
-                      <th className="p-2.5 border border-stone-800">NOME MOTORISTA</th>
-                      <th className="p-2.5 border border-stone-800">CPF</th>
-                      <th className="p-2.5 border border-stone-800">TELEFONE</th>
+                    <tr className="bg-[#292820] text-white text-[10px] font-black uppercase tracking-wider">
+                      <th className="p-2.5 border border-[#3A3830]">ORIGEM</th>
+                      <th className="p-2.5 border border-[#3A3830]">DESTINO</th>
+                      <th className="p-2.5 border border-[#3A3830]">TRANSPORTADORA</th>
+                      <th className="p-2.5 border border-[#3A3830]">PLACA CAVALO</th>
+                      <th className="p-2.5 border border-[#3A3830]">PLACAS CARRETAS</th>
+                      <th className="p-2.5 border border-[#3A3830]">TECNOLOGIA</th>
+                      <th className="p-2.5 border border-[#3A3830]">NOME MOTORISTA</th>
+                      <th className="p-2.5 border border-[#3A3830]">CPF</th>
+                      <th className="p-2.5 border border-[#3A3830]">TELEFONE</th>
                     </tr>
                   </thead>
                   <tbody>
                     {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
                       <tr key={idx} className="font-black">
-                        <td className="p-2.5 border border-stone-900 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {row.origem || 'SANTA LUZIA'}
                         </td>
-                        <td className="p-2.5 border border-stone-900 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {row.destino || 'LONDRINA'}
                         </td>
-                        <td className="p-2.5 border border-stone-900 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {extraData.transportadora}
                         </td>
-                        <td className="p-2.5 border border-stone-900 uppercase text-[11px] bg-[#e2e8f0] text-slate-900">
+                        <td className="p-2.5 border border-stone-300 uppercase text-[11px] bg-[#FAF7F0] text-stone-900">
                           {row.placaCav && row.placaCav !== '-' ? row.placaCav : 'QWA6A22'}
                         </td>
-                        <td className="p-2.5 border border-stone-900 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {row.placaCarr && row.placaCarr !== '-' ? row.placaCarr : 'DLV7307'}
                         </td>
-                        <td className="p-2.5 border border-stone-900 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {extraData.tecnologia}
                         </td>
-                        <td className="p-2.5 border border-stone-900 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {extraData.nomeMotorista}
                         </td>
-                        <td className="p-2.5 border border-stone-900 text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {extraData.cpf}
                         </td>
-                        <td className="p-2.5 border border-stone-900 text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
+                        <td className="p-2.5 border border-stone-300 text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
                           {extraData.telefone}
                         </td>
                       </tr>
@@ -678,7 +703,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             </div>
 
             {/* Branded footer of this panel */}
-            <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] font-bold text-slate-400 border-t border-stone-200/60 pt-3 gap-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] font-bold text-[#77736B] border-t border-[#E6D2A3]/60 pt-3 gap-2">
               <div className="flex items-center gap-1 flex-wrap uppercase">
                 <span>TOTAL DE ROTAS: {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).length || 1}</span>
                 <span>•</span>
@@ -687,8 +712,8 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <span>ÚLTIMA ATUALIZAÇÃO: 25/09/2026 21:39</span>
               </div>
               
-              <div className="flex items-center gap-1.5 uppercase text-[#00e676]">
-                <span className="w-2 h-2 rounded-full bg-[#00e676] inline-block animate-pulse" />
+              <div className="flex items-center gap-1.5 uppercase text-emerald-600">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
                 <span>SISTEMA ONLINE</span>
               </div>
             </div>
@@ -701,19 +726,19 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         <div className="flex flex-col gap-3 w-full shrink-0">
           
           {/* Header Section */}
-          <div className="bg-[#131619] border border-[#C9973E]/25 rounded-xl p-3 flex items-center justify-between shadow-md">
-            <span className="text-xs font-black uppercase text-[#E5C27A] tracking-wider flex items-center gap-2 font-mono">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 flex items-center justify-between shadow-sm">
+            <span className="text-xs font-black uppercase text-[#C49A45] tracking-wider flex items-center gap-2 font-mono">
               🏢 DADOS OPERACIONAIS
             </span>
-            <ChevronDown size={14} className="text-[#E5C27A]" />
+            <ChevronDown size={14} className="text-[#C49A45]" />
           </div>
 
           {/* SIDEBAR FIELDS CARDS */}
           <div className="space-y-3.5 text-xs text-left">
             
             {/* Field 1: Transportadora */}
-            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
-              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 TRANSPORTADORA
               </label>
               
@@ -721,13 +746,13 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <select
                   value={extraData.transportadora}
                   onChange={(e) => setExtraData(prev => ({ ...prev, transportadora: e.target.value }))}
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2 text-xs font-black text-white outline-none uppercase appearance-none cursor-pointer pr-8"
+                  className="w-full bg-white border border-[#E6D2A3] rounded px-3 py-2 text-xs font-black text-[#292820] outline-none uppercase appearance-none cursor-pointer pr-8 shadow-inner"
                 >
                   {customTransportadoras.map(t => (
-                    <option key={t} value={t} className="bg-[#131619] text-white">{t}</option>
+                    <option key={t} value={t} className="bg-white text-[#292820]">{t}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8A39A] pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#77736B] pointer-events-none" />
               </div>
 
               {/* Add Custom Transportadora Button */}
@@ -738,11 +763,11 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                     value={newTranspName}
                     onChange={(e) => setNewTranspName(e.target.value)}
                     placeholder="NOME"
-                    className="flex-1 bg-[#080A0C] border border-[#C9973E]/30 rounded px-2 py-1 uppercase font-bold text-xs text-white"
+                    className="flex-1 bg-white border border-[#E6D2A3] rounded px-2 py-1 uppercase font-bold text-xs text-[#292820]"
                   />
                   <button 
                     onClick={handleAddCustomTransp}
-                    className="px-2.5 py-1 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black rounded text-xs cursor-pointer"
+                    className="px-2.5 py-1 bg-gradient-to-r from-[#C49A45] to-[#A07A33] text-white font-black rounded text-xs cursor-pointer shadow-sm"
                   >
                     OK
                   </button>
@@ -751,7 +776,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <button
                   type="button"
                   onClick={() => setShowAddTranspInput(true)}
-                  className="text-[#E5C27A] font-black text-[10px] mt-2 block hover:underline cursor-pointer"
+                  className="text-[#C49A45] font-black text-[10px] mt-2 block hover:underline cursor-pointer"
                 >
                   + ADICIONAR NOVA
                 </button>
@@ -759,137 +784,73 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             </div>
 
             {/* Field 2: Tecnologia PGR */}
-            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
-              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 TECNOLOGIA PGR
               </label>
               <div className="relative">
                 <select
                   value={extraData.tecnologia}
                   onChange={(e) => setExtraData(prev => ({ ...prev, tecnologia: e.target.value }))}
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2 text-xs font-black text-white outline-none uppercase appearance-none cursor-pointer pr-8"
+                  className="w-full bg-white border border-[#E6D2A3] rounded px-3 py-2 text-xs font-black text-[#292820] outline-none uppercase appearance-none cursor-pointer pr-8 shadow-inner"
                 >
                   {DEFAULT_TECNOLOGIAS.map(t => (
-                    <option key={t} value={t} className="bg-[#131619] text-white">{t}</option>
+                    <option key={t} value={t} className="bg-white text-[#292820]">{t}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8A39A] pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#77736B] pointer-events-none" />
               </div>
             </div>
 
             {/* Field 3: Nome do Condutor */}
-            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
-              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 NOME DO CONDUTOR
               </label>
-              <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2">
-                <User size={13} className="text-[#A8A39A]" />
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <User size={13} className="text-[#77736B]" />
                 <input
                   type="text"
                   value={extraData.nomeMotorista}
                   onChange={(e) => setExtraData(prev => ({ ...prev, nomeMotorista: e.target.value.toUpperCase() }))}
-                  className="w-full bg-transparent font-black text-white outline-none uppercase"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase"
                 />
               </div>
             </div>
 
             {/* Field 4: CPF */}
-            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
-              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 CPF / MOTORISTA
               </label>
-              <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2">
-                <CreditCard size={13} className="text-[#A8A39A]" />
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <CreditCard size={13} className="text-[#77736B]" />
                 <input
                   type="text"
                   value={extraData.cpf}
                   onChange={(e) => setExtraData(prev => ({ ...prev, cpf: e.target.value }))}
-                  className="w-full bg-transparent font-black text-white outline-none"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none"
                 />
               </div>
             </div>
 
             {/* Field 5: Telefone */}
-            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md">
-              <label className="text-[9px] font-black text-[#A8A39A] uppercase block mb-1">
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 TELEFONE / WHATSAPP
               </label>
-              <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/30 rounded px-3 py-2">
-                <Phone size={13} className="text-[#A8A39A]" />
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <Phone size={13} className="text-[#77736B]" />
                 <input
                   type="text"
                   value={extraData.telefone}
                   onChange={(e) => setExtraData(prev => ({ ...prev, telefone: e.target.value }))}
-                  className="w-full bg-transparent font-black text-white outline-none"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none"
                 />
               </div>
             </div>
 
-            {/* Field 6: Paleta de Cores do E-mail */}
-            <div className="bg-[#131619] border border-[#C9973E]/20 rounded-xl p-3 shadow-md space-y-2">
-              <div className="flex items-center justify-between text-[9px] font-black uppercase text-[#A8A39A]">
-                <span>PALETA DE CORES DO E-MAIL</span>
-                <span className={cn(
-                  "px-1.5 py-0.5 rounded font-bold border",
-                  emailColor === 'amarelo' ? "bg-[#FFFF00] text-black border-yellow-400" :
-                  emailColor === 'vermelho' ? "bg-red-600 text-white border-red-700" :
-                  emailColor === 'azul' ? "bg-blue-600 text-white border-blue-700" :
-                  "bg-emerald-600 text-white border-emerald-700"
-                )}>
-                  {COLOR_THEMES[emailColor].name}
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-4 gap-2">
-                {/* Yellow Theme Button */}
-                <button
-                  type="button"
-                  onClick={() => setEmailColor('amarelo')}
-                  className={cn(
-                    "h-10 rounded-lg bg-[#FFFF00] border relative flex items-center justify-center cursor-pointer transition-all",
-                    emailColor === 'amarelo' ? "border-stone-950 scale-95 shadow-sm border-2" : "border-stone-200"
-                  )}
-                >
-                  {emailColor === 'amarelo' && <Check size={16} className="text-black stroke-[3]" />}
-                </button>
 
-                {/* Red Theme Button */}
-                <button
-                  type="button"
-                  onClick={() => setEmailColor('vermelho')}
-                  className={cn(
-                    "h-10 rounded-lg bg-red-600 border relative flex items-center justify-center cursor-pointer transition-all",
-                    emailColor === 'vermelho' ? "border-stone-950 scale-95 shadow-sm border-2" : "border-stone-200"
-                  )}
-                >
-                  {emailColor === 'vermelho' && <Check size={16} className="text-white stroke-[3]" />}
-                </button>
-
-                {/* Blue Theme Button */}
-                <button
-                  type="button"
-                  onClick={() => setEmailColor('azul')}
-                  className={cn(
-                    "h-10 rounded-lg bg-blue-600 border relative flex items-center justify-center cursor-pointer transition-all",
-                    emailColor === 'azul' ? "border-stone-950 scale-95 shadow-sm border-2" : "border-stone-200"
-                  )}
-                >
-                  {emailColor === 'azul' && <Check size={16} className="text-white stroke-[3]" />}
-                </button>
-
-                {/* Green Theme Button */}
-                <button
-                  type="button"
-                  onClick={() => setEmailColor('verde')}
-                  className={cn(
-                    "h-10 rounded-lg bg-emerald-600 border relative flex items-center justify-center cursor-pointer transition-all",
-                    emailColor === 'verde' ? "border-stone-950 scale-95 shadow-sm border-2" : "border-stone-200"
-                  )}
-                >
-                  {emailColor === 'verde' && <Check size={16} className="text-white stroke-[3]" />}
-                </button>
-              </div>
-            </div>
 
           </div>
 

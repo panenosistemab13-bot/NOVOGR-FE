@@ -258,7 +258,21 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#f4eee5] text-[#1a1614] font-sans flex flex-col justify-between overflow-x-hidden select-none">
+    <div className="min-h-screen bg-[#FAF7F0] p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="max-w-7xl mx-auto">
+        {/* Header - Graphite Gradient */}
+        <div className="mb-6 bg-gradient-to-r from-[#181A1D] via-[#202429] to-[#181A1D] border border-[#C5A059] rounded-2xl p-6 shadow-lg flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#8C6D2B] flex items-center justify-center text-[#111111] font-black text-xl shadow-sm">
+              <RouteIcon size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white uppercase tracking-tight">Gerenciamento de Rotas</h1>
+              <p className="text-xs text-[#C5A059] font-bold uppercase tracking-widest mt-1">Central de Controle Logístico</p>
+            </div>
+          </div>
+        </div>
+      </div>
       
       {/* Toast Notification */}
       <AnimatePresence>
