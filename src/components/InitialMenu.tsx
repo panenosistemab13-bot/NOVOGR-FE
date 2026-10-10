@@ -15,7 +15,9 @@ import {
   LogOut,
   Search,
   Bell,
-  Sun
+  Sun,
+  X,
+  Settings
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PageDefinition } from '../data/pagesConfig';
@@ -327,67 +329,99 @@ export default function InitialMenu({
             {/* ------------------------------------------------------------------- */}
             {/* LEFT SIDEBAR (~200px)                                               */}
             {/* ------------------------------------------------------------------- */}
-            <aside className="w-[200px] shrink-0 bg-[#121417] border border-[#C5A059] rounded-[22px] p-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex flex-col justify-between h-full">
+            {/* ------------------------------------------------------------------- */}
+            {/* LEFT SIDEBAR (~280px) - MENU OPERACIONAL                            */}
+            {/* ------------------------------------------------------------------- */}
+            <aside className="w-[280px] shrink-0 bg-[#121417] border border-[#C5A059] rounded-[22px] p-3 shadow-[0_4px_25px_rgba(0,0,0,0.4)] flex flex-col justify-between h-full overflow-y-auto">
               
-              {/* Navigation Links */}
-              <nav className="flex flex-col gap-1.5">
-                {sidebarItems.map((item) => {
-                  const isActive = activeNav === item.id;
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(item.id)}
-                      className={cn(
-                        "w-full h-[45px] flex items-center justify-between px-3 rounded-[16px] text-[12px] font-bold tracking-wide transition-all duration-200 cursor-pointer group text-left relative",
-                        isActive
-                          ? "bg-[#C91F2D] text-[#FFFFFF] shadow-[0_4px_16px_rgba(201,31,45,0.4)] border border-[#C91F2D]"
-                          : "text-[#FAF7F0] hover:text-[#C5A059] hover:bg-[#181A1D]"
-                      )}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className={cn(
-                          "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors shadow-2xs",
-                          isActive ? "bg-[#C5A059] text-[#121417]" : "bg-[#181A1D] text-[#C5A059] border border-[#C5A059]"
-                        )}>
-                          <Icon size={14} />
-                        </div>
-                        <span className="font-sans font-bold text-[12px]">
-                          {item.label}
-                        </span>
-                      </div>
-                      <ChevronRight 
-                        size={14} 
-                        className={cn(
-                          "shrink-0 transition-transform",
-                          isActive ? "text-[#C5A059] translate-x-0.5" : "text-[#1A1D20] group-hover:text-[#C5A059]"
-                        )} 
-                      />
-                    </button>
-                  );
-                })}
-              </nav>
-
-              {/* Bottom Coffee Brand Promo Card */}
-              <div className="mt-2 pt-2 border-t border-[#C5A059]/60">
-                <div className="relative rounded-[18px] overflow-hidden border border-[#C5A059] shadow-sm bg-[#181A1D] group h-[190px]">
-                  <img
-                    src={coffeeLatteCup}
-                    alt="Café Três Corações"
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/45 to-transparent pointer-events-none" />
-                  <div className="absolute bottom-3 left-3 right-3 text-left">
-                    <span className="text-[7.5px] font-mono font-bold tracking-[0.2em] text-[#C5A059] uppercase block mb-1">
-                      CAFÉ TRÊS CORAÇÕES
-                    </span>
-                    <span className="text-[13px] font-black text-[#FAF7F0] leading-snug block drop-shadow-sm font-heading">
-                      Mais que café,<br />
-                      <em className="font-serif italic font-normal text-stone-200">movemos o Brasil.</em>
-                    </span>
+              <div className="flex flex-col gap-3">
+                {/* Header in sidebar matching image */}
+                <div className="flex items-center justify-between pb-3 border-b border-[#C5A059]/50">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#C5A059] flex items-center justify-center bg-[#181A1D]">
+                      <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
+                    </div>
+                    <div className="text-left leading-tight">
+                      <span className="text-[12.5px] font-black text-[#C5A059] uppercase tracking-wider block font-heading">
+                        MENU OPERACIONAL
+                      </span>
+                      <span className="text-[7.5px] font-bold text-stone-400 uppercase tracking-widest block mt-0.5 font-mono">
+                        PAINEL CENTRAL DO SISTEMA
+                      </span>
+                    </div>
                   </div>
+                  <button 
+                    onClick={() => handleItemClick('menu')}
+                    className="w-7 h-7 rounded-full bg-[#181A1D] border border-[#C5A059]/60 flex items-center justify-center text-[#C5A059] hover:bg-[#C91F2D] hover:text-white transition-colors cursor-pointer shadow-xs"
+                    title="Fechar / Início"
+                  >
+                    <X size={13} />
+                  </button>
                 </div>
+
+                {/* Navigation Links */}
+                <nav className="flex flex-col gap-2">
+                  {sidebarItems.map((item) => {
+                    const isActive = activeNav === item.id;
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleItemClick(item.id)}
+                        className={cn(
+                          "w-full h-[48px] flex items-center justify-between px-3.5 rounded-[16px] font-black uppercase text-[11.5px] tracking-wide transition-all duration-200 cursor-pointer group text-left relative",
+                          isActive
+                            ? "bg-gradient-to-r from-[#8e0b18] via-[#a91625] to-[#6f0712] text-white shadow-[0_4px_16px_rgba(201,31,45,0.45)] border border-red-500/50"
+                            : "bg-[#181A1D] text-[#FAF7F0] hover:text-[#C5A059] hover:bg-[#1f2429] border border-[#C5A059]/30"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-7.5 h-7.5 rounded-full flex items-center justify-center shrink-0 transition-colors shadow-2xs border",
+                            isActive ? "bg-[#C5A059] text-[#121417] border-[#fff8e3]" : "bg-[#121417] text-[#C5A059] border-[#C5A059]/60"
+                          )}>
+                            <Icon size={14} />
+                          </div>
+                          <span className="font-sans font-black text-[11.5px] tracking-wide">
+                            {item.label}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {isActive && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/30 border border-white/20 text-[9px] font-black text-white tracking-widest uppercase">
+                              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                              ATIVO
+                            </span>
+                          )}
+                          <ChevronRight 
+                            size={14} 
+                            className={cn(
+                              "shrink-0 transition-transform",
+                              isActive ? "text-[#C5A059]" : "text-stone-500 group-hover:text-[#C5A059]"
+                            )} 
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Bottom Config Button */}
+              <div className="mt-2 pt-2 border-t border-[#C5A059]/50">
+                <button
+                  onClick={() => handleItemClick('controle')}
+                  className="w-full h-[45px] flex items-center justify-between px-3.5 rounded-[16px] bg-[#181A1D] hover:bg-[#1f2429] text-[#FAF7F0] hover:text-[#C5A059] border border-[#C5A059]/40 font-black uppercase text-[11px] tracking-wide transition-all cursor-pointer shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-7.5 h-7.5 rounded-full bg-[#121417] text-[#C5A059] border border-[#C5A059]/60 flex items-center justify-center shrink-0">
+                      <Settings size={14} />
+                    </div>
+                    <span>CONFIGURAÇÕES & PÁGINAS</span>
+                  </div>
+                  <ChevronRight size={14} className="text-stone-500" />
+                </button>
               </div>
 
             </aside>

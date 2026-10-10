@@ -5503,7 +5503,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
 
                 {/* ISCA 2 SECTION */}
-                {numCarretas === 2 && (
+                {numCarretas === 2 && sidebarEmbarque2 !== "none" && (
                   <div>
                     <span className="text-[9px] font-extrabold uppercase text-[#D92332] block mb-1">
                       DISPOSITIVO ISCA 2:

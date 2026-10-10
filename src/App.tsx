@@ -120,6 +120,10 @@ export default function App() {
     role: 'admin'
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return Boolean(localStorage.getItem('logged_user'));
+  });
+
   const [availablePages, setAvailablePages] = useState<PageDefinition[]>(() => getAllAvailablePages());
   const [pageVisibility, setPageVisibility] = useState<Record<string, boolean>>(() => loadPageVisibility());
 
@@ -437,6 +441,10 @@ export default function App() {
         return null;
     }
   };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <AppShell
