@@ -330,11 +330,36 @@ const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasi
 
 export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps) {
   const [internalView, setInternalView] = useState<'all' | 'ida' | 'volta' | 'vespasiano' | 'nordeste' | 'codes'>('all');
-  const [idaRows, setIdaRows] = useState<SMRow[]>([]);
-  const [voltaRows, setVoltaRows] = useState<SMRow[]>([]);
-  const [nordesteRows, setNordesteRows] = useState<SMRow[]>([]);
-  const [vespasianoRows, setVespasianoRows] = useState<SMRow[]>([]);
-  const [calcValues, setCalcValues] = useState<string[]>(['']);
+  const [idaRows, setIdaRows] = useState<SMRow[]>(() => {
+    try {
+      const saved = localStorage.getItem('sm_creator_ida');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [voltaRows, setVoltaRows] = useState<SMRow[]>(() => {
+    try {
+      const saved = localStorage.getItem('sm_creator_volta');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [nordesteRows, setNordesteRows] = useState<SMRow[]>(() => {
+    try {
+      const saved = localStorage.getItem('sm_creator_nordeste');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [vespasianoRows, setVespasianoRows] = useState<SMRow[]>(() => {
+    try {
+      const saved = localStorage.getItem('sm_creator_vespasiano');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [calcValues, setCalcValues] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('sm_creator_calc');
+      return saved ? JSON.parse(saved) : [''];
+    } catch { return ['']; }
+  });
   const [routesList, setRoutesList] = useState<RouteItem[]>(DEFAULT_ROUTES);
   const [notes, setNotes] = useState<Note[]>([]);
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
@@ -345,19 +370,31 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   const [newNoteText, setNewNoteText] = useState('');
 
   useEffect(() => {
-    set(ref(db, 'sm_creator_data'), null);
-  }, []);
-
-  useEffect(() => {
     const smRef = ref(db, 'sm_creator_data');
     const unsubscribeSM = onValue(smRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        if (data.ida) setIdaRows(sortSMRowsByValorNf(data.ida));
-        if (data.volta) setVoltaRows(data.volta);
-        if (data.nordeste) setNordesteRows(data.nordeste);
-        if (data.vespasiano) setVespasianoRows(data.vespasiano);
-        if (data.calc) setCalcValues(data.calc);
+        if (data.ida) {
+          const sorted = sortSMRowsByValorNf(data.ida);
+          setIdaRows(sorted);
+          try { localStorage.setItem('sm_creator_ida', JSON.stringify(sorted)); } catch {}
+        }
+        if (data.volta) {
+          setVoltaRows(data.volta);
+          try { localStorage.setItem('sm_creator_volta', JSON.stringify(data.volta)); } catch {}
+        }
+        if (data.nordeste) {
+          setNordesteRows(data.nordeste);
+          try { localStorage.setItem('sm_creator_nordeste', JSON.stringify(data.nordeste)); } catch {}
+        }
+        if (data.vespasiano) {
+          setVespasianoRows(data.vespasiano);
+          try { localStorage.setItem('sm_creator_vespasiano', JSON.stringify(data.vespasiano)); } catch {}
+        }
+        if (data.calc) {
+          setCalcValues(data.calc);
+          try { localStorage.setItem('sm_creator_calc', JSON.stringify(data.calc)); } catch {}
+        }
         if (data.notes) {
           const notesArray = Object.entries(data.notes).map(([id, note]: [string, any]) => ({
             id,
@@ -421,30 +458,35 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   const saveIda = (rows: SMRow[], forcePush = false) => {
     pushHistory(forcePush);
     setIdaRows(rows);
+    try { localStorage.setItem('sm_creator_ida', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/ida'), rows);
   };
 
   const saveVolta = (rows: SMRow[], forcePush = false) => {
     pushHistory(forcePush);
     setVoltaRows(rows);
+    try { localStorage.setItem('sm_creator_volta', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/volta'), rows);
   };
 
   const saveNordeste = (rows: SMRow[], forcePush = false) => {
     pushHistory(forcePush);
     setNordesteRows(rows);
+    try { localStorage.setItem('sm_creator_nordeste', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/nordeste'), rows);
   };
 
   const saveVespasiano = (rows: SMRow[], forcePush = false) => {
     pushHistory(forcePush);
     setVespasianoRows(rows);
+    try { localStorage.setItem('sm_creator_vespasiano', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/vespasiano'), rows);
   };
 
   const saveCalc = (vals: string[], forcePush = false) => {
     pushHistory(forcePush);
     setCalcValues(vals);
+    try { localStorage.setItem('sm_creator_calc', JSON.stringify(vals)); } catch {}
     set(ref(db, 'sm_creator_data/calc'), vals);
   };
 

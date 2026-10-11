@@ -442,6 +442,12 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('logged_user');
+    localStorage.removeItem('user_email');
+    setIsAuthenticated(false);
+  };
+
   if (!isAuthenticated) {
     return <LoginScreen onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
@@ -451,6 +457,7 @@ export default function App() {
       activeTab={activeTab}
       onSelectTab={(id) => setActiveTab(id as Tab)}
       onOpenSettings={handleOpenPageSelector}
+      onLogout={handleLogout}
       showPresenceList={Boolean(pageVisibility['presence'])}
       showRotasPage={Boolean(pageVisibility['rotas'])}
       onOpenWallpaper={() => setShowWallpaperModal(prev => !prev)}

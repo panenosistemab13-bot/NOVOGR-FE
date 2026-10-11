@@ -4,7 +4,9 @@ import {
   Sun, 
   User, 
   MapPin,
-  ShieldCheck
+  ShieldCheck,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
 
 interface PremiumHeaderProps {
@@ -13,15 +15,18 @@ interface PremiumHeaderProps {
   onNavigateHome?: () => void;
   onOpenSettings?: () => void;
   onOpenWallpaper?: () => void;
+  onLogout?: () => void;
   isWallpaperOpen?: boolean;
 }
 
 export default function PremiumHeader({ 
   onNavigateHome, 
   onOpenWallpaper,
+  onLogout,
   isWallpaperOpen
 }: PremiumHeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -157,22 +162,65 @@ export default function PremiumHeader({
         {/* Vertical divider */}
         <div className="hidden md:block h-7 w-[1px] bg-stone-700/60" />
 
-        {/* User Profile: Jefferson | Administrador */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] p-0.5 shadow-md flex items-center justify-center shrink-0">
-            <div className="w-full h-full rounded-full bg-[#12181b] flex items-center justify-center text-[#e5c27a]">
-              <User size={15} />
+        {/* User Profile: Jefferson | Administrador (Clickable with Logout option) */}
+        <div className="relative">
+          <div 
+            onClick={() => setShowUserDropdown(prev => !prev)}
+            className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-white/5 border border-transparent hover:border-[#e5c27a]/30 transition-all cursor-pointer group select-none"
+            title="Opções de perfil / Encerrar sessão"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] p-0.5 shadow-md flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-full h-full rounded-full bg-[#12181b] flex items-center justify-center text-[#e5c27a]">
+                <User size={15} />
+              </div>
             </div>
+            <div className="hidden md:flex flex-col text-left leading-none">
+              <span className="text-[11.5px] font-black text-white uppercase tracking-tight group-hover:text-[#e5c27a] transition-colors">
+                Jefferson
+              </span>
+              <span className="text-[8.5px] font-semibold text-stone-400 mt-0.5 flex items-center gap-1">
+                <ShieldCheck size={10} className="text-[#e5c27a]" />
+                Administrador
+              </span>
+            </div>
+            <ChevronDown size={13} className="text-stone-400 group-hover:text-[#e5c27a] transition-transform ml-0.5" />
           </div>
-          <div className="hidden md:flex flex-col text-left leading-none">
-            <span className="text-[11.5px] font-black text-white uppercase tracking-tight">
-              Jefferson
-            </span>
-            <span className="text-[8.5px] font-semibold text-stone-400 mt-0.5 flex items-center gap-1">
-              <ShieldCheck size={10} className="text-[#e5c27a]" />
-              Administrador
-            </span>
-          </div>
+
+          {/* User Profile Dropdown Menu */}
+          {showUserDropdown && (
+            <>
+              {/* Invisible backdrop to dismiss */}
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setShowUserDropdown(false)} 
+              />
+
+              <div className="absolute right-0 mt-2 top-full w-60 bg-[#121417] border border-[#C5A059] rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.7)] p-3 z-50 text-xs font-sans text-[#FAF7F0] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+                <div className="pb-2.5 mb-2.5 border-b border-[#C5A059]/30 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#181A1D] border border-[#C5A059] flex items-center justify-center text-[#C5A059] font-black shrink-0">
+                    <User size={16} />
+                  </div>
+                  <div className="flex flex-col text-left leading-tight truncate">
+                    <span className="text-xs font-black uppercase text-white truncate">Jefferson</span>
+                    <span className="text-[9px] font-bold text-[#C5A059] uppercase">Administrador (jeff)</span>
+                    <span className="text-[8px] font-mono text-stone-400 truncate mt-0.5">Sessão ativa</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    onLogout?.();
+                  }}
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#C91F2D]/15 hover:bg-[#C91F2D] text-red-200 hover:text-white border border-[#C91F2D]/40 font-black uppercase text-[10.5px] tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-98"
+                >
+                  <LogOut size={14} className="shrink-0" />
+                  <span>Encerrar e voltar ao login</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
       </div>

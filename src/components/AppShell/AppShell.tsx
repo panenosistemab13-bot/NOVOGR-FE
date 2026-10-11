@@ -8,6 +8,7 @@ interface AppShellProps {
   activeTab: string;
   onSelectTab: (tabId: string) => void;
   onOpenSettings?: () => void;
+  onLogout?: () => void;
   showPresenceList?: boolean;
   showRotasPage?: boolean;
   onOpenWallpaper?: () => void;
@@ -19,6 +20,7 @@ export default function AppShell({
   activeTab,
   onSelectTab,
   onOpenSettings,
+  onLogout,
   onOpenWallpaper,
   isWallpaperOpen,
   children
@@ -32,6 +34,7 @@ export default function AppShell({
           onOpenWallpaper={onOpenWallpaper}
           isWallpaperOpen={isWallpaperOpen}
           onOpenSettings={onOpenSettings}
+          onLogout={onLogout}
         />
       }
       drawer={
