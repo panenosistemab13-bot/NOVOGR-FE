@@ -92,6 +92,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     badge: 'Monitoramento'
   },
   { 
+    id: 'iscas', 
+    label: 'Iscas', 
+    buttonLabel: 'Iscas', 
+    category: 'Logística',
+    iconName: 'Package',
+    description: 'Gestão de iscas de monitoramento.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Iscas'
+  },
+  { 
     id: 'controle', 
     label: 'Controle', 
     buttonLabel: 'Gerais', 
@@ -103,17 +114,6 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     badge: 'Gerais'
   },
   { 
-    id: 'disponibilidade', 
-    label: 'Disponibilidade', 
-    buttonLabel: 'Frota Pátio', 
-    category: 'Operacional & Frota',
-    iconName: 'Truck',
-    description: 'Gestão de veículos disponíveis, colagem de planilha TSV e gerador de mensagem formatada para e-mail.',
-    isDefaultVisible: true,
-    isRestrictedByDefault: false,
-    badge: 'Pátio'
-  },
-  { 
     id: 'escala', 
     label: 'Escala', 
     buttonLabel: 'Conversor', 
@@ -123,6 +123,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     isDefaultVisible: true,
     isRestrictedByDefault: false,
     badge: 'Conversor'
+  },
+  { 
+    id: 'disponibilidade', 
+    label: 'Disponibilidade', 
+    buttonLabel: 'Frota Pátio', 
+    category: 'Operacional & Frota',
+    iconName: 'Truck',
+    description: 'Gestão de veículos disponíveis, colagem de planilha TSV e gerador de mensagem formatada para e-mail.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Pátio'
   },
   { 
     id: 'presence', 
@@ -145,17 +156,6 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     isDefaultVisible: false,
     isRestrictedByDefault: true,
     badge: 'Trajetos'
-  },
-  { 
-    id: 'iscas', 
-    label: 'Iscas', 
-    buttonLabel: 'Iscas', 
-    category: 'Logística',
-    iconName: 'Package',
-    description: 'Gestão de iscas de monitoramento.',
-    isDefaultVisible: true,
-    isRestrictedByDefault: false,
-    badge: 'Iscas'
   }
 ];
 
