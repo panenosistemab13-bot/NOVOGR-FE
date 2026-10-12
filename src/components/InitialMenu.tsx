@@ -152,7 +152,7 @@ export default function InitialMenu({
   };
 
   return (
-    <div className="w-full min-h-screen h-screen overflow-hidden flex items-center justify-center bg-[#090a0c] text-[#FAF7F0] font-sans relative select-none">
+    <div className="w-full min-h-screen h-screen overflow-hidden flex items-center justify-center bg-[#EFE8D8] text-[#33291B] font-sans relative select-none">
 
       {/* ========================================================================= */}
       {/* UNIFORMLY SCALED DESIGN CANVAS (1930px × 820px BASE CANVAS)               */}
@@ -177,7 +177,7 @@ export default function InitialMenu({
             top: 0,
             left: 0,
           }}
-          className="bg-[#121417] shadow-[0_20px_60px_rgba(0,0,0,0.4)] flex flex-col justify-between overflow-hidden"
+          className="bg-[#F5EFE4] shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col justify-between overflow-hidden"
         >
 
           {/* ===================================================================== */}

@@ -1604,74 +1604,63 @@ export default function Escala({ onBack }: EscalaProps) {
   const uniqueDestinations = Array.from(new Set(editableRows.map(r => r.destino).filter(Boolean)));
 
   return (
-    <div className="w-full max-w-full mx-auto p-3 sm:p-4 md:p-6 space-y-6 cinema-container-2160p bg-[#F5F0E6] text-[#25231F] min-h-screen rounded-3xl border border-[#EDE2CE] shadow-sm">
-      {/* 1. FAIXA DE TÍTULO PRINCIPAL (Premium Cinematic Header) */}
-      <div className="bg-[#FFFCF6] rounded-3xl p-6 shadow-sm border border-[#E6D2A3] relative overflow-hidden text-[#25231F]">
-        {/* Subtle decorative background detail */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#C49A45]/10 to-transparent rounded-full blur-2xl pointer-events-none" />
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="p-3 bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#292820] border border-[#E6D2A3] rounded-2xl transition-all cursor-pointer shadow-xs active:scale-95"
-                title="Voltar ao Menu"
-              >
-                <ChevronLeft size={22} className="stroke-[2.5]" />
-              </button>
-            )}
-            <div>
-              {/* Unboxed Metadata Header matching Zero-Pill rule */}
-              <div className="flex items-center gap-2 text-[11px] font-mono text-[#77736B] uppercase tracking-wider font-semibold mb-1.5">
-                <span className="flex items-center gap-1.5 text-[#C49A45] font-black">
-                  <FileSpreadsheet size={14} /> Módulo Escala 3C
-                </span>
-                <span>·</span>
-                <span>Transportador: 3C</span>
-                <span>·</span>
-                <span>Santa Luzia | MG</span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#292820] uppercase font-sans">
-                Gestão de Viagens & Escala 3C
-              </h1>
-              <p className="text-xs text-[#77736B] font-medium mt-1">
-                Alocação de motoristas, controle de apontamento de horários e geração de planilha de disponibilidade.
-              </p>
-            </div>
-          </div>
-
-          {/* Header Action Button */}
-          {activeTab === 'escala' && (
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={handleCopyToClipboard}
-                disabled={editableRows.length === 0}
-                className={cn(
-                  "px-6 py-3.5 rounded-2xl font-mono font-bold uppercase tracking-wider text-xs sm:text-sm shadow-xs transition-all cursor-pointer flex items-center gap-2.5 border",
-                  copiedStatus
-                    ? "bg-emerald-600 text-white border-emerald-700"
-                    : editableRows.length === 0
-                      ? "bg-[#EDE2CE] text-[#77736B] border-[#EDE2CE] cursor-not-allowed opacity-50"
-                      : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40 active:scale-95 shadow-md shadow-[#292820]/10"
-                )}
-              >
-                {copiedStatus ? (
-                  <>
-                    <Check size={18} className="stroke-[3]" />
-                    <span>Dados Copiados! (Sem Cabeçalho)</span>
-                  </>
-                ) : (
-                  <>
-                    <Clipboard size={18} className="text-[#C49A45]" />
-                    <span>Copiar para Planilha de Disponibilidade</span>
-                  </>
-                )}
-              </button>
-            </div>
+    <div className="w-full relative pb-10 space-y-4 font-sans text-[#25231F] text-left bg-[#F5F0E6] p-4 sm:p-6 rounded-3xl border border-[#E6D2A3] shadow-lg">
+      {/* 1. FAIXA DE TÍTULO PRINCIPAL (SMCreator Executive Banner) */}
+      <div className="relative w-full h-[68px] bg-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
+        <div className="relative z-10 flex items-center gap-3.5">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+              title="Voltar ao Menu"
+            >
+              <ChevronLeft size={18} className="stroke-[2.5]" />
+            </button>
           )}
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E6D2A3] to-[#C49A45] flex items-center justify-center text-[#25231F] shadow-sm shrink-0">
+            <FileSpreadsheet size={22} className="stroke-[2.5]" />
+          </div>
+          <div className="flex flex-col text-left leading-none">
+            <span className="text-[11px] font-black tracking-widest text-[#C49A45] uppercase font-mono">
+              GESTÃO DE VIAGENS • ESCALA 3C • 4K
+            </span>
+            <span className="text-[20px] sm:text-[22px] font-black tracking-tight text-[#FFFCF6] uppercase mt-0.5 font-heading">
+              CENTRAL DE ESCALA & DISPONIBILIDADE
+            </span>
+          </div>
         </div>
+
+        {/* Header Action Button */}
+        {activeTab === 'escala' && (
+          <div className="flex items-center gap-2 shrink-0 relative z-10">
+            <button
+              onClick={handleCopyToClipboard}
+              disabled={editableRows.length === 0}
+              className={cn(
+                "px-4 py-2 rounded-xl font-mono font-bold uppercase tracking-wider text-xs shadow-xs transition-all cursor-pointer flex items-center gap-2 border",
+                copiedStatus
+                  ? "bg-emerald-600 text-white border-emerald-700"
+                  : editableRows.length === 0
+                    ? "bg-[#1a1917]/50 text-stone-500 border-white/10 cursor-not-allowed opacity-50"
+                    : "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] border-[#C49A45]/50 active:scale-95 shadow-sm font-black"
+              )}
+            >
+              {copiedStatus ? (
+                <>
+                  <Check size={14} className="stroke-[3]" />
+                  <span>Copiado!</span>
+                </>
+              ) : (
+                <>
+                  <Clipboard size={14} className="text-[#25231F]" />
+                  <span className="hidden sm:inline">Copiar Disponibilidade</span>
+                  <span className="sm:hidden">Copiar</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
 
         {/* Tab Navigation Segmented Control matching ESCALA.png */}
         <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-[#EDE2CE]">
@@ -1801,7 +1790,6 @@ export default function Escala({ onBack }: EscalaProps) {
             </button>
           </div>
         </div>
-      </div>
 
       {/* Main Content Area */}
       {activeTab === 'escala' ? (

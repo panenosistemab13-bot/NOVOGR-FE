@@ -369,9 +369,9 @@ export function MasterModulePage({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. SUB-HEADER FILTER & ACTION CONTROLS ROW                                */}
+      {/* 2. SUB-HEADER FILTER & ACTION CONTROLS ROW (SMCreator Style)              */}
       {/* ========================================================================= */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-amber-50/50 p-2.5 rounded-2xl border border-[#ded5c6] shadow-sm shrink-0 relative">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#292820] p-3 rounded-2xl border border-[#C49A45]/40 shadow-md shrink-0 relative">
         
         {/* Primary CTA + Segmented Tabs */}
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar relative z-10">
@@ -379,7 +379,7 @@ export function MasterModulePage({
           {primaryCtaLabel && (
             <button
               onClick={onPrimaryCta}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-800 to-red-950 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer shrink-0 active:scale-95 border border-red-700"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-mono font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer shrink-0 active:scale-95 border border-[#C49A45]/50"
             >
               <Plus size={15} className="stroke-[3]" />
               <span>{primaryCtaLabel}</span>
@@ -387,14 +387,14 @@ export function MasterModulePage({
           )}
 
           {/* Segmented Filter Pills */}
-          <div className="flex items-center gap-1 bg-stone-200/50 p-1 rounded-xl border border-stone-300/40 shrink-0">
+          <div className="flex items-center gap-1 bg-[#1a1917] p-1 rounded-xl border border-[#C49A45]/30 shrink-0">
             <button
               onClick={() => setFilter('all')}
               className={cn(
-                "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap",
+                "px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer whitespace-nowrap",
                 filter === 'all'
-                  ? "bg-white text-stone-900 shadow-xs border border-stone-300"
-                  : "text-stone-600 hover:text-stone-900"
+                  ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black shadow-xs"
+                  : "text-[#E6D2A3] hover:bg-[#38372d]"
               )}
             >
               Todos
@@ -402,10 +402,10 @@ export function MasterModulePage({
             <button
               onClick={() => setFilter('concluido')}
               className={cn(
-                "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap",
+                "px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer whitespace-nowrap",
                 filter === 'concluido'
-                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs"
-                  : "text-stone-600 hover:text-stone-900"
+                  ? "bg-emerald-500 text-[#080A0C] font-black shadow-xs"
+                  : "text-[#E6D2A3] hover:bg-[#38372d]"
               )}
             >
               Concluídos
@@ -413,10 +413,10 @@ export function MasterModulePage({
             <button
               onClick={() => setFilter('pendente')}
               className={cn(
-                "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap",
+                "px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer whitespace-nowrap",
                 filter === 'pendente'
-                  ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-xs"
-                  : "text-stone-600 hover:text-stone-900"
+                  ? "bg-amber-400 text-[#080A0C] font-black shadow-xs"
+                  : "text-[#E6D2A3] hover:bg-[#38372d]"
               )}
             >
               Pendentes
@@ -424,10 +424,10 @@ export function MasterModulePage({
             <button
               onClick={() => setFilter('em_atraso')}
               className={cn(
-                "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap",
+                "px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer whitespace-nowrap",
                 filter === 'em_atraso'
-                  ? "bg-rose-100 text-rose-850 border border-rose-300 shadow-xs"
-                  : "text-stone-600 hover:text-stone-900"
+                  ? "bg-rose-500 text-white font-black shadow-xs"
+                  : "text-[#E6D2A3] hover:bg-[#38372d]"
               )}
             >
               Em atraso
@@ -439,8 +439,8 @@ export function MasterModulePage({
         {/* Right Search Input & Filters */}
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end relative z-10">
           
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100/60 border border-amber-300 text-amber-900 text-xs font-mono font-bold shadow-xs">
-            <CalendarIcon size={13} className="text-amber-800" />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1a1917] border border-[#C49A45]/40 text-[#E6D2A3] text-xs font-mono font-bold shadow-xs">
+            <CalendarIcon size={13} className="text-[#C49A45]" />
             <span>25/09/2026</span>
           </div>
 
@@ -487,15 +487,15 @@ export function MasterModulePage({
               <div
                 key={record.id}
                 onClick={() => onViewRecord && onViewRecord(record)}
-                className="w-full bg-white hover:bg-amber-50/30 border border-[#ded5c6] hover:border-[#dfb15b]/60 rounded-2xl p-2.5 sm:p-3 transition-all duration-300 shadow-sm hover:shadow flex flex-col md:flex-row items-center justify-between gap-3 cursor-pointer group relative overflow-hidden"
+                className="w-full bg-[#FFFCF6] hover:bg-[#F3EAD8] border border-[#E6D2A3] hover:border-[#C49A45]/70 rounded-2xl p-2.5 sm:p-3 transition-all duration-300 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3 cursor-pointer group relative overflow-hidden text-[#25231F]"
               >
                 {/* Lateral glowing indicator bar on hover */}
-                <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-[#0f172a] to-[#760914] scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
+                <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-[#E6D2A3] to-[#C49A45] scale-y-0 group-hover:scale-y-100 transition-transform duration-300" />
                 
                 {/* Col 1: Item Thumbnail & Title */}
                 <div className="flex items-center gap-3 w-full md:w-1/4 min-w-[200px] text-left pl-1">
                   {record.itemImage ? (
-                    <div className="w-12 h-10 rounded-xl overflow-hidden border border-[#ded5c6] bg-stone-100 shrink-0 shadow-xs">
+                    <div className="w-12 h-10 rounded-xl overflow-hidden border border-[#E6D2A3] bg-[#F5F0E6] shrink-0 shadow-xs">
                       <img
                         src={record.itemImage}
                         alt={record.itemTitle}
@@ -504,16 +504,16 @@ export function MasterModulePage({
                       />
                     </div>
                   ) : (
-                    <div className="w-12 h-10 rounded-xl bg-gradient-to-br from-red-800 to-red-950 text-white flex items-center justify-center shrink-0 shadow-xs border border-red-700">
-                      <Truck size={18} className="group-hover:scale-110 transition-transform" />
+                    <div className="w-12 h-10 rounded-xl bg-[#292820] text-[#E6D2A3] flex items-center justify-center shrink-0 shadow-xs border border-[#C49A45]/40">
+                      <Truck size={18} className="group-hover:scale-110 transition-transform text-[#C49A45]" />
                     </div>
                   )}
 
                   <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-black text-stone-900 uppercase truncate tracking-tight font-mono group-hover:text-red-700 transition-colors">
+                    <span className="text-xs font-black text-[#25231F] uppercase truncate tracking-tight font-mono group-hover:text-[#C49A45] transition-colors">
                       {record.itemTitle}
                     </span>
-                    <span className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
+                    <span className="text-[10px] text-[#77736B] font-medium truncate mt-0.5">
                       {record.itemSubtitle || 'Operação Regular'}
                     </span>
                   </div>

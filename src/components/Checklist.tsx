@@ -751,7 +751,7 @@ export default function Checklist() {
   const totalOsPendentes = items.filter(i => (i.osStatus || 'PENDENTE') === 'PENDENTE').length;
 
   return (
-    <div className="w-full flex flex-col min-h-screen relative p-1 sm:p-3 md:p-4 pb-16 font-sans space-y-6 text-[#F4F0E8]">
+    <div className="w-full relative pb-10 space-y-4 font-sans text-[#25231F] text-left bg-[#F5F0E6] p-4 sm:p-6 rounded-3xl border border-[#E6D2A3] shadow-lg">
 
       {/* Toast de Notificação */}
       {notification.show && (
@@ -774,40 +774,33 @@ export default function Checklist() {
         </div>
       )}
 
-      {/* Painel Operacional Principal (Dark Luxury & Gold) */}
-      <div className="w-full bg-[#0D1012]/95 backdrop-blur-xl rounded-3xl p-4 sm:p-6 relative flex flex-col gap-5 border border-[#C9973E]/20 shadow-[0_16px_40px_rgba(0,0,0,0.7)] text-[#F4F0E8]">
+      {/* Painel Operacional Principal (SMCreator Style) */}
+      <div className="w-full bg-[#FFFCF6] rounded-3xl p-4 sm:p-6 relative flex flex-col gap-5 border border-[#E6D2A3] shadow-sm text-[#25231F]">
         
-        {/* Top Area: Módulo Integrado de Vistoria e Manutenção Banner */}
-        <div className="flex flex-col lg:flex-row gap-5 items-start lg:items-center justify-between bg-gradient-to-r from-[#080A0C] via-[#131619] to-[#1C160F] p-4 sm:p-5 rounded-2xl border border-[#C9973E]/30 text-white shadow-lg relative overflow-hidden">
-          <div className="flex items-center gap-3.5 relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-[#C9973E]/15 backdrop-blur-md text-[#E5C27A] flex items-center justify-center shadow-md border border-[#C9973E]/40 shrink-0">
-              <ClipboardCheck size={26} className="text-[#E5C27A]" />
+        {/* Top Area: Módulo Integrado de Vistoria e Manutenção Banner (SMCreator Executive Banner) */}
+        <div className="relative w-full h-[68px] bg-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
+          <div className="relative z-10 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E6D2A3] to-[#C49A45] flex items-center justify-center text-[#25231F] shadow-sm shrink-0">
+              <ClipboardCheck size={22} className="stroke-[2.5]" />
             </div>
             <div className="text-left leading-tight">
-              <span className="text-[10px] font-mono font-black text-[#D9AD5A] uppercase tracking-wider block">
-                // MÓDULO INTEGRADO DE VISTORIA E MANUTENÇÃO
+              <span className="text-[11px] font-mono font-black text-[#C49A45] uppercase tracking-widest block">
+                MÓDULO INTEGRADO DE VISTORIA • 4K
               </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight font-heading mt-0.5">
-                CHECKLIST DE FROTA: <span className="text-[#E5C27A]">{totalVeiculos} VEÍCULOS</span> / <span className="text-emerald-400">{totalEmDia} EM DIA</span>
+              <h2 className="text-lg sm:text-[20px] font-black text-[#FFFCF6] uppercase tracking-tight font-heading mt-0.5">
+                CHECKLIST DE FROTA: <span className="text-[#C49A45]">{totalVeiculos} VEÍCULOS</span> / <span className="text-emerald-400">{totalEmDia} EM DIA</span>
               </h2>
             </div>
           </div>
 
-          <div className="hidden xl:block max-w-md text-white/90 font-serif italic text-xs leading-snug relative z-10 text-left">
-            “O checklist diário é o controle rigoroso da frota e garante a integridade e a segurança de cada viagem na estrada.”
-          </div>
-
-          <div className="shrink-0 flex items-center gap-2 bg-black/20 backdrop-blur-md text-white border border-white/20 px-3.5 py-2 rounded-xl shadow-xs text-xs font-sans relative z-10">
-            <Coffee size={15} className="text-[#ffd54f]" />
-            <div className="leading-tight text-left">
-              <span className="font-bold block text-[11px]">Feito com paixão.</span>
-              <span className="text-[9px] text-white/80 block">Pela sua jornada</span>
-            </div>
+          <div className="shrink-0 hidden md:flex items-center gap-2 bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/40 px-3.5 py-1.5 rounded-xl shadow-xs text-xs font-mono relative z-10">
+            <Coffee size={14} className="text-[#C49A45]" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">LOGÍSTICA 3C</span>
           </div>
         </div>
 
-        {/* Sub-Aba Navigation Bar & Stat Pills */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#C9973E]/20 pb-3">
+        {/* Sub-Aba Navigation Bar & Stat Pills (SMCreator Luxury Gold & Dark) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6D2A3] pb-3">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -815,17 +808,17 @@ export default function Checklist() {
               className={cn(
                 "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
                 activeView === 'monitoring'
-                  ? "bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] text-[#080A0C] font-black shadow-[0_4px_16px_rgba(201,151,62,0.35)] border border-[#E5C27A]"
-                  : "bg-[#131619] hover:bg-[#1C2023] text-[#A8A39A] hover:text-[#FFFFFF] border border-white/10"
+                  ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border border-[#C49A45]/50 shadow-sm"
+                  : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40"
               )}
             >
-              <ClipboardCheck size={14} />
+              <ClipboardCheck size={14} className={activeView === 'monitoring' ? 'text-[#25231F]' : 'text-[#C49A45]'} />
               <span>1. PRANCHETA DE CHECKLIST</span>
               <span className={cn(
                 "ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-black",
                 activeView === 'monitoring'
-                  ? "bg-[#080A0C] text-[#E5C27A]"
-                  : "bg-[#C9973E]/20 text-[#E5C27A]"
+                  ? "bg-[#292820] text-[#E6D2A3]"
+                  : "bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/30"
               )}>
                 {totalVeiculos}
               </span>
@@ -837,17 +830,17 @@ export default function Checklist() {
               className={cn(
                 "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
                 activeView === 'os'
-                  ? "bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] text-[#080A0C] font-black shadow-[0_4px_16px_rgba(201,151,62,0.35)] border border-[#E5C27A]"
-                  : "bg-[#131619] hover:bg-[#1C2023] text-[#A8A39A] hover:text-[#FFFFFF] border border-white/10"
+                  ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border border-[#C49A45]/50 shadow-sm"
+                  : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40"
               )}
             >
-              <FileText size={14} />
+              <FileText size={14} className={activeView === 'os' ? 'text-[#25231F]' : 'text-[#C49A45]'} />
               <span>2. ORDENS DE SERVIÇO (OS)</span>
               <span className={cn(
                 "ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
                 activeView === 'os'
-                  ? "bg-[#080A0C] text-[#E5C27A]"
-                  : "bg-white/10 text-white"
+                  ? "bg-[#292820] text-[#E6D2A3]"
+                  : "bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/30"
               )}>
                 {totalOsPendentes}
               </span>
@@ -859,19 +852,19 @@ export default function Checklist() {
               className={cn(
                 "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
                 activeView === 'generator'
-                  ? "bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] text-[#080A0C] font-black shadow-[0_4px_16px_rgba(201,151,62,0.35)] border border-[#E5C27A]"
-                  : "bg-[#131619] hover:bg-[#1C2023] text-[#A8A39A] hover:text-[#FFFFFF] border border-white/10"
+                  ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border border-[#C49A45]/50 shadow-sm"
+                  : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40"
               )}
             >
-              <Mail size={14} />
+              <Mail size={14} className={activeView === 'generator' ? 'text-[#25231F]' : 'text-[#C49A45]'} />
               <span>3. SOLICITAÇÃO DE CHECKLIST</span>
             </button>
           </div>
 
           {/* Stat Pills on the right */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-[#131619] border border-[#C9973E]/30 text-[#F4F0E8] text-xs font-mono font-bold shadow-xs">
-              FROTA TOTAL: <strong className="text-[#E5C27A]">{totalVeiculos}</strong>
+            <span className="px-3 py-1 rounded-full bg-[#292820] border border-[#C49A45]/40 text-[#E6D2A3] text-xs font-mono font-bold shadow-xs">
+              FROTA TOTAL: <strong className="text-[#FFFCF6]">{totalVeiculos}</strong>
             </span>
             <span className="px-3 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold shadow-xs">
               EM DIA: {totalEmDia}
@@ -888,18 +881,18 @@ export default function Checklist() {
               <button
                 type="button"
                 onClick={() => setShowPasteModal(true)}
-                className="bg-[#171A1C] hover:bg-[#202428] border border-[#C9973E]/30 text-[#E5C27A] text-[11px] font-mono font-bold uppercase py-1.5 px-3 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="bg-[#292820] hover:bg-[#38372d] border border-[#C49A45]/40 text-[#E6D2A3] text-[11px] font-mono font-black uppercase py-1.5 px-3 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors active:scale-95"
                 title="Colar planilha Excel"
               >
-                <Clipboard size={12} className="text-[#E5C27A]" />
+                <Clipboard size={12} className="text-[#C49A45]" />
                 <span>Colar</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsAdding(true)}
-                className="bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] hover:brightness-110 text-[#080A0C] font-black text-[11px] font-mono uppercase py-1.5 px-3 rounded-xl shadow-md flex items-center gap-1 cursor-pointer transition-all"
+                className="bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] font-black text-[11px] font-mono uppercase py-1.5 px-3 rounded-xl shadow-sm flex items-center gap-1 cursor-pointer transition-all active:scale-95"
               >
-                <Plus size={12} />
+                <Plus size={12} className="stroke-[3]" />
                 <span>Novo</span>
               </button>
             </div>
@@ -910,16 +903,16 @@ export default function Checklist() {
             {activeView === 'monitoring' && (
               <div className="flex flex-col gap-4">
                 
-                {/* Search / Filter Bar */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#131619] p-3 rounded-2xl border border-[#C9973E]/20 shadow-md">
+                {/* Search / Filter Bar (SMCreator Style) */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#292820] p-3 rounded-2xl border border-[#C49A45]/40 shadow-md">
                   <div className="relative flex-1 w-full">
-                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A39A]" />
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#C49A45]" />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Pesquisar por placa, condutor, carretas, prefixo ou observação..."
-                      className="w-full pl-9 pr-3 py-2 bg-[#080A0C] border border-[#C9973E]/25 rounded-xl text-xs font-mono font-medium text-white placeholder-[#7A756D] focus:outline-none focus:border-[#D9AD5A] shadow-inner uppercase"
+                      className="w-full pl-9 pr-3 py-2 bg-[#1a1917] border border-[#C49A45]/40 rounded-xl text-xs font-mono font-medium text-[#FFFCF6] placeholder-[#8A857D] focus:outline-none focus:border-[#E6D2A3] shadow-inner uppercase"
                     />
                   </div>
 
@@ -933,8 +926,8 @@ export default function Checklist() {
                         className={cn(
                           "px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer border shadow-xs",
                           filter === f
-                            ? "bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black border-[#E5C27A] shadow-[0_2px_12px_rgba(201,151,62,0.35)]"
-                            : "bg-[#171A1C] text-[#A8A39A] border-white/10 hover:text-white hover:bg-[#202428]"
+                            ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border-[#C49A45]/50 shadow-xs"
+                            : "bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/30 hover:bg-[#38372d] hover:text-[#FFFCF6]"
                         )}
                       >
                         {f}
@@ -942,45 +935,45 @@ export default function Checklist() {
                     ))}
                   </div>
 
-                  <div className="text-right shrink-0 flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/20 px-3 py-1.5 rounded-xl">
-                    <Clock size={13} className="text-[#E5C27A]" />
-                    <span className="text-[11px] font-mono font-bold text-[#A8A39A]">
-                      EXIBINDO VEÍCULOS <strong className="text-[#E5C27A]">{filteredItems.length}</strong> de {items.length}
+                  <div className="text-right shrink-0 flex items-center gap-2 bg-[#1a1917] border border-[#C49A45]/40 px-3 py-1.5 rounded-xl">
+                    <Clock size={13} className="text-[#C49A45]" />
+                    <span className="text-[11px] font-mono font-bold text-[#E6D2A3]">
+                      EXIBINDO VEÍCULOS <strong className="text-[#FFFCF6]">{filteredItems.length}</strong> de {items.length}
                     </span>
                   </div>
                 </div>
 
-                {/* Tabela Oficial Executiva Presidente */}
-                <div className="rounded-2xl border border-[#C9973E]/20 overflow-hidden shadow-xl bg-[#131619]">
+                {/* Tabela Oficial Executiva Presidente (SMCreator Style) */}
+                <div className="rounded-2xl border border-[#E6D2A3] overflow-hidden shadow-sm bg-[#FFFCF6] text-[#25231F]">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[960px]">
                       <thead>
-                        <tr className="bg-gradient-to-r from-[#080A0C] via-[#101214] to-[#1C160F] text-[#E5C27A] border-b border-[#C9973E]/30">
-                          <th className="py-3 px-3 w-10 text-center font-mono font-bold uppercase tracking-wider text-[11px]">
+                        <tr className="bg-[#292820] text-[#FFFCF6] border-b border-[#C49A45]/40">
+                          <th className="py-3 px-3 w-10 text-center font-mono font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">
                             #
                           </th>
-                          <th className="py-3 px-3.5 font-mono font-bold uppercase tracking-wider text-[11px]">
+                          <th className="py-3 px-3.5 font-mono font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">
                             Placa Cavalo
                           </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px]">
+                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">
                             Conjunto / Carretas
                           </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">
+                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
                             Status
                           </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">
+                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
                             Data Teste
                           </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">
+                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
                             Validade
                           </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">
+                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
                             Periférico / O.S
                           </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">
+                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
                             PDFs
                           </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-right pr-4">
+                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-right pr-4 text-[#E6D2A3]">
                             Ações
                           </th>
                         </tr>
@@ -1017,14 +1010,14 @@ export default function Checklist() {
                                 className={cn(
                                   "transition-colors group",
                                   isVencido 
-                                    ? "bg-red-950/20 hover:bg-red-950/35" 
+                                    ? "bg-rose-50/70 hover:bg-rose-100/70 border-b border-[#E6D2A3]/40" 
                                     : isAVencer 
-                                    ? "bg-amber-950/20 hover:bg-amber-950/35" 
-                                    : "hover:bg-white/[0.03]"
+                                    ? "bg-amber-50/70 hover:bg-amber-100/70 border-b border-[#E6D2A3]/40" 
+                                    : "hover:bg-[#F3EAD8] border-b border-[#E6D2A3]/40"
                                 )}
                               >
                                 {/* Index */}
-                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-[#7A756D]">
+                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-[#25231F]">
                                   {index + 1}
                                 </td>
 
@@ -1037,12 +1030,12 @@ export default function Checklist() {
                                 <td className="py-2.5 px-3">
                                   {item.carretas ? (
                                     <div className="flex items-center gap-1.5">
-                                      <span className="bg-[#080A0C] text-[#F4F0E8] px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border border-[#C9973E]/20">
+                                      <span className="bg-[#292820] text-[#E6D2A3] px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border border-[#C49A45]/40 shadow-xs">
                                         {item.carretas}
                                       </span>
                                     </div>
                                   ) : (
-                                    <span className="text-[#7A756D] italic text-[11px]">Sem carreta</span>
+                                    <span className="text-[#8A857D] italic text-[11px]">Sem carreta</span>
                                   )}
                                 </td>
 
@@ -1246,8 +1239,8 @@ export default function Checklist() {
                         className={cn(
                           "px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer border shadow-xs",
                           osStatusFilter === st
-                            ? "bg-[#181a1f] text-white border-stone-800"
-                            : "bg-white text-stone-600 border-[#d6ccbe] hover:text-stone-900 hover:bg-stone-100"
+                            ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border-[#C49A45]/50 shadow-xs"
+                            : "bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/30 hover:bg-[#38372d]"
                         )}
                       >
                         {st}
@@ -1256,23 +1249,23 @@ export default function Checklist() {
                   </div>
                 </div>
 
-                {/* Tabela de Ordens de Serviço */}
-                <div className="rounded-2xl border border-[#d6ccbe] overflow-hidden shadow-xs bg-white">
+                {/* Tabela de Ordens de Serviço (SMCreator Style) */}
+                <div className="rounded-2xl border border-[#E6D2A3] overflow-hidden shadow-sm bg-[#FFFCF6] text-[#25231F]">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[960px]">
                       <thead>
-                        <tr className="bg-[#fbf7ee] text-stone-700 border-b border-[#e7dac9]">
-                          <th className="py-3 px-3 w-10 text-center font-mono font-bold uppercase tracking-wider text-[11px]">#</th>
-                          <th className="py-3 px-3.5 font-mono font-bold uppercase tracking-wider text-[11px]">Placa do Cavalo</th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">Número da O.S</th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">Data Agendamento</th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">Dias Restantes</th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">Status da O.S</th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center">Checklist Feito</th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-right pr-4">Ações</th>
+                        <tr className="bg-[#292820] text-[#FFFCF6] border-b border-[#C49A45]/40 font-mono text-xs">
+                          <th className="py-3 px-3 w-10 text-center font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">#</th>
+                          <th className="py-3 px-3.5 font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">Placa do Cavalo</th>
+                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Número da O.S</th>
+                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Data Agendamento</th>
+                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Dias Restantes</th>
+                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Status da O.S</th>
+                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Checklist Feito</th>
+                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-right pr-4 text-[#E6D2A3]">Ações</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#eee7dc]">
+                      <tbody className="divide-y divide-[#E6D2A3]/50">
                         {items.filter(item => {
                           const term = osSearchTerm.toLowerCase().trim();
                           const matchesSearch = !term || 

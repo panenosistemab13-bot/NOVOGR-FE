@@ -103,17 +103,6 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     badge: 'Gerais'
   },
   { 
-    id: 'escala', 
-    label: 'Escala', 
-    buttonLabel: 'Conversor', 
-    category: 'Operacional & Frota',
-    iconName: 'FileSpreadsheet',
-    description: 'Conversor de escala para formato de planilha de Disponibilidade do Pátio (30 colunas).',
-    isDefaultVisible: true,
-    isRestrictedByDefault: false,
-    badge: 'Conversor'
-  },
-  { 
     id: 'disponibilidade', 
     label: 'Disponibilidade', 
     buttonLabel: 'Frota Pátio', 
@@ -123,6 +112,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     isDefaultVisible: true,
     isRestrictedByDefault: false,
     badge: 'Pátio'
+  },
+  { 
+    id: 'escala', 
+    label: 'Escala', 
+    buttonLabel: 'Conversor', 
+    category: 'Operacional & Frota',
+    iconName: 'FileSpreadsheet',
+    description: 'Conversor de escala para formato de planilha de Disponibilidade do Pátio (30 colunas).',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Conversor'
   },
   { 
     id: 'presence', 
@@ -145,6 +145,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     isDefaultVisible: false,
     isRestrictedByDefault: true,
     badge: 'Trajetos'
+  },
+  { 
+    id: 'iscas', 
+    label: 'Iscas', 
+    buttonLabel: 'Iscas', 
+    category: 'Logística',
+    iconName: 'Package',
+    description: 'Gestão de iscas de monitoramento.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Iscas'
   }
 ];
 

@@ -6,7 +6,8 @@ import {
   MapPin,
   ShieldCheck,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Menu
 } from 'lucide-react';
 
 interface PremiumHeaderProps {
@@ -17,18 +18,34 @@ interface PremiumHeaderProps {
   onOpenWallpaper?: () => void;
   onLogout?: () => void;
   isWallpaperOpen?: boolean;
+  onToggleDrawer?: () => void;
 }
 
 export default function PremiumHeader({ 
   onNavigateHome, 
   onOpenWallpaper,
   onLogout,
-  isWallpaperOpen
+  isWallpaperOpen,
+  onToggleDrawer
 }: PremiumHeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [loggedUser, setLoggedUser] = useState({ name: 'Carregando...', role: 'Administrador' });
 
   useEffect(() => {
+    // Import auth here or pass it as prop, but I'll import it
+    import('../../firebase').then(({ auth }) => {
+      const user = auth.currentUser;
+      if (user) {
+        setLoggedUser({
+          name: user.displayName || 'Usuário',
+          role: 'Administrador'
+        });
+      } else {
+        setLoggedUser({ name: 'Usuário', role: 'Administrador' });
+      }
+    });
+
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -58,7 +75,17 @@ export default function PremiumHeader({
       {/* ------------------------------------------------------------- */}
       {/* LEFT: 3 CORAÇÕES LOGO EMBLEM + CENTRAL GR + SANTA LUZIA - MG  */}
       {/* ------------------------------------------------------------- */}
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex items-center gap-3 shrink-0">
+        <button
+          type="button"
+          onClick={onToggleDrawer}
+          aria-label="Abrir Menu Operacional"
+          title="Abrir Menu Operacional"
+          className="w-10 h-10 rounded-xl bg-[#121A26] hover:bg-[#172231] text-[#D6A84F] hover:text-white border border-[#D6A84F]/35 hover:border-[#D6A84F]/70 shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95 group shrink-0"
+        >
+          <Menu size={20} className="stroke-[2.3] transition-transform group-hover:scale-105" />
+        </button>
+
         <div 
           onClick={onNavigateHome}
           className="flex items-center gap-3.5 cursor-pointer group"
@@ -176,11 +203,11 @@ export default function PremiumHeader({
             </div>
             <div className="hidden md:flex flex-col text-left leading-none">
               <span className="text-[11.5px] font-black text-white uppercase tracking-tight group-hover:text-[#e5c27a] transition-colors">
-                Jefferson
+                {loggedUser.name}
               </span>
               <span className="text-[8.5px] font-semibold text-stone-400 mt-0.5 flex items-center gap-1">
                 <ShieldCheck size={10} className="text-[#e5c27a]" />
-                Administrador
+                {loggedUser.role}
               </span>
             </div>
             <ChevronDown size={13} className="text-stone-400 group-hover:text-[#e5c27a] transition-transform ml-0.5" />
@@ -201,8 +228,8 @@ export default function PremiumHeader({
                     <User size={16} />
                   </div>
                   <div className="flex flex-col text-left leading-tight truncate">
-                    <span className="text-xs font-black uppercase text-white truncate">Jefferson</span>
-                    <span className="text-[9px] font-bold text-[#C5A059] uppercase">Administrador (jeff)</span>
+                    <span className="text-xs font-black uppercase text-white truncate">{loggedUser.name}</span>
+                    <span className="text-[9px] font-bold text-[#C5A059] uppercase">{loggedUser.role}</span>
                     <span className="text-[8px] font-mono text-stone-400 truncate mt-0.5">Sessão ativa</span>
                   </div>
                 </div>

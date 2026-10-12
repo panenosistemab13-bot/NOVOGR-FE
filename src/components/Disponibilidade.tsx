@@ -203,6 +203,36 @@ interface DisponibilidadeProps {
   onBack?: () => void;
 }
 
+const renderYesNoCell = (val: string) => {
+  const upper = (val || '').toUpperCase().trim();
+  if (upper === 'SIM' || upper.includes('SIM')) {
+    return (
+      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-[11px] w-full shadow-xs">
+        {val || 'SIM'}
+      </span>
+    );
+  }
+  if (upper === 'NÃO' || upper === 'NAO' || upper.includes('NÃO') || upper.includes('NAO')) {
+    return (
+      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 border border-rose-300 font-bold text-[11px] w-full shadow-xs">
+        {val || 'NÃO'}
+      </span>
+    );
+  }
+  return <span className="text-slate-700 font-mono text-[11px]">{val || '---'}</span>;
+};
+
+const getYesNoHtml = (val: string) => {
+  const upper = (val || '').toUpperCase().trim();
+  if (upper === 'SIM' || upper.includes('SIM')) {
+    return `<span style="font-family: sans-serif; font-weight: bold; background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 4px; display: inline-block; border: 1px solid #a7f3d0;">${val || 'SIM'}</span>`;
+  }
+  if (upper === 'NÃO' || upper === 'NAO' || upper.includes('NÃO') || upper.includes('NAO')) {
+    return `<span style="font-family: sans-serif; font-weight: bold; background-color: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fecaca;">${val || 'NÃO'}</span>`;
+  }
+  return `<span style="font-family: sans-serif; font-weight: bold;">${val || '---'}</span>`;
+};
+
 export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
   const [tsvInput, setTsvInput] = useState('');
   const [rows, setRows] = useState<DisponibilidadeRow[]>(() => parseDisponibilidadeTsv(SAMPLE_TSV_DATA));
@@ -325,98 +355,109 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
       const categoriaColor = isFrota ? '#2563eb' : isAgregado ? '#dc2626' : '#1e293b';
 
       return `
-        <tr style="background-color: #fdfbf7; font-size: 11px; font-weight: 500; text-align: center;">
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-weight: bold;">${r.itemNum || idx + 1}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; color: ${origemColor}; font-weight: bold;">${r.origem}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.dia}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.data}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.contatoWhats}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.horaLiberado}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; white-space: nowrap; background-color: #d1fae5; color: #065f46; font-size: 10px; font-weight: bold;">
+        <tr style="background-color: #fdfbf7; font-size: 11px; font-family: sans-serif; font-weight: bold; text-align: center;">
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.itemNum || idx + 1}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; color: ${origemColor}; font-family: sans-serif; font-weight: bold;">${r.origem}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.dia}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.data}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.contatoWhats}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.horaLiberado}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; white-space: nowrap; background-color: #d1fae5; color: #065f46; font-size: 10px; font-family: sans-serif; font-weight: bold;">
             ${r.status.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()}
           </td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.modeloCarreta}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.modeloCavalo}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; white-space: nowrap; background-color: #d1fae5; color: #065f46; font-size: 10px; font-weight: bold;">
-            ✓ ${r.fezContato || 'SIM'}
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.modeloCarreta}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.modeloCavalo}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">
+            ${getYesNoHtml(r.fezContato || 'SIM')}
           </td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-weight: bold;">${r.destino}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-weight: bold;">${r.transportador}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: monospace;">${r.cavalo}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: monospace;">${r.carreta}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.numPallets}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.pbtTon}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; color: #2563eb; font-weight: bold;">${r.m3}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; color: ${categoriaColor}; font-weight: bold;">${r.categoria}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.tecnologia}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; text-align: left; font-weight: bold;">${r.condutor}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.cpf}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.rgSap}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.cnh}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.telefone}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.vigenciaCadastro}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.codTransportadora}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.idCargaLacre}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.estadoMotorista}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.estadoCavalo}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.estadoCarreta}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.tresCargo}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.carregou}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd;">${r.termo}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; color: #dc2626; font-weight: bold;">${r.valorNf}</td>
-          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-weight: bold;">${r.operacao}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.destino}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.transportador}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.cavalo}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.carreta}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.numPallets}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.pbtTon}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold; color: #2563eb;">${r.m3}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold; color: ${categoriaColor};">${r.categoria}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.tecnologia}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold; text-align: left;">${r.condutor}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.cpf}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.rgSap}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.cnh}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.telefone}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.vigenciaCadastro}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.codTransportadora}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.idCargaLacre}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.estadoMotorista}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.estadoCavalo}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.estadoCarreta}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">
+            ${getYesNoHtml(r.tresCargo)}
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">
+            ${getYesNoHtml(r.carregou)}
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">
+            ${getYesNoHtml(r.termo)}
+          </td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold; color: #dc2626;">${r.valorNf}</td>
+          <td style="padding: 8px 12px; border: 1px solid #e2d9cd; font-family: sans-serif; font-weight: bold;">${r.operacao}</td>
         </tr>
       `;
     }).join('');
 
     const fullHtml = `
-      <div style="font-family: 'Inter', system-ui, Arial, sans-serif; color: #1e293b; font-size: 13px; line-height: 1.6; background-color: #f8fafc; padding: 20px;">
-        <p style="margin: 0 0 6px 0; font-weight: 600; color: #0f172a;">Prezados, boa tarde!</p>
-        <p style="margin: 0 0 6px 0; font-weight: 600; color: #0f172a;">Segue a disponibilidade de veículos.</p>
-        <p style="margin: 0 0 16px 0;">
-          <span style="background-color: #fef2f2; color: #991b1b; font-weight: bold; padding: 5px 12px; border-radius: 8px; display: inline-block; border: 1px solid #fecaca;">
+      <div style="font-family: sans-serif; font-weight: bold; color: #1e293b; font-size: 13px; line-height: 1.6; background-color: #f8fafc; padding: 20px;">
+        <p style="margin: 0 0 6px 0; font-family: sans-serif; font-weight: bold; color: #0f172a;">Prezados, ${(() => {
+          const hour = new Date().getHours();
+          if (hour >= 0 && hour < 12) return 'bom dia!';
+          if (hour >= 12 && hour < 18) return 'boa tarde!';
+          return 'boa noite!';
+        })()}</p>
+        <p style="margin: 0 0 6px 0; font-family: sans-serif; font-weight: bold; color: #0f172a;">Segue a disponibilidade de veículos.</p>
+        <p style="margin: 0 0 16px 0; font-family: sans-serif; font-weight: bold;">
+          <span style="font-family: sans-serif; font-weight: bold; background-color: #fef2f2; color: #991b1b; padding: 5px 12px; border-radius: 8px; display: inline-block; border: 1px solid #fecaca;">
             ⚠️ Favor ficarem atentos à origem de cada carregamento.
           </span>
         </p>
 
-        <table style="border-collapse: collapse; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 10px; border: 1px solid #cbd5e1;">
+        <table style="border-collapse: collapse; width: 100%; font-family: sans-serif; font-weight: bold; font-size: 10px; border: 1px solid #cbd5e1;">
           <thead>
-            <tr style="background-color: #0f172a; color: #ffffff; font-weight: bold; text-transform: uppercase; text-align: center;">
-              <th style="padding: 12px; border: 1px solid #334155;">#</th>
-              <th style="padding: 12px; border: 1px solid #334155;">ORIGEM</th>
-              <th style="padding: 12px; border: 1px solid #334155;">DIA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">DATA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CONTATO WHATS</th>
-              <th style="padding: 12px; border: 1px solid #334155;">HORA LIBERADO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">STATUS</th>
-              <th style="padding: 12px; border: 1px solid #334155;">MODELO CARRETA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">MODELO CAVALO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">FEZ CONTATO?</th>
-              <th style="padding: 12px; border: 1px solid #334155;">DESTINO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">TRANSPORTADOR</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CAVALO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CARRETA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">Nº PALLETS</th>
-              <th style="padding: 12px; border: 1px solid #334155;">PBT (TON)</th>
-              <th style="padding: 12px; border: 1px solid #334155;">M³</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CATEGORIA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">TECNOLOGIA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CONDUTOR</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CPF</th>
-              <th style="padding: 12px; border: 1px solid #334155;">RG / SAP</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CNH</th>
-              <th style="padding: 12px; border: 1px solid #334155;">TELEFONE</th>
-              <th style="padding: 12px; border: 1px solid #334155;">VIGENCIA DO CADASTRO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CODIGO DA TRANSPORTADORA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">ID DA CARGA / LACRE EXPORTAÇÃO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">ESTADO MOTORISTA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">ESTADO CAVALO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">ESTADO CARRETA</th>
-              <th style="padding: 12px; border: 1px solid #334155;">3 CARGO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">CARREGOU ?</th>
-              <th style="padding: 12px; border: 1px solid #334155;">TERMO</th>
-              <th style="padding: 12px; border: 1px solid #334155;">VALOR NF</th>
-              <th style="padding: 12px; border: 1px solid #334155;">OPERAÇÃO</th>
+            <tr style="background-color: #0f172a; color: #ffffff; font-family: sans-serif; font-weight: bold; text-transform: uppercase; text-align: center;">
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">#</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">ORIGEM</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">DIA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">DATA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CONTATO WHATS</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">HORA LIBERADO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">STATUS</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">MODELO CARRETA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">MODELO CAVALO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">FEZ CONTATO?</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">DESTINO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">TRANSPORTADOR</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CAVALO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CARRETA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">Nº PALLETS</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">PBT (TON)</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">M³</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CATEGORIA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">TECNOLOGIA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CONDUTOR</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CPF</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">RG / SAP</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CNH</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">TELEFONE</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">VIGENCIA DO CADASTRO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CODIGO DA TRANSPORTADORA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">ID DA CARGA / LACRE EXPORTAÇÃO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">ESTADO MOTORISTA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">ESTADO CAVALO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">ESTADO CARRETA</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">3 CARGO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">CARREGOU ?</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">TERMO</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">VALOR NF</th>
+              <th style="padding: 12px; border: 1px solid #334155; font-family: sans-serif; font-weight: bold;">OPERAÇÃO</th>
             </tr>
           </thead>
           <tbody>
@@ -426,7 +467,13 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
       </div>
     `.trim();
 
-    const plainText = `Prezados, boa tarde!\n\nSegue a disponibilidade de veículos.\n\nFavor ficarem atentos à origem de cada carregamento.\n\n[Tabela de Disponibilidade com ${filteredRows.length} veículos]`;
+    const greeting = (() => {
+      const hour = new Date().getHours();
+      if (hour >= 0 && hour < 12) return 'bom dia!';
+      if (hour >= 12 && hour < 18) return 'boa tarde!';
+      return 'boa noite!';
+    })();
+    const plainText = `Prezados, ${greeting}\n\nSegue a disponibilidade de veículos.\n\nFavor ficarem atentos à origem de cada carregamento.\n\n[Tabela de Disponibilidade com ${filteredRows.length} veículos]`;
 
     const success = await safeCopyHtmlAndText(fullHtml, plainText);
     if (success) {
@@ -459,42 +506,39 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
       <div className="w-full max-w-full mx-auto space-y-6">
         
         {/* ========================================================================= */}
-        {/* ENTERPRISE HEADER BANNER (Dark Luxury & Gold)                            */}
+        {/* EXECUTIVE DASHBOARD GRAPHIC (CENTRAL DE DISPONIBILIDADE • 4K)             */}
         {/* ========================================================================= */}
-        <div className="w-full bg-[#FFFCF6] text-[#25231F] p-6 sm:p-8 rounded-3xl shadow-sm border border-[#E6D2A3] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-96 h-96 bg-[#C49A45]/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="space-y-1.5 text-left relative z-10">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono font-black text-[#292820] uppercase tracking-widest flex items-center gap-1.5 bg-[#EDE2CE] px-3.5 py-1 rounded-full border border-[#E6D2A3]">
-                <Truck size={14} className="text-[#C49A45]" />
-                CENTRAL GR 3 CORAÇÕES • GESTÃO DE PÁTIO EMPRESARIAL
+        <div className="relative w-full h-[68px] bg-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
+          <div className="relative z-10 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E6D2A3] to-[#C49A45] flex items-center justify-center text-[#25231F] shadow-sm shrink-0">
+              <Truck size={22} className="stroke-[2.5]" />
+            </div>
+            <div className="flex flex-col text-left leading-none">
+              <span className="text-[11px] font-black tracking-widest text-[#C49A45] uppercase font-mono">
+                CENTRAL GR 3 CORAÇÕES • 4K ULTRA RESOLUÇÃO
+              </span>
+              <span className="text-[20px] sm:text-[22px] font-black tracking-tight text-[#FFFCF6] uppercase mt-0.5 font-heading">
+                DISPONIBILIDADE DE VEÍCULOS
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-[#292820] font-heading">
-              DISPONIBILIDADE <span className="text-[#C49A45]">DE VEÍCULOS</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-[#77736B] font-sans">
-              Painel analítico corporativo expandido de frotas e liberação de carregamentos.
-            </p>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap relative z-10">
+          <div className="flex items-center gap-2.5 relative z-10">
             <button
               onClick={handleLoadSample}
-              className="bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] font-mono text-xs font-black uppercase px-5 py-3 rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-2 border border-[#C49A45]/40 active:scale-95"
+              className="bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] font-mono text-xs font-black uppercase px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm flex items-center gap-2 border border-[#C49A45]/50 active:scale-95"
             >
-              <Sparkles size={15} className="text-[#C49A45]" />
-              <span>Carregar Dados Exemplo</span>
+              <Sparkles size={14} className="stroke-[2.5]" />
+              <span className="hidden sm:inline">Exemplo Pátio</span>
             </button>
 
             {onBack && (
               <button
                 onClick={onBack}
-                className="bg-[#FFFCF6] hover:bg-[#EDE2CE]/50 text-[#292820] p-3 rounded-xl border border-[#EDE2CE] cursor-pointer transition-all shadow-xs"
+                className="bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] p-2 rounded-xl border border-[#C49A45]/40 cursor-pointer transition-all shadow-xs active:scale-95"
                 title="Voltar ao Início"
               >
-                <RefreshCw size={17} />
+                <RefreshCw size={15} />
               </button>
             )}
           </div>
@@ -596,14 +640,16 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         {/* ========================================================================= */}
         {/* MODERN PASTE FIELD FOR SPREADSHEET DATA (Dark Luxury & Gold)              */}
         {/* ========================================================================= */}
-        <div className="w-full bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-6 sm:p-8 shadow-lg text-left space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+        {/* INPUT BUFFER & PASTE ACTION CARD (SMCreator Style)                       */}
+        {/* ========================================================================= */}
+        <div className="w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-6 sm:p-8 shadow-sm text-left space-y-4 text-[#25231F]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6D2A3] pb-4">
             <div>
-              <h3 className="text-xs sm:text-sm font-mono font-black text-[#E5C27A] uppercase tracking-wide flex items-center gap-2 font-heading">
-                <Clipboard size={17} className="text-[#D9AD5A]" />
+              <h3 className="text-xs sm:text-sm font-mono font-black text-[#25231F] uppercase tracking-wide flex items-center gap-2 font-heading">
+                <Clipboard size={17} className="text-[#C49A45]" />
                 CAMPO DE ENTRADA • COLE AS INFORMAÇÕES DA PLANILHA (TSV / EXCEL)
               </h3>
-              <p className="text-xs font-sans text-[#A8A39A] mt-0.5">
+              <p className="text-xs font-sans text-[#77736B] mt-0.5">
                 Cole abaixo as colunas copiadas do Excel ou Google Sheets para atualizar e formatar instantaneamente:
               </p>
             </div>
@@ -611,15 +657,15 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
             <div className="flex items-center gap-2.5 flex-wrap shrink-0">
               <button
                 onClick={handlePasteFromClipboard}
-                className="px-4 py-2.5 bg-[#171A1C] hover:bg-[#202428] text-[#E5C27A] border border-[#C9973E]/30 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-xs"
+                className="px-4 py-2.5 bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-2 shadow-xs active:scale-95"
               >
-                <Clipboard size={14} className="text-[#E5C27A]" />
+                <Clipboard size={14} className="text-[#C49A45]" />
                 <span>Colar da Área de Transferência</span>
               </button>
 
               <button
                 onClick={handleClearInputAndTable}
-                className="px-4 py-2.5 bg-rose-950/40 hover:bg-rose-950/60 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer"
+                className="px-4 py-2.5 bg-[#EDE2CE] hover:bg-[#E6D2A3] text-[#25231F] border border-[#E6D2A3] rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer active:scale-95"
               >
                 Limpar
               </button>
@@ -640,19 +686,19 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
                 }
               }}
               placeholder="Cole aqui os dados copiados da planilha (origem, data, hora, status, carreta, cavalo, destino, condutor, etc.)..."
-              className="w-full bg-[#080A0C] border border-[#C9973E]/20 focus:border-[#D9AD5A] rounded-2xl p-5 font-mono text-xs text-white outline-none transition-all resize-y shadow-inner placeholder-[#7A756D]"
+              className="w-full bg-[#FFFFFF] border border-[#E6D2A3] focus:border-[#C49A45] rounded-2xl p-5 font-mono text-xs text-[#25231F] outline-none transition-all resize-y shadow-xs placeholder-[#8A857D] font-bold"
             />
 
             <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
-              <span className="text-xs font-mono text-[#A8A39A] font-bold">
+              <span className="text-xs font-mono text-[#77736B] font-bold">
                 {tsvInput.trim() ? `${tsvInput.trim().split('\n').length} linhas prontas no buffer` : 'Aguardando inserção de dados...'}
               </span>
 
               <button
                 onClick={handleProcessTsv}
-                className="px-7 py-3 bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center gap-2 border border-[#E5C27A]"
+                className="px-7 py-3 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-sm flex items-center gap-2 border border-[#C49A45]/50 active:scale-95"
               >
-                <Zap size={15} className="text-[#080A0C]" />
+                <Zap size={15} className="stroke-[3]" />
                 <span>PROCESSAR E GERAR TABELA</span>
               </button>
             </div>
@@ -662,16 +708,16 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         {/* ========================================================================= */}
         {/* EMAIL SUBJECT & PREVIEW COPY BANNER                                      */}
         {/* ========================================================================= */}
-        <div className="w-full bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-6 sm:p-8 shadow-lg text-left space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
-            <span className="text-xs font-mono font-black uppercase text-[#E5C27A] flex items-center gap-2">
-              <MailIcon className="text-[#D9AD5A]" size={16} />
+        <div className="w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-6 sm:p-8 shadow-sm text-left space-y-4 text-[#25231F]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E6D2A3] pb-3 gap-2">
+            <span className="text-xs font-mono font-black uppercase text-[#25231F] flex items-center gap-2">
+              <MailIcon className="text-[#C49A45]" size={16} />
               ASSUNTO E PRÉ-VISUALIZAÇÃO DO E-MAIL
             </span>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={copySubjectText}
-                className="px-4 py-2.5 bg-[#171A1C] hover:bg-[#202428] text-[#E5C27A] border border-[#C9973E]/30 rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+                className="px-4 py-2.5 bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
               >
                 <Copy size={13} />
                 <span>{copiedSubject ? 'ASSUNTO COPIADO!' : 'COPIAR ASSUNTO'}</span>
@@ -679,29 +725,29 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
 
               <button
                 onClick={copyFormattedEmail}
-                className="px-6 py-2.5 bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center gap-2 border border-[#E5C27A]"
+                className="px-6 py-2.5 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-sm flex items-center gap-2 border border-[#C49A45]/50 active:scale-95"
               >
-                <Copy size={14} className="text-[#080A0C]" />
+                <Copy size={14} className="stroke-[2.5]" />
                 <span>{copiedFormat ? 'E-MAIL COPIADO!' : 'COPIAR FORMATADO (PARA E-MAIL)'}</span>
               </button>
             </div>
           </div>
 
           {/* Subject Box */}
-          <div className="bg-[#080A0C] border border-[#C9973E]/20 rounded-xl p-4 flex items-center justify-between gap-3">
+          <div className="bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl p-4 flex items-center justify-between gap-3">
             <div className="space-y-0.5">
-              <span className="text-[11px] font-mono font-bold text-[#A8A39A] uppercase tracking-wider block">Assunto do E-mail (Atualizado com o Dia e Data de Hoje):</span>
-              <div className="text-xs sm:text-sm font-mono font-black text-[#E5C27A]">
+              <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">Assunto do E-mail (Atualizado com o Dia e Data de Hoje):</span>
+              <div className="text-xs sm:text-sm font-mono font-black text-[#C49A45]">
                 {getEmailSubject()}
               </div>
             </div>
           </div>
 
-          <div className="text-xs sm:text-sm font-sans font-medium text-[#F4F0E8] leading-relaxed bg-[#080A0C] p-5 rounded-xl border border-white/10">
-            <p className="font-bold text-white mb-1">Prezados, boa tarde!</p>
-            <p className="mb-2.5 text-[#A8A39A]">Segue a disponibilidade de veículos.</p>
+          <div className="text-xs sm:text-sm font-sans font-medium text-[#25231F] leading-relaxed bg-[#F5F0E6] p-5 rounded-xl border border-[#E6D2A3]">
+            <p className="font-bold text-[#25231F] mb-1">Prezados, boa tarde!</p>
+            <p className="mb-2.5 text-[#77736B]">Segue a disponibilidade de veículos.</p>
             <p>
-              <span className="bg-red-950/50 text-red-300 font-bold px-3 py-1.5 rounded-lg border border-red-500/30 inline-block text-xs font-mono">
+              <span className="bg-red-50 text-[#C91F2D] font-bold px-3 py-1.5 rounded-lg border border-red-200 inline-block text-xs font-mono">
                 ⚠️ Favor ficarem atentos à origem de cada carregamento.
               </span>
             </p>
@@ -709,49 +755,49 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         </div>
 
         {/* ========================================================================= */}
-        {/* CONTROLS & SEARCH BAR                                                    */}
+        {/* CONTROLS & SEARCH BAR (SMCreator Style)                                  */}
         {/* ========================================================================= */}
-        <div className="bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+        <div className="bg-[#292820] border border-[#C49A45]/40 rounded-2xl p-4 sm:p-5 shadow-md flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
           
           <div className="relative flex-1 w-full">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A39A]" />
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C49A45]" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Filtrar por origem, destino, placa, condutor, transportador..."
-              className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-xl pl-11 pr-4 py-3 text-xs font-mono font-bold text-white outline-none focus:border-[#D9AD5A] transition-all shadow-inner placeholder-[#7A756D]"
+              className="w-full bg-[#1a1917] border border-[#C49A45]/40 rounded-xl pl-11 pr-4 py-2.5 text-xs font-mono font-bold text-[#FFFCF6] outline-none focus:border-[#E6D2A3] transition-all shadow-inner placeholder-[#8A857D]"
             />
           </div>
 
           <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
             {/* Origem Filter Dropdown */}
-            <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/20 rounded-xl px-4 py-2.5 font-mono text-xs font-bold text-[#F4F0E8]">
-              <Filter size={14} className="text-[#E5C27A]" />
-              <span className="text-[#A8A39A]">ORIGEM:</span>
+            <div className="flex items-center gap-2 bg-[#1a1917] border border-[#C49A45]/40 rounded-xl px-4 py-2 font-mono text-xs font-bold text-[#E6D2A3]">
+              <Filter size={14} className="text-[#C49A45]" />
+              <span className="text-[#E6D2A3]">ORIGEM:</span>
               <select
                 value={selectedOrigem}
                 onChange={(e) => setSelectedOrigem(e.target.value)}
-                className="bg-transparent outline-none uppercase font-black cursor-pointer text-[#E5C27A]"
+                className="bg-transparent outline-none uppercase font-black cursor-pointer text-[#FFFCF6]"
               >
-                <option value="ALL" className="bg-[#131619] text-white">TODAS ({rows.length})</option>
+                <option value="ALL" className="bg-[#292820] text-white">TODAS ({rows.length})</option>
                 {origensList.map(o => (
-                  <option key={o} value={o} className="bg-[#131619] text-white">{o}</option>
+                  <option key={o} value={o} className="bg-[#292820] text-white">{o}</option>
                 ))}
               </select>
             </div>
 
             {/* Categoria Filter Dropdown */}
-            <div className="flex items-center gap-2 bg-[#080A0C] border border-[#C9973E]/20 rounded-xl px-4 py-2.5 font-mono text-xs font-bold text-[#F4F0E8]">
-              <span className="text-[#A8A39A]">CATEGORIA:</span>
+            <div className="flex items-center gap-2 bg-[#1a1917] border border-[#C49A45]/40 rounded-xl px-4 py-2 font-mono text-xs font-bold text-[#E6D2A3]">
+              <span className="text-[#E6D2A3]">CATEGORIA:</span>
               <select
                 value={selectedCategoria}
                 onChange={(e) => setSelectedCategoria(e.target.value)}
-                className="bg-transparent outline-none uppercase font-black cursor-pointer text-[#E5C27A]"
+                className="bg-transparent outline-none uppercase font-black cursor-pointer text-[#FFFCF6]"
               >
-                <option value="ALL" className="bg-[#131619] text-white">TODAS</option>
-                <option value="FROTA" className="bg-[#131619] text-white">FROTA</option>
-                <option value="AGREGADO" className="bg-[#131619] text-white">AGREGADO</option>
+                <option value="ALL" className="bg-[#292820] text-white">TODAS</option>
+                <option value="FROTA" className="bg-[#292820] text-white">FROTA</option>
+                <option value="AGREGADO" className="bg-[#292820] text-white">AGREGADO</option>
               </select>
             </div>
           </div>
@@ -761,12 +807,12 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         {/* ========================================================================= */}
         {/* MAIN DATA TABLE (EXPANDED / ESTICADA, EXACT 35 COLUMNS ORDER)             */}
         {/* ========================================================================= */}
-        <div ref={previewTableRef} className="w-full bg-white border border-slate-300 rounded-2xl shadow-xl overflow-hidden">
+        <div ref={previewTableRef} className="w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl shadow-sm overflow-hidden text-[#25231F]">
           <div className="overflow-x-auto max-h-[720px] rounded-2xl">
             <table className="w-full border-collapse text-xs font-mono text-left min-w-[2600px]">
-              <thead className="sticky top-0 bg-[#0f172a] text-white text-[10.5px] uppercase font-bold tracking-wider z-20 shadow-md">
-                <tr className="text-center">
-                  <th className="p-3.5 border border-slate-800 w-12">#</th>
+              <thead className="sticky top-0 bg-[#292820] text-[#FFFCF6] border-b border-[#C49A45]/40 text-[10.5px] uppercase font-bold tracking-wider z-20 shadow-xs">
+                <tr className="text-center text-[#E6D2A3]">
+                  <th className="p-3.5 border border-[#C49A45]/30 w-12 text-[#E6D2A3]">#</th>
                   <th className="p-3.5 border border-slate-800 min-w-[160px]">ORIGEM</th>
                   <th className="p-3.5 border border-slate-800 min-w-[110px]">DIA</th>
                   <th className="p-3.5 border border-slate-800 min-w-[100px]">DATA</th>
@@ -848,9 +894,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
                         
                         {/* FEZ CONTATO? */}
                         <td className="p-3.5 border border-slate-200">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10.5px]">
-                            ✓ {r.fezContato || 'SIM'}
-                          </span>
+                          {renderYesNoCell(r.fezContato || 'SIM')}
                         </td>
 
                         <td className="p-3.5 border border-slate-200 text-slate-900 uppercase font-bold">{r.destino}</td>
@@ -883,9 +927,15 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
                         <td className="p-3.5 border border-slate-200 text-slate-700">{r.estadoMotorista}</td>
                         <td className="p-3.5 border border-slate-200 text-slate-700">{r.estadoCavalo}</td>
                         <td className="p-3.5 border border-slate-200 text-slate-700">{r.estadoCarreta}</td>
-                        <td className="p-3.5 border border-slate-200 text-slate-700">{r.tresCargo}</td>
-                        <td className="p-3.5 border border-slate-200 text-slate-700">{r.carregou}</td>
-                        <td className="p-3.5 border border-slate-200 text-slate-700">{r.termo}</td>
+                        <td className="p-3.5 border border-slate-200">
+                          {renderYesNoCell(r.tresCargo)}
+                        </td>
+                        <td className="p-3.5 border border-slate-200">
+                          {renderYesNoCell(r.carregou)}
+                        </td>
+                        <td className="p-3.5 border border-slate-200">
+                          {renderYesNoCell(r.termo)}
+                        </td>
                         <td className="p-3.5 border border-slate-200 text-red-600 font-bold">{r.valorNf}</td>
                         <td className="p-3.5 border border-slate-200 text-slate-900 uppercase font-bold">{r.operacao}</td>
                       </tr>

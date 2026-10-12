@@ -25,6 +25,8 @@ export default function AppShell({
   isWallpaperOpen,
   children
 }: AppShellProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   return (
     <DashboardLayout
       header={
@@ -35,6 +37,7 @@ export default function AppShell({
           isWallpaperOpen={isWallpaperOpen}
           onOpenSettings={onOpenSettings}
           onLogout={onLogout}
+          onToggleDrawer={() => setDrawerOpen(prev => !prev)}
         />
       }
       drawer={
@@ -42,6 +45,8 @@ export default function AppShell({
           activeTab={activeTab}
           onSelectTab={onSelectTab}
           onOpenSettings={onOpenSettings}
+          isOpen={drawerOpen}
+          setIsOpen={setDrawerOpen}
         />
       }
       footer={<OperationalFooter />}

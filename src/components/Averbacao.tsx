@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
 import { 
@@ -20,30 +20,25 @@ import {
   FileCheck2,
   ChevronDown,
   Trash,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FileSpreadsheet,
+  Edit3,
+  Layers,
+  AlertCircle,
+  MapPin,
+  Truck
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { safeCopyText, safeCopyHtmlAndText, safeCopyImage } from '../utils/clipboard';
-
-interface AverbacaoRow {
-  dataAverbacao: string;
-  origem: string;
-  destino: string;
-  placaCav: string;
-  placaCarr: string;
-  nf: string;
-  valorNf: string;
-  somaVl: string;
-  protocolo: string;
-}
-
-interface ExtraData {
-  transportadora: string;
-  tecnologia: string;
-  nomeMotorista: string;
-  cpf: string;
-  telefone: string;
-}
+import { 
+  parseAverbacaoData, 
+  AverbacaoRow, 
+  ExtraData, 
+  formatCurrencyValue, 
+  parseCurrencyNumber 
+} from '../utils/averbacaoParser';
+import { rtdb } from '../firebase';
+import { ref, onValue, set } from 'firebase/database';
 
 const DEFAULT_TRANSPORTADORAS = [
   "MODECENSE",
@@ -54,7 +49,8 @@ const DEFAULT_TRANSPORTADORAS = [
   "TRANSMAGNA",
   "RNCGG EXTEMPORÂNEO",
   "GT MINAS",
-  "GOBOR"
+  "GOBOR",
+  "TRANSVALADARES"
 ];
 
 const DEFAULT_TECNOLOGIAS = [
@@ -104,16 +100,13 @@ const COLOR_THEMES = {
   }
 };
 
-const SAMPLE_TSV_DATA = `25/09/2026\tSANTA LUZIA/MG\tLONDRINA/PR\tQWA6A22\tDLV7307\t3045088\tR$ 142.319,43\tR$ 905.343,74\tAVB-98124
-25/09/2026\tSANTA LUZIA/MG\tLONDRINA/PR\t-\t-\t3046755\tR$ 182.678,57\tR$ 182.678,57\tAVB-98125`;
-
 interface AverbacaoProps {
   view?: string;
   onBack?: () => void;
 }
 
 export function Averbacao({ onBack }: AverbacaoProps) {
-  const [emailColor, setEmailColor] = useState<'amarelo' | 'vermelho' | 'azul' | 'verde'>('vermelho');
+  const [emailColor, setEmailColor] = useState<'amarelo' | 'vermelho' | 'azul' | 'verde'>('amarelo');
   const activeTheme = COLOR_THEMES[emailColor];
   const emailPreviewRef = useRef<HTMLDivElement>(null);
   
@@ -125,48 +118,127 @@ export function Averbacao({ onBack }: AverbacaoProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'delete' } | null>(null);
 
+  const [hideAnexos, setHideAnexos] = useState(true);
   const [customTransportadoras, setCustomTransportadoras] = useState<string[]>(DEFAULT_TRANSPORTADORAS);
   const [showAddTranspInput, setShowAddTranspInput] = useState(false);
   const [newTranspName, setNewTranspName] = useState("");
 
-  const [extraData, setExtraData] = useState<ExtraData>({
-    transportadora: 'MODECENSE',
-    tecnologia: 'SIGHRA',
-    nomeMotorista: 'ROBSON LUIS VIEIRA',
-    cpf: '051.248.966-09',
-    telefone: '(31) 99935-0970'
-  });
-
-  const [parsedRows, setParsedRows] = useState<AverbacaoRow[]>([
-    {
-      dataAverbacao: '25/09/2026',
+  const [extraData, setExtraData] = useState<ExtraData>(() => {
+    try {
+      const saved = localStorage.getItem('averbacao_extra_data');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      // fallback
+    }
+    return {
       origem: 'SANTA LUZIA',
       destino: 'LONDRINA',
+      transportadora: 'MODECENSE',
       placaCav: 'QWA6A22',
       placaCarr: 'DLV7307',
-      nf: '3045088',
-      valorNf: 'R$ 142.319,43',
-      somaVl: 'R$ 905.343,74',
-      protocolo: 'AVB-98124'
-    },
-    {
-      dataAverbacao: '25/09/2026',
-      origem: 'SANTA LUZIA',
-      destino: 'LONDRINA',
-      placaCav: '-',
-      placaCarr: '-',
-      nf: '3046755',
-      valorNf: 'R$ 182.678,57',
-      somaVl: 'R$ 182.678,57',
-      protocolo: 'AVB-98125'
+      tecnologia: 'SIGHRA',
+      nomeMotorista: 'ROBSON LUIS VIEIRA',
+      cpf: '051.248.966-09',
+      telefone: '(31) 99935-0970'
+    };
+  });
+
+  const [parsedRows, setParsedRows] = useState<AverbacaoRow[]>(() => {
+    try {
+      const saved = localStorage.getItem('averbacao_rows');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      // fallback
     }
-  ]);
+    return [
+      {
+        id: 'row-default-1',
+        dataAverbacao: new Date().toLocaleDateString('pt-BR'),
+        origem: 'SANTA LUZIA',
+        destino: 'LONDRINA',
+        placaCav: 'QWA6A22',
+        placaCarr: 'DLV7307',
+        nf: '312509',
+        valorNf: 'R$ 1.849.200,00',
+        somaVl: 'R$ 1.849.200,00',
+        protocolo: 'AVB-984210',
+        transportadora: 'MODECENSE',
+        tecnologia: 'SIGHRA',
+        nomeMotorista: 'ROBSON LUIS VIEIRA',
+        cpf: '051.248.966-09',
+        telefone: '(31) 99935-0970'
+      }
+    ];
+  });
+
+  // Subscribe to Firebase RTDB for persistent averbacao data
+  useEffect(() => {
+    try {
+      const rowsRef = ref(rtdb, 'averbacao_data/rows');
+      const unsubscribeRows = onValue(rowsRef, (snapshot) => {
+        const val = snapshot.val();
+        if (val && Array.isArray(val) && val.length > 0) {
+          setParsedRows(val);
+          try { localStorage.setItem('averbacao_rows', JSON.stringify(val)); } catch {}
+        }
+      });
+
+      const extraRef = ref(rtdb, 'averbacao_data/extra');
+      const unsubscribeExtra = onValue(extraRef, (snapshot) => {
+        const val = snapshot.val();
+        if (val && typeof val === 'object' && Object.keys(val).length > 0) {
+          setExtraData(prev => ({ ...prev, ...val }));
+          try { localStorage.setItem('averbacao_extra_data', JSON.stringify(val)); } catch {}
+        }
+      });
+
+      return () => {
+        unsubscribeRows();
+        unsubscribeExtra();
+      };
+    } catch (e) {
+      console.warn('Firebase RTDB averbacao listener error:', e);
+    }
+  }, []);
+
+  // Save to localStorage and Firebase RTDB
+  useEffect(() => {
+    try {
+      if (parsedRows.length > 0) {
+        localStorage.setItem('averbacao_rows', JSON.stringify(parsedRows));
+        set(ref(rtdb, 'averbacao_data/rows'), parsedRows);
+      } else {
+        localStorage.removeItem('averbacao_rows');
+        set(ref(rtdb, 'averbacao_data/rows'), null);
+      }
+    } catch (e) {
+      console.warn('Falha ao salvar averbacao_rows:', e);
+    }
+  }, [parsedRows]);
+
+  useEffect(() => {
+    try {
+      const hasAny = Object.values(extraData).some(v => typeof v === 'string' && v.trim().length > 0);
+      if (hasAny) {
+        localStorage.setItem('averbacao_extra_data', JSON.stringify(extraData));
+        set(ref(rtdb, 'averbacao_data/extra'), extraData);
+      } else {
+        localStorage.removeItem('averbacao_extra_data');
+        set(ref(rtdb, 'averbacao_data/extra'), null);
+      }
+    } catch (e) {
+      console.warn('Falha ao salvar averbacao_extra_data:', e);
+    }
+  }, [extraData]);
 
   const showNotificationMsg = (message: string, type: 'success' | 'delete' = 'success') => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 2500);
+    }, 2800);
   };
 
   const copyCodeToClipboard = async (label: string, code: string) => {
@@ -189,99 +261,279 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     }
   };
 
-  const parseInput = (text: string) => {
-    if (!text.trim()) return;
-    const lines = text.trim().split('\n');
-    const newRows: AverbacaoRow[] = [];
+  // Main intelligent parsing function
+  const handleProcessInput = (text: string) => {
+    if (!text || !text.trim()) {
+      showNotificationMsg('Nenhum texto informado para colagem.', 'delete');
+      return;
+    }
 
-    lines.forEach((line) => {
-      const parts = line.split('\t');
-      if (parts.length >= 7) {
-        newRows.push({
-          dataAverbacao: parts[0]?.trim() || '',
-          origem: parts[1]?.trim().split('/')[0] || '',
-          destino: parts[2]?.trim().split('/')[0] || '',
-          placaCav: parts[3]?.trim() || '',
-          placaCarr: parts[4]?.trim() || '',
-          nf: parts[5]?.trim() || '',
-          valorNf: parts[6]?.trim() || '',
-          somaVl: parts[7]?.trim() || '',
-          protocolo: parts[8]?.trim() || ''
-        });
+    const result = parseAverbacaoData(text);
+
+    if (result.rows.length > 0) {
+      setParsedRows(result.rows);
+
+      // Auto update extra data if pulled from spreadsheet
+      setExtraData(prev => ({
+        ...prev,
+        origem: result.extra.origem || prev.origem,
+        destino: result.extra.destino || prev.destino,
+        placaCav: result.extra.placaCav || prev.placaCav,
+        placaCarr: result.extra.placaCarr || prev.placaCarr,
+        transportadora: result.extra.transportadora || prev.transportadora,
+        tecnologia: result.extra.tecnologia || prev.tecnologia,
+        nomeMotorista: result.extra.nomeMotorista || prev.nomeMotorista,
+        cpf: result.extra.cpf || prev.cpf,
+        telefone: result.extra.telefone || prev.telefone
+      }));
+
+      if (result.extra.transportadora && !customTransportadoras.includes(result.extra.transportadora)) {
+        setCustomTransportadoras(prev => [...prev, result.extra.transportadora!]);
       }
-    });
 
-    if (newRows.length > 0) {
-      setParsedRows(newRows);
       setShowPasteModal(false);
       setRawInputText('');
-      showNotificationMsg(`${newRows.length} registros importados!`);
+      showNotificationMsg(`${result.rows.length} nota(s) importada(s) com sucesso! [${result.detectedFormat}]`);
     } else {
-      showNotificationMsg('Formato inválido. Use dados separados por TAB.', 'delete');
+      showNotificationMsg('Formato não reconhecido. Cole dados tabulados ou linhas da planilha.', 'delete');
     }
   };
 
-  const handleClearAll = () => {
-    setParsedRows([]);
-    showNotificationMsg('Todos os registros foram limpos.', 'delete');
+  // Global paste event listener: allows user to press Ctrl+V anywhere on the Averbação page
+  useEffect(() => {
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement;
+      // Do not intercept if user is typing in standard inputs or textareas
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+        return;
+      }
+
+      const text = e.clipboardData?.getData('text');
+      if (text && text.trim()) {
+        e.preventDefault();
+        handleProcessInput(text);
+      }
+    };
+
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, [customTransportadoras]);
+
+  // Read directly from clipboard via API button
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        handleProcessInput(text);
+      } else {
+        showNotificationMsg('A área de transferência está vazia.', 'delete');
+      }
+    } catch (err) {
+      setShowPasteModal(true);
+      showNotificationMsg('Pressione Ctrl+V dentro da caixa para colar.', 'delete');
+    }
   };
 
-  const parseCurrency = (val: string): number => {
-    if (!val) return 0;
-    const clean = val.replace(/R\$/gi, '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
-    const parsed = parseFloat(clean);
-    return isNaN(parsed) ? 0 : parsed;
+  const handleUpdateOperationalField = (field: keyof ExtraData, value: string) => {
+    setExtraData(prev => ({ ...prev, [field]: value }));
+    setParsedRows(prev => {
+      if (prev.length === 0) {
+        return [{
+          id: `row-${Date.now()}`,
+          dataAverbacao: new Date().toLocaleDateString('pt-BR'),
+          origem: field === 'origem' ? value : '',
+          destino: field === 'destino' ? value : '',
+          placaCav: field === 'placaCav' ? value : '',
+          placaCarr: field === 'placaCarr' ? value : '',
+          transportadora: field === 'transportadora' ? value : '',
+          tecnologia: field === 'tecnologia' ? value : '',
+          nomeMotorista: field === 'nomeMotorista' ? value : '',
+          cpf: field === 'cpf' ? value : '',
+          telefone: field === 'telefone' ? value : '',
+          nf: '',
+          valorNf: '',
+          somaVl: '',
+          protocolo: ''
+        }];
+      }
+      return prev.map(row => ({
+        ...row,
+        [field]: value
+      }));
+    });
   };
 
-  const formatCurrency = (val: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(val);
+  const handleUpdateTransportField = (index: number, field: keyof AverbacaoRow, value: string) => {
+    setParsedRows(prev => {
+      const copy = prev.length > 0 ? [...prev] : [{
+        id: `row-${Date.now()}`,
+        dataAverbacao: new Date().toLocaleDateString('pt-BR'),
+        origem: '',
+        destino: '',
+        placaCav: '',
+        placaCarr: '',
+        transportadora: '',
+        tecnologia: '',
+        nomeMotorista: '',
+        cpf: '',
+        telefone: '',
+        nf: '',
+        valorNf: '',
+        somaVl: '',
+        protocolo: ''
+      }];
+      if (copy[index]) {
+        copy[index] = { ...copy[index], [field]: value };
+      }
+      return copy;
+    });
+
+    if (index === 0 || parsedRows.length <= 1) {
+      if (field in extraData) {
+        setExtraData(prev => ({ ...prev, [field]: value }));
+      }
+    }
+  };
+
+  const handleClearAll = async () => {
+    const emptyRow: AverbacaoRow = {
+      id: `row-${Date.now()}`,
+      dataAverbacao: new Date().toLocaleDateString('pt-BR'),
+      origem: '',
+      destino: '',
+      transportadora: '',
+      placaCav: '',
+      placaCarr: '',
+      tecnologia: '',
+      nomeMotorista: '',
+      cpf: '',
+      telefone: '',
+      nf: '',
+      valorNf: '',
+      somaVl: '',
+      protocolo: ''
+    };
+    setParsedRows([emptyRow]);
+    setExtraData({
+      origem: '',
+      destino: '',
+      transportadora: '',
+      placaCav: '',
+      placaCarr: '',
+      tecnologia: '',
+      nomeMotorista: '',
+      cpf: '',
+      telefone: ''
+    });
+    try {
+      localStorage.removeItem('averbacao_rows');
+      localStorage.removeItem('averbacao_extra_data');
+      await set(ref(rtdb, 'averbacao_data'), null);
+    } catch (e) {
+      console.warn('Erro ao limpar averbacao_data no Firebase:', e);
+    }
+    showNotificationMsg('Informações limpas! Colunas mantidas para preenchimento manual.', 'delete');
+  };
+
+  const handleRemoveRow = (index: number) => {
+    setParsedRows(prev => prev.filter((_, i) => i !== index));
+    showNotificationMsg('Nota fiscal removida.');
+  };
+
+  const handleAddEmptyRow = () => {
+    const newRow: AverbacaoRow = {
+      id: `row-${Date.now()}`,
+      dataAverbacao: new Date().toLocaleDateString('pt-BR'),
+      origem: parsedRows[0]?.origem || '',
+      destino: parsedRows[0]?.destino || '',
+      placaCav: parsedRows[0]?.placaCav || '',
+      placaCarr: parsedRows[0]?.placaCarr || '',
+      nf: '',
+      valorNf: 'R$ 0,00',
+      somaVl: 'R$ 0,00',
+      protocolo: ''
+    };
+    setParsedRows(prev => [...prev, newRow]);
+    showNotificationMsg('Nova linha de nota fiscal adicionada!');
+  };
+
+  const handleUpdateRowField = (index: number, field: keyof AverbacaoRow, value: string) => {
+    setParsedRows(prev => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
   };
 
   const getTotalValue = () => {
-    if (parsedRows.length === 0) return 'R$ 324.998,00';
-    const sum = parsedRows.reduce((acc, row) => acc + parseCurrency(row.valorNf), 0);
-    return formatCurrency(sum);
+    if (parsedRows.length === 0) return 'R$ 0,00';
+    const sum = parsedRows.reduce((acc, row) => acc + parseCurrencyNumber(row.valorNf), 0);
+    return formatCurrencyValue(sum);
   };
 
   const getRouteTitle = (rows: AverbacaoRow[]) => {
     const activeRows = rows.length > 0 ? rows : parsedRows;
-    const origem = activeRows.find(r => r.origem && r.origem !== '-')?.origem || 'SANTA LUZIA';
-    const uniqueDestinos = Array.from(new Set(activeRows.map(r => r.destino?.trim()).filter(Boolean)));
+    const origem = activeRows.find(r => r.origem && r.origem.trim() !== '' && r.origem !== '-')?.origem || extraData.origem || '';
+    const uniqueDestinos = Array.from(new Set(activeRows.map(r => r.destino?.trim()).filter(d => d && d !== '-')));
+    if (extraData.destino && !uniqueDestinos.includes(extraData.destino)) {
+      if (uniqueDestinos.length === 0) uniqueDestinos.push(extraData.destino);
+    }
 
+    if (!origem && uniqueDestinos.length === 0) {
+      return 'ROTA: AGUARDANDO DADOS';
+    }
     if (uniqueDestinos.length === 0) {
-      return `ROTA: ${origem} X LONDRINA`;
+      return `ROTA: ${origem}`;
     }
     if (uniqueDestinos.length === 1) {
-      return `ROTA: ${origem} X ${uniqueDestinos[0]}`;
+      return `ROTA: ${origem || '-'} X ${uniqueDestinos[0]}`;
     }
-    return `ROTA: ${origem} X MÚLTIPLOS DESTINOS (${uniqueDestinos.join(', ')})`;
+    return `ROTA: ${origem || '-'} X MÚLTIPLOS DESTINOS (${uniqueDestinos.join(', ')})`;
   };
 
   const getProtocolsList = (rows: AverbacaoRow[]) => {
     const activeRows = rows.length > 0 ? rows : parsedRows;
+    if (activeRows.length === 0) return '-';
     const uniqueProtocols = Array.from(new Set(activeRows.map(r => r.protocolo?.trim()).filter(Boolean)));
-    return uniqueProtocols.length > 0 ? uniqueProtocols.join(', ') : 'AVB-98124, AVB-98125';
+    return uniqueProtocols.length > 0 ? uniqueProtocols.join(', ') : 'PENDENTE';
   };
 
   const getUniqueTransportRows = (rows: AverbacaoRow[]) => {
     const activeRows = rows.length > 0 ? rows : parsedRows;
-    if (activeRows.length === 0) return [];
+    const defaultEmptyRow: AverbacaoRow = {
+      id: 'row-empty-default',
+      dataAverbacao: new Date().toLocaleDateString('pt-BR'),
+      origem: extraData.origem || '',
+      destino: extraData.destino || '',
+      transportadora: extraData.transportadora || '',
+      placaCav: extraData.placaCav || '',
+      placaCarr: extraData.placaCarr || '',
+      tecnologia: extraData.tecnologia || '',
+      nomeMotorista: extraData.nomeMotorista || '',
+      cpf: extraData.cpf || '',
+      telefone: extraData.telefone || '',
+      nf: '',
+      valorNf: '',
+      somaVl: '',
+      protocolo: ''
+    };
 
-    const primaryPlacaCav = activeRows.find(r => r.placaCav && r.placaCav !== '-')?.placaCav || 'QWA6A22';
-    const primaryPlacaCarr = activeRows.find(r => r.placaCarr && r.placaCarr !== '-')?.placaCarr || 'DLV7307';
-    const primaryOrigem = activeRows.find(r => r.origem && r.origem !== '-')?.origem || 'SANTA LUZIA';
+    if (activeRows.length === 0) {
+      return [defaultEmptyRow];
+    }
+
+    const primaryPlacaCav = activeRows.find(r => r.placaCav && r.placaCav.trim() !== '' && r.placaCav !== '-')?.placaCav || extraData.placaCav || '';
+    const primaryPlacaCarr = activeRows.find(r => r.placaCarr && r.placaCarr.trim() !== '' && r.placaCarr !== '-')?.placaCarr || extraData.placaCarr || '';
+    const primaryOrigem = activeRows.find(r => r.origem && r.origem.trim() !== '' && r.origem !== '-')?.origem || extraData.origem || '';
 
     const seen = new Set<string>();
     const uniqueList: AverbacaoRow[] = [];
 
     activeRows.forEach(row => {
-      const orig = (row.origem && row.origem !== '-') ? row.origem : primaryOrigem;
-      const dest = row.destino || 'LONDRINA';
-      const cav = (row.placaCav && row.placaCav !== '-') ? row.placaCav : primaryPlacaCav;
-      const carr = (row.placaCarr && row.placaCarr !== '-') ? row.placaCarr : primaryPlacaCarr;
+      const orig = (row.origem && row.origem !== '-') ? row.origem : (extraData.origem || primaryOrigem || '');
+      const dest = (row.destino && row.destino !== '-') ? row.destino : (extraData.destino || '');
+      const cav = (row.placaCav && row.placaCav !== '-') ? row.placaCav : (extraData.placaCav || primaryPlacaCav || '');
+      const carr = (row.placaCarr && row.placaCarr !== '-') ? row.placaCarr : (extraData.placaCarr || primaryPlacaCarr || '');
 
       const key = `${orig.toUpperCase().trim()}|${dest.toUpperCase().trim()}|${cav.toUpperCase().trim()}|${carr.toUpperCase().trim()}`;
       if (!seen.has(key)) {
@@ -291,18 +543,26 @@ export function Averbacao({ onBack }: AverbacaoProps) {
           origem: orig,
           destino: dest,
           placaCav: cav,
-          placaCarr: carr
+          placaCarr: carr,
+          transportadora: row.transportadora || extraData.transportadora || '',
+          tecnologia: row.tecnologia || extraData.tecnologia || '',
+          nomeMotorista: row.nomeMotorista || extraData.nomeMotorista || '',
+          cpf: row.cpf || extraData.cpf || '',
+          telefone: row.telefone || extraData.telefone || ''
         });
       }
     });
 
-    return uniqueList;
+    return uniqueList.length > 0 ? uniqueList : [defaultEmptyRow];
   };
 
   const copyAsImage = async () => {
     if (!emailPreviewRef.current) return;
     setIsGeneratingImg(true);
     try {
+      emailPreviewRef.current.querySelectorAll('input').forEach(input => {
+        input.setAttribute('value', input.value);
+      });
       const blob = await htmlToImage.toBlob(emailPreviewRef.current, {
         quality: 0.98,
         pixelRatio: 2,
@@ -328,24 +588,26 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     }
   };
 
+  const filteredRows = parsedRows.filter(r => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      (r.placaCav && r.placaCav.toLowerCase().includes(term)) ||
+      (r.placaCarr && r.placaCarr.toLowerCase().includes(term)) ||
+      (r.nf && r.nf.toLowerCase().includes(term)) ||
+      (r.protocolo && r.protocolo.toLowerCase().includes(term)) ||
+      (r.destino && r.destino.toLowerCase().includes(term)) ||
+      (r.origem && r.origem.toLowerCase().includes(term)) ||
+      (r.nomeMotorista && r.nomeMotorista.toLowerCase().includes(term))
+    );
+  });
+
   const copyToEmail = async () => {
     const accentHex = activeTheme.accentColor;
     const textColorHex = activeTheme.textColor;
     
     const displayRows = filteredRows.length > 0 ? filteredRows : parsedRows;
-    const rowsToUse = displayRows.length > 0 ? displayRows : [
-      {
-        dataAverbacao: '25/09/2026',
-        origem: 'SANTA LUZIA',
-        destino: 'LONDRINA',
-        placaCav: 'QWA6A22',
-        placaCarr: 'DLV7307',
-        nf: '3045088',
-        valorNf: 'R$ 142.319,43',
-        somaVl: 'R$ 905.343,74',
-        protocolo: 'AVB-98124'
-      }
-    ];
+    const rowsToUse = displayRows;
 
     const uniqueTransportRows = getUniqueTransportRows(rowsToUse);
     const routeTitle = getRouteTitle(rowsToUse);
@@ -367,22 +629,22 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       }
     }
 
-    const tableRowsHtml = uniqueTransportRows.map(r => `
-      <tr style="font-weight: bold;">
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${r.origem || 'SANTA LUZIA'}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${r.destino || 'LONDRINA'}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${extraData.transportadora}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: #e2e8f0; color: #1e293b; text-transform: uppercase;">${r.placaCav && r.placaCav !== '-' ? r.placaCav : 'QWA6A22'}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${r.placaCarr && r.placaCarr !== '-' ? r.placaCarr : 'DLV7307'}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${extraData.tecnologia}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${extraData.nomeMotorista}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${extraData.cpf}</td>
-        <td style="padding: 8px 10px; border: 1px solid #000000; background-color: ${accentHex}; color: ${textColorHex}; text-transform: uppercase;">${extraData.telefone}</td>
+    const tableRowsHtml = uniqueTransportRows.map(row => `
+      <tr style="background-color: ${activeTheme.accentColor}; color: ${activeTheme.textColor}; font-weight: bold; text-align: center; font-size: 11px;">
+        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.origem || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.destino || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.transportadora || extraData.transportadora || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px; font-family: monospace;">${row.placaCav || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px; font-family: monospace;">${row.placaCarr || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.tecnologia || extraData.tecnologia || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.nomeMotorista || extraData.nomeMotorista || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px; font-family: monospace;">${row.cpf || extraData.cpf || '-'}</td>
+        <td style="border: 1px solid #000000; padding: 6px 8px;">${row.telefone || extraData.telefone || '-'}</td>
       </tr>
     `).join('');
 
     const htmlContent = `
-      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #111827; line-height: 1.6; max-width: 850px; background-color: #ffffff; padding: 16px; border: 1px solid #e5e7eb; border-radius: 12px;">
+      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #111827; line-height: 1.6; max-width: 950px; background-color: #ffffff; padding: 16px; border: 1px solid #e5e7eb; border-radius: 12px;">
         <p style="font-weight: bold; margin: 0 0 12px 0; color: #000000; font-size: 15px;">Bom dia!</p>
         
         <p style="margin: 0 0 14px 0; color: #1f2937;">
@@ -391,64 +653,58 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
         <div style="background-color: #f8f9fa; border-left: 5px solid ${accentHex}; padding: 14px 18px; border-radius: 8px; margin: 16px 0; font-family: Arial, sans-serif;">
           <div style="font-size: 14px; font-weight: bold; color: #000000; margin-bottom: 6px; text-transform: uppercase;">
-            ${routeTitle}
+            ${routeTitle || 'AGUARDANDO DADOS'}
           </div>
           <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 6px;">
-            PROTOCOLO: <span style="color: #2563eb; font-family: monospace, Courier, monospace; font-weight: bold;">${protocolosList}</span>
+            PROTOCOLO: <span style="color: #2563eb; font-family: monospace, Courier, monospace; font-weight: bold;">${protocolosList || '-'}</span>
           </div>
           <div style="font-size: 13px; font-weight: bold; color: #000000;">
             Valor da Carga: <span style="color: #dc2626; font-family: monospace, Courier, monospace; font-weight: bold;">${totalCarga}</span>
           </div>
         </div>
 
-        <p style="margin: 14px 0 12px 0; color: #1f2937;">Segue dados e NFs em anexo:</p>
-
-        <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px; border: 1px solid #000000; margin: 12px 0;">
-          <thead>
-            <tr style="background-color: #000000; color: #ffffff; font-weight: bold; text-transform: uppercase; font-size: 11px;">
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">ORIGEM</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">DESTINO</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">TRANSPORTADORA</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">PLACA CAVALO</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">PLACAS CARRETAS</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">TECNOLOGIA</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">NOME MOTORISTA</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">CPF</th>
-              <th style="padding: 8px 10px; border: 1px solid #333333; text-align: left;">TELEFONE</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRowsHtml}
-          </tbody>
-        </table>
+        ${uniqueTransportRows.length > 0 ? `
+          <div style="margin: 18px 0; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; text-align: center; border: 1px solid #000000;">
+              <thead>
+                <tr style="background-color: #292820; color: #ffffff; font-weight: bold; font-size: 10px; text-transform: uppercase;">
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">ORIGEM</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">DESTINO</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">TRANSPORTADORA</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">PLACA CAVALO</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">PLACAS CARRETAS</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">TECNOLOGIA</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">NOME MOTORISTA</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">CPF</th>
+                  <th style="border: 1px solid #000000; padding: 7px 6px;">TELEFONE</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRowsHtml}
+              </tbody>
+            </table>
+          </div>
+        ` : ''}
 
         <p style="font-weight: bold; margin-top: 16px; margin-bottom: 0; color: #000000;">Att,</p>
       </div>
     `.trim();
 
-    const plainText = `Bom dia!\n\nSegue AVERBAÇÃO realizada via sistema.\n\n${routeTitle}\nPROTOCOLO: ${protocolosList}\nValor da Carga: ${totalCarga}\n\nSegue dados e NFs em anexo:\n\nAtt,`;
+    const plainTextTable = uniqueTransportRows.map(r => 
+      `${r.origem || '-'} | ${r.destino || '-'} | ${r.transportadora || extraData.transportadora || '-'} | ${r.placaCav || '-'} | ${r.placaCarr || '-'} | ${r.tecnologia || extraData.tecnologia || '-'} | ${r.nomeMotorista || extraData.nomeMotorista || '-'} | ${r.cpf || extraData.cpf || '-'} | ${r.telefone || extraData.telefone || '-'}`
+    ).join('\n');
+
+    const plainText = `Bom dia!\n\nSegue AVERBAÇÃO realizada via sistema.\n\n${routeTitle || 'AGUARDANDO DADOS'}\nPROTOCOLO: ${protocolosList || '-'}\nValor da Carga: ${totalCarga}\n\n${uniqueTransportRows.length > 0 ? `ORIGEM | DESTINO | TRANSPORTADORA | PLACA CAVALO | PLACAS CARRETAS | TECNOLOGIA | NOME MOTORISTA | CPF | TELEFONE\n${plainTextTable}\n\n` : ''}Att,`;
 
     const copiedSuccessfully = await safeCopyHtmlAndText(htmlContent, plainText, imageBlob);
     if (copiedSuccessfully) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
-      showNotificationMsg('Formato visual da averbação copiado com sucesso!');
+      showNotificationMsg('Formato da averbação copiado com sucesso!');
     } else {
       showNotificationMsg('Texto simples da averbação copiado!');
     }
   };
-
-  const filteredRows = parsedRows.filter(r => {
-    if (!searchTerm.trim()) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      r.placaCav.toLowerCase().includes(term) ||
-      r.placaCarr.toLowerCase().includes(term) ||
-      r.nf.toLowerCase().includes(term) ||
-      r.protocolo.toLowerCase().includes(term) ||
-      r.destino.toLowerCase().includes(term)
-    );
-  });
 
   return (
     <div className="w-full h-full flex flex-col relative text-left bg-[#F5F0E6] p-3 text-[#25231F] font-sans overflow-y-auto">
@@ -474,18 +730,18 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* GRID SYSTEM: SIDEBAR ON THE RIGHT, MASTER BOARD ON THE LEFT                */}
+      {/* GRID SYSTEM: MASTER BOARD ON THE LEFT, SIDEBAR ON THE RIGHT               */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4 w-full items-start">
         
         {/* LEFT COLUMN: BRANDED INTERACTIVE BOARD PANEL */}
         <div className="flex flex-col gap-3.5 w-full">
           
-          {/* TOP CONTROLS: CODES BAR */}
+          {/* TOP CONTROLS: CODES BAR & QUICK IMPORT ACTIONS */}
           <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-[#25231F]">
             <div className="flex items-center gap-2.5 flex-wrap">
               <span className="text-[11px] font-black uppercase text-[#C49A45] flex items-center gap-1 font-mono">
-                ⚡ CÓDIGOS RÁPIDOS OPERACIONAIS:
+                ⚡ CÓDIGOS RÁPIDOS:
               </span>
               
               {/* Capsula Field */}
@@ -497,6 +753,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <button 
                   onClick={() => copyCodeToClipboard('CÁPSULA', '9000000982')}
                   className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
+                  title="Copiar código Cápsula"
                 >
                   <Copy size={11} />
                 </button>
@@ -509,6 +766,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <button 
                   onClick={() => copyCodeToClipboard('MÁQUINA', '00008901')}
                   className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
+                  title="Copiar código Máquina"
                 >
                   <Copy size={11} />
                 </button>
@@ -521,35 +779,56 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <button 
                   onClick={() => copyCodeToClipboard('EMBARQUES', '132')}
                   className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
+                  title="Copiar código Embarques"
                 >
                   <Copy size={11} />
                 </button>
               </div>
             </div>
 
-            {/* BUTTON BAR */}
+            {/* BUTTON BAR: INTELLIGENT PASTE & ACTION BUTTONS */}
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              {!hideAnexos && (
+                <button
+                  onClick={handlePasteFromClipboard}
+                  title="Colar dados da área de transferência (ou use Ctrl+V na página)"
+                  className="bg-gradient-to-r from-[#C49A45] to-[#A07A33] hover:brightness-110 text-white text-[11px] font-black uppercase px-3.5 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-[#E6D2A3] flex items-center gap-1.5"
+                >
+                  <Clipboard size={12} />
+                  <span>COLAR DADOS (CTRL+V)</span>
+                </button>
+              )}
+
               <button
                 onClick={() => setShowPasteModal(true)}
-                className="bg-gradient-to-r from-[#C49A45] to-[#A07A33] hover:brightness-110 text-white text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-[#E6D2A3]"
+                className="bg-white hover:bg-[#F5F0E6] border border-[#E6D2A3] text-[#292820] text-[11px] font-black uppercase px-3 py-2 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1"
+                title="Abrir caixa de colagem manual de planilha"
               >
-                COLAR PLANILHA TSV
+                <FileSpreadsheet size={12} className="text-[#C49A45]" />
+                <span>PLANILHA</span>
               </button>
-              <button
-                onClick={() => parseInput(SAMPLE_TSV_DATA)}
-                className="bg-white hover:bg-[#F5F0E6] border border-[#E6D2A3] text-[#C49A45] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs flex items-center gap-1 cursor-pointer"
-              >
-                <Sparkles size={11} className="text-[#C49A45]" />
-                <span>EXEMPLO</span>
-              </button>
+
               <button
                 onClick={handleClearAll}
-                className="bg-[#FFF5F5] hover:bg-[#FFE3E3] border border-red-300 text-[#C91F2D] text-[11px] font-black uppercase px-4 py-2 rounded-xl shadow-xs cursor-pointer"
+                className="bg-[#FFF5F5] hover:bg-[#FFE3E3] border border-red-300 text-[#C91F2D] text-[11px] font-black uppercase px-3 py-2 rounded-xl shadow-xs cursor-pointer"
+                title="Limpar todos os registros"
               >
                 LIMPAR
               </button>
             </div>
           </div>
+
+          {/* QUICK PASTE CALLOUT BANNER */}
+          {!hideAnexos && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-[#E6D2A3] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
+              <div className="flex items-center gap-2 text-stone-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                <span className="font-bold text-[11px]">
+                  💡 <strong>Dica de Agilidade:</strong> Copie sua linha no Excel/Google Sheets e aperte <kbd className="bg-white px-1.5 py-0.5 rounded border border-[#E6D2A3] text-stone-900 font-mono text-[10px] shadow-2xs">Ctrl+V</kbd> em qualquer lugar desta tela para importar dados e NFs automaticamente!
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* SEARCH BAR (Wide) */}
           <div className="relative w-full">
@@ -558,7 +837,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por placa, nota, protocolo ou destino..."
+              placeholder="Buscar por placa, nota fiscal, motorista, protocolo ou destino..."
               className="w-full bg-[#FFFCF6] text-[#292820] border border-[#E6D2A3] rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#C49A45] shadow-inner placeholder-[#77736B]"
             />
           </div>
@@ -611,14 +890,26 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                   <button
                     onClick={copyToEmail}
                     className="bg-gradient-to-r from-[#C49A45] via-[#B88938] to-[#9A7230] hover:brightness-110 text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#E6D2A3]"
+                    title="Copiar e-mail formatado"
                   >
                     <Clipboard size={12} />
                     <span>{copied ? 'COPIADO' : 'COPIAR FORMATADO'}</span>
                   </button>
+                  {!hideAnexos && (
+                    <button
+                      onClick={copyAsImage}
+                      disabled={isGeneratingImg}
+                      className="bg-white hover:bg-[#F5F0E6] text-[#292820] border border-[#E6D2A3] text-[11px] font-black uppercase px-3 py-2 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      title="Copiar visualização como imagem"
+                    >
+                      <ImageIcon size={12} className="text-[#C49A45]" />
+                      <span>{isGeneratingImg ? 'GERANDO...' : 'COPIAR IMAGEM'}</span>
+                    </button>
+                  )}
               </div>
             </div>
 
-            {/* Inner Message Template */}
+            {/* Inner Message Template (rendered for display & image capture) */}
             <div 
               ref={emailPreviewRef}
               className="bg-white border border-[#E6D2A3] rounded-2xl p-6 text-left font-sans text-stone-900 space-y-4 shadow-sm leading-relaxed"
@@ -635,63 +926,128 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 style={{ borderLeft: `5px solid ${activeTheme.accentColor}` }}
               >
                 <div className="text-xs sm:text-[13px] font-black text-stone-950 uppercase">
-                  {getRouteTitle(filteredRows.length > 0 ? filteredRows : parsedRows)}
+                  {getRouteTitle(filteredRows.length > 0 ? filteredRows : parsedRows) || 'AGUARDANDO DADOS'}
                 </div>
                 <div className="text-xs font-black text-stone-900">
-                  PROTOCOLO: <span className="text-[#C49A45] font-extrabold font-mono">{getProtocolsList(filteredRows.length > 0 ? filteredRows : parsedRows)}</span>
+                  PROTOCOLO: <span className="text-[#C49A45] font-extrabold font-mono">{getProtocolsList(filteredRows.length > 0 ? filteredRows : parsedRows) || '-'}</span>
                 </div>
                 <div className="text-xs font-black text-stone-900">
                   Valor da Carga: <span className="text-[#C91F2D] font-extrabold font-mono">{getTotalValue()}</span>
                 </div>
               </div>
 
-              <p className="font-semibold text-stone-800 text-xs sm:text-sm">Segue dados e NFs em anexo:</p>
-
-              {/* BLACK & SELECTED ACCENT THEME GRID */}
-              <div className="overflow-x-auto rounded-lg border border-[#C49A45]/40">
-                <table className="w-full border-collapse text-xs text-left min-w-[780px] font-mono">
+              {/* Operational Transport Data Table */}
+              <div className="overflow-x-auto rounded-xl border border-black shadow-xs my-2">
+                <table className="w-full border-collapse text-center text-xs font-sans">
                   <thead>
-                    <tr className="bg-[#292820] text-white text-[10px] font-black uppercase tracking-wider">
-                      <th className="p-2.5 border border-[#3A3830]">ORIGEM</th>
-                      <th className="p-2.5 border border-[#3A3830]">DESTINO</th>
-                      <th className="p-2.5 border border-[#3A3830]">TRANSPORTADORA</th>
-                      <th className="p-2.5 border border-[#3A3830]">PLACA CAVALO</th>
-                      <th className="p-2.5 border border-[#3A3830]">PLACAS CARRETAS</th>
-                      <th className="p-2.5 border border-[#3A3830]">TECNOLOGIA</th>
-                      <th className="p-2.5 border border-[#3A3830]">NOME MOTORISTA</th>
-                      <th className="p-2.5 border border-[#3A3830]">CPF</th>
-                      <th className="p-2.5 border border-[#3A3830]">TELEFONE</th>
+                    <tr className="bg-[#292820] text-white text-[10px] font-black uppercase">
+                      <th className="p-2 border border-black">ORIGEM</th>
+                      <th className="p-2 border border-black">DESTINO</th>
+                      <th className="p-2 border border-black">TRANSPORTADORA</th>
+                      <th className="p-2 border border-black">PLACA CAVALO</th>
+                      <th className="p-2 border border-black">PLACAS CARRETAS</th>
+                      <th className="p-2 border border-black">TECNOLOGIA</th>
+                      <th className="p-2 border border-black">NOME MOTORISTA</th>
+                      <th className="p-2 border border-black">CPF</th>
+                      <th className="p-2 border border-black">TELEFONE</th>
                     </tr>
                   </thead>
                   <tbody>
                     {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
-                      <tr key={idx} className="font-black">
-                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {row.origem || 'SANTA LUZIA'}
+                      <tr 
+                        key={row.id || idx}
+                        className={cn("font-bold text-[11px]", activeTheme.tableCellClass)}
+                        style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
+                      >
+                        <td className="p-1 border border-black uppercase">
+                          <input
+                            type="text"
+                            value={row.origem || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {row.destino || 'LONDRINA'}
+                        <td className="p-1 border border-black uppercase">
+                          <input
+                            type="text"
+                            value={row.destino || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {extraData.transportadora}
+                        <td className="p-1 border border-black uppercase">
+                          <input
+                            type="text"
+                            value={row.transportadora || extraData.transportadora || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 uppercase text-[11px] bg-[#FAF7F0] text-stone-900">
-                          {row.placaCav && row.placaCav !== '-' ? row.placaCav : 'QWA6A22'}
+                        <td className="p-1 border border-black font-mono">
+                          <input
+                            type="text"
+                            value={row.placaCav || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold uppercase font-mono outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {row.placaCarr && row.placaCarr !== '-' ? row.placaCarr : 'DLV7307'}
+                        <td className="p-1 border border-black font-mono">
+                          <input
+                            type="text"
+                            value={row.placaCarr || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold uppercase font-mono outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {extraData.tecnologia}
+                        <td className="p-1 border border-black uppercase">
+                          <input
+                            type="text"
+                            value={row.tecnologia || extraData.tecnologia || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 uppercase text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {extraData.nomeMotorista}
+                        <td className="p-1 border border-black uppercase">
+                          <input
+                            type="text"
+                            value={row.nomeMotorista || extraData.nomeMotorista || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {extraData.cpf}
+                        <td className="p-1 border border-black font-mono">
+                          <input
+                            type="text"
+                            value={row.cpf || extraData.cpf || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold font-mono outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
-                        <td className="p-2.5 border border-stone-300 text-[11px]" style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>
-                          {extraData.telefone}
+                        <td className="p-1 border border-black">
+                          <input
+                            type="text"
+                            value={row.telefone || extraData.telefone || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-bold outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                            style={{ color: activeTheme.textColor }}
+                          />
                         </td>
                       </tr>
                     ))}
@@ -705,20 +1061,98 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             {/* Branded footer of this panel */}
             <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] font-bold text-[#77736B] border-t border-[#E6D2A3]/60 pt-3 gap-2">
               <div className="flex items-center gap-1 flex-wrap uppercase">
-                <span>TOTAL DE ROTAS: {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).length || 1}</span>
+                <span>TOTAL DE ROTAS: {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).length || 0}</span>
                 <span>•</span>
-                <span>TOTAL DE NOTAS: {filteredRows.length}</span>
+                <span>TOTAL DE NOTAS: {parsedRows.length}</span>
                 <span>•</span>
-                <span>ÚLTIMA ATUALIZAÇÃO: 25/09/2026 21:39</span>
+                <span>SOMA: {getTotalValue()}</span>
               </div>
               
               <div className="flex items-center gap-1.5 uppercase text-emerald-600">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                <span>SISTEMA ONLINE</span>
+                <span>SISTEMA PRONTO PARA CÓPIA</span>
               </div>
             </div>
 
           </div>
+
+          {/* EDITABLE SECTION: GERENCIADOR DE NOTAS FISCAIS IMPORTADAS */}
+          {!hideAnexos && (
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm text-xs text-[#25231F] space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E6D2A3]/60 pb-2.5 gap-2">
+                <div className="flex items-center gap-2">
+                  <Layers size={15} className="text-[#C49A45]" />
+                  <span className="font-black uppercase tracking-wider text-[11px] text-[#292820]">
+                    Gerenciador de Notas Fiscais Importadas ({parsedRows.length})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleAddEmptyRow}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] uppercase px-2.5 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all shadow-xs"
+                  >
+                    <Plus size={11} />
+                    <span>Adicionar Nota</span>
+                  </button>
+                </div>
+              </div>
+
+              {parsedRows.length === 0 ? (
+                <div className="text-center py-6 text-stone-500 space-y-2">
+                  <AlertCircle size={24} className="mx-auto text-amber-500" />
+                  <p className="font-bold">Nenhuma nota fiscal na lista.</p>
+                  <p className="text-[11px]">Cole os dados da planilha usando Ctrl+V ou clique no botão "COLAR DADOS".</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-[#E6D2A3]/70">
+                  <table className="w-full border-collapse text-left text-xs font-mono">
+                    <thead>
+                      <tr className="bg-[#292820] text-white text-[10px] font-black uppercase">
+                        <th className="p-2 border border-[#3A3830] w-10 text-center">#</th>
+                        <th className="p-2 border border-[#3A3830] w-32">NF</th>
+                        <th className="p-2 border border-[#3A3830] w-36">VALOR</th>
+                        <th className="p-2 border border-[#3A3830] w-12 text-center">AÇÃO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {parsedRows.map((row, idx) => (
+                        <tr key={row.id || idx} className="hover:bg-amber-50/50 bg-white">
+                          <td className="p-1.5 border border-stone-200 text-center font-bold text-[10px] text-stone-500">
+                            {idx + 1}
+                          </td>
+                          <td className="p-1.5 border border-stone-200">
+                            <input
+                              type="text"
+                              value={row.nf}
+                              onChange={(e) => handleUpdateRowField(idx, 'nf', e.target.value)}
+                              className="w-full bg-transparent outline-none font-bold text-[11px]"
+                            />
+                          </td>
+                          <td className="p-1.5 border border-stone-200">
+                            <input
+                              type="text"
+                              value={row.valorNf}
+                              onChange={(e) => handleUpdateRowField(idx, 'valorNf', e.target.value)}
+                              className="w-full bg-transparent outline-none font-bold text-red-700 text-[11px]"
+                            />
+                          </td>
+                          <td className="p-1.5 border border-stone-200 text-center">
+                            <button
+                              onClick={() => handleRemoveRow(idx)}
+                              className="text-stone-400 hover:text-red-600 transition-colors cursor-pointer"
+                              title="Remover nota"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
 
@@ -733,10 +1167,44 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             <ChevronDown size={14} className="text-[#C49A45]" />
           </div>
 
-          {/* SIDEBAR FIELDS CARDS */}
+          {/* SIDEBAR FIELDS CARDS (Updated automatically upon pasting or manual editing!) */}
           <div className="space-y-3.5 text-xs text-left">
             
-            {/* Field 1: Transportadora */}
+            {/* Field 1: Origem */}
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
+                ORIGEM
+              </label>
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <MapPin size={13} className="text-[#77736B]" />
+                <input
+                  type="text"
+                  value={extraData.origem}
+                  onChange={(e) => handleUpdateOperationalField('origem', e.target.value.toUpperCase())}
+                  placeholder="EX: SANTA LUZIA"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Field 2: Destino */}
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
+                DESTINO
+              </label>
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <MapPin size={13} className="text-[#77736B]" />
+                <input
+                  type="text"
+                  value={extraData.destino}
+                  onChange={(e) => handleUpdateOperationalField('destino', e.target.value.toUpperCase())}
+                  placeholder="EX: LONDRINA"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Field 3: Transportadora */}
             <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
               <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 TRANSPORTADORA
@@ -745,9 +1213,10 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <div className="relative">
                 <select
                   value={extraData.transportadora}
-                  onChange={(e) => setExtraData(prev => ({ ...prev, transportadora: e.target.value }))}
+                  onChange={(e) => handleUpdateOperationalField('transportadora', e.target.value)}
                   className="w-full bg-white border border-[#E6D2A3] rounded px-3 py-2 text-xs font-black text-[#292820] outline-none uppercase appearance-none cursor-pointer pr-8 shadow-inner"
                 >
+                  <option value="" className="text-stone-400">SELECIONE OU DIGITE</option>
                   {customTransportadoras.map(t => (
                     <option key={t} value={t} className="bg-white text-[#292820]">{t}</option>
                   ))}
@@ -783,7 +1252,41 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               )}
             </div>
 
-            {/* Field 2: Tecnologia PGR */}
+            {/* Field 4: Placa Cavalo */}
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
+                PLACA CAVALO
+              </label>
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <Truck size={13} className="text-[#77736B]" />
+                <input
+                  type="text"
+                  value={extraData.placaCav}
+                  onChange={(e) => handleUpdateOperationalField('placaCav', e.target.value.toUpperCase())}
+                  placeholder="EX: QWA6A22"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase font-mono placeholder:text-stone-400 placeholder:font-normal text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Field 5: Placas Carretas */}
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
+              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
+                PLACAS CARRETAS
+              </label>
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <Truck size={13} className="text-[#77736B]" />
+                <input
+                  type="text"
+                  value={extraData.placaCarr}
+                  onChange={(e) => handleUpdateOperationalField('placaCarr', e.target.value.toUpperCase())}
+                  placeholder="EX: DLV7307"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase font-mono placeholder:text-stone-400 placeholder:font-normal text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Field 6: Tecnologia PGR */}
             <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
               <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 TECNOLOGIA PGR
@@ -791,9 +1294,10 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <div className="relative">
                 <select
                   value={extraData.tecnologia}
-                  onChange={(e) => setExtraData(prev => ({ ...prev, tecnologia: e.target.value }))}
+                  onChange={(e) => handleUpdateOperationalField('tecnologia', e.target.value)}
                   className="w-full bg-white border border-[#E6D2A3] rounded px-3 py-2 text-xs font-black text-[#292820] outline-none uppercase appearance-none cursor-pointer pr-8 shadow-inner"
                 >
+                  <option value="" className="text-stone-400">SELECIONE OU DIGITE</option>
                   {DEFAULT_TECNOLOGIAS.map(t => (
                     <option key={t} value={t} className="bg-white text-[#292820]">{t}</option>
                   ))}
@@ -802,55 +1306,79 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               </div>
             </div>
 
-            {/* Field 3: Nome do Condutor */}
+            {/* Field 7: Nome do Condutor */}
             <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
               <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                NOME DO CONDUTOR
+                NOME MOTORISTA
               </label>
               <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
                 <User size={13} className="text-[#77736B]" />
                 <input
                   type="text"
                   value={extraData.nomeMotorista}
-                  onChange={(e) => setExtraData(prev => ({ ...prev, nomeMotorista: e.target.value.toUpperCase() }))}
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase"
+                  onChange={(e) => handleUpdateOperationalField('nomeMotorista', e.target.value.toUpperCase())}
+                  placeholder="EX: ROBSON LUIS VIEIRA"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
                 />
               </div>
             </div>
 
-            {/* Field 4: CPF */}
+            {/* Field 8: CPF */}
             <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
               <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                CPF / MOTORISTA
+                CPF
               </label>
               <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
                 <CreditCard size={13} className="text-[#77736B]" />
                 <input
                   type="text"
                   value={extraData.cpf}
-                  onChange={(e) => setExtraData(prev => ({ ...prev, cpf: e.target.value }))}
-                  className="w-full bg-transparent font-black text-[#292820] outline-none"
+                  onChange={(e) => handleUpdateOperationalField('cpf', e.target.value)}
+                  placeholder="000.000.000-00"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none font-mono placeholder:text-stone-400 placeholder:font-normal text-xs"
                 />
               </div>
             </div>
 
-            {/* Field 5: Telefone */}
+            {/* Field 9: Telefone */}
             <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
               <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                TELEFONE / WHATSAPP
+                TELEFONE
               </label>
               <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
                 <Phone size={13} className="text-[#77736B]" />
                 <input
                   type="text"
                   value={extraData.telefone}
-                  onChange={(e) => setExtraData(prev => ({ ...prev, telefone: e.target.value }))}
-                  className="w-full bg-transparent font-black text-[#292820] outline-none"
+                  onChange={(e) => handleUpdateOperationalField('telefone', e.target.value)}
+                  placeholder="(00) 00000-0000"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none placeholder:text-stone-400 placeholder:font-normal text-xs"
                 />
               </div>
             </div>
 
-
+            {/* Summary Info Card */}
+            {!hideAnexos && (
+              <div className="bg-gradient-to-br from-white to-[#FAF6EE] border border-[#E6D2A3] rounded-xl p-3 shadow-2xs space-y-1.5">
+                <span className="text-[10px] font-black text-[#C49A45] uppercase block font-mono">
+                  📊 RESUMO DA AVERBAÇÃO
+                </span>
+                <div className="flex justify-between items-center text-[11px] font-bold">
+                  <span className="text-stone-600">Total de Notas:</span>
+                  <span className="font-mono text-stone-900">{parsedRows.length}</span>
+                </div>
+                <div className="flex justify-between items-center text-[11px] font-bold">
+                  <span className="text-stone-600">Valor Total:</span>
+                  <span className="font-mono text-red-700">{getTotalValue()}</span>
+                </div>
+                <div className="flex justify-between items-center text-[11px] font-bold">
+                  <span className="text-stone-600">Protocolo(s):</span>
+                  <span className="font-mono text-blue-700 truncate max-w-[170px]" title={getProtocolsList(parsedRows)}>
+                    {getProtocolsList(parsedRows)}
+                  </span>
+                </div>
+              </div>
+            )}
 
           </div>
 
@@ -858,41 +1386,75 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
       </div>
 
-      {/* Paste TSV Modal */}
+      {/* Paste TSV / Operations Modal */}
       {showPasteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-xl border border-[#ded5c6] shadow-2xl flex flex-col gap-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-2xl border border-[#ded5c6] shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-stone-200 pb-3 text-left">
-              <h3 className="font-bold text-base text-stone-900 font-sans uppercase">
-                Colar Planilha TSV de Averbação
-              </h3>
+              <div>
+                <h3 className="font-bold text-base text-stone-900 font-sans uppercase flex items-center gap-2">
+                  <FileSpreadsheet size={18} className="text-[#C49A45]" />
+                  <span>Colar Planilha de Averbação / Operações</span>
+                </h3>
+                <p className="text-[11px] text-stone-500 font-sans mt-0.5">
+                  Suporta Planilha de Operações (25 colunas), TSV de Averbação, CSV ou dados separados por TAB/ponto-e-vírgula.
+                </p>
+              </div>
               <button 
                 onClick={() => setShowPasteModal(false)}
-                className="text-stone-400 hover:text-stone-700 cursor-pointer"
+                className="text-stone-400 hover:text-stone-700 cursor-pointer p-1"
               >
                 ✕
               </button>
             </div>
+
+            {/* Quick Actions in Modal */}
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    if (text) setRawInputText(text);
+                  } catch (e) {
+                    // Clipboard permission fallback
+                  }
+                }}
+                className="px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center gap-1.5 cursor-pointer border border-stone-300 shadow-2xs"
+              >
+                <Clipboard size={12} />
+                <span>Colar da Área de Transferência</span>
+              </button>
+            </div>
+
             <textarea
               value={rawInputText}
               onChange={(e) => setRawInputText(e.target.value)}
-              placeholder="Cole aqui as linhas separadas por TAB da sua planilha..."
-              rows={8}
-              className="w-full bg-[#fbf9f5] border border-[#ded5c6] rounded-xl p-3 text-xs font-mono outline-none"
+              placeholder="Cole aqui (Ctrl+V) as linhas da planilha Excel, Google Sheets ou portal de averbação..."
+              rows={9}
+              className="w-full bg-[#fbf9f5] border border-[#ded5c6] rounded-xl p-3 text-xs font-mono outline-none focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]"
             />
-            <div className="flex items-center justify-end gap-2 text-xs">
-              <button
-                onClick={() => setShowPasteModal(false)}
-                className="px-4 py-2 rounded-xl font-bold text-stone-600 hover:bg-stone-100 cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => parseInput(rawInputText)}
-                className="px-4 py-2 rounded-xl font-bold text-white bg-[#8d1118] hover:bg-[#6f0d14] cursor-pointer"
-              >
-                Processar e Inserir
-              </button>
+
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-[11px] text-stone-500 font-mono">
+                {rawInputText.trim() ? `${rawInputText.trim().split('\n').length} linha(s) detectada(s)` : 'Aguardando colagem...'}
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowPasteModal(false)}
+                  className="px-4 py-2 rounded-xl font-bold text-stone-600 hover:bg-stone-100 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleProcessInput(rawInputText)}
+                  className="px-5 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-[#C49A45] to-[#A07A33] hover:brightness-110 cursor-pointer shadow-md flex items-center gap-1.5"
+                >
+                  <Check size={14} />
+                  <span>Processar e Inserir</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

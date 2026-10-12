@@ -49,6 +49,7 @@ import Dashboard from './components/Dashboard';
 import Averbacao from './components/Averbacao';
 import SMCreator from './components/SMCreator';
 import Rotas from './components/Rotas';
+import Iscas from './components/Iscas';
 import Checklist from './components/Checklist';
 import Controle from './components/Controle';
 import Escala from './components/Escala';
@@ -85,7 +86,7 @@ import factoryPresenceBg from './assets/images/factory_wallpaper_presence_179132
 import factoryRotasBg from './assets/images/factory_wallpaper_rotas_1791328719413.jpg';
 import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'iscas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade';
 
 const backgroundImages: Record<Tab, string> = {
   menu: factoryMenuBg,
@@ -97,7 +98,8 @@ const backgroundImages: Record<Tab, string> = {
   checklist: factoryChecklistBg,
   controle: factoryControleBg,
   escala: factoryEscalaBg,
-  disponibilidade: factoryDisponibilidadeBg
+  disponibilidade: factoryDisponibilidadeBg,
+  iscas: factoryMenuBg
 };
 
 const allTabs = [
@@ -110,6 +112,7 @@ const allTabs = [
   { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: Route },
+  { id: 'iscas', label: 'Iscas', icon: Package },
 ];
 
 export default function App() {
@@ -437,6 +440,8 @@ export default function App() {
         return <PresenceList onBack={() => setActiveTab('menu')} />;
       case 'rotas':
         return <Rotas onBack={() => setActiveTab('menu')} />;
+      case 'iscas':
+        return <Iscas onBack={() => setActiveTab('menu')} />;
       default:
         return null;
     }

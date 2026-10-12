@@ -7,33 +7,10 @@ import {
   Plus, 
   Trash2, 
   Search, 
-  ArrowRightLeft, 
-  MapPin, 
-  Navigation,
-  Globe,
-  Settings2,
   Database,
-  ArrowRight,
-  ShieldCheck,
-  Activity,
-  ChevronUp,
-  ChevronDown,
-  GripVertical,
-  Clipboard,
   Check,
-  Upload,
-  Download,
-  AlertTriangle,
-  LayoutGrid,
-  Sparkles,
-  Route as RouteIcon,
-  Compass,
-  Container,
-  Clock,
-  CheckCircle2,
-  Radio,
-  Tv,
-  Maximize2
+  Clipboard,
+  Route as RouteIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { rtdb as db } from '../firebase';
@@ -49,30 +26,64 @@ interface RouteItem {
 }
 
 const DEFAULT_ROUTES: RouteItem[] = [
-  { ida: 'SANTA LUZIA-MG X RIO DE JANEIRO-RJ', idaCod: '4069', volta: 'RIO DE JANEIRO-RJ X SANTA LUZIA-MG', voltaCod: '4079' },
-  { ida: 'SANTA LUZIA-MG X GUARULHOS-SP', idaCod: '4070', volta: 'GUARULHOS-SP X SANTA LUZIA-MG', voltaCod: '3971/4076' },
-  { ida: 'SANTA LUZIA-MG X MONTES CLAROS-MG', idaCod: '', volta: 'MONTES CLAROS-MG X SANTA LUZIA-MG', voltaCod: '4081' },
-  { ida: 'SANTA LUZIA-MG X VIANA-ES', idaCod: '', volta: 'VIANA-ES X SANTA LUZIA-MG', voltaCod: '3985' },
-  { ida: 'SANTA LUZIA-MG X BRASILIA-DF', idaCod: '4071', volta: 'BRASILIA-DF X SANTA LUZIA-MG', voltaCod: '4077' },
-  { ida: 'SANTA LUZIA-MG X SUMARE-SP', idaCod: '', volta: 'SUMARE-SP X SANTA LUZIA-MG', voltaCod: '3994' },
-  { ida: 'SANTA LUZIA-MG X PINHAIS-PR', idaCod: '', volta: 'PINHAIS-PR X SANTA LUZIA-MG', voltaCod: '4080' },
-  { ida: 'SANTA LUZIA-MG X LONDRINA-PR', idaCod: '4027', volta: 'LONDRINA-PR X SANTA LUZIA-MG', voltaCod: '3975/4078/4091' },
-  { ida: 'SANTA LUZIA-MG X NATAL-RN', idaCod: '4015', volta: 'NATAL-RN X SANTA LUZIA-MG', voltaCod: '3969/3970/4075' },
-  { ida: 'SANTA LUZIA-MG X GOV. CELSO RAMOS-SC', idaCod: '', volta: 'GOV. CELSO RAMOS-SC X SANTA LUZIA-MG', voltaCod: '' },
-  { ida: 'SANTA LUZIA-MG X SALVADOR-BA', idaCod: '', volta: 'SALVADOR-BA X SANTA LUZIA-MG', voltaCod: '' },
-  { ida: 'SANTA LUZIA-MG X EUSEBIO-CE', idaCod: '', volta: 'EUSEBIO-CE X SANTA LUZIA-MG', voltaCod: '' },
-  { ida: 'SANTA LUZIA-MG X GRAVATAI-RS', idaCod: '', volta: 'GRAVATAI-RS X SANTA LUZIA-MG', voltaCod: '' },
-  { ida: 'SANTA LUZIA-MG X CAMPO GRANDE-MS', idaCod: '', volta: 'CAMPO GRANDE-MS X SANTA LUZIA-MG', voltaCod: '' },
-  { ida: 'SANTA LUZIA-MG X CUIABA-MT', idaCod: '', volta: 'CUIABA-MT X SANTA LUZIA-MG', voltaCod: '' },
-  { ida: 'SANTA LUZIA-MG X ARIQUEMES-RO', idaCod: '', volta: 'ARIQUEMES-RO X SANTA LUZIA-MG', voltaCod: '' },
-  { ida: 'SANTA LUZIA-MG X VESPASIANO-MG', idaCod: '', volta: 'VESPASIANO-MG X SANTA LUZIA-MG', voltaCod: '3989/3990' },
+  { ida: 'SANTA LUZIA-MG X MACEIÓ-AL', idaCod: '4327', volta: 'MACEIÓ-AL X SANTA LUZIA-MG', voltaCod: '-' },
+  { ida: 'SANTA LUZIA-MG X RIO DE JANEIRO-RJ', idaCod: '4878', volta: 'RIO DE JANEIRO-RJ X SANTA LUZIA-MG', voltaCod: '4879' },
+  { ida: 'SANTA LUZIA-MG X GUARULHOS-SP', idaCod: '4878', volta: 'GUARULHOS-SP X SANTA LUZIA-MG', voltaCod: '4876' },
+  { ida: 'SANTA LUZIA-MG X MONTES CLAROS-MG', idaCod: '4588', volta: 'MONTES CLAROS-MG X SANTA LUZIA-MG', voltaCod: '4171' },
+  { ida: 'SANTA LUZIA-MG X VIANA-ES', idaCod: '4584', volta: 'VIANA-ES X SANTA LUZIA-MG', voltaCod: '3985' },
+  { ida: 'SANTA LUZIA-MG X BRASÍLIA-DF', idaCod: '4582', volta: 'BRASÍLIA-DF X SANTA LUZIA-MG', voltaCod: '4877' },
+  { ida: 'SANTA LUZIA-MG X SUMARÉ-SP', idaCod: '4198', volta: 'SUMARÉ-SP X SANTA LUZIA-MG', voltaCod: '3994' },
+  { ida: 'SANTA LUZIA-MG X PINHAIS-PR', idaCod: '4588', volta: 'PINHAIS-PR X SANTA LUZIA-MG', voltaCod: '4830' },
+  { ida: 'SANTA LUZIA-MG X LONDRINA-PR', idaCod: '4293', volta: 'LONDRINA-PR X SANTA LUZIA-MG', voltaCod: '4891' },
+  { ida: 'SANTA LUZIA-MG X NATAL-RN', idaCod: '4156', volta: 'NATAL-RN X SANTA LUZIA-MG', voltaCod: '3979' },
+  { ida: 'SANTA LUZIA-MG X GOV. CELSO RAMOS-SC', idaCod: '3332', volta: 'GOV. CELSO RAMOS-SC X SANTA LUZIA-MG', voltaCod: '3212' },
+  { ida: 'SANTA LUZIA-MG X SALVADOR-BA', idaCod: '3611', volta: 'SALVADOR-BA X SANTA LUZIA-MG', voltaCod: '2746' },
+  { ida: 'SANTA LUZIA-MG X EUSEBIO-CE', idaCod: '3658', volta: 'EUSEBIO-CE X SANTA LUZIA-MG', voltaCod: '259' },
+  { ida: 'SANTA LUZIA-MG X GRAVATAÍ-RS', idaCod: '3706', volta: 'GRAVATAÍ-RS X SANTA LUZIA-MG', voltaCod: '-' },
+  { ida: 'SANTA LUZIA-MG X CAMPO GRANDE-MT', idaCod: '4191', volta: 'CAMPO GRANDE-MT X SANTA LUZIA-MG', voltaCod: '2116' },
+  { ida: 'SANTA LUZIA-MG X CUIABÁ-MT', idaCod: '1787', volta: 'CUIABÁ-MT X SANTA LUZIA-MG', voltaCod: '2119' },
+  { ida: 'SANTA LUZIA-MG X ARIQUEMES-RO', idaCod: '-', volta: 'ARIQUEMES-RO X SANTA LUZIA-MG', voltaCod: '-' },
+  { ida: 'SANTA LUZIA-MG X VESPASIANO-MG', idaCod: '4597', volta: 'VESPASIANO-MG X SANTA LUZIA-MG', voltaCod: '3990' },
+  { ida: 'SANTA LUZIA-MG X CASTRO-PR', idaCod: '368', volta: 'CASTRO-PR X SANTA LUZIA-MG', voltaCod: '4177' },
+  { ida: 'SANTA LUZIA-MG X ARAÇARIGUAMA-SP', idaCod: '-', volta: 'ARAÇARIGUAMA-SP X SANTA LUZIA-MG', voltaCod: '3614' }
 ];
 
-const UF_LIST = [
-  'BR', 'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 
-  'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-];
+const OFFICIAL_IDA_CODES: Record<string, string> = {
+  'MACEIÓ': '4327',
+  'MACEO': '4327',
+  'RIO DE JANEIRO': '4878',
+  'GUARULHOS': '4878',
+  'MONTES CLAROS': '4588',
+  'VIANA': '4584',
+  'BRASÍLIA': '4582',
+  'BRASILIA': '4582',
+  'SUMARÉ': '4198',
+  'SUMARE': '4198',
+  'PINHAIS': '4588',
+  'LONDRINA': '4293',
+  'NATAL': '4156',
+  'GOV. CELSO RAMOS': '3332',
+  'SALVADOR': '3611',
+  'EUSEBIO': '3658',
+  'GRAVATAÍ': '3706',
+  'CAMPO GRANDE': '4191',
+  'CUIABÁ': '1787',
+  'VESPASIANO': '4597',
+  'CASTRO': '368'
+};
+
+const getDisplayIdaCod = (row: RouteItem) => {
+  if (row.idaCod && row.idaCod.trim() !== '' && row.idaCod !== '-') {
+    return row.idaCod;
+  }
+  const upper = (row.ida || '').toUpperCase();
+  for (const [key, code] of Object.entries(OFFICIAL_IDA_CODES)) {
+    if (upper.includes(key)) {
+      return code;
+    }
+  }
+  return row.idaCod || '';
+};
 
 export default function Rotas({ onBack }: { onBack?: () => void }) {
   const [routes, setRoutes] = useState<RouteItem[]>([]);
@@ -81,12 +92,6 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUf, setSelectedUf] = useState<string>('BR');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-
-  // States for backup and migration
-  const [legacyData, setLegacyData] = useState<RouteItem[] | null>(null);
-  const [isBackupOpen, setIsBackupOpen] = useState(false);
-  const [backupText, setBackupText] = useState('');
-  const [backupStatus, setBackupStatus] = useState<{ type: 'success' | 'error' | ''; message: string }>({ type: '', message: '' });
   const [notification, setNotification] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -107,15 +112,61 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
     const unsubscribe = onValue(rotasRef, (snapshot) => {
       const data = snapshot.val();
       if (data && Array.isArray(data) && data.length > 0) {
-        setRoutes(data);
+        const normalized = data.map((r: any) => {
+          let idaCod = String(r.idaCod ?? r.codigoIda ?? r.codigo_ida ?? r.codeIda ?? r.ida_cod ?? r.codigo ?? r.id ?? '').trim();
+          if (!idaCod || idaCod === '-' || idaCod === '---') {
+            const upperIda = (r.ida || '').toUpperCase();
+            for (const [key, code] of Object.entries(OFFICIAL_IDA_CODES)) {
+              if (upperIda.includes(key)) {
+                idaCod = code;
+                break;
+              }
+            }
+          }
+          if (!idaCod || idaCod === '-') idaCod = '';
+
+          let voltaCod = String(r.voltaCod ?? r.codigoVolta ?? r.codigo_volta ?? r.codeVolta ?? r.volta_cod ?? r.volta_codigo ?? '').trim();
+          if (voltaCod === '-') voltaCod = '';
+
+          return {
+            ida: String(r.ida || r.trechoIda || r.route || ''),
+            idaCod,
+            volta: String(r.volta || r.trechoVolta || ''),
+            voltaCod
+          };
+        });
+        setRoutes(normalized);
       } else {
         const saved = localStorage.getItem('app_rotas_data');
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              set(rotasRef, parsed);
-              setRoutes(parsed);
+              const normalized = parsed.map((r: any) => {
+                let idaCod = String(r.idaCod ?? r.codigoIda ?? r.codigo_ida ?? r.codeIda ?? r.ida_cod ?? r.codigo ?? r.id ?? '').trim();
+                if (!idaCod || idaCod === '-' || idaCod === '---') {
+                  const upperIda = (r.ida || '').toUpperCase();
+                  for (const [key, code] of Object.entries(OFFICIAL_IDA_CODES)) {
+                    if (upperIda.includes(key)) {
+                      idaCod = code;
+                      break;
+                    }
+                  }
+                }
+                if (!idaCod || idaCod === '-') idaCod = '';
+
+                let voltaCod = String(r.voltaCod ?? r.codigoVolta ?? r.codigo_volta ?? r.codeVolta ?? r.volta_cod ?? r.volta_codigo ?? '').trim();
+                if (voltaCod === '-') voltaCod = '';
+
+                return {
+                  ida: String(r.ida || r.trechoIda || r.route || ''),
+                  idaCod,
+                  volta: String(r.volta || r.trechoVolta || ''),
+                  voltaCod
+                };
+              });
+              set(rotasRef, normalized);
+              setRoutes(normalized);
               return;
             }
           } catch (e) {
@@ -146,10 +197,22 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
       await set(rotasRef, tempRoutes);
       setRoutes(tempRoutes);
       setIsEditing(false);
-      showToast('Rotas salvas com sucesso no banco em nuvem!');
+      showToast('Rotas salvas com sucesso na nuvem!');
     } catch (err) {
       console.error('Erro ao salvar rotas no Firebase:', err);
       showToast('Erro ao salvar dados na nuvem.');
+    }
+  };
+
+  const handleResetDefault = async () => {
+    try {
+      const rotasRef = ref(db, 'rotas_data');
+      await set(rotasRef, DEFAULT_ROUTES);
+      setRoutes(DEFAULT_ROUTES);
+      showToast('Rotas oficiais restauradas com sucesso!');
+    } catch (err) {
+      console.error('Erro ao restaurar rotas:', err);
+      showToast('Erro ao restaurar rotas oficiais.');
     }
   };
 
@@ -171,7 +234,6 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
     setTempRoutes(updated);
   };
 
-  // Helper to extract UF from route string
   const extractUf = (routeStr: string): string => {
     const match = routeStr.match(/-([A-Z]{2})/);
     if (match) return match[1];
@@ -183,38 +245,36 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
     return 'MG';
   };
 
-  // Build map state distribution
   const mapStateData = useMemo(() => {
     const data: Record<string, { status: 'active' | 'secondary' | 'neutral'; count: number; detail: string; color: string }> = {};
     
-    // Always mark MG (origin base)
+    // MG is always base operational (Amber/Gold highlight #D69A21)
     data['MG'] = {
       status: 'active',
       count: routes.length,
       detail: `Base Operacional Central (Santa Luzia/Vespasiano) • ${routes.length} rotas conectadas`,
-      color: '#ff5500'
+      color: '#D69A21'
     };
 
     routes.forEach(r => {
       const ufDest = extractUf(r.ida);
-      if (ufDest) {
+      if (ufDest && ufDest !== 'MG') {
         data[ufDest] = {
           status: 'active',
           count: (data[ufDest]?.count || 0) + 1,
           detail: `${r.ida} (Ida: ${r.idaCod || 'S/C'} | Volta: ${r.voltaCod || 'S/C'})`,
-          color: '#ff5500'
+          color: '#596D81'
         };
       }
     });
 
-    // Fill in other states as secondary
     BRAZIL_STATES.forEach(st => {
       if (!data[st.uf]) {
         data[st.uf] = {
           status: 'secondary',
           count: 0,
           detail: `${st.name} (${st.uf}) • Área de Expansão e Monitoramento`,
-          color: '#5c6b7e'
+          color: '#596D81'
         };
       }
     });
@@ -230,7 +290,6 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
     return ((activeUfsCount / 27) * 100).toFixed(2).replace('.', ',');
   }, [activeUfsCount]);
 
-  // Filtered rows
   const activeRoutesList = isEditing ? tempRoutes : routes;
 
   const filteredRoutes = useMemo(() => {
@@ -258,21 +317,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F0] p-4 sm:p-6 lg:p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        {/* Header - Graphite Gradient */}
-        <div className="mb-6 bg-gradient-to-r from-[#181A1D] via-[#202429] to-[#181A1D] border border-[#C5A059] rounded-2xl p-6 shadow-lg flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#8C6D2B] flex items-center justify-center text-[#111111] font-black text-xl shadow-sm">
-              <RouteIcon size={24} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-white uppercase tracking-tight">Gerenciamento de Rotas</h1>
-              <p className="text-xs text-[#C5A059] font-bold uppercase tracking-widest mt-1">Central de Controle Logístico</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="w-full relative pb-12 space-y-5 font-sans text-[#29261F] text-left bg-[#F5EFE4] p-4 sm:p-6 rounded-3xl border border-[#E5D1A5] shadow-xl">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -281,133 +326,143 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
             initial={{ opacity: 0, y: -15, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -15, scale: 0.95 }}
-            className="fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl bg-slate-950/90 text-white border border-white/20 text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
+            className="fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl bg-[#FFFDF8] text-[#29261F] border border-[#C69A45] text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
           >
-            <Check size={16} className="text-emerald-400" />
+            <div className="w-6 h-6 rounded-full bg-[#C69A45]/20 flex items-center justify-center text-[#C69A45]">
+              <Check size={14} className="stroke-[3]" />
+            </div>
             <span>{notification}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="w-full space-y-3 p-2 sm:p-4 max-w-[1700px] mx-auto">
+      <div className="w-full space-y-4">
         
         {/* ========================================================================= */}
-        {/* MASTER BROADCAST HERO PANELS                                              */}
+        {/* BANNER DE GERENCIAMENTO DE ROTAS (MATCHING REFERENCE IMAGE)               */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
+        <div className="relative w-full h-[76px] bg-[#FFFDF8] rounded-2xl overflow-hidden flex items-center justify-between px-6 shadow-sm border border-[#E5D1A5]">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FFFDF8] via-[#F1E7D5]/40 to-[#FFFDF8] pointer-events-none" />
           
-          {/* Top Left Title Banner (3C Vermelho Corporativo & Vinho) */}
-          <div className="lg:col-span-7 bg-gradient-to-r from-[#0b1320] via-[#0f172a] to-[#910d14] text-white p-4 sm:p-5 rounded-2xl shadow-md border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative overflow-hidden">
-            <div className="space-y-1 relative z-10 text-left">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-black text-[#ffd54f] uppercase tracking-widest">
-                  PAINEL OPERACIONAL DE ROTAS & EXPEDIÇÃO
-                </span>
-                <span className="bg-white/20 text-[#ffd54f] text-[9px] font-mono font-black px-2 py-0.5 rounded-full border border-white/30 uppercase">
-                  LOGÍSTICA 3C
-                </span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-2 font-heading">
-                ROTAS <span className="text-[#ffd54f]">BRASIL</span>
-              </h1>
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#E5D1A5] to-[#C69A45] flex items-center justify-center text-[#29261F] shadow-sm shrink-0 border border-[#D8B56D]/50">
+              <RouteIcon size={24} className="stroke-[2.5]" />
             </div>
-
-            <div className="flex items-center gap-2 relative z-10">
-              <div className="bg-black/25 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-left">
-                <span className="text-[9px] font-mono font-bold text-white/80 uppercase block">STATUS DAS UFs</span>
-                <span className="text-xs font-mono font-black text-[#ffd54f] uppercase tracking-wide">
-                  {activeUfsCount} de 27 UFs com rotas
-                </span>
-              </div>
-
-              {onBack && (
-                <button
-                  onClick={onBack}
-                  className="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all cursor-pointer border border-white/20"
-                  title="Voltar ao Painel Principal"
-                >
-                  <ArrowRightLeft size={16} />
-                </button>
-              )}
+            <div className="flex flex-col text-left leading-tight">
+              <span className="text-[10.5px] font-black tracking-widest text-[#8F692A] uppercase font-mono">
+                ROTA DE TRANSPORTE • BRASIL • MG
+              </span>
+              <span className="text-[24px] font-black tracking-tight text-[#29261F] uppercase font-heading">
+                GERENCIAMENTO DE ROTAS
+              </span>
             </div>
           </div>
 
-          {/* Top Right Broadcast Progress Card */}
-          <div className="lg:col-span-5 bg-white border border-[#e8ded2] p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col justify-between relative overflow-hidden">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-mono font-black text-[#8a7c6e] uppercase tracking-wider">
-                COBERTURA NACIONAL — ROTAS
-              </span>
-              <span className="text-2xl sm:text-3xl font-mono font-black text-[#1a1614] tracking-tight font-heading">
-                {coveragePercent}%
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="hidden sm:flex bg-[#F1E7D5] border border-[#E5D1A5] px-4 py-2 rounded-xl text-left shadow-xs">
+              <span className="text-xs font-mono font-black text-[#29261F] uppercase tracking-wide">
+                1 DE 27 UFs COM ROTAS
               </span>
             </div>
 
-            <div className="w-full bg-[#f4ece0] h-3 rounded-full overflow-hidden border border-[#e8ded2] p-0.5">
-              <div 
-                className="h-full bg-gradient-to-r from-[#0f172a] via-[#b8141c] to-[#dfb15b] rounded-full transition-all duration-700 shadow-xs"
-                style={{ width: `${(activeUfsCount / 27) * 100}%` }}
-              />
-            </div>
-
-            <div className="flex justify-between items-center text-[10px] font-mono font-bold text-[#8a7c6e] mt-2">
-              <span>{routes.length} Trechos Cadastrados</span>
-              <span className="text-[#0f172a] font-black">{selectedUf === 'BR' ? 'Visão Geral Brasil' : `Filtro UF: ${selectedUf}`}</span>
-            </div>
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="px-4 py-2 text-xs font-black rounded-xl border bg-[#FFFDF8] hover:bg-[#F1E7D5] text-[#29261F] border-[#C69A45] cursor-pointer transition-all flex items-center gap-1.5 shadow-xs active:scale-95"
+                title="Voltar"
+              >
+                Voltar
+              </button>
+            )}
           </div>
-
         </div>
 
         {/* ========================================================================= */}
-        {/* MAIN SPLIT VIEW: INTERACTIVE MAP (LEFT) + BROADCAST TABLE (RIGHT)          */}
+        {/* COBERTURA NACIONAL — ROTAS BANNER                                         */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
+        <div className="bg-[#FFFDF8] border border-[#E5D1A5] p-5 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden text-[#29261F]">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono font-black text-[#8F692A] uppercase tracking-wider">
+                COBERTURA NACIONAL • ROTAS
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-mono font-bold text-[#71695C]">
+                {routes.length} Trechos Cadastrados
+              </span>
+              <span className="text-2xl sm:text-3xl font-mono font-black text-[#29261F] tracking-tight font-heading">
+                {coveragePercent}%
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full bg-[#F1E7D5] h-3 rounded-full overflow-hidden border border-[#E5D1A5] p-0.5">
+            <div 
+              className="h-full bg-gradient-to-r from-[#E5D1A5] via-[#C69A45] to-[#8F692A] rounded-full transition-all duration-700 shadow-xs"
+              style={{ width: `${(activeUfsCount / 27) * 100}%` }}
+            />
+          </div>
+
+          <div className="flex justify-between items-center text-[10px] font-mono font-bold text-[#71695C] mt-2">
+            <span className="text-[#8F692A]">Rede Logística Ativa em Minas Gerais e Estados Conectados</span>
+            <span className="text-[#C69A45] font-black bg-[#F1E7D5] px-2.5 py-0.5 rounded-lg border border-[#E5D1A5]">
+              {selectedUf === 'BR' ? 'Visão Geral Brasil' : `Filtro UF: ${selectedUf}`}
+            </span>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* MAIN SPLIT VIEW: INTERACTIVE MAP (LEFT) + TABLE & FLOW (RIGHT)             */}
+        {/* ========================================================================= */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
           
-          {/* LEFT 7 COLUMNS: BROADCAST MAP DISPLAY */}
-          <div className="xl:col-span-7 bg-[#f8fafc]/92 backdrop-blur-md border border-[#e8ded2] rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between relative min-h-[560px]">
+          {/* LEFT 7 COLUMNS: MAPA GEOPOLÍTICO DE ESCALAS */}
+          <div className="xl:col-span-7 bg-[#FFFDF8] border border-[#E5D1A5] rounded-2xl p-5 shadow-sm flex flex-col justify-between relative min-h-[580px] text-[#29261F]">
             
             {/* Map Top Bar */}
             <div className="flex items-center justify-between mb-3 z-10">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#0f172a] animate-pulse" />
-                <h3 className="text-xs font-mono font-black text-[#1a1614] uppercase tracking-wider font-heading">
+                <span className="w-3 h-3 rounded-full bg-[#C69A45] animate-pulse" />
+                <h3 className="text-xs font-mono font-black text-[#29261F] uppercase tracking-wider font-heading">
                   MAPA GEOPOLÍTICO DE ESCALAS • BRASIL
                 </h3>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 {selectedUf !== 'BR' && (
                   <button
                     onClick={() => setSelectedUf('BR')}
-                    className="px-2.5 py-1 rounded-lg bg-[#f4ece0] hover:bg-[#e8ded2] text-[#1a1614] font-mono text-[10px] font-bold uppercase transition-all cursor-pointer border border-[#e8ded2]"
+                    className="px-3 py-1 rounded-lg bg-[#F1E7D5] hover:bg-[#E5D1A5] text-[#29261F] font-mono text-[10px] font-bold uppercase transition-all cursor-pointer border border-[#E5D1A5]"
                   >
                     Ver Todas UFs
                   </button>
                 )}
-                <span className="text-[10px] font-mono font-bold text-[#8a7c6e] bg-[#fbf8f3] px-2.5 py-1 rounded-lg border border-[#e8ded2]">
-                  Clique na UF para filtrar
+                <span className="text-[10px] font-mono font-bold text-[#71695C] bg-[#F1E7D5] px-3 py-1 rounded-lg border border-[#E5D1A5]">
+                  Clique no UF para filtrar
                 </span>
               </div>
             </div>
 
-            {/* Interactive Vector Map */}
-            <div className="w-full flex-1 flex items-center justify-center my-2 relative">
+            {/* Interactive Vector Map Container */}
+            <div className="w-full flex-1 flex items-center justify-center my-3 relative bg-[#F5EFE4]/50 rounded-2xl p-4 border border-[#E5D1A5]/60">
               <BrazilMapBroadcast
                 selectedUf={selectedUf === 'BR' ? null : selectedUf}
                 onSelectUf={handleUfClick}
                 stateData={mapStateData}
-                activeColor="#0f172a"
-                secondaryColor="#8a7c6e"
+                activeColor="#596D81"
+                secondaryColor="#71695C"
+                neutralColor="#E5D1A5"
                 titleLegend="LEGENDA DE COBERTURA 3C"
                 legendItems={[
-                  { label: 'UFs com Rotas Regulares', count: `${activeUfsCount} UFs`, color: '#0f172a' },
-                  { label: 'UFs de Apoio / Rede', count: `${27 - activeUfsCount} UFs`, color: '#8a7c6e' }
+                  { label: 'UFs com Rotas Regulares', count: `${activeUfsCount} UFs`, color: '#596D81' },
+                  { label: 'UFs de Apoio / Rede', count: `${27 - activeUfsCount} UFs`, color: '#71695C' }
                 ]}
               />
             </div>
 
             {/* Bottom Actions Row */}
-            <div className="pt-3 border-t border-[#f0e8dd] flex flex-wrap items-center justify-between gap-2 z-10">
+            <div className="pt-3 border-t border-[#E5D1A5] flex flex-wrap items-center justify-between gap-2 z-10">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
@@ -415,146 +470,159 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                     safeCopyText(tsv);
                     showToast('Tabela de rotas copiada como TSV!');
                   }}
-                  className="px-3 py-1.5 bg-[#fbf8f3] hover:bg-white text-[#57493d] rounded-xl text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer border border-[#e8ded2] shadow-2xs"
+                  className="px-3.5 py-2 bg-[#FFFDF8] hover:bg-[#F1E7D5] text-[#29261F] rounded-xl text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer border border-[#C69A45] shadow-xs"
                 >
-                  <Clipboard size={12} />
-                  <span>Copiar TSV</span>
+                  <Clipboard size={13} className="text-[#C69A45]" />
+                  <span>Copiar CSV</span>
                 </button>
 
                 <button
-                  onClick={() => setIsBackupOpen(true)}
-                  className="px-3 py-1.5 bg-[#fbf8f3] hover:bg-white text-[#57493d] rounded-xl text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer border border-[#e8ded2] shadow-2xs"
+                  onClick={() => {
+                    const jsonStr = JSON.stringify(routes, null, 2);
+                    safeCopyText(jsonStr);
+                    showToast('Backup JSON copiado para a área de transferência!');
+                  }}
+                  className="px-3.5 py-2 bg-[#FFFDF8] hover:bg-[#F1E7D5] text-[#29261F] rounded-xl text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer border border-[#C69A45] shadow-xs"
                 >
-                  <Database size={12} />
+                  <Database size={13} className="text-[#C69A45]" />
                   <span>Backup JSON</span>
                 </button>
               </div>
 
-              <div className="text-[10px] font-mono text-[#8a7c6e]">
-                Base central: <strong className="text-[#1a1614]">Santa Luzia / Vespasiano (MG)</strong>
+              <div className="text-[10px] font-mono text-[#71695C]">
+                Base central: <strong className="text-[#29261F]">Santa Luzia / Vespasiano (MG)</strong>
               </div>
             </div>
 
           </div>
 
-          {/* RIGHT 5 COLUMNS: LEADERBOARD & DETAILED TABLE */}
-          <div className="xl:col-span-5 space-y-3.5">
+          {/* RIGHT 5 COLUMNS: DISTRIBUIÇÃO DE FLUXO & TABELA */}
+          <div className="xl:col-span-5 space-y-4">
             
-            {/* Candidate / Route Summary Cards */}
-            <div className="bg-[#f8fafc]/92 backdrop-blur-md border border-[#e8ded2] rounded-2xl p-4 shadow-sm space-y-3">
-              <span className="text-[9.5px] font-mono font-black text-[#8a7c6e] uppercase tracking-wider block">
+            {/* Operational Flow Distribution Cards */}
+            <div className="bg-[#FFFDF8] border border-[#E5D1A5] rounded-2xl p-4.5 shadow-sm space-y-3 text-[#29261F]">
+              <span className="text-[10px] font-mono font-black text-[#8F692A] uppercase tracking-wider block">
                 DISTRIBUIÇÃO DE FLUXO OPERACIONAL
               </span>
 
-              {/* Leader Card 1: Rota Ida */}
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fbf8f3] border border-[#e8ded2]">
+              {/* Card 1: Fluxo Dedicado */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5EFE4] border border-[#E5D1A5]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0f172a] to-[#910d14] text-white flex items-center justify-center font-mono font-black text-sm shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E5D1A5] to-[#C69A45] text-[#29261F] border border-[#D8B56D]/60 flex items-center justify-center font-mono font-black text-xs shadow-xs">
                     IDA
                   </div>
-                  <div className="text-left leading-none">
-                    <span className="text-xs font-black text-[#1a1614] uppercase block">FLUXO DEDICADO</span>
-                    <span className="text-[10px] font-mono font-bold text-[#8a7c6e] mt-1 block">Santa Luzia ➔ Destinos</span>
+                  <div className="text-left leading-tight">
+                    <span className="text-xs font-black text-[#29261F] uppercase block">FLUXO DEDICADO</span>
+                    <span className="text-[10px] font-mono font-bold text-[#71695C] mt-0.5 block">Santa Luzia ➔ Destinos</span>
                   </div>
                 </div>
                 <div className="text-right font-mono">
-                  <span className="text-lg font-black text-[#0f172a] block">48,47%</span>
-                  <span className="text-[9px] font-bold text-[#8a7c6e] uppercase">Volume Regular</span>
+                  <span className="text-lg font-black text-[#29261F] block">48,67%</span>
+                  <span className="text-[9px] font-bold text-[#8F692A] uppercase">VOLUME REGULAR</span>
                 </div>
               </div>
 
-              {/* Leader Card 2: Rota Volta */}
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fbf8f3] border border-[#e8ded2]">
+              {/* Card 2: Fluxo Retorno */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5EFE4] border border-[#E5D1A5]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#0b1320] text-white flex items-center justify-center font-mono font-black text-sm shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-[#F1E7D5] text-[#29261F] border border-[#C69A45]/40 flex items-center justify-center font-mono font-black text-xs shadow-xs">
                     RET
                   </div>
-                  <div className="text-left leading-none">
-                    <span className="text-xs font-black text-[#1a1614] uppercase block">FLUXO RETORNO</span>
-                    <span className="text-[10px] font-mono font-bold text-[#8a7c6e] mt-1 block">Destinos ➔ Santa Luzia</span>
+                  <div className="text-left leading-tight">
+                    <span className="text-xs font-black text-[#29261F] uppercase block">FLUXO RETORNO</span>
+                    <span className="text-[10px] font-mono font-bold text-[#71695C] mt-0.5 block">Destinos ➔ Santa Luzia</span>
                   </div>
                 </div>
                 <div className="text-right font-mono">
-                  <span className="text-lg font-black text-[#0b1320] block">43,49%</span>
-                  <span className="text-[9px] font-bold text-[#8a7c6e] uppercase">Volume Retorno</span>
+                  <span className="text-lg font-black text-[#29261F] block">43,49%</span>
+                  <span className="text-[9px] font-bold text-[#C91F2D] uppercase">VOLUME RETORNO</span>
                 </div>
               </div>
             </div>
 
-            {/* Detailed Table Card (Matching Broadcast TV State Leaderboard) */}
-            <div className="bg-white border border-[#e8ded2] rounded-2xl p-4 shadow-xs space-y-3">
+            {/* Detailed Table Card */}
+            <div className="bg-[#FFFDF8] border border-[#E5D1A5] rounded-2xl p-4.5 shadow-sm space-y-3">
               
               {/* Header & Controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#f0e8dd] pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5D1A5] pb-3">
                 <div className="text-left">
-                  <h4 className="text-xs font-mono font-black text-[#1a1614] uppercase tracking-wide flex items-center gap-1.5 font-heading">
-                    <RouteIcon size={14} className="text-[#0f172a]" />
+                  <h4 className="text-xs font-mono font-black text-[#29261F] uppercase tracking-wide flex items-center gap-1.5 font-heading">
+                    <RouteIcon size={14} className="text-[#C69A45]" />
                     TABELA DE CÓDIGOS E ROTAS
                   </h4>
-                  <span className="text-[10px] font-mono text-[#8a7c6e] block mt-0.5">
+                  <span className="text-[10px] font-mono text-[#71695C] block mt-0.5">
                     {filteredRoutes.length} registros exibidos • Clique no código para copiar
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   {isEditing ? (
                     <>
                       <button
                         onClick={addRow}
-                        className="px-2.5 py-1.5 rounded-xl bg-[#fbf8f3] hover:bg-white text-[#1a1614] font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer border border-[#e8ded2]"
+                        className="px-3 py-1.5 rounded-xl bg-[#F1E7D5] hover:bg-[#E5D1A5] text-[#29261F] font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer border border-[#C69A45]"
                       >
-                        <Plus size={12} /> Add
+                        <Plus size={12} className="stroke-[3]" /> Add
                       </button>
                       <button
                         onClick={handleSave}
-                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#0f172a] to-[#910d14] text-white font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#E5D1A5] to-[#C69A45] text-[#29261F] font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer shadow-sm active:scale-95 border border-[#C69A45]"
                       >
                         <Save size={12} /> Salvar
                       </button>
                       <button
                         onClick={handleCancel}
-                        className="px-2.5 py-1.5 rounded-xl bg-[#e8ded2] text-[#57493d] font-mono text-[10px] font-black uppercase transition-all cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-xl bg-[#F1E7D5] text-[#29261F] font-mono text-[10px] font-black uppercase transition-all cursor-pointer border border-[#E5D1A5]"
                       >
                         <X size={12} />
                       </button>
                     </>
                   ) : (
-                    <button
-                      onClick={handleStartEdit}
-                      className="px-3 py-1.5 rounded-xl bg-[#0f172a] hover:bg-[#910d14] text-white font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    >
-                      <Edit2 size={12} />
-                      <span>Editar Rotas</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={handleResetDefault}
+                        className="px-3 py-1.5 rounded-xl bg-[#FFFDF8] hover:bg-[#F1E7D5] text-[#29261F] font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer border border-[#C69A45]"
+                        title="Restaurar Rotas Fixas Oficiais"
+                      >
+                        Restaurar Padrão
+                      </button>
+                      <button
+                        onClick={handleStartEdit}
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#E5D1A5] to-[#C69A45] text-[#29261F] font-mono text-[10px] font-black uppercase transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 border border-[#C69A45]"
+                      >
+                        <Edit2 size={12} />
+                        <span>EDITAR ROTAS</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
 
               {/* Search Field */}
               <div className="relative w-full">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a7c6e]" />
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C69A45]" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Filtrar por cidade, código ou UF..."
-                  className="w-full bg-[#fbf8f3] border border-[#e8ded2] rounded-xl pl-8 pr-3 py-1.5 text-xs font-mono font-bold text-[#1a1614] focus:bg-white focus:border-[#0f172a] outline-none transition-all placeholder:text-[#a89a8a]"
+                  className="w-full bg-[#FFFDF8] border border-[#E5D1A5] rounded-xl pl-8 pr-3 py-2 text-xs font-mono font-bold text-[#29261F] focus:border-[#C69A45] outline-none transition-all placeholder:text-[#71695C]/60"
                 />
               </div>
 
               {/* Table Container */}
-              <div className="overflow-y-auto max-h-[460px] rounded-xl border border-[#e8ded2]">
+              <div className="overflow-y-auto max-h-[440px] rounded-xl border border-[#E5D1A5] bg-[#FFFDF8]">
                 <table className="w-full border-collapse text-left font-mono text-xs">
-                  <thead className="sticky top-0 bg-gradient-to-r from-[#0b1320] via-[#910d14] to-[#0b1320] text-white z-10 text-[9.5px] uppercase font-black tracking-wider">
+                  <thead className="sticky top-0 bg-[#F1E7D5] text-[#29261F] border-b border-[#E5D1A5] z-10 text-[9.5px] uppercase font-black tracking-wider">
                     <tr>
-                      <th className="p-2.5 w-12 text-center">UF</th>
-                      <th className="p-2.5">TRECHO / ROTA</th>
-                      <th className="p-2.5 text-center w-24">CÓD. IDA</th>
-                      <th className="p-2.5 text-center w-28">CÓD. VOLTA</th>
-                      {isEditing && <th className="p-2.5 text-center w-10">AÇÕES</th>}
+                      <th className="p-2.5 w-12 text-center text-[#29261F]">UF</th>
+                      <th className="p-2.5 text-[#29261F]">TRECHO / ROTA</th>
+                      <th className="p-2.5 text-center w-24 text-[#29261F]">CÓD. IDA</th>
+                      <th className="p-2.5 text-center w-28 text-[#29261F]">CÓD. VOLTA</th>
+                      {isEditing && <th className="p-2.5 text-center w-10 text-[#29261F]">AÇÕES</th>}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#f0e8dd] bg-white">
+                  <tbody className="divide-y divide-[#E5D1A5]/60 bg-[#FFFDF8]">
                     {filteredRoutes.map((row, idx) => {
                       const uf = extractUf(row.ida);
                       const isIdaCopied = copiedCode === `ida-${row.idaCod}`;
@@ -563,15 +631,15 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                       return (
                         <tr 
                           key={idx} 
-                          className="hover:bg-[#fbf8f3] transition-colors group"
+                          className="hover:bg-[#F5EFE4] transition-colors group"
                         >
                           {/* UF Badge */}
                           <td className="p-2.5 text-center font-black">
                             <span className={cn(
-                              "px-2 py-0.5 rounded text-[10px] font-black",
+                              "px-2 py-0.5 rounded text-[10px] font-black border",
                               selectedUf === uf 
-                                ? "bg-[#0f172a] text-white shadow-2xs" 
-                                : "bg-[#f4ece0] text-[#57493d]"
+                                ? "bg-[#C69A45] text-[#29261F] border-[#8F692A] shadow-xs" 
+                                : "bg-[#F1E7D5] text-[#29261F] border-[#E5D1A5]"
                             )}>
                               {uf}
                             </span>
@@ -585,21 +653,21 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                                   type="text"
                                   value={row.ida}
                                   onChange={(e) => updateRow(idx, 'ida', e.target.value)}
-                                  className="w-full bg-[#fbf8f3] border border-[#e8ded2] rounded px-2 py-1 text-[11px] font-bold uppercase"
+                                  className="w-full bg-[#FFFDF8] border border-[#E5D1A5] rounded px-2 py-1 text-[11px] font-bold uppercase text-[#29261F]"
                                 />
                                 <input
                                   type="text"
                                   value={row.volta}
                                   onChange={(e) => updateRow(idx, 'volta', e.target.value)}
-                                  className="w-full bg-[#fbf8f3] border border-[#e8ded2] rounded px-2 py-1 text-[11px] font-bold uppercase text-[#73675a]"
+                                  className="w-full bg-[#FFFDF8] border border-[#E5D1A5] rounded px-2 py-1 text-[11px] font-bold uppercase text-[#71695C]"
                                 />
                               </div>
                             ) : (
                               <div>
-                                <span className="font-extrabold text-[#1a1614] text-[11px] block truncate max-w-[200px] sm:max-w-xs">
+                                <span className="font-extrabold text-[#29261F] text-[11px] block truncate max-w-[190px] sm:max-w-xs">
                                   {row.ida}
                                 </span>
-                                <span className="text-[9.5px] text-[#8a7c6e] block truncate max-w-[200px] sm:max-w-xs mt-0.5">
+                                <span className="text-[9.5px] text-[#71695C] block truncate max-w-[190px] sm:max-w-xs mt-0.5">
                                   {row.volta}
                                 </span>
                               </div>
@@ -613,25 +681,29 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                                 type="text"
                                 value={row.idaCod}
                                 onChange={(e) => updateRow(idx, 'idaCod', e.target.value)}
-                                className="w-full bg-[#fbf8f3] border border-[#e8ded2] rounded px-1.5 py-1 text-center font-mono font-bold text-xs"
+                                className="w-full bg-[#FFFDF8] border border-[#E5D1A5] rounded px-1.5 py-1 text-center font-mono font-bold text-xs text-[#29261F]"
                                 placeholder="---"
                               />
-                            ) : row.idaCod ? (
-                              <button
-                                onClick={() => copyIndividualCode(row.idaCod, 'ida')}
-                                className={cn(
-                                  "px-2 py-1 rounded-md text-[11px] font-bold font-mono transition-all cursor-pointer border w-full text-center",
-                                  isIdaCopied
-                                    ? "bg-emerald-600 text-white border-emerald-700"
-                                    : "bg-[#fbf8f3] hover:bg-[#0f172a] hover:text-white text-[#1a1614] border-[#e8ded2]"
-                                )}
-                                title="Clique para copiar"
-                              >
-                                {isIdaCopied ? 'OK' : row.idaCod}
-                              </button>
-                            ) : (
-                              <span className="text-[#c7baa8] text-[10px]">---</span>
-                            )}
+                            ) : (() => {
+                              const displayCode = getDisplayIdaCod(row);
+                              const hasCode = displayCode && displayCode.trim() !== '' && displayCode !== '-';
+                              return hasCode ? (
+                                <button
+                                  onClick={() => copyIndividualCode(displayCode, 'ida')}
+                                  className={cn(
+                                    "px-2.5 py-1 rounded-md text-[11px] font-bold font-mono transition-all cursor-pointer border w-full text-center shadow-xs",
+                                    isIdaCopied
+                                      ? "bg-[#C69A45] text-[#29261F] border-[#8F692A]"
+                                      : "bg-[#F5EFE4] hover:bg-[#E5D1A5] text-[#29261F] border-[#E5D1A5]"
+                                  )}
+                                  title="Clique para copiar"
+                                >
+                                  {isIdaCopied ? 'OK' : displayCode}
+                                </button>
+                              ) : (
+                                <span className="text-[#71695C] text-[10px] font-mono">---</span>
+                              );
+                            })()}
                           </td>
 
                           {/* Cód Volta */}
@@ -641,24 +713,24 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                                 type="text"
                                 value={row.voltaCod}
                                 onChange={(e) => updateRow(idx, 'voltaCod', e.target.value)}
-                                className="w-full bg-[#fbf8f3] border border-[#e8ded2] rounded px-1.5 py-1 text-center font-mono font-bold text-xs"
+                                className="w-full bg-[#FFFDF8] border border-[#E5D1A5] rounded px-1.5 py-1 text-center font-mono font-bold text-xs text-[#29261F]"
                                 placeholder="---"
                               />
-                            ) : row.voltaCod ? (
+                            ) : row.voltaCod && row.voltaCod.trim() !== '' && row.voltaCod !== '-' ? (
                               <button
                                 onClick={() => copyIndividualCode(row.voltaCod, 'volta')}
                                 className={cn(
-                                  "px-2 py-1 rounded-md text-[10.5px] font-black font-mono transition-all cursor-pointer border w-full text-center",
+                                  "px-2.5 py-1 rounded-md text-[10.5px] font-black font-mono transition-all cursor-pointer border w-full text-center shadow-xs",
                                   isVoltaCopied
-                                    ? "bg-emerald-600 text-white border-emerald-700"
-                                    : "bg-[#fae8e9] hover:bg-[#0b1320] hover:text-white text-[#0b1320] border-[#f5c6cb]"
+                                    ? "bg-[#C69A45] text-[#29261F] border-[#8F692A]"
+                                    : "bg-[#F5EFE4] hover:bg-[#E5D1A5] text-[#29261F] border-[#E5D1A5]"
                                 )}
                                 title="Clique para copiar"
                               >
                                 {isVoltaCopied ? 'OK' : row.voltaCod}
                               </button>
                             ) : (
-                              <span className="text-[#c7baa8] text-[10px]">---</span>
+                              <span className="text-[#71695C] text-[10px] font-mono">---</span>
                             )}
                           </td>
 
@@ -667,7 +739,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
                             <td className="p-2.5 text-center">
                               <button
                                 onClick={() => removeRow(idx)}
-                                className="p-1 text-rose-500 hover:text-rose-700 cursor-pointer"
+                                className="p-1 text-rose-600 hover:text-rose-800 cursor-pointer"
                                 title="Remover Rota"
                               >
                                 <Trash2 size={13} />
@@ -687,107 +759,7 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
 
         </div>
 
-        {/* ========================================================================= */}
-        {/* BOTTOM BROADCAST STUDIO TICKER FOOTER                                      */}
-        {/* ========================================================================= */}
-        <div className="w-full bg-gradient-to-r from-[#0b1320] via-[#8c0f18] to-[#5e070e] text-white p-2.5 sm:p-3 rounded-2xl shadow-md border border-white/20 flex flex-col sm:flex-row items-center justify-between text-[10.5px] font-mono gap-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="flex items-center gap-1.5 font-black text-[#ffd54f]">
-              <span className="w-2 h-2 rounded-full bg-[#ffd54f] inline-block animate-ping" />
-              FONTE: SISTEMA OPERACIONAL LOGÍSTICO 3C
-            </span>
-            <span className="text-white/40">•</span>
-            <span className="text-white/90">Coletor: 100% Sincronizado</span>
-            <span className="text-white/40">•</span>
-            <span className="text-[#ffd54f] font-bold">{routes.length} rotas ativas</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-white/70 text-[9.5px] uppercase">
-            <span>[↑↓] navegar</span>
-            <span>•</span>
-            <span>[←→] selecionar UF</span>
-            <span>•</span>
-            <span>[M] mapa</span>
-            <span>•</span>
-            <span className="text-[#ffd54f] font-bold">[3C] LOGÍSTICA</span>
-          </div>
-        </div>
-
       </div>
-
-      {/* Backup & JSON Modal */}
-      <AnimatePresence>
-        {isBackupOpen && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 max-w-lg w-full text-left space-y-4 font-sans"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <Database size={18} className="text-[#001a44]" />
-                  <h3 className="text-sm font-mono font-black text-slate-900 uppercase">
-                    BACKUP & RESTAURAÇÃO DE ROTAS
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setIsBackupOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-xs text-slate-600">
-                  Exporte o backup atual em formato JSON ou cole dados para restaurar a base de rotas.
-                </p>
-
-                <textarea
-                  rows={6}
-                  value={backupText || JSON.stringify(routes, null, 2)}
-                  onChange={(e) => setBackupText(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono text-xs text-slate-900 focus:bg-white focus:border-[#001a44] outline-none"
-                />
-
-                <div className="flex items-center justify-between gap-2 pt-2">
-                  <button
-                    onClick={() => {
-                      safeCopyText(JSON.stringify(routes, null, 2));
-                      showToast('JSON copiado com sucesso!');
-                    }}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-mono text-xs font-black uppercase cursor-pointer"
-                  >
-                    Copiar JSON
-                  </button>
-
-                  <button
-                    onClick={async () => {
-                      try {
-                        const parsed = JSON.parse(backupText);
-                        if (Array.isArray(parsed)) {
-                          const rotasRef = ref(db, 'rotas_data');
-                          await set(rotasRef, parsed);
-                          setRoutes(parsed);
-                          setIsBackupOpen(false);
-                          showToast('Rotas restauradas com sucesso!');
-                        }
-                      } catch (e) {
-                        alert('JSON inválido.');
-                      }
-                    }}
-                    className="px-4 py-2 bg-[#001a44] hover:bg-[#002766] text-white rounded-xl font-mono text-xs font-black uppercase cursor-pointer shadow-sm"
-                  >
-                    Importar / Restaurar
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
     </div>
   );
