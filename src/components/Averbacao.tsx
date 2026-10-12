@@ -1209,47 +1209,16 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
                 TRANSPORTADORA
               </label>
-              
-              <div className="relative">
-                <select
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <Building size={13} className="text-[#77736B]" />
+                <input
+                  type="text"
                   value={extraData.transportadora}
-                  onChange={(e) => handleUpdateOperationalField('transportadora', e.target.value)}
-                  className="w-full bg-white border border-[#E6D2A3] rounded px-3 py-2 text-xs font-black text-[#292820] outline-none uppercase appearance-none cursor-pointer pr-8 shadow-inner"
-                >
-                  <option value="" className="text-stone-400">SELECIONE OU DIGITE</option>
-                  {customTransportadoras.map(t => (
-                    <option key={t} value={t} className="bg-white text-[#292820]">{t}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#77736B] pointer-events-none" />
+                  onChange={(e) => handleUpdateOperationalField('transportadora', e.target.value.toUpperCase())}
+                  placeholder="EX: 3C LOGÍSTICA"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
+                />
               </div>
-
-              {/* Add Custom Transportadora Button */}
-              {showAddTranspInput ? (
-                <div className="mt-2.5 flex gap-1.5">
-                  <input
-                    type="text"
-                    value={newTranspName}
-                    onChange={(e) => setNewTranspName(e.target.value)}
-                    placeholder="NOME"
-                    className="flex-1 bg-white border border-[#E6D2A3] rounded px-2 py-1 uppercase font-bold text-xs text-[#292820]"
-                  />
-                  <button 
-                    onClick={handleAddCustomTransp}
-                    className="px-2.5 py-1 bg-gradient-to-r from-[#C49A45] to-[#A07A33] text-white font-black rounded text-xs cursor-pointer shadow-sm"
-                  >
-                    OK
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowAddTranspInput(true)}
-                  className="text-[#C49A45] font-black text-[10px] mt-2 block hover:underline cursor-pointer"
-                >
-                  + ADICIONAR NOVA
-                </button>
-              )}
             </div>
 
             {/* Field 4: Placa Cavalo */}
