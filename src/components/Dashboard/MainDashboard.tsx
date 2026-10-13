@@ -111,8 +111,8 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
 
     const rotaIda: IscaItem[] = [];
     const rotaVolta: IscaItem[] = [];
-    const semDestino: IscaItem[] = [];
-    const preparacaoDisponivel: IscaItem[] = [];
+    const noDestino: IscaItem[] = [];
+    const preparacao: IscaItem[] = [];
     const extraviada: IscaItem[] = [];
 
     items.forEach((item) => {
@@ -123,11 +123,11 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
       if (combined.includes('EXTRAVI') || combined.includes('PERDID') || combined.includes('SINISTRO') || combined.includes('ALERTA')) {
         extraviada.push(item);
       } else if (combined.includes('DESTINO') || combined.includes('ENTREG') || combined.includes('CHEG')) {
-        semDestino.push(item);
+        noDestino.push(item);
       } else if (combined.includes('VOLTA') || combined.includes('RETORNO')) {
         rotaVolta.push(item);
-      } else if (combined.includes('PREPARA') || combined.includes('PÁTIO') || combined.includes('PATIO') || combined.includes('DISPONÍVEL') || combined.includes('DISPONIVEL') || combined.includes('ESTOQUE') || combined.includes('BASE')) {
-        preparacaoDisponivel.push(item);
+      } else if (combined.includes('PREPARA') || combined.includes('PÁTIO') || combined.includes('PATIO') || combined.includes('ESTOQUE') || combined.includes('BASE') || combined.includes('DISPONÍVEL')) {
+        preparacao.push(item);
       } else {
         // Padrão ou status "ROTA IDA" / "IDA" / "EM ROTA"
         rotaIda.push(item);
@@ -137,15 +137,17 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
     const total = items.length;
     const operacionaisSeguras = total - extraviada.length;
     const eficienciaPercent = total > 0 ? ((operacionaisSeguras / total) * 100).toFixed(1) : '100.0';
+    const emTransitoPercent = total > 0 ? (((rotaIda.length + rotaVolta.length) / total) * 100).toFixed(1) : '0.0';
 
     return {
       total,
       rotaIda,
       rotaVolta,
-      semDestino,
-      preparacaoDisponivel,
+      noDestino,
+      preparacao,
       extraviada,
-      eficienciaPercent
+      eficienciaPercent,
+      emTransitoPercent
     };
   }, [iscasList]);
 
@@ -163,14 +165,14 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
         const isExtr = combined.includes('EXTRAVI') || combined.includes('PERDID') || combined.includes('SINISTRO');
         const isDest = combined.includes('DESTINO') || combined.includes('ENTREG');
         const isVolt = combined.includes('VOLTA') || combined.includes('RETORNO');
-        const isPrep = combined.includes('PREPARA') || combined.includes('PATIO') || combined.includes('PÁTIO') || combined.includes('DISPONÍVEL') || combined.includes('DISPONIVEL');
+        const isPrep = combined.includes('PREPARA') || combined.includes('PATIO') || combined.includes('PÁTIO');
         if (isExtr || isDest || isVolt || isPrep) return false;
       } else if (selectedStatusTab === 'ROTA VOLTA') {
         if (!combined.includes('VOLTA') && !combined.includes('RETORNO')) return false;
-      } else if (selectedStatusTab === 'SEM DESTINO') {
+      } else if (selectedStatusTab === 'NO DESTINO') {
         if (!combined.includes('DESTINO') && !combined.includes('ENTREG') && !combined.includes('CHEG')) return false;
-      } else if (selectedStatusTab === 'PREPARAÇÃO / DISPONÍVEL') {
-        if (!combined.includes('PREPARA') && !combined.includes('PÁTIO') && !combined.includes('PATIO') && !combined.includes('DISPONÍVEL') && !combined.includes('DISPONIVEL') && !combined.includes('ESTOQUE') && !combined.includes('BASE')) return false;
+      } else if (selectedStatusTab === 'PREPARAÇÃO') {
+        if (!combined.includes('PREPARA') && !combined.includes('PÁTIO') && !combined.includes('PATIO') && !combined.includes('ESTOQUE') && !combined.includes('BASE')) return false;
       } else if (selectedStatusTab === 'EXTRAVIADA') {
         if (!combined.includes('EXTRAVI') && !combined.includes('PERDID') && !combined.includes('SINISTRO') && !combined.includes('ALERTA')) return false;
       }
@@ -209,7 +211,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
     if (up.includes('VOLTA') || up.includes('RETORNO')) {
       return 'bg-purple-500/20 text-purple-300 border-purple-500/40';
     }
-    if (up.includes('PREPARA') || up.includes('PÁTIO') || up.includes('PATIO') || up.includes('DISPONÍVEL') || up.includes('DISPONIVEL')) {
+    if (up.includes('PREPARA') || up.includes('PÁTIO') || up.includes('PATIO')) {
       return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
     }
     // Rota Ida
@@ -291,7 +293,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
             <span className="text-[11px] font-semibold text-[#a8a39a] mt-2 block">
               <strong className="text-[#e5c27a] font-mono font-bold">
                 {classifiedGroups.rotaIda.length + classifiedGroups.rotaVolta.length}
-              </strong> em trânsito · <span className="font-mono text-emerald-400">{classifiedGroups.semDestino.length}</span> entregues
+              </strong> em trânsito · <span className="font-mono text-emerald-400">{classifiedGroups.noDestino.length}</span> entregues
             </span>
             <button
               onClick={() => onNavigate?.('iscas')}
@@ -361,7 +363,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
 
       {/* ========================================================================= */}
       {/* 2. KPI BAR: OS 5 STATUS OFICIAIS DE ISCAS (ROTA IDA, ROTA VOLTA,          */}
-      {/*    SEM DESTINO, PREPARAÇÃO / DISPONÍVEL, EXTRAVIADA)                      */}
+      {/*    NO DESTINO, PREPARAÇÃO, EXTRAVIADA)                                    */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 w-full">
         
@@ -413,12 +415,12 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
           </div>
         </div>
 
-        {/* KPI 3: SEM DESTINO */}
+        {/* KPI 3: NO DESTINO */}
         <div 
-          onClick={() => setSelectedStatusTab('SEM DESTINO')}
+          onClick={() => setSelectedStatusTab('NO DESTINO')}
           className={cn(
             "bg-[#131619]/95 backdrop-blur-md rounded-2xl p-4 border transition-all cursor-pointer flex items-center gap-3.5 text-left shadow-[0_8px_24px_rgba(0,0,0,0.6)] hover:scale-[1.02]",
-            selectedStatusTab === 'SEM DESTINO' ? "border-[#34d399] ring-2 ring-[#34d399]/30" : "border-[rgba(201,151,62,0.2)]"
+            selectedStatusTab === 'NO DESTINO' ? "border-[#34d399] ring-2 ring-[#34d399]/30" : "border-[rgba(201,151,62,0.2)]"
           )}
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#34d399] to-[#059669] text-white flex items-center justify-center shrink-0 border border-emerald-300/60 shadow-[0_0_15px_rgba(52,211,153,0.35)]">
@@ -426,23 +428,23 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
           </div>
           <div className="leading-tight">
             <span className="text-[9px] font-bold uppercase tracking-wider text-[#34d399] block">
-              SEM DESTINO
+              NO DESTINO
             </span>
             <span className="text-[24px] font-black text-white block mt-0.5 tracking-tight font-mono">
-              {classifiedGroups.semDestino.length}
+              {classifiedGroups.noDestino.length}
             </span>
             <span className="text-[9px] font-bold text-emerald-400 block mt-0.5">
-              {classifiedGroups.total > 0 ? ((classifiedGroups.semDestino.length / classifiedGroups.total) * 100).toFixed(0) : 0}% <span className="text-[#a8a39a] font-normal">entregues</span>
+              {classifiedGroups.total > 0 ? ((classifiedGroups.noDestino.length / classifiedGroups.total) * 100).toFixed(0) : 0}% <span className="text-[#a8a39a] font-normal">entregues</span>
             </span>
           </div>
         </div>
 
-        {/* KPI 4: PREPARAÇÃO / DISPONÍVEL */}
+        {/* KPI 4: SANTA LUZIA */}
         <div 
-          onClick={() => setSelectedStatusTab('PREPARAÇÃO / DISPONÍVEL')}
+          onClick={() => setSelectedStatusTab('PREPARAÇÃO')}
           className={cn(
             "bg-[#131619]/95 backdrop-blur-md rounded-2xl p-4 border transition-all cursor-pointer flex items-center gap-3.5 text-left shadow-[0_8px_24px_rgba(0,0,0,0.6)] hover:scale-[1.02]",
-            selectedStatusTab === 'PREPARAÇÃO / DISPONÍVEL' ? "border-[#fbbf24] ring-2 ring-[#fbbf24]/30" : "border-[rgba(201,151,62,0.2)]"
+            selectedStatusTab === 'PREPARAÇÃO' ? "border-[#fbbf24] ring-2 ring-[#fbbf24]/30" : "border-[rgba(201,151,62,0.2)]"
           )}
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#fbbf24] to-[#d97706] text-[#080a0c] flex items-center justify-center shrink-0 border border-amber-300/60 shadow-[0_0_15px_rgba(251,191,36,0.35)]">
@@ -450,13 +452,13 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
           </div>
           <div className="leading-tight">
             <span className="text-[9px] font-bold uppercase tracking-wider text-[#fbbf24] block">
-              PREP. / DISP.
+              SANTA LUZIA
             </span>
             <span className="text-[24px] font-black text-white block mt-0.5 tracking-tight font-mono">
-              {classifiedGroups.preparacaoDisponivel.length}
+              {classifiedGroups.preparacao.length}
             </span>
             <span className="text-[9px] font-bold text-amber-300 block mt-0.5">
-              {classifiedGroups.total > 0 ? ((classifiedGroups.preparacaoDisponivel.length / classifiedGroups.total) * 100).toFixed(0) : 0}% <span className="text-[#a8a39a] font-normal">em base</span>
+              {classifiedGroups.total > 0 ? ((classifiedGroups.preparacao.length / classifiedGroups.total) * 100).toFixed(0) : 0}% <span className="text-[#a8a39a] font-normal">em base/pátio</span>
             </span>
           </div>
         </div>
@@ -488,12 +490,13 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. MIDDLE ROW: MONITORAMENTO OPERACIONAL DE ISCAS (Col 12)                */}
+      {/* 3. MIDDLE ROW: MONITORAMENTO OPERACIONAL DE ISCAS + BRASIL CONECTADO      */}
+      {/*    + PAINEL DE EFICIÊNCIA PGR                                             */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full items-stretch">
         
-        {/* BLOCO: MONITORAMENTO DETALHADO POR STATUS (Col 12) */}
-        <div className="lg:col-span-12 bg-[#131619]/95 backdrop-blur-md rounded-2xl p-5 border border-[rgba(201,151,62,0.22)] shadow-[0_16px_40px_rgba(0,0,0,0.65)] flex flex-col justify-between">
+        {/* BLOCO 1: MONITORAMENTO DETALHADO POR STATUS (Col 5) */}
+        <div className="lg:col-span-5 bg-[#131619]/95 backdrop-blur-md rounded-2xl p-5 border border-[rgba(201,151,62,0.22)] shadow-[0_16px_40px_rgba(0,0,0,0.65)] flex flex-col justify-between">
           
           {/* Header do Bloco com Controles de Filtro */}
           <div className="flex flex-col gap-3 pb-3.5 border-b border-[rgba(201,151,62,0.18)]">
@@ -522,16 +525,16 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
               </button>
             </div>
 
-            {/* Abas dos Status + TODAS */}
+            {/* Abas dos 5 Status + TODAS */}
             <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
-              {(['TODAS', 'ROTA IDA', 'ROTA VOLTA', 'SEM DESTINO', 'PREPARAÇÃO / DISPONÍVEL', 'EXTRAVIADA'] as const).map((tab) => {
+              {(['TODAS', 'ROTA IDA', 'ROTA VOLTA', 'NO DESTINO', 'PREPARAÇÃO', 'EXTRAVIADA'] as const).map((tab) => {
                 const isSelected = selectedStatusTab === tab;
                 const count = 
                   tab === 'TODAS' ? classifiedGroups.total :
                   tab === 'ROTA IDA' ? classifiedGroups.rotaIda.length :
                   tab === 'ROTA VOLTA' ? classifiedGroups.rotaVolta.length :
-                  tab === 'SEM DESTINO' ? classifiedGroups.semDestino.length :
-                  tab === 'PREPARAÇÃO / DISPONÍVEL' ? classifiedGroups.preparacaoDisponivel.length :
+                  tab === 'NO DESTINO' ? classifiedGroups.noDestino.length :
+                  tab === 'PREPARAÇÃO' ? classifiedGroups.preparacao.length :
                   classifiedGroups.extraviada.length;
 
                 return (
@@ -539,7 +542,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
                     key={tab}
                     onClick={() => setSelectedStatusTab(tab)}
                     className={cn(
-                      "px-3 py-1.5 rounded-full text-[10px] font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5",
+                      "px-2.5 py-1 rounded-full text-[9.5px] font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5",
                       isSelected
                         ? "bg-gradient-to-r from-[#e5c27a] to-[#b77a25] text-[#080a0c] shadow-xs"
                         : "bg-[#171a1c] text-[#a8a39a] hover:text-white border border-[rgba(201,151,62,0.15)]"
@@ -547,7 +550,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
                   >
                     <span>{tab}</span>
                     <span className={cn(
-                      "px-1.5 py-0.2 rounded-full text-[9px] font-mono",
+                      "px-1.5 py-0.2 rounded-full text-[8.5px] font-mono",
                       isSelected ? "bg-[#080a0c]/20 text-[#080a0c]" : "bg-white/10 text-white"
                     )}>
                       {count}
@@ -570,51 +573,255 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
             </div>
           </div>
 
-          {/* Lista de Iscas Filtradas (Grid Horizontais) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 my-3 max-h-[350px] overflow-y-auto pr-1">
+          {/* Lista de Iscas Filtradas (Cards Verticais) */}
+          <div className="flex flex-col gap-2 my-2.5 max-h-[290px] overflow-y-auto pr-1">
             {filteredIscas.length === 0 ? (
-              <div className="col-span-full p-8 text-center text-[#a8a39a] text-xs">
+              <div className="p-8 text-center text-[#a8a39a] text-xs">
                 Nenhum registro encontrado para o filtro selecionado.
               </div>
             ) : (
-              filteredIscas.slice(0, 15).map((isca) => (
+              filteredIscas.slice(0, 8).map((isca) => (
                 <div 
                   key={isca.id}
-                  className="bg-[#171a1c]/90 hover:bg-[#1f2429] border border-[rgba(201,151,62,0.15)] hover:border-[#c9973e]/50 rounded-xl p-2.5 transition-all text-left flex items-center justify-between gap-2"
+                  className="bg-[#171a1c]/90 hover:bg-[#1f2429] border border-[rgba(201,151,62,0.15)] hover:border-[#c9973e]/50 rounded-xl p-2.5 transition-all text-left flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-2.5 min-w-[170px]">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#c9973e]/20 to-[#c9973e]/5 border border-[#c9973e]/30 flex items-center justify-center text-[#e5c27a] font-mono text-[10px] font-black shrink-0">
                       <Radio size={14} />
                     </div>
-                    <div className="leading-tight truncate">
+                    <div className="leading-tight">
                       <div className="flex items-center gap-2">
-                        <strong className="text-[11px] font-black text-white font-mono">
+                        <strong className="text-[11.5px] font-black text-white font-mono">
                           {isca.id}
                         </strong>
                         <span className={cn(
-                          "px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border",
+                          "px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider border",
                           getStatusBadgeStyle(isca.status)
                         )}>
                           {isca.status}
                         </span>
                       </div>
-                      <span className="text-[9px] text-[#f4f0e8]/90 font-semibold block mt-0.5 truncate">
+                      <span className="text-[9.5px] text-[#f4f0e8]/90 font-semibold block mt-0.5 truncate max-w-[210px]">
                         {isca.destino}
                       </span>
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => onNavigate?.('iscas')}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-[#c9973e]/20 text-[#a8a39a] hover:text-[#e5c27a] transition-colors cursor-pointer"
-                    title="Ver no Módulo Iscas"
-                  >
-                    <ArrowUpRight size={13} />
-                  </button>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 text-right">
+                    <div className="leading-tight text-left sm:text-right">
+                      <span className="text-[9px] text-[#a8a39a] block">
+                        {isca.motorista ? `Mot: ${isca.motorista}` : (isca.cavalo ? `Placa: ${isca.cavalo}` : 'Grupo 3 Corações')}
+                      </span>
+                      <span className="text-[8.5px] text-amber-400/80 font-mono block mt-0.5">
+                        {isca.data || isca.unidade || 'Telemetria OK'}
+                      </span>
+                    </div>
+
+                    <button 
+                      onClick={() => onNavigate?.('iscas')}
+                      className="p-1.5 rounded-lg bg-white/5 hover:bg-[#c9973e]/20 text-[#a8a39a] hover:text-[#e5c27a] transition-colors cursor-pointer"
+                      title="Ver no Módulo Iscas"
+                    >
+                      <ArrowUpRight size={13} />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
           </div>
+
+          {/* Filtro Rápido de Estados Federativos */}
+          <div className="w-full pt-2 border-t border-[rgba(201,151,62,0.18)] flex items-center justify-between gap-1 overflow-x-auto scrollbar-none">
+            <span className="text-[8.5px] font-black text-[#a8a39a] uppercase tracking-wider shrink-0 mr-1">
+              FILTRAR UF:
+            </span>
+            <div className="flex items-center gap-1">
+              {STATES.map((uf) => {
+                const isSelected = selectedState === uf;
+                return (
+                  <button
+                    key={uf}
+                    onClick={() => setSelectedState(uf)}
+                    className={cn(
+                      "px-2 py-0.5 rounded-full text-[9px] font-black transition-all cursor-pointer shrink-0 leading-none",
+                      isSelected
+                        ? "bg-gradient-to-r from-[#e5c27a] to-[#b77a25] text-[#080a0c] shadow-xs"
+                        : "bg-[#171a1c] text-[#a8a39a] hover:text-white hover:bg-[#232628] border border-[rgba(201,151,62,0.15)]"
+                    )}
+                  >
+                    {uf === 'BR' && <span className="mr-0.5">🇧🇷</span>}
+                    {uf}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
+
+        {/* BLOCO 2: MAPA 3D "BRASIL CONECTADO" (Col 4) */}
+        <div className="lg:col-span-4 bg-[#131619]/95 backdrop-blur-md rounded-2xl p-4 border border-[rgba(201,151,62,0.22)] shadow-[0_16px_40px_rgba(0,0,0,0.65)] relative overflow-hidden flex flex-col justify-between group">
+          <img 
+            src={brazilGoldMapImg} 
+            alt="Brasil Conectado Rotas Douradas" 
+            className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 pointer-events-none"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080a0c]/90 via-transparent to-black/30 pointer-events-none" />
+
+          {/* Top Label */}
+          <div className="relative z-10 flex items-center justify-between">
+            <span className="text-[9px] font-mono font-bold text-[#e5c27a] bg-[#0d1012]/85 px-2 py-0.5 rounded-full border border-[#c9973e]/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-ping" />
+              COBERTURA NACIONAL 3C
+            </span>
+          </div>
+
+          {/* Badge Inferior "BRASIL CONECTADO" */}
+          <div className="relative z-10 bg-[#0d1012]/85 backdrop-blur-md p-3.5 rounded-xl border border-[rgba(201,151,62,0.3)] shadow-[0_8px_20px_rgba(0,0,0,0.8)] text-left max-w-[250px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-5 h-5 rounded-full bg-[#e5c27a] text-[#080a0c] flex items-center justify-center">
+                <MapPin size={12} className="stroke-[2.5]" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white">
+                BRASIL CONECTADO
+              </span>
+            </div>
+            <h4 className="text-[13px] font-black text-[#e5c27a] uppercase tracking-tight leading-none mb-1">
+              ROTAS & TELEMETRIA
+            </h4>
+            <p className="text-[9.5px] text-[#f4f0e8]/80 font-medium leading-tight">
+              Monitoramento ativo de Três Corações, Betim e Varginha para todas as regiões do país.
+            </p>
+          </div>
+        </div>
+
+        {/* BLOCO 3: INDICADORES PGR + RESUMO CONSOLIDADO DE ISCAS (Col 3) */}
+        <div className="lg:col-span-3 flex flex-col gap-4">
+          
+          {/* Card Superior: PADRÃO OURO PGR com Pódio Dourado 3D */}
+          <div className="bg-[#131619]/95 backdrop-blur-md rounded-2xl p-4 text-white shadow-[0_16px_40px_rgba(0,0,0,0.65)] border border-[rgba(201,151,62,0.22)] relative overflow-hidden flex flex-col justify-between min-h-[175px]">
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded-full bg-[#c9973e]/30 flex items-center justify-center text-[#e5c27a]">
+                  <ShieldCheck size={11} />
+                </div>
+                <span className="text-[9.5px] font-black uppercase tracking-wider text-[#e5c27a]">
+                  PADRÃO OURO PGR
+                </span>
+              </div>
+              <span className="text-[8px] font-bold uppercase bg-[#c9973e]/20 text-[#e5c27a] border border-[#c9973e]/40 px-2 py-0.5 rounded-full">
+                GRUPO 3C
+              </span>
+            </div>
+
+            <div className="relative z-10 my-2 text-left">
+              <span className="text-[26px] font-black tracking-tight block leading-none font-mono text-white">
+                {classifiedGroups.eficienciaPercent}% <small className="text-xs font-semibold text-[#10b981]">eficiência</small>
+              </span>
+              <span className="text-[11px] font-bold text-[#e5c27a] mt-1 block">
+                {classifiedGroups.total - classifiedGroups.extraviada.length} de {classifiedGroups.total} iscas operando sem sinistro
+              </span>
+            </div>
+
+            {/* Imagem Pódio Dourado 3D com Troféu */}
+            <div className="relative z-10 w-full h-24 rounded-xl overflow-hidden border border-[rgba(201,151,62,0.2)] shadow-inner group">
+              <img 
+                src={goldPodiumImg} 
+                alt="Pódio Dourado 3D com Troféu" 
+                className="w-full h-full object-cover object-bottom group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#080a0c]/80 via-transparent to-transparent pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Card Inferior: CONSOLIDAÇÃO DOS 5 STATUS */}
+          <div className="bg-[#131619]/95 backdrop-blur-md rounded-2xl p-4 border border-[rgba(201,151,62,0.22)] shadow-[0_16px_40px_rgba(0,0,0,0.65)] flex-1 flex flex-col justify-between text-left">
+            <div className="flex items-center justify-between pb-2 border-b border-[rgba(201,151,62,0.18)]">
+              <div className="flex items-center gap-2">
+                <Layers size={14} className="text-[#e5c27a]" />
+                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+                  DISTRIBUIÇÃO DE ISCAS
+                </span>
+              </div>
+              <button 
+                onClick={() => onNavigate?.('iscas')}
+                className="text-[9.5px] font-bold text-[#e5c27a] hover:underline cursor-pointer flex items-center gap-1"
+              >
+                Planilha ➔
+              </button>
+            </div>
+
+            <div className="flex flex-col divide-y divide-[rgba(255,255,255,0.06)] my-1 text-xs">
+              
+              {/* 1. Rota Ida */}
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-[#38bdf8] font-semibold text-[11px] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]" />
+                  Rota Ida
+                </span>
+                <span className="font-mono font-bold text-white text-[11.5px]">
+                  {classifiedGroups.rotaIda.length} <small className="text-[#a8a39a]">({classifiedGroups.total > 0 ? ((classifiedGroups.rotaIda.length / classifiedGroups.total) * 100).toFixed(0) : 0}%)</small>
+                </span>
+              </div>
+
+              {/* 2. Rota Volta */}
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-[#c084fc] font-semibold text-[11px] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
+                  Rota Volta
+                </span>
+                <span className="font-mono font-bold text-white text-[11.5px]">
+                  {classifiedGroups.rotaVolta.length} <small className="text-[#a8a39a]">({classifiedGroups.total > 0 ? ((classifiedGroups.rotaVolta.length / classifiedGroups.total) * 100).toFixed(0) : 0}%)</small>
+                </span>
+              </div>
+
+              {/* 3. No Destino */}
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-[#34d399] font-semibold text-[11px] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34d399]" />
+                  No Destino
+                </span>
+                <span className="font-mono font-bold text-white text-[11.5px]">
+                  {classifiedGroups.noDestino.length} <small className="text-[#a8a39a]">({classifiedGroups.total > 0 ? ((classifiedGroups.noDestino.length / classifiedGroups.total) * 100).toFixed(0) : 0}%)</small>
+                </span>
+              </div>
+
+              {/* 4. Preparação */}
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-[#fbbf24] font-semibold text-[11px] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#fbbf24]" />
+                  Preparação
+                </span>
+                <span className="font-mono font-bold text-white text-[11.5px]">
+                  {classifiedGroups.preparacao.length} <small className="text-[#a8a39a]">({classifiedGroups.total > 0 ? ((classifiedGroups.preparacao.length / classifiedGroups.total) * 100).toFixed(0) : 0}%)</small>
+                </span>
+              </div>
+
+              {/* 5. Extraviada */}
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-[#ef4444] font-semibold text-[11px] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ef4444]" />
+                  Extraviada
+                </span>
+                <span className="font-mono font-bold text-white text-[11.5px]">
+                  {classifiedGroups.extraviada.length} <small className="text-[#ef4444] font-semibold">({classifiedGroups.total > 0 ? ((classifiedGroups.extraviada.length / classifiedGroups.total) * 100).toFixed(0) : 0}%)</small>
+                </span>
+              </div>
+
+            </div>
+
+            {/* Rodapé do Card */}
+            <div className="pt-2 border-t border-[rgba(201,151,62,0.18)] flex items-center justify-between text-[9.5px] text-[#a8a39a]">
+              <span className="font-bold uppercase tracking-wider text-[#e5c27a]">
+                TOTAL GERAL:
+              </span>
+              <strong className="text-white font-mono text-[12px]">
+                {classifiedGroups.total} ISCAS
+              </strong>
+            </div>
+
+          </div>
+
         </div>
 
       </div>
