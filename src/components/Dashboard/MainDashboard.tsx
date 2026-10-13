@@ -139,6 +139,12 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
     const eficienciaPercent = total > 0 ? ((operacionaisSeguras / total) * 100).toFixed(1) : '100.0';
     const emTransitoPercent = total > 0 ? (((rotaIda.length + rotaVolta.length) / total) * 100).toFixed(1) : '0.0';
 
+    const destUnidadeDist: Record<string, number> = {};
+    items.forEach(item => {
+      const key = `${item.destino} / ${item.unidade}`;
+      destUnidadeDist[key] = (destUnidadeDist[key] || 0) + 1;
+    });
+
     return {
       total,
       rotaIda,
@@ -147,7 +153,8 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
       preparacao,
       extraviada,
       eficienciaPercent,
-      emTransitoPercent
+      emTransitoPercent,
+      destUnidadeDist
     };
   }, [iscasList]);
 
@@ -365,7 +372,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
       {/* 2. KPI BAR: OS 5 STATUS OFICIAIS DE ISCAS (ROTA IDA, ROTA VOLTA,          */}
       {/*    NO DESTINO, PREPARAÇÃO, EXTRAVIADA)                                    */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 w-full">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 w-full">
         
         {/* KPI 1: ROTA IDA */}
         <div 
@@ -485,6 +492,20 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
               {classifiedGroups.extraviada.length > 0 ? 'Atenção PGR' : 'Sem alertas'}
             </span>
           </div>
+        </div>
+
+        {/* --- NOVO COMPONENTE: DISTRIBUIÇÃO POR DESTINO/UNIDADE --- */}
+        <div className="bg-[#131619]/95 backdrop-blur-md rounded-2xl p-4 border border-[rgba(201,151,62,0.2)] shadow-[0_8px_24px_rgba(0,0,0,0.6)] flex flex-col gap-2">
+           <span className="text-[9px] font-bold uppercase tracking-wider text-[#e5c27a] block">
+              DISTRIBUIÇÃO: DESTINO/UNIDADE
+           </span>
+           <select 
+             className="bg-[#171a1c] text-white text-xs p-2 rounded-lg border border-[#c9973e]/30 w-full"
+           >
+             {Object.entries(classifiedGroups.destUnidadeDist).map(([key, count]) => (
+               <option key={key} value={key}>{key}: {count} iscas</option>
+             ))}
+           </select>
         </div>
 
       </div>

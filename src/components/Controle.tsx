@@ -2934,8 +2934,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             className="bg-[#2d241e] border border-stone-700 text-white rounded-lg text-xs font-bold px-2.5 py-1 outline-none cursor-pointer"
                           >
                             <option value="TODAS">Todas ({santaLuziaStats.transps.length})</option>
-                            {santaLuziaStats.transps.map((t) => (
-                              <option key={t} value={t}>
+                            {santaLuziaStats.transps.map((t, index) => (
+                              <option key={`transp-1-${index}-${t}`} value={t}>
                                 {t}
                               </option>
                             ))}
@@ -4192,8 +4192,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           className="w-full text-center font-black uppercase bg-transparent border-none outline-none text-xs cursor-pointer text-[#FAF7F0] tracking-wide pr-4 appearance-none"
                         >
                           <option value="">GTMINAS</option>
-                          {allTransportadoras.map((t) => (
-                            <option key={t} value={t} className="text-[#1A1D20] uppercase text-xs font-bold">
+                          {allTransportadoras.map((t, index) => (
+                            <option key={`transp-2-${index}-${t}`} value={t} className="text-[#1A1D20] uppercase text-xs font-bold">
                               {t}
                             </option>
                           ))}
@@ -6156,8 +6156,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     {cleanDestinoForPlanilha(destino) && !DESTINOS_PLANILHA_ISCAS.includes(cleanDestinoForPlanilha(destino)) && (
                       <option value={cleanDestinoForPlanilha(destino)} className="text-stone-900 font-black">{cleanDestinoForPlanilha(destino)}</option>
                     )}
-                    {DESTINOS_PLANILHA_ISCAS.map((dest) => (
-                      <option key={dest} value={dest} className="text-stone-900 font-black">
+                    {DESTINOS_PLANILHA_ISCAS.map((dest, index) => (
+                      <option key={`dest-1-${index}`} value={dest} className="text-stone-900 font-black">
                         {dest}
                       </option>
                     ))}
@@ -6275,8 +6275,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       {cleanDestinoForPlanilha(destino) && !DESTINOS_PLANILHA_ISCAS.includes(cleanDestinoForPlanilha(destino)) && (
                         <option value={cleanDestinoForPlanilha(destino)} className="text-stone-900 font-black">{cleanDestinoForPlanilha(destino)}</option>
                       )}
-                      {DESTINOS_PLANILHA_ISCAS.map((dest) => (
-                        <option key={dest} value={dest} className="text-stone-900 font-black">
+                      {DESTINOS_PLANILHA_ISCAS.map((dest, index) => (
+                        <option key={`dest-2-${index}`} value={dest} className="text-stone-900 font-black">
                           {dest}
                         </option>
                       ))}

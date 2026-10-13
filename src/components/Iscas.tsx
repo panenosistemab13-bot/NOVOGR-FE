@@ -83,29 +83,21 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
       const parts = lines[i].split(delimiter).map(p => p.trim());
       if (parts.length === 0 || parts.every(p => !p)) continue;
 
-      // Smart column matching
+      // Map based on strict column order: 0:ID, 1:DESTINO, 2:STATUS, 3:OBS, 4:DATA, 5:CARRETA, 6:CAVALO, 7:MOTORISTA, 8:UNIDADE
       let iscaId = parts[0] || '';
-      let destino = parts[1] || '';
-      let status = parts[2] || '';
+      let destino = parts[1] || 'A DEFINIR';
+      let status = parts[2] || 'EM MONITORAMENTO';
       let obs1 = parts[3] || '';
       let data = parts[4] || '';
       let carreta = parts[5] || '';
       let cavalo = parts[6] || '';
       let motorista = parts[7] || '';
-      let unidade = parts[8] || '';
-
-      // Fallback search across parts if standard positions don't match
-      parts.forEach(p => {
-        const up = p.toUpperCase();
-        if (!status && (up.includes('ROTA') || up.includes('IDA') || up.includes('VOLTA') || up.includes('PREPARA') || up.includes('DESTINO'))) {
-          status = p;
-        }
-      });
+      let unidade = parts[8] || 'NÃO INFORMADA';
 
       parsed.push({
         id: iscaId || `ISCA-${i + 1}`,
-        destino: destino || 'A DEFINIR',
-        status: status || 'EM MONITORAMENTO',
+        destino: destino,
+        status: status,
         obs1,
         data,
         carreta,
@@ -213,6 +205,29 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
               <span>Limpar</span>
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Distribution Summary Card */}
+      <div className="bg-[#FFF9EF] border border-[#D9C39B] rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
+        <h3 className="text-xs font-black uppercase tracking-wider text-[#91651F] mb-3">DISTRIBUIÇÃO: DESTINO/UNIDADE</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Object.entries(rows.reduce((acc, row) => {
+            if (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') {
+              const dest = row.destino.toUpperCase();
+              acc[dest] = (acc[dest] || 0) + 1;
+            }
+            if (row.unidade && row.unidade !== 'NÃO INFORMADA' && row.unidade !== 'A DEFINIR') {
+              const unit = row.unidade.toUpperCase();
+              acc[unit] = (acc[unit] || 0) + 1;
+            }
+            return acc;
+          }, {} as Record<string, number>)).sort((a, b) => Number(b[1]) - Number(a[1])).map(([loc, count]) => (
+            <div key={loc} className="bg-white border border-[#D9C39B]/30 rounded-xl p-3 shadow-sm flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-gray-500 uppercase">{loc}</span>
+              <span className="text-sm font-black text-[#33291B]">{count} iscas</span>
+            </div>
+          ))}
         </div>
       </div>
 
