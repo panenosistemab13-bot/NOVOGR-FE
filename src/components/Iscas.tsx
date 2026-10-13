@@ -213,19 +213,15 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
         <h3 className="text-xs font-black uppercase tracking-wider text-[#91651F] mb-3">DISTRIBUIÇÃO: DESTINO/UNIDADE</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Object.entries(rows.reduce((acc, row) => {
-            if (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') {
-              const dest = row.destino.toUpperCase();
-              acc[dest] = (acc[dest] || 0) + 1;
-            }
-            if (row.unidade && row.unidade !== 'NÃO INFORMADA' && row.unidade !== 'A DEFINIR') {
-              const unit = row.unidade.toUpperCase();
-              acc[unit] = (acc[unit] || 0) + 1;
-            }
+            const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
+            const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
+            const location = dest || unit || 'NÃO INFORMADO';
+            
+            acc[location] = (acc[location] || 0) + 1;
             return acc;
           }, {} as Record<string, number>)).sort((a, b) => Number(b[1]) - Number(a[1])).map(([loc, count]) => (
-            <div key={loc} className="bg-white border border-[#D9C39B]/30 rounded-xl p-3 shadow-sm flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-gray-500 uppercase">{loc}</span>
-              <span className="text-sm font-black text-[#33291B]">{count} iscas</span>
+            <div key={loc} className="bg-white border border-[#D9C39B]/30 rounded-xl p-3 shadow-sm flex items-center justify-between">
+              <span className="text-xs font-black text-[#33291B] uppercase">{loc}: {count} iscas</span>
             </div>
           ))}
         </div>
