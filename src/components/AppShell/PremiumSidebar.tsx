@@ -8,7 +8,9 @@ import {
   Calendar, 
   Users2, 
   MapPin, 
-  ChevronRight 
+  ChevronRight,
+  Package,
+  Truck
 } from 'lucide-react';
 import coffeeBeansCup from '../../assets/images/steaming_cup_coffee_1789847106425.jpg';
 
@@ -23,7 +25,9 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
   { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
   { id: 'averbacao', label: 'Averbação', icon: FileCheck2 },
   { id: 'sm_creator', label: 'SM', icon: Share2 },
+  { id: 'iscas', label: 'Iscas', icon: Package },
   { id: 'controle', label: 'Controle', icon: BarChart3 },
+  { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
   { id: 'escala', label: 'Escala', icon: Calendar },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: MapPin },

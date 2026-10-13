@@ -17,7 +17,9 @@ import {
   Bell,
   Sun,
   X,
-  Settings
+  Settings,
+  Package,
+  Truck
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PageDefinition } from '../data/pagesConfig';
@@ -27,6 +29,8 @@ import Averbacao from './Averbacao';
 import SMCreator from './SMCreator';
 import Controle from './Controle';
 import Escala from './Escala';
+import Disponibilidade from './Disponibilidade';
+import Iscas from './Iscas';
 import PresenceList from './PresenceList';
 import Rotas from './Rotas';
 import DashboardInicioFuturistic from './DashboardInicioFuturistic';
@@ -119,7 +123,9 @@ export default function InitialMenu({
     { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
     { id: 'averbacao', label: 'Averbação', icon: FileCheck2 },
     { id: 'sm_creator', label: 'SM', icon: Share2 },
+    { id: 'iscas', label: 'Iscas', icon: Package },
     { id: 'controle', label: 'Controle', icon: BarChart3 },
+    { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
     { id: 'escala', label: 'Escala', icon: Calendar },
     { id: 'presence', label: 'Lista de Presença', icon: Users2 },
     { id: 'rotas', label: 'Rotas', icon: MapPin },
@@ -138,8 +144,12 @@ export default function InitialMenu({
         return <Averbacao view={averbacaoView} onBack={() => handleItemClick('menu')} />;
       case 'sm_creator':
         return <SMCreator view={smCreatorView} onBack={() => handleItemClick('menu')} />;
+      case 'iscas':
+        return <Iscas onBack={() => handleItemClick('menu')} />;
       case 'controle':
         return <Controle onBack={() => handleItemClick('menu')} />;
+      case 'disponibilidade':
+        return <Disponibilidade onBack={() => handleItemClick('menu')} />;
       case 'escala':
         return <Escala onBack={() => handleItemClick('menu')} />;
       case 'presence':

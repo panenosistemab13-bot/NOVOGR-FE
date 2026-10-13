@@ -1215,7 +1215,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                   type="text"
                   value={extraData.transportadora}
                   onChange={(e) => handleUpdateOperationalField('transportadora', e.target.value.toUpperCase())}
-                  placeholder="EX: 3C LOGÍSTICA"
+                  placeholder="EX: MODECENSE"
                   className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
                 />
               </div>
@@ -1255,23 +1255,20 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               </div>
             </div>
 
-            {/* Field 6: Tecnologia PGR */}
+            {/* Field 6: Tecnologia */}
             <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
               <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                TECNOLOGIA PGR
+                TECNOLOGIA
               </label>
-              <div className="relative">
-                <select
+              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
+                <ShieldCheck size={13} className="text-[#77736B]" />
+                <input
+                  type="text"
                   value={extraData.tecnologia}
-                  onChange={(e) => handleUpdateOperationalField('tecnologia', e.target.value)}
-                  className="w-full bg-white border border-[#E6D2A3] rounded px-3 py-2 text-xs font-black text-[#292820] outline-none uppercase appearance-none cursor-pointer pr-8 shadow-inner"
-                >
-                  <option value="" className="text-stone-400">SELECIONE OU DIGITE</option>
-                  {DEFAULT_TECNOLOGIAS.map(t => (
-                    <option key={t} value={t} className="bg-white text-[#292820]">{t}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#77736B] pointer-events-none" />
+                  onChange={(e) => handleUpdateOperationalField('tecnologia', e.target.value.toUpperCase())}
+                  placeholder="EX: SIGHRA"
+                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
+                />
               </div>
             </div>
 

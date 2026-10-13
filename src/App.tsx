@@ -219,33 +219,37 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Global shortcuts (Ctrl + Number / Cmd + Number) mapped dynamically to the numerical order in "Sugestão de Páginas Restritas"
+      // Atalhos globais (Ctrl + Número / Cmd + Número) na ordem exata da imagem do Menu Operacional
       if (e.ctrlKey || e.metaKey) {
-        let pressedNumber: number | null = null;
-        if (e.key >= '1' && e.key <= '9') {
-          pressedNumber = parseInt(e.key, 10);
-        } else if (e.code && /^Digit[1-9]$/.test(e.code)) {
-          pressedNumber = parseInt(e.code.replace('Digit', ''), 10);
-        } else if (e.code && /^Numpad[1-9]$/.test(e.code)) {
-          pressedNumber = parseInt(e.code.replace('Numpad', ''), 10);
+        let keyChar: string | null = null;
+        if (e.key >= '0' && e.key <= '9') {
+          keyChar = e.key;
+        } else if (e.code && /^Digit[0-9]$/.test(e.code)) {
+          keyChar = e.code.replace('Digit', '');
+        } else if (e.code && /^Numpad[0-9]$/.test(e.code)) {
+          keyChar = e.code.replace('Numpad', '');
         }
 
-        if (pressedNumber !== null) {
-          const targetIndex = pressedNumber - 1; // 1-indexed to 0-indexed position
-          if (targetIndex >= 0 && targetIndex < availablePages.length) {
+        if (keyChar !== null) {
+          const SHORTCUT_MAP: Record<string, Tab> = {
+            '1': 'menu',           // 1. INÍCIO
+            '2': 'checklist',      // 2. CHECKLIST
+            '3': 'averbacao',      // 3. AVERBAÇÃO
+            '4': 'sm_creator',     // 4. SM
+            '5': 'iscas',          // 5. ISCAS
+            '6': 'controle',       // 6. PRÉ-ALERTA
+            '7': 'disponibilidade',// 7. DISPONIBILIDADE
+            '8': 'escala',         // 8. ESCALA 3C
+            '9': 'presence',       // 9. CALENDÁRIO
+            '0': 'rotas',          // 10. ROTAS
+          };
+
+          const targetTab = SHORTCUT_MAP[keyChar];
+          if (targetTab) {
             e.preventDefault();
-            const targetPage = availablePages[targetIndex];
-            setActiveTab(targetPage.id as Tab);
+            setActiveTab(targetTab);
             return;
           }
-        } else if (e.key === '0' || e.code === 'Digit0' || e.code === 'Numpad0') {
-          e.preventDefault();
-          if (availablePages.length >= 10) {
-            setActiveTab(availablePages[9].id as Tab);
-          } else {
-            setActiveTab('menu');
-          }
-          return;
         }
       }
 
@@ -467,6 +471,8 @@ export default function App() {
       showRotasPage={Boolean(pageVisibility['rotas'])}
       onOpenWallpaper={() => setShowWallpaperModal(prev => !prev)}
       isWallpaperOpen={showWallpaperModal}
+      pageVisibility={pageVisibility}
+      availablePages={availablePages}
     >
       <div 
         className="w-full h-full overflow-y-auto relative"

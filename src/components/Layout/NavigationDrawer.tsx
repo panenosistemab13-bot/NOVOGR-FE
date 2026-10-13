@@ -12,9 +12,11 @@ import {
   Calendar, 
   Route,
   Settings,
-  ChevronRight
+  ChevronRight,
+  Package
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { PageDefinition, ICON_MAP } from '../../data/pagesConfig';
 
 interface NavigationDrawerProps {
   activeTab: string;
@@ -22,6 +24,8 @@ interface NavigationDrawerProps {
   onOpenSettings?: () => void;
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
+  pageVisibility?: Record<string, boolean>;
+  availablePages?: PageDefinition[];
 }
 
 export default function NavigationDrawer({
@@ -30,6 +34,8 @@ export default function NavigationDrawer({
   onOpenSettings,
   isOpen: propIsOpen,
   setIsOpen: propSetIsOpen,
+  pageVisibility,
+  availablePages,
 }: NavigationDrawerProps) {
   const [internalIsOpen, setInternalIsOpen] = useState<boolean>(false);
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
@@ -45,17 +51,28 @@ export default function NavigationDrawer({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, setIsOpen]);
 
-  const menuItems = [
+  const defaultItems = [
     { id: 'menu', label: 'INÍCIO', subtitle: 'PAINEL CENTRAL', icon: Home },
     { id: 'checklist', label: 'CHECKLIST', subtitle: 'DIVERGÊNCIAS', icon: ClipboardCheck },
     { id: 'averbacao', label: 'AVERBAÇÃO', subtitle: 'SEGUROS DE CARGA', icon: FileCheck2 },
     { id: 'sm_creator', label: 'SM', subtitle: 'MONITORAMENTO', icon: Radio },
+    { id: 'iscas', label: 'ISCAS', subtitle: 'RASTREAMENTO & DESTINOS', icon: Package },
     { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'ISCAS & CONTROLE PGR', icon: Sliders },
     { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'VEÍCULOS PÁTIO', icon: Truck },
     { id: 'escala', label: 'ESCALA 3C', subtitle: 'PLANTÃO LOGÍSTICO', icon: FileSpreadsheet },
     { id: 'presence', label: 'CALENDÁRIO', subtitle: 'FREQUÊNCIA & AGENDA', icon: Calendar },
     { id: 'rotas', label: 'ROTAS', subtitle: 'P&R E DESTINOS', icon: Route },
   ];
+
+  const menuItems = React.useMemo(() => {
+    if (pageVisibility) {
+      return defaultItems.filter(item => {
+        if (item.id === 'menu') return true;
+        return pageVisibility[item.id] !== false;
+      });
+    }
+    return defaultItems;
+  }, [pageVisibility]);
 
   const handleSelect = (id: string) => {
     onSelectTab(id);

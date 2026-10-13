@@ -4,6 +4,8 @@ import PremiumHeader from './PremiumHeader';
 import NavigationDrawer from '../Layout/NavigationDrawer';
 import OperationalFooter from './OperationalFooter';
 
+import { PageDefinition } from '../../data/pagesConfig';
+
 interface AppShellProps {
   activeTab: string;
   onSelectTab: (tabId: string) => void;
@@ -13,6 +15,8 @@ interface AppShellProps {
   showRotasPage?: boolean;
   onOpenWallpaper?: () => void;
   isWallpaperOpen?: boolean;
+  pageVisibility?: Record<string, boolean>;
+  availablePages?: PageDefinition[];
   children: ReactNode;
 }
 
@@ -23,6 +27,8 @@ export default function AppShell({
   onLogout,
   onOpenWallpaper,
   isWallpaperOpen,
+  pageVisibility,
+  availablePages,
   children
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -47,6 +53,8 @@ export default function AppShell({
           onOpenSettings={onOpenSettings}
           isOpen={drawerOpen}
           setIsOpen={setDrawerOpen}
+          pageVisibility={pageVisibility}
+          availablePages={availablePages}
         />
       }
       footer={<OperationalFooter />}

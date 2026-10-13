@@ -92,6 +92,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     badge: 'Monitoramento'
   },
   { 
+    id: 'iscas', 
+    label: 'Iscas', 
+    buttonLabel: 'Iscas', 
+    category: 'Logística',
+    iconName: 'Package',
+    description: 'Gestão de iscas de monitoramento.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Iscas'
+  },
+  { 
     id: 'controle', 
     label: 'Controle', 
     buttonLabel: 'Gerais', 
@@ -115,7 +126,7 @@ export const DEFAULT_PAGES: PageDefinition[] = [
   },
   { 
     id: 'escala', 
-    label: 'Escala', 
+    label: 'Escala 3C', 
     buttonLabel: 'Conversor', 
     category: 'Operacional & Frota',
     iconName: 'FileSpreadsheet',
@@ -145,17 +156,6 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     isDefaultVisible: false,
     isRestrictedByDefault: true,
     badge: 'Trajetos'
-  },
-  { 
-    id: 'iscas', 
-    label: 'Iscas', 
-    buttonLabel: 'Iscas', 
-    category: 'Logística',
-    iconName: 'Package',
-    description: 'Gestão de iscas de monitoramento.',
-    isDefaultVisible: true,
-    isRestrictedByDefault: false,
-    badge: 'Iscas'
   }
 ];
 
@@ -255,6 +255,11 @@ export function loadPageVisibility(): Record<string, boolean> {
         Object.keys(parsed).forEach(k => {
           visibility[k] = Boolean(parsed[k]);
         });
+        if (parsed.iscas === undefined) {
+          visibility.iscas = true;
+        }
+        delete visibility['blitz'];
+        delete visibility['parceiros'];
         return visibility;
       }
     }
@@ -273,10 +278,13 @@ export function loadPageVisibility(): Record<string, boolean> {
     // Ignore
   }
 
-  // Garante que páginas removidas nunca reapareçam
-  delete visibility['iscas'];
+  // Garante que páginas antigas de teste removidas não reapareçam, mas mantém iscas ativa
   delete visibility['blitz'];
   delete visibility['parceiros'];
+
+  if (visibility['iscas'] === undefined) {
+    visibility['iscas'] = true;
+  }
 
   return visibility;
 }

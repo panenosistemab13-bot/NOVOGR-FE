@@ -1,37 +1,29 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Lock, 
-  Unlock, 
-  Settings, 
-  Search, 
-  Plus, 
-  Trash2, 
-  Check, 
-  RotateCcw, 
   X, 
   Eye, 
   EyeOff, 
-  Sparkles, 
-  ShieldCheck, 
-  Layers,
-  HelpCircle,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
-  ChevronUp,
-  ChevronDown
+  Check, 
+  Home,
+  ClipboardCheck,
+  FileCheck2,
+  Radio,
+  Package,
+  Sliders,
+  Truck,
+  FileSpreadsheet,
+  Calendar,
+  Route,
+  Save,
+  RotateCcw,
+  Sparkles,
+  Command
 } from 'lucide-react';
 import { 
   PageDefinition, 
-  DEFAULT_PAGES, 
-  ICON_MAP, 
   getAllAvailablePages, 
-  getStoredCustomPages, 
-  saveStoredCustomPages, 
   savePageVisibility,
-  saveStoredPageOrder,
-  resetPageOrderToDefault,
   saveFullPageConfigToFirebase
 } from '../data/pagesConfig';
 import { cn } from '../lib/utils';
@@ -43,14 +35,28 @@ interface RestrictedPagesModalProps {
   onSave: (newVisibility: Record<string, boolean>, updatedPages: PageDefinition[]) => void;
 }
 
-function TechCorner({ className }: { className?: string }) {
-  return (
-    <div className={cn("w-3.5 h-3.5 pointer-events-none select-none z-20", className)}>
-      <div className="w-full h-[2px] bg-gradient-to-r from-red-500 to-transparent" />
-      <div className="w-[2px] h-full bg-gradient-to-b from-red-500 to-transparent" />
-    </div>
-  );
+interface OperationalMenuItem {
+  id: string;
+  label: string;
+  subtitle: string;
+  shortcut: string;
+  icon: React.ElementType;
+  isFixed?: boolean;
 }
+
+// Ordem exata dos 10 módulos operacionais conforme especificação visual
+export const OPERATIONAL_MENU_ORDER: OperationalMenuItem[] = [
+  { id: 'menu', label: 'INÍCIO', subtitle: 'PAINEL CENTRAL', shortcut: '1', icon: Home, isFixed: true },
+  { id: 'checklist', label: 'CHECKLIST', subtitle: 'DIVERGÊNCIAS', shortcut: '2', icon: ClipboardCheck },
+  { id: 'averbacao', label: 'AVERBAÇÃO', subtitle: 'SEGUROS DE CARGA', shortcut: '3', icon: FileCheck2 },
+  { id: 'sm_creator', label: 'SM', subtitle: 'MONITORAMENTO', shortcut: '4', icon: Radio },
+  { id: 'iscas', label: 'ISCAS', subtitle: 'RASTREAMENTO & DESTINOS', shortcut: '5', icon: Package },
+  { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'ISCAS & CONTROLE PGR', shortcut: '6', icon: Sliders },
+  { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'VEÍCULOS PÁTIO', shortcut: '7', icon: Truck },
+  { id: 'escala', label: 'ESCALA 3C', subtitle: 'PLANTÃO LOGÍSTICO', shortcut: '8', icon: FileSpreadsheet },
+  { id: 'presence', label: 'CALENDÁRIO', subtitle: 'FREQUÊNCIA & AGENDA', shortcut: '9', icon: Calendar },
+  { id: 'rotas', label: 'ROTAS', subtitle: 'P&R E DESTINOS', shortcut: '0', icon: Route },
+];
 
 export default function RestrictedPagesModal({
   isOpen,
@@ -58,676 +64,295 @@ export default function RestrictedPagesModal({
   currentVisibility,
   onSave
 }: RestrictedPagesModalProps) {
-  const [pagesList, setPagesList] = useState<PageDefinition[]>(() => getAllAvailablePages());
   const [visibilityState, setVisibilityState] = useState<Record<string, boolean>>(() => ({ ...currentVisibility }));
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterTab, setFilterTab] = useState<'all' | 'visible' | 'hidden' | 'custom'>('all');
-  const [showAddPageForm, setShowAddPageForm] = useState(false);
-  const [saveSuccessToast, setSaveSuccessToast] = useState(false);
+  const [savedToast, setSavedToast] = useState(false);
 
-  // New Custom Page Form State
-  const [newPageLabel, setNewPageLabel] = useState('');
-  const [newPageId, setNewPageId] = useState('');
-  const [newPageCategory, setNewPageCategory] = useState('Gerais');
-  const [newPageDescription, setNewPageDescription] = useState('');
-  const [newPageIcon, setNewPageIcon] = useState('Sliders');
-  const [newPageVisible, setNewPageVisible] = useState(true);
-  const [formError, setFormError] = useState('');
-
-  // Sync state if modal opens with new visibility
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
-      const all = getAllAvailablePages();
-      setPagesList(all);
       setVisibilityState({ ...currentVisibility });
-      setSearchQuery('');
-      setFilterTab('all');
-      setShowAddPageForm(false);
-      setFormError('');
+      setSavedToast(false);
     }
   }, [isOpen, currentVisibility]);
 
-  const togglePageVisibility = (pageId: string) => {
+  if (!isOpen) return null;
+
+  const togglePage = (pageId: string) => {
+    if (pageId === 'menu') return; // Início é sempre ativo
     setVisibilityState(prev => ({
       ...prev,
-      [pageId]: !prev[pageId]
+      [pageId]: !Boolean(prev[pageId])
     }));
   };
 
-  // Presets
-  const applyPreset = (preset: 'all_visible' | 'default' | 'operational' | 'admin' | 'executive') => {
-    const updated: Record<string, boolean> = {};
-
-    pagesList.forEach(page => {
-      switch (preset) {
-        case 'all_visible':
-          updated[page.id] = true;
-          break;
-        case 'default':
-          updated[page.id] = page.isDefaultVisible;
-          break;
-        case 'operational':
-          updated[page.id] = ['patio', 'checklist', 'controle', 'averbacao', 'sm_creator'].includes(page.id);
-          break;
-        case 'admin':
-          updated[page.id] = ['presence', 'averbacao', 'sm_creator', 'rotas'].includes(page.id);
-          break;
-        case 'executive':
-          updated[page.id] = ['patio', 'controle', 'escala'].includes(page.id);
-          break;
-      }
-    });
-
-    setVisibilityState(updated);
-  };
-
-  // Handle Add New Page
-  const handleAddNewPage = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanId = (newPageId || newPageLabel)
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9_]/g, '_');
-
-    if (!cleanId) {
-      setFormError('Informe um nome ou identificador para a página.');
-      return;
-    }
-
-    if (pagesList.some(p => p.id === cleanId)) {
-      setFormError('Já existe uma página com este identificador.');
-      return;
-    }
-
-    const newPage: PageDefinition = {
-      id: cleanId,
-      label: newPageLabel.trim(),
-      buttonLabel: newPageCategory.trim() || 'Módulo',
-      category: newPageCategory.trim() || 'Gerais',
-      description: newPageDescription.trim() || 'Módulo personalizado adicionado ao sistema.',
-      iconName: newPageIcon,
-      isDefaultVisible: newPageVisible,
-      isRestrictedByDefault: !newPageVisible,
-      isCustom: true,
-      badge: 'Personalizado'
-    };
-
-    const updatedCustom = [...getStoredCustomPages(), newPage];
-    const updatedPages = [...pagesList, newPage];
-    const newVis = {
-      ...visibilityState,
-      [cleanId]: newPageVisible
-    };
-
-    setPagesList(updatedPages);
-    setVisibilityState(newVis);
-
-    saveFullPageConfigToFirebase(newVis, updatedCustom, updatedPages.map(p => p.id));
-
-    // Reset Form
-    setNewPageLabel('');
-    setNewPageId('');
-    setNewPageCategory('Gerais');
-    setNewPageDescription('');
-    setNewPageIcon('Sliders');
-    setNewPageVisible(true);
-    setShowAddPageForm(false);
-    setFormError('');
-  };
-
-  // Handle Delete Custom Page
-  const handleDeleteCustomPage = (pageId: string) => {
-    const updatedCustom = getStoredCustomPages().filter(p => p.id !== pageId);
-    const updatedPages = pagesList.filter(p => p.id !== pageId);
-    const updatedVis = { ...visibilityState };
-    delete updatedVis[pageId];
-
-    setPagesList(updatedPages);
-    setVisibilityState(updatedVis);
-
-    saveFullPageConfigToFirebase(updatedVis, updatedCustom, updatedPages.map(p => p.id));
-  };
-
-  // Page Sequence Reordering Handlers
-  const movePageUp = (pageId: string) => {
-    setPagesList(prev => {
-      const idx = prev.findIndex(p => p.id === pageId);
-      if (idx <= 0) return prev;
-      const copy = [...prev];
-      const temp = copy[idx];
-      copy[idx] = copy[idx - 1];
-      copy[idx - 1] = temp;
-      return copy;
+  const setAllVisible = (visible: boolean) => {
+    setVisibilityState(prev => {
+      const updated = { ...prev };
+      OPERATIONAL_MENU_ORDER.forEach(item => {
+        if (item.id !== 'menu') {
+          updated[item.id] = visible;
+        }
+      });
+      return updated;
     });
   };
 
-  const movePageDown = (pageId: string) => {
-    setPagesList(prev => {
-      const idx = prev.findIndex(p => p.id === pageId);
-      if (idx === -1 || idx >= prev.length - 1) return prev;
-      const copy = [...prev];
-      const temp = copy[idx];
-      copy[idx] = copy[idx + 1];
-      copy[idx + 1] = temp;
-      return copy;
-    });
-  };
+  const handleSaveAndClose = () => {
+    const finalVisibility = { ...visibilityState, menu: true };
+    
+    // Persistência local e nuvem
+    savePageVisibility(finalVisibility);
+    saveFullPageConfigToFirebase(finalVisibility, [], OPERATIONAL_MENU_ORDER.map(i => i.id));
 
-  const movePageToPosition = (pageId: string, targetIndex: number) => {
-    setPagesList(prev => {
-      const currentIndex = prev.findIndex(p => p.id === pageId);
-      if (currentIndex === -1 || targetIndex < 0 || targetIndex >= prev.length || currentIndex === targetIndex) {
-        return prev;
-      }
-      const copy = [...prev];
-      const [moved] = copy.splice(currentIndex, 1);
-      copy.splice(targetIndex, 0, moved);
-      return copy;
-    });
-  };
+    const allPages = getAllAvailablePages();
+    onSave(finalVisibility, allPages);
 
-  const handleResetOrder = () => {
-    resetPageOrderToDefault();
-    const defaultPages = getAllAvailablePages();
-    setPagesList(defaultPages);
-    saveFullPageConfigToFirebase(visibilityState, getStoredCustomPages(), defaultPages.map(p => p.id));
-  };
-
-  // Counts
-  const visibleCount = useMemo(() => {
-    return pagesList.filter(p => visibilityState[p.id]).length;
-  }, [pagesList, visibilityState]);
-
-  const hiddenCount = pagesList.length - visibleCount;
-
-  // Filtered list
-  const filteredPages = useMemo(() => {
-    return pagesList.filter(page => {
-      const isVis = Boolean(visibilityState[page.id]);
-      
-      if (filterTab === 'visible' && !isVis) return false;
-      if (filterTab === 'hidden' && isVis) return false;
-      if (filterTab === 'custom' && !page.isCustom) return false;
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchLabel = page.label.toLowerCase().includes(q);
-        const matchCat = page.category.toLowerCase().includes(q);
-        const matchDesc = page.description.toLowerCase().includes(q);
-        const matchId = page.id.toLowerCase().includes(q);
-        return matchLabel || matchCat || matchDesc || matchId;
-      }
-
-      return true;
-    });
-  }, [pagesList, visibilityState, filterTab, searchQuery]);
-
-  const handleSaveAndApply = () => {
-    const pageOrder = pagesList.map(p => p.id);
-    const customPages = getStoredCustomPages();
-    saveFullPageConfigToFirebase(visibilityState, customPages, pageOrder);
-    onSave(visibilityState, pagesList);
-    setSaveSuccessToast(true);
+    setSavedToast(true);
     setTimeout(() => {
-      setSaveSuccessToast(false);
+      setSavedToast(false);
       onClose();
-    }, 600);
+    }, 800);
   };
 
-  if (!isOpen) return null;
+  // Contadores
+  const activeCount = OPERATIONAL_MENU_ORDER.filter(item => 
+    item.id === 'menu' || Boolean(visibilityState[item.id])
+  ).length;
+
+  const hiddenCount = OPERATIONAL_MENU_ORDER.length - activeCount;
 
   return (
-    <div className="fixed inset-0 bg-[#080a0c]/90 backdrop-blur-xl z-[9999] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-3 sm:p-6 select-none overflow-y-auto">
       <motion.div 
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        initial={{ scale: 0.96, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="w-full max-w-4xl bg-[#131619] border border-[rgba(201,151,62,0.25)] shadow-[0_24px_64px_rgba(0,0,0,0.85)] rounded-[32px] p-6 sm:p-10 relative text-white flex flex-col max-h-[95vh] overflow-hidden"
+        exit={{ scale: 0.96, opacity: 0, y: 15 }}
+        className="w-full max-w-6xl xl:max-w-7xl bg-[#F5EFE4] border-2 border-[#D9C39B] shadow-[0_25px_70px_rgba(198,154,69,0.3)] rounded-[32px] p-5 sm:p-7 relative text-[#33291B] flex flex-col max-h-[94vh] overflow-hidden font-sans"
       >
-        {/* Close Button Top Right */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-6 right-6 w-11 h-11 rounded-xl bg-[#171a1c] text-[#a8a39a] hover:bg-[#c9973e] hover:text-[#080a0c] flex items-center justify-center transition-all shadow-sm z-20 cursor-pointer border border-[rgba(201,151,62,0.2)]"
-          title="Fechar"
-        >
-          <X size={18} />
-        </button>
+        {/* Toast de Confirmação */}
+        <AnimatePresence>
+          {savedToast && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-5 inset-x-20 z-50 py-3 px-6 rounded-2xl bg-[#33291B] text-[#FFF9EF] border border-[#DDB76B] text-xs font-mono font-bold shadow-2xl flex items-center justify-center gap-2"
+            >
+              <Check size={16} className="text-[#DDB76B]" />
+              <span>Configurações salvas e aplicadas em toda a malha operacional!</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Header Title Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-[rgba(201,151,62,0.18)] shrink-0 pr-12">
-          <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#e5c27a] via-[#c9973e] to-[#b77a25] flex items-center justify-center text-[#080a0c] shadow-lg shrink-0">
-              <Settings size={26} className="stroke-[2.5]" />
+        {/* ========================================================================= */}
+        {/* 1. HEADER HORIZONTAL COMPLETO                                             */}
+        {/* ========================================================================= */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[#D9C39B] gap-4 shrink-0">
+          
+          {/* Logo 3 Corações + Título */}
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#7f0b12] border-2 border-[#D9C39B] shadow-[0_0_16px_rgba(212,26,34,0.3)] flex flex-col items-center justify-center relative overflow-hidden shrink-0">
+              <div className="flex items-center justify-center -space-x-0.5 mb-0.5">
+                <span className="text-white text-[11px] leading-none">♥</span>
+                <span className="text-white text-[13px] leading-none -translate-y-0.5">♥</span>
+                <span className="text-white text-[11px] leading-none">♥</span>
+              </div>
+              <span className="text-white text-[6.5px] font-black tracking-tight leading-none uppercase">
+                3corações
+              </span>
             </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-none font-sans">
-                Configuração Operacional
-              </h2>
-              <p className="text-xs sm:text-sm text-[#a8a39a] mt-1.5 font-medium font-sans">
-                Gerenciamento de visibilidade de módulos e ordem de navegação tática.
+
+            <div className="h-9 w-[1.5px] bg-[#D9C39B]" />
+
+            <div className="flex flex-col justify-center leading-none text-left">
+              <div className="flex items-center gap-2">
+                <span className="text-[16px] sm:text-[18px] font-black text-[#33291B] tracking-wider uppercase font-sans">
+                  CONFIGURAÇÃO OPERACIONAL
+                </span>
+                <span className="text-[9.5px] font-mono font-bold text-[#91651F] tracking-widest uppercase bg-[#EEE2CD] px-2.5 py-0.5 rounded-full border border-[#D9C39B]">
+                  PAINEL HORIZONTAL
+                </span>
+              </div>
+              <p className="text-[11px] text-[#7A756D] font-medium mt-1">
+                Controle de visibilidade dos módulos e mapeamento de atalhos rápidos do teclado.
               </p>
             </div>
           </div>
 
-          {/* Quick Counter Chips */}
-          <div className="flex items-center gap-3 self-start sm:self-center">
-            <span className="px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm">
-              <Eye size={14} className="text-emerald-600" />
-              {visibleCount} Ativos
-            </span>
-            <span className="px-4 py-2 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm">
-              <EyeOff size={14} className="text-red-600" />
-              {hiddenCount} Restritos
-            </span>
-          </div>
-        </div>
+          {/* Contadores e Ações Rápidas Centrais */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-[#EEE2CD]/70 p-1.5 rounded-2xl border border-[#D9C39B]">
+              <span className="px-3 py-1 rounded-xl bg-[#E7F6E7] border border-emerald-300 text-emerald-800 text-[10.5px] font-mono font-bold flex items-center gap-1.5 shadow-2xs">
+                <Eye size={13} className="text-emerald-600" />
+                <span>{activeCount} Visíveis</span>
+              </span>
 
-        {/* PRESET QUICK ACTIONS SUGGESTIONS */}
-        <div className="mt-6 shrink-0 bg-[#fbf9f5] border border-[#d6ccbe] p-4 rounded-3xl">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0f172a] mb-3 block">
-            ⚡ Presets de Configuração Rápida:
-          </span>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full">
-            <button
-              type="button"
-              onClick={() => applyPreset('all_visible')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
-            >
-              🌟 Exibir Tudo
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('default')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
-            >
-              🔒 Padrão Seguro
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('operational')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
-            >
-              🚛 Operacional
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('admin')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
-            >
-              👥 Gestão Adm
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('executive')}
-              className="py-2 px-3 rounded-xl bg-white hover:bg-[#0f172a] text-stone-800 hover:text-white border border-[#d6ccbe] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer text-center"
-            >
-              🌐 Executivo
-            </button>
-          </div>
-        </div>
-
-        {/* SEARCH & FILTER CONTROLS */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
-          {/* Search Input */}
-          <div className="relative w-full sm:w-80">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar módulos..."
-              className="w-full bg-[#fbf9f5] border border-[#d6ccbe] rounded-2xl pl-11 pr-4 py-2.5 text-xs text-stone-900 placeholder-stone-400 font-bold focus:outline-none focus:border-[#0f172a] transition-colors shadow-inner"
-            />
-          </div>
-
-          {/* Filter Tabs & Add Button */}
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <div className="flex items-center gap-1 bg-[#fbf9f5] p-1 rounded-2xl border border-[#d6ccbe] shadow-inner">
-              <button
-                type="button"
-                onClick={() => setFilterTab('all')}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer",
-                  filterTab === 'all' 
-                    ? "bg-white text-[#0f172a] shadow-sm" 
-                    : "text-stone-500 hover:text-stone-900"
-                )}
-              >
-                Tudo
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterTab('visible')}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer",
-                  filterTab === 'visible' 
-                    ? "bg-emerald-600 text-white shadow-sm" 
-                    : "text-stone-500 hover:text-stone-900"
-                )}
-              >
-                Ativos
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterTab('hidden')}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer",
-                  filterTab === 'hidden' 
-                    ? "bg-red-600 text-white shadow-sm" 
-                    : "text-stone-500 hover:text-stone-900"
-                )}
-              >
-                Restritos
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowAddPageForm(!showAddPageForm)}
-              className={cn(
-                "px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-2 border shadow-sm transition-all cursor-pointer shrink-0",
-                showAddPageForm 
-                  ? "bg-stone-900 text-white border-stone-800"
-                  : "bg-[#0f172a] hover:bg-[#1e293b] text-white border-red-800"
+              {hiddenCount > 0 && (
+                <span className="px-3 py-1 rounded-xl bg-[#FDEAEA] border border-red-300 text-red-800 text-[10.5px] font-mono font-bold flex items-center gap-1.5 shadow-2xs">
+                  <EyeOff size={13} className="text-red-600" />
+                  <span>{hiddenCount} Ocultos</span>
+                </span>
               )}
-            >
-              {showAddPageForm ? <X size={14} /> : <Plus size={14} />}
-              {showAddPageForm ? "Fechar" : "Novo Módulo"}
-            </button>
-          </div>
-        </div>
 
-        {/* ADD NEW CUSTOM PAGE FORM */}
-        <AnimatePresence>
-          {showAddPageForm && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mt-4 shrink-0"
-            >
-              <form 
-                onSubmit={handleAddNewPage}
-                className="bg-[#fbf9f5] border border-[#d6ccbe] p-6 rounded-[32px] text-stone-900 shadow-xl space-y-4"
+              <div className="h-5 w-[1px] bg-[#D9C39B] mx-0.5" />
+
+              <button
+                type="button"
+                onClick={() => setAllVisible(true)}
+                className="px-2.5 py-1 text-[10.5px] font-bold text-[#91651F] hover:text-[#33291B] hover:bg-[#FFFDF8] rounded-lg transition-colors cursor-pointer"
               >
-                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-                  <span className="text-xs font-black uppercase tracking-widest text-[#0f172a] flex items-center gap-2">
-                    <Sparkles size={16} />
-                    Cadastrar Módulo Personalizado
-                  </span>
-                </div>
+                Exibir Todas
+              </button>
 
-                {formError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-2 rounded-xl font-bold">
-                    ⚠️ {formError}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-500 block mb-1.5">
-                      Nome do Módulo *
-                    </label>
-                    <input
-                      type="text"
-                      value={newPageLabel}
-                      onChange={(e) => setNewPageLabel(e.target.value)}
-                      placeholder="Ex: Auditoria PGR"
-                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#0f172a]"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-500 block mb-1.5">
-                      Categoria
-                    </label>
-                    <input
-                      type="text"
-                      value={newPageCategory}
-                      onChange={(e) => setNewPageCategory(e.target.value)}
-                      placeholder="Ex: Operacional"
-                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#0f172a]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-500 block mb-1.5">
-                      Ícone Visual
-                    </label>
-                    <select
-                      value={newPageIcon}
-                      onChange={(e) => setNewPageIcon(e.target.value)}
-                      className="w-full bg-white border border-[#d6ccbe] rounded-xl px-4 py-2 text-xs text-stone-900 font-bold focus:outline-none focus:border-[#0f172a] cursor-pointer"
-                    >
-                      {Object.keys(ICON_MAP).map((iconKey) => (
-                        <option key={iconKey} value={iconKey}>{iconKey}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <label className="flex items-center gap-3 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={newPageVisible}
-                      onChange={(e) => setNewPageVisible(e.target.checked)}
-                      className="w-5 h-5 accent-[#0f172a] rounded-lg"
-                    />
-                    <span className="text-xs font-bold text-stone-700">
-                      Disponibilizar imediatamente no menu principal
-                    </span>
-                  </label>
-
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddPageForm(false)}
-                      className="px-5 py-2 rounded-xl bg-white hover:bg-stone-100 text-xs font-black uppercase text-stone-500 transition-colors border border-[#d6ccbe]"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2 rounded-xl bg-[#0f172a] text-white text-xs font-black uppercase transition-all shadow-md"
-                    >
-                      Salvar Módulo
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* SCROLLABLE LIST OF ALL PAGES */}
-        <div className="mt-8 flex-1 overflow-y-auto pr-2 space-y-3 min-h-[16rem] custom-scrollbar">
-          {filteredPages.length === 0 ? (
-            <div className="p-12 text-center bg-[#fbf9f5] rounded-[32px] border border-dashed border-[#d6ccbe] text-stone-400">
-              <p className="font-bold text-sm uppercase tracking-widest">Nenhum módulo localizado</p>
+              <button
+                type="button"
+                onClick={() => setAllVisible(false)}
+                className="px-2.5 py-1 text-[10.5px] font-bold text-stone-500 hover:text-stone-800 hover:bg-[#FFFDF8] rounded-lg transition-colors cursor-pointer"
+              >
+                Ocultar Opcionais
+              </button>
             </div>
-          ) : (
-            filteredPages.map((page) => {
-              const isVisible = Boolean(visibilityState[page.id]);
-              const IconComponent = ICON_MAP[page.iconName] || ICON_MAP.Sliders;
-              const globalIndex = pagesList.findIndex(p => p.id === page.id);
-              const isFirst = globalIndex === 0;
-              const isLast = globalIndex === pagesList.length - 1;
 
-              return (
-                <div
-                  key={page.id}
-                  className={cn(
-                    "p-4 rounded-[28px] border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm",
-                    isVisible
-                      ? "bg-white border-stone-200 hover:border-[#0f172a]/30"
-                      : "bg-[#fbf9f5]/50 border-stone-100 opacity-60"
-                  )}
-                >
-                  {/* Left Info */}
-                  <div className="flex items-center gap-5 min-w-0 flex-1">
-                    <div className={cn(
-                      "w-14 h-14 rounded-2xl flex items-center justify-center border shrink-0 shadow-sm transition-all",
-                      isVisible
-                        ? "bg-[#0f172a]/5 border-[#0f172a]/10 text-[#0f172a]"
-                        : "bg-stone-100 border-stone-200 text-stone-400"
-                    )}>
-                      <IconComponent size={24} strokeWidth={2.5} />
-                    </div>
-
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="font-black text-base text-stone-950 uppercase tracking-tight">
-                          {page.label}
-                        </span>
-                        
-                        {page.isCustom && (
-                          <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#0f172a] border border-red-100 text-[8px] font-black uppercase tracking-widest">
-                            Personalizado
-                          </span>
-                        )}
-                      </div>
-
-                      <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mt-1">
-                        {page.category} • {page.id}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Middle / Reorder Sequence Controls */}
-                  <div className="flex items-center gap-2 bg-[#fbf9f5] p-2 rounded-2xl border border-[#d6ccbe] shrink-0 self-start sm:self-center">
-                    <div className="bg-white border border-[#d6ccbe] px-3 py-1.5 rounded-xl shadow-inner text-center min-w-[70px]">
-                      <span className="text-[10px] font-black text-stone-950 font-mono">#{globalIndex + 1}</span>
-                      {globalIndex < 9 && (
-                        <span className="text-[7px] font-black text-[#0f172a] block leading-none mt-0.5">CTRL+{globalIndex + 1}</span>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <button
-                        type="button"
-                        onClick={() => movePageUp(page.id)}
-                        disabled={isFirst}
-                        className={cn(
-                          "w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border",
-                          isFirst ? "opacity-20 pointer-events-none" : "bg-white text-stone-600 hover:bg-[#0f172a] hover:text-white border-[#d6ccbe]"
-                        )}
-                      >
-                        <ChevronUp size={14} strokeWidth={3} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => movePageDown(page.id)}
-                        disabled={isLast}
-                        className={cn(
-                          "w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border",
-                          isLast ? "opacity-20 pointer-events-none" : "bg-white text-stone-600 hover:bg-[#0f172a] hover:text-white border-[#d6ccbe]"
-                        )}
-                      >
-                        <ChevronDown size={14} strokeWidth={3} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Right Status & Toggle Button */}
-                  <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-                    {page.isCustom && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCustomPage(page.id)}
-                        className="p-3 rounded-2xl text-stone-400 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer"
-                        title="Remover módulo personalizado"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => togglePageVisibility(page.id)}
-                      className={cn(
-                        "px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 border transition-all shadow-md active:scale-95 cursor-pointer select-none min-w-[120px] justify-center",
-                        isVisible
-                          ? "bg-emerald-600 text-white border-emerald-700"
-                          : "bg-white text-stone-400 border-stone-200"
-                      )}
-                    >
-                      {isVisible ? (
-                        <>
-                          <Eye size={16} />
-                          <span>Ativo</span>
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff size={16} />
-                          <span>Restrito</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* FOOTER ACTIONS */}
-        <div className="mt-8 pt-6 border-t border-[rgba(201,151,62,0.18)] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
-          <button
-            type="button"
-            onClick={handleResetOrder}
-            className="py-3 px-6 rounded-xl bg-[#171a1c] hover:bg-[#232628] text-[#a8a39a] hover:text-white font-bold uppercase text-[10px] tracking-widest transition-all border border-[rgba(201,151,62,0.2)] cursor-pointer flex items-center justify-center gap-2 w-full sm:w-auto"
-          >
-            <RotateCcw size={14} />
-            Resetar Ordem Global
-          </button>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Botão Fechar */}
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-initial py-3 px-8 rounded-xl bg-[#171a1c] hover:bg-[#232628] text-[#d8d3c8] font-bold uppercase text-xs tracking-wider transition-colors border border-[rgba(201,151,62,0.2)] cursor-pointer text-center"
+              aria-label="Fechar"
+              title="Fechar"
+              className="w-10 h-10 rounded-2xl bg-[#EEE2CD] hover:bg-[#E7D4AF] text-[#91651F] hover:text-[#33291B] border border-[#D9C39B] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95 shrink-0"
             >
-              Voltar
+              <X size={20} className="stroke-[2.5]" />
             </button>
+          </div>
+
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 2. GRID HORIZONTAL: 5 COLUNAS X 2 LINHAS (OS 10 MÓDULOS)                 */}
+        {/* ========================================================================= */}
+        <div className="my-4 overflow-y-auto flex-1 pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+            {OPERATIONAL_MENU_ORDER.map((item) => {
+              const Icon = item.icon;
+              const isVisible = item.isFixed ? true : Boolean(visibilityState[item.id]);
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => !item.isFixed && togglePage(item.id)}
+                  className={cn(
+                    "rounded-2xl p-4 border transition-all flex flex-col justify-between text-left shadow-xs relative group min-h-[145px]",
+                    item.isFixed
+                      ? "bg-[#FFF9EF] border-[#C69A45] ring-2 ring-[#C69A45]/30 cursor-default"
+                      : isVisible
+                        ? "bg-[#FFFDF8] hover:bg-[#FFF9EF] border-[#D9C39B] hover:border-[#C69A45] cursor-pointer hover:shadow-md"
+                        : "bg-[#EAE4D8]/60 hover:bg-[#EAE4D8] border-[#D5C6AC] opacity-65 cursor-pointer"
+                  )}
+                >
+                  {/* Topo do Card: Ícone + Atalho Ctrl */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className={cn(
+                      "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-transform",
+                      item.isFixed
+                        ? "bg-[#33291B] text-[#FFF9EF] border-[#33291B] shadow-sm"
+                        : isVisible
+                          ? "bg-[#EEE2CD] text-[#91651F] border-[#D9C39B] group-hover:scale-105"
+                          : "bg-stone-200 text-stone-500 border-stone-300"
+                    )}>
+                      <Icon size={20} className="stroke-[2.2]" />
+                    </div>
+
+                    {/* Badge do Atalho Ctrl + Número */}
+                    <kbd className="px-2.5 py-1 rounded-xl bg-[#EEE2CD] text-[#7A5A1A] font-mono text-[10px] font-black border border-[#D9C39B] shadow-2xs shrink-0 flex items-center gap-1">
+                      <span>Ctrl + {item.shortcut}</span>
+                    </kbd>
+                  </div>
+
+                  {/* Centro do Card: Nome e Subtítulo */}
+                  <div className="my-2 leading-tight">
+                    <strong className={cn(
+                      "text-[13px] font-black uppercase tracking-wide block font-sans truncate",
+                      isVisible ? "text-[#33291B]" : "text-stone-500 line-through"
+                    )}>
+                      {item.label}
+                    </strong>
+                    <span className="text-[9px] font-mono font-bold text-[#91651F] uppercase tracking-wider block mt-0.5 truncate">
+                      {item.subtitle}
+                    </span>
+                  </div>
+
+                  {/* Base do Card: Botão de Visibilidade Horizontal */}
+                  <div className="pt-2 border-t border-[#D9C39B]/40">
+                    {item.isFixed ? (
+                      <div className="w-full py-1.5 rounded-xl bg-[#33291B] text-[#FFF9EF] text-[10px] font-black uppercase tracking-wider border border-[#33291B] flex items-center justify-center gap-1.5 shadow-2xs">
+                        <Check size={13} className="text-[#DDB76B]" />
+                        <span>SEMPRE ATIVO</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePage(item.id);
+                        }}
+                        className={cn(
+                          "w-full py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs active:scale-95",
+                          isVisible
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-[0_2px_8px_rgba(16,185,129,0.25)]"
+                            : "bg-stone-300 hover:bg-stone-400 text-stone-700 border-stone-400"
+                        )}
+                      >
+                        {isVisible ? (
+                          <>
+                            <Eye size={13} />
+                            <span>VISÍVEL</span>
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff size={13} />
+                            <span>OCULTO</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 3. FOOTER HORIZONTAL COM DICA OPERACIONAL E SALVAMENTO                    */}
+        {/* ========================================================================= */}
+        <div className="pt-3.5 border-t border-[#D9C39B] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2 text-[11px] text-[#7A756D] text-left">
+            <span className="w-2 h-2 rounded-full bg-[#C69A45] shrink-0" />
+            <span>
+              Pressione <kbd className="font-mono font-bold text-[#33291B] bg-[#EEE2CD] px-1.5 py-0.5 rounded border border-[#D9C39B]">Ctrl + Número</kbd> em qualquer tela do sistema para alternar instantaneamente entre os módulos.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2.5 self-end sm:self-auto">
             <button
               type="button"
-              onClick={handleSaveAndApply}
-              className="flex-1 sm:flex-initial py-3.5 px-9 rounded-xl bg-gradient-to-r from-[#e5c27a] via-[#c9973e] to-[#b77a25] text-[#080a0c] font-black uppercase text-xs tracking-wider shadow-lg hover:brightness-110 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2.5"
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl bg-[#EEE2CD] hover:bg-[#E7D4AF] text-[#33291B] border border-[#D9C39B] text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
             >
-              <Check size={18} strokeWidth={3} />
-              Aplicar Mudanças
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSaveAndClose}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#d41a22] to-[#a11118] hover:from-[#b7141b] hover:to-[#840c12] text-white border border-[#7f0b12] text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md active:scale-95 flex items-center gap-2"
+            >
+              <Save size={15} />
+              <span>Salvar Alterações</span>
             </button>
           </div>
         </div>
 
-        {/* Success Toast Overlay */}
-        <AnimatePresence>
-          {saveSuccessToast && (
-            <motion.div
-              initial={{ opacity: 0, backdropBlur: 0 }}
-              animate={{ opacity: 1, backdropBlur: '12px' }}
-              exit={{ opacity: 0, backdropBlur: 0 }}
-              className="absolute inset-0 bg-[#ede6dc]/80 backdrop-blur-md flex items-center justify-center z-50 p-10"
-            >
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="bg-white border border-[#d6ccbe] rounded-[48px] p-10 text-center text-stone-900 shadow-2xl flex flex-col items-center gap-5 max-w-sm"
-              >
-                <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg">
-                  <Check size={40} strokeWidth={3} />
-                </div>
-                <h3 className="font-black text-2xl uppercase tracking-tighter">Sincronizado!</h3>
-                <p className="text-sm font-bold text-stone-500 leading-relaxed">
-                  As configurações de visibilidade foram aplicadas em toda a malha operacional.
-                </p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.div>
     </div>
   );

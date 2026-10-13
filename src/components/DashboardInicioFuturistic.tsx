@@ -13,7 +13,9 @@ import {
   Users2,
   Bell,
   Search,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  Package,
+  ClipboardCheck
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -33,10 +35,12 @@ export default function DashboardInicioFuturistic({ onNavigate, activeTab = 'rot
   const menuModules = [
     { id: 'averbacao', label: 'AVERBAÇÃO', desc: 'SEGUROS DE CARGA', icon: FileCheck2 },
     { id: 'sm_creator', label: 'SM', desc: 'MONITORAMENTO', icon: Share2 },
-    { id: 'checklist', label: 'PRÉ-ALERTA', desc: 'ISCAS & CONTROLE PGR', icon: SlidersHorizontal },
-    { id: 'controle', label: 'DISPONIBILIDADE', desc: 'VEÍCULOS PÁTIO', icon: Truck },
+    { id: 'iscas', label: 'ISCAS', desc: 'RASTREAMENTO & DESTINOS', icon: Package },
+    { id: 'controle', label: 'PRÉ-ALERTA', desc: 'ISCAS & CONTROLE PGR', icon: SlidersHorizontal },
+    { id: 'disponibilidade', label: 'DISPONIBILIDADE', desc: 'VEÍCULOS PÁTIO', icon: Truck },
     { id: 'escala', label: 'ESCALA 3C', desc: 'PLANTÃO LOGÍSTICO', icon: Calendar },
     { id: 'rotas', label: 'ROTAS', desc: 'PGR E DESTINOS', icon: MapPin, active: true },
+    { id: 'checklist', label: 'CHECKLIST', desc: 'DIVERGÊNCIAS & VISTORIAS', icon: ClipboardCheck },
     { id: 'config', label: 'CONFIGURAÇÕES & PÁGINAS', desc: 'SISTEMA & MÓDULOS', icon: Settings },
   ];
 
