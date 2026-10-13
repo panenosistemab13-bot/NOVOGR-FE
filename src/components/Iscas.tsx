@@ -10,8 +10,8 @@ import {
   MapPin, 
   Package, 
   Check, 
-  Activity 
 } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { rtdb as db } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { cn } from '../lib/utils';
@@ -211,19 +211,60 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
       {/* Distribution Summary Card */}
       <div className="bg-[#FFF9EF] border border-[#D9C39B] rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
         <h3 className="text-xs font-black uppercase tracking-wider text-[#91651F] mb-3">DISTRIBUIÇÃO: DESTINO/UNIDADE</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.entries(rows.reduce((acc, row) => {
-            const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
-            const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
-            const location = dest || unit || 'NÃO INFORMADO';
-            
-            acc[location] = (acc[location] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>)).sort((a, b) => Number(b[1]) - Number(a[1])).map(([loc, count]) => (
-            <div key={loc} className="bg-white border border-[#D9C39B]/30 rounded-xl p-3 shadow-sm flex items-center justify-between">
-              <span className="text-xs font-black text-[#33291B] uppercase">{loc}: {count} iscas</span>
+        <div className="flex flex-col gap-4">
+          <select 
+            className="w-full bg-white border border-[#D9C39B] rounded-xl p-3 text-sm text-[#33291B] font-bold"
+            defaultValue=""
+          >
+            <option value="" disabled>Selecione uma localização</option>
+            {Object.entries(rows.reduce((acc, row) => {
+              const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
+              const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
+              const location = dest || unit || 'NÃO INFORMADO';
+              acc[location] = (acc[location] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>)).map(([loc, count]) => (
+              <option key={loc} value={loc}>{loc}: {count} iscas</option>
+            ))}
+          </select>
+          
+          {/* Chart Section */}
+          {rows.length > 0 ? (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={Object.entries(rows.reduce((acc, row) => {
+                      const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
+                      const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
+                      const location = dest || unit || 'NÃO INFORMADO';
+                      acc[location] = (acc[location] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)).map(([name, value]) => ({ name, value }))}
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {Object.entries(rows.reduce((acc, row) => {
+                      const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
+                      const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
+                      const location = dest || unit || 'NÃO INFORMADO';
+                      acc[location] = (acc[location] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#C69A45', '#91651F', '#D9C39B', '#33291B'][index % 4]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-          ))}
+          ) : (
+            <div className="h-64 w-full flex items-center justify-center text-[#857662] text-sm">
+              Nenhum dado disponível para o gráfico.
+            </div>
+          )}
         </div>
       </div>
 
