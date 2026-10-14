@@ -15,6 +15,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { rtdb as db } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { cn } from '../lib/utils';
+import { extractCityForDistribution } from '../utils/iscasDistribution';
 
 export interface IscaItem {
   id: string;
@@ -218,12 +219,14 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
           >
             <option value="" disabled>Selecione uma localização</option>
             {Object.entries(rows.reduce((acc, row) => {
-              const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
-              const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
-              const location = dest || unit || 'NÃO INFORMADO';
-              acc[location] = (acc[location] || 0) + 1;
+              const location = extractCityForDistribution(row.destino, row.unidade);
+              if (location) {
+                acc[location] = (acc[location] || 0) + 1;
+              }
               return acc;
-            }, {} as Record<string, number>)).map(([loc, count]) => (
+            }, {} as Record<string, number>))
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([loc, count]) => (
               <option key={loc} value={loc}>{loc}: {count} iscas</option>
             ))}
           </select>
@@ -235,24 +238,28 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
                 <PieChart>
                   <Pie
                     data={Object.entries(rows.reduce((acc, row) => {
-                      const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
-                      const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
-                      const location = dest || unit || 'NÃO INFORMADO';
-                      acc[location] = (acc[location] || 0) + 1;
+                      const location = extractCityForDistribution(row.destino, row.unidade);
+                      if (location) {
+                        acc[location] = (acc[location] || 0) + 1;
+                      }
                       return acc;
-                    }, {} as Record<string, number>)).map(([name, value]) => ({ name, value }))}
+                    }, {} as Record<string, number>))
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([name, value]) => ({ name, value }))}
                     innerRadius={60}
                     outerRadius={80}
                     paddingAngle={5}
                     dataKey="value"
                   >
                     {Object.entries(rows.reduce((acc, row) => {
-                      const dest = (row.destino && row.destino !== 'A DEFINIR' && row.destino !== 'NÃO INFORMADO') ? row.destino.toUpperCase() : null;
-                      const unit = (row.unidade && row.unidade !== 'A DEFINIR' && row.unidade !== 'NÃO INFORMADA') ? row.unidade.toUpperCase() : null;
-                      const location = dest || unit || 'NÃO INFORMADO';
-                      acc[location] = (acc[location] || 0) + 1;
+                      const location = extractCityForDistribution(row.destino, row.unidade);
+                      if (location) {
+                        acc[location] = (acc[location] || 0) + 1;
+                      }
                       return acc;
-                    }, {} as Record<string, number>)).map((entry, index) => (
+                    }, {} as Record<string, number>))
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={['#C69A45', '#91651F', '#D9C39B', '#33291B'][index % 4]} />
                     ))}
                   </Pie>

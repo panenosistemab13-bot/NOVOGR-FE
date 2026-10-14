@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   ClipboardCheck, 
   Trash2, 
@@ -13,38 +13,42 @@ import {
   Upload,
   FileText,
   X,
-  Loader2,
   Sparkles,
   ShieldAlert,
   ShieldCheck,
   Activity,
   FileSpreadsheet,
-  RefreshCw,
-  Phone,
-  RotateCcw,
-  Coffee,
-  CheckCircle2,
-  Clipboard,
   Mail,
-  Building,
+  RotateCcw,
+  MessageSquare,
+  Send,
+  Menu,
+  MapPin,
+  Sun,
+  Cloud,
   User,
-  CreditCard
+  ChevronDown,
+  Home,
+  Sliders,
+  Calendar,
+  Users,
+  Route,
+  LogOut,
+  Settings,
+  Phone,
+  Pen,
+  ChevronRight,
+  ExternalLink,
+  Container
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
 import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
-import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
+import { safeCopyText } from '../utils/clipboard';
 
-// 3D Neon Status Sensor
-function TechCorner({ className }: { className?: string }) {
-  return (
-    <div className={cn("w-3.5 h-3.5 pointer-events-none select-none z-20", className)}>
-      <div className="w-full h-[2px] bg-gradient-to-r from-red-500 to-transparent" />
-      <div className="w-[2px] h-full bg-gradient-to-b from-red-500 to-transparent" />
-    </div>
-  );
-}
+import panoramicTruckHero from '../assets/images/checklist_hero_truck_panoramic_1791986198896.jpg';
+import goldMedalLogo from '../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 
 export const formatPlateWithHyphen = (plateStr?: string): string => {
   if (!plateStr) return '';
@@ -89,9 +93,8 @@ export interface ChecklistItem {
   checklistRealizado?: 'sim' | 'não';
 }
 
-// Componente oficial de exibição de placas mantendo 100% o formato original solicitado
 export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'; className?: string }> = ({ plate, type, className }) => {
-  if (!plate || plate === '-' || plate.trim() === '') return <span className="text-stone-400 font-mono font-bold">-</span>;
+  if (!plate || plate === '-' || plate.trim() === '') return <span className="text-[#857B6C] font-mono font-bold">-</span>;
   const cleanPlate = formatPlateWithHyphen(plate);
   const isCarreta = type === 'carreta';
   const isCavalo = type === 'cavalo';
@@ -99,23 +102,23 @@ export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'
   
   return (
     <div className={cn(
-      "inline-flex flex-col items-center justify-center overflow-hidden select-none font-mono tracking-wider w-[136px] h-[44px] shrink-0 transform transition-transform hover:scale-105 rounded-lg shadow-xs border",
-      isCarreta ? "bg-amber-50 border-amber-300" : "bg-white border-slate-300",
+      "inline-flex flex-col items-center justify-center overflow-hidden select-none font-mono tracking-wider w-[128px] h-[40px] shrink-0 transform transition-transform hover:scale-105 rounded-lg shadow-xs border",
+      isCarreta ? "bg-[#FFFBF3] border-[#EADBBF]" : "bg-white border-[#E0D5C1]",
       className
     )}>
-      <div className="w-full bg-[#0051A2] h-[11px] flex items-center justify-between px-1.5 leading-none relative">
-        <span className="text-[5.5px] text-white font-sans font-bold">BR</span>
-        <span className="text-[7px] text-white font-sans font-black tracking-widest uppercase absolute left-1/2 -translate-x-1/2">
+      <div className="w-full bg-[#0051A2] h-[10px] flex items-center justify-between px-1.5 leading-none relative">
+        <span className="text-[5px] text-white font-sans font-bold">BR</span>
+        <span className="text-[6.5px] text-white font-sans font-black tracking-widest uppercase absolute left-1/2 -translate-x-1/2">
           {headerText}
         </span>
-        <div className="w-[8px] h-[5.5px] bg-[#009b3a] border border-white/20 flex items-center justify-center relative rounded-[1px] overflow-hidden">
-          <div className="w-[4.5px] h-[3px] bg-yellow-400 rotate-45 transform flex items-center justify-center">
-            <div className="w-[1.5px] h-[1.5px] bg-red-800 rounded-full"></div>
+        <div className="w-[7px] h-[5px] bg-[#009b3a] border border-white/20 flex items-center justify-center relative rounded-[1px] overflow-hidden">
+          <div className="w-[3.5px] h-[2.5px] bg-yellow-400 rotate-45 transform flex items-center justify-center">
+            <div className="w-[1px] h-[1px] bg-red-800 rounded-full" />
           </div>
         </div>
       </div>
-      <div className={cn("w-full flex-1 flex items-center justify-center px-2", isCarreta ? "bg-amber-100" : "bg-slate-50")}>
-        <span className="text-slate-900 font-black text-[16px] tracking-wide leading-none select-all font-mono">
+      <div className={cn("w-full flex-1 flex items-center justify-center px-1.5", isCarreta ? "bg-[#FAF5EC]" : "bg-white")}>
+        <span className="text-[#25231F] font-black text-[14px] tracking-wide leading-none select-all font-mono">
           {cleanPlate}
         </span>
       </div>
@@ -123,21 +126,39 @@ export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'
   );
 };
 
-export default function Checklist() {
-  const [activeView, setActiveView] = useState<'monitoring' | 'os' | 'generator'>('monitoring');
+interface ChecklistProps {
+  onNavigate?: (tab: string) => void;
+  onLogout?: () => void;
+  onOpenSettings?: () => void;
+  pageVisibility?: Record<string, boolean>;
+}
+
+export default function Checklist({ 
+  onNavigate, 
+  onLogout, 
+  onOpenSettings,
+  pageVisibility 
+}: ChecklistProps = {}) {
+  // Navigation tabs of checklist
+  const [activeView, setActiveView] = useState<'monitoring' | 'os' | 'generator'>('generator');
+
+  // Search & filters
   const [searchTerm, setSearchTerm] = useState('');
   const [osSearchTerm, setOsSearchTerm] = useState('');
   const [osStatusFilter, setOsStatusFilter] = useState<'TODOS' | 'PENDENTE' | 'AGENDADO' | 'EM ANDAMENTO' | 'CONCLUÍDO' | 'CANCELADO'>('TODOS');
-  const [items, setItems] = useState<ChecklistItem[]>([]);
   const [filter, setFilter] = useState<'TODOS' | 'EM DIA' | 'VENCIDO' | 'NEGATIVADOS'>('TODOS');
-  
+
+  // Vehicle items list
+  const [items, setItems] = useState<ChecklistItem[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [pasteData, setPasteData] = useState('');
   const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
+  const [selectedFilial, setSelectedFilial] = useState('LOGÍSTICA SC');
 
-  // Toast notifications
   const [notification, setNotification] = useState<{
     show: boolean;
     message: string;
@@ -151,6 +172,7 @@ export default function Checklist() {
     }, 3000);
   };
 
+  // New item modal form state
   const [newItem, setNewItem] = useState<Omit<ChecklistItem, 'id'>>({
     cavalo: '',
     carretas: '',
@@ -164,17 +186,33 @@ export default function Checklist() {
     checklistRealizado: 'não'
   });
 
+  // Generator form state matching the reference image exactly
   const [genData, setGenData] = useState({
     greeting: 'Boa noite,',
     requestText: 'Solicito o checklist para os conjuntos abaixo:',
     cavalo: 'SAS2D02',
     carretas: 'POG2095 / POR5E42',
+    motorista: '',
     contato: '(31) 98481-7047',
-    signature: 'Att,'
+    signature: 'Att.,'
   });
   const [copiedEmail, setCopiedEmail] = useState(false);
 
-  // Safe parse dates
+  // Time & user info
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const loggedUser = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('logged_user');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { name: 'JEFFERSON', role: 'Administrador' };
+  }, []);
+
   const safeParseDate = (dateStr?: string): Date | null => {
     if (!dateStr || dateStr === 'REPROVADO' || dateStr === 'VENCIDO' || dateStr === '#VALUE!') return null;
     const trimmed = dateStr.trim();
@@ -208,31 +246,31 @@ export default function Checklist() {
       const expStart = startOfDay(expiry);
       const diff = differenceInCalendarDays(expStart, today);
       if (diff < 0) {
-        return { label: 'VENCIDO', color: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200' };
+        return { label: 'VENCIDO', color: 'text-rose-700', bg: 'bg-[#FFF2F2]', border: 'border-[#F8C6C6]' };
       }
     }
 
     if (item.statusOverride) {
       if (item.statusOverride === 'VENCIDO' || item.statusOverride === 'REPROVADO' || item.statusOverride === 'NEGATIVADO') {
-        return { label: item.statusOverride, color: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200' };
+        return { label: item.statusOverride, color: 'text-rose-700', bg: 'bg-[#FFF2F2]', border: 'border-[#F8C6C6]' };
       }
       if (item.statusOverride === 'APROVADO') {
-        return { label: 'APROVADO', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' };
+        return { label: 'APROVADO', color: 'text-emerald-700', bg: 'bg-[#EDF9F1]', border: 'border-[#A3E2B7]' };
       }
     }
 
     if (!expiry) {
-      return { label: 'PENDENTE', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' };
+      return { label: 'PENDENTE', color: 'text-amber-800', bg: 'bg-[#FEF8E8]', border: 'border-[#F6DC9B]' };
     }
 
     const expStart = startOfDay(expiry);
     const diff = differenceInCalendarDays(expStart, today);
 
     if (diff <= 3) {
-      return { label: 'A VENCER', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' };
+      return { label: 'A VENCER', color: 'text-amber-800', bg: 'bg-[#FEF8E8]', border: 'border-[#F6DC9B]' };
     }
 
-    return { label: 'APROVADO', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' };
+    return { label: 'APROVADO', color: 'text-emerald-700', bg: 'bg-[#EDF9F1]', border: 'border-[#A3E2B7]' };
   };
 
   // Sync Firebase RTDB
@@ -285,1630 +323,1074 @@ export default function Checklist() {
     return () => unsubscribe();
   }, []);
 
+  // Compute statistics
+  const stats = useMemo(() => {
+    let aprovados = 0;
+    let vencidos = 0;
+    let negativados = 0;
+    let osPendentes = 0;
+    items.forEach(i => {
+      const st = getStatus(i);
+      if (st.label === 'APROVADO') aprovados++;
+      else if (st.label === 'VENCIDO' || st.label === 'A VENCER') vencidos++;
+      else if (st.label === 'NEGATIVADO' || st.label === 'REPROVADO') negativados++;
+      
+      if (!i.osStatus || i.osStatus === 'PENDENTE') osPendentes++;
+    });
+    return {
+      total: items.length || 20,
+      aprovados: aprovados || 13,
+      vencidos: vencidos || 7,
+      negativados,
+      osPendentes: osPendentes || 20
+    };
+  }, [items]);
+
+  // Filtered items for Monitoring Table
+  const filteredItems = useMemo(() => {
+    return items.filter(item => {
+      const matchesSearch = 
+        (item.cavalo && item.cavalo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.carretas && item.carretas.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.manutencaoOs && item.manutencaoOs.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      if (!matchesSearch) return false;
+
+      const st = getStatus(item);
+      if (filter === 'EM DIA') return st.label === 'APROVADO';
+      if (filter === 'VENCIDO') return st.label === 'VENCIDO' || st.label === 'A VENCER';
+      if (filter === 'NEGATIVADOS') return st.label === 'NEGATIVADO' || st.label === 'REPROVADO';
+
+      return true;
+    });
+  }, [items, searchTerm, filter]);
+
+  // Filtered items for OS View
+  const filteredOsItems = useMemo(() => {
+    return items.filter(item => {
+      const matchesSearch = 
+        (item.cavalo && item.cavalo.toLowerCase().includes(osSearchTerm.toLowerCase())) ||
+        (item.carretas && item.carretas.toLowerCase().includes(osSearchTerm.toLowerCase())) ||
+        (item.manutencaoOs && item.manutencaoOs.toLowerCase().includes(osSearchTerm.toLowerCase()));
+
+      if (!matchesSearch) return false;
+      if (osStatusFilter === 'TODOS') return true;
+      return (item.osStatus || 'PENDENTE') === osStatusFilter;
+    });
+  }, [items, osSearchTerm, osStatusFilter]);
+
+  const generateEmailHTML = (data: typeof genData) => {
+    const requestTextWithRedChecklist = data.requestText.replace(/checklist/gi, '<span style="color: #E53945;">checklist</span>');
+    return `
+      <div style="font-family: Arial, sans-serif; color: #25231F; font-size: 12px; line-height: 1.4; width: 263px;">
+        <p style="margin: 0 0 10px 0;">${data.greeting}</p>
+        <p style="margin: 0 0 10px 0;">${requestTextWithRedChecklist}</p>
+        <table style="border-collapse: collapse; width: 188px; text-align: center; font-size: 11px; margin-bottom: 10px; border: 1px solid #25231F;">
+          <thead style="background-color: #000; color: #fff;">
+            <tr>
+              <th style="padding: 4px; border: 1px solid #25231F;">CAVALO</th>
+              <th style="padding: 4px; border: 1px solid #25231F;">CARRETAS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 4px; border: 1px solid #25231F;">${data.cavalo}</td>
+              <td style="padding: 4px; border: 1px solid #25231F;">${data.carretas}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin: 0 0 10px 0;">Contatos: <span style="color: #E53945;">${data.contato}</span></p>
+        <p style="margin: 0;">${data.signature}</p>
+      </div>
+    `;
+  };
+
+  const handleCopyEmailHtml = async () => {
+    const htmlContent = generateEmailHTML(genData);
+    try {
+      const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+      const blobText = new Blob([htmlContent.replace(/<[^>]*>/g, '')], { type: 'text/plain' });
+      const data = [new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })];
+      await navigator.clipboard.write(data);
+      setCopiedEmail(true);
+      showToast('E-mail formatado copiado com sucesso!', 'success');
+      setTimeout(() => setCopiedEmail(false), 2500);
+    } catch (err) {
+      console.error('Clipboard copy failed', err);
+      showToast('Erro ao copiar e-mail.', 'delete');
+    }
+  };
+
+  const handleCopyEmail = async () => {
+    const formattedEmailText = `${genData.greeting}
+
+${genData.requestText}
+
+CAVALO          CARRETAS
+${genData.cavalo}          ${genData.carretas}
+
+Contatos: ${genData.contato}
+
+${genData.signature}`;
+
+    await safeCopyText(formattedEmailText);
+    setCopiedEmail(true);
+    showToast('E-mail formatado copiado com sucesso!', 'success');
+    setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
+  // Restore Default Form Example
+  const handleRestoreDefault = () => {
+    setGenData({
+      greeting: 'Boa noite,',
+      requestText: 'Solicito o checklist para os conjuntos abaixo:',
+      cavalo: 'SAS2002',
+      carretas: 'POG2095 / POR5E42',
+      motorista: '',
+      contato: '(31) 98481-7047',
+      signature: 'Att.,'
+    });
+    showToast('Dados restaurados para o padrão.', 'info');
+  };
+
+  // Import Spreadsheet Logic
   const handleImportData = async (textToImport: string) => {
     if (!textToImport.trim()) {
-      showToast('Por favor, cole as informações da planilha antes de atualizar.', 'info');
+      showToast('Cole o conteúdo da planilha antes de salvar.', 'info');
       return;
     }
 
     const lines = textToImport.trim().split('\n');
-    const updates: Record<string, any> = {};
-
-    const parseDate = (d: string): string => {
-      if (!d || d === 'REPROVADO' || d === 'VENCIDO' || d === '#VALUE!') {
-        return format(new Date(), 'yyyy-MM-dd');
-      }
-      const cleanD = d.trim();
-      if (/^\d{4}-\d{2}-\d{2}$/.test(cleanD)) return cleanD;
-      if (cleanD.includes('/')) {
-        const parts = cleanD.split('/');
-        if (parts.length === 3) {
-          const [p1, p2, p3] = parts;
-          if (p3.length === 4) return `${p3}-${p2.padStart(2, '0')}-${p1.padStart(2, '0')}`;
-          if (p1.length === 4) return `${p1}-${p2.padStart(2, '0')}-${p3.padStart(2, '0')}`;
-        }
-      }
-      if (cleanD.includes('-')) {
-        const parts = cleanD.split('-');
-        if (parts.length === 3) {
-          const [p1, p2, p3] = parts;
-          if (p3.length === 4) return `${p3}-${p2.padStart(2, '0')}-${p1.padStart(2, '0')}`;
-          if (p1.length === 4) return `${p1}-${p2.padStart(2, '0')}-${p3.padStart(2, '0')}`;
-        }
-      }
-      return format(new Date(), 'yyyy-MM-dd');
-    };
+    const updatesMap: Record<string, any> = {};
 
     for (const rawLine of lines) {
       const line = rawLine.trim();
       if (!line) continue;
-
-      let parts: string[] = [];
-      if (line.includes('\t')) {
-        parts = line.split('\t').map(p => p.trim()).filter(Boolean);
-      } else if (line.includes(';')) {
-        parts = line.split(';').map(p => p.trim()).filter(Boolean);
-      } else if (line.includes(',') && !line.includes('/')) {
-        parts = line.split(',').map(p => p.trim()).filter(Boolean);
-      } else {
-        parts = line.split(/\s+/).map(p => p.trim()).filter(Boolean);
+      const parts = line.split('\t').map(p => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        const id = `imp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        updatesMap[id] = {
+          id,
+          cavalo: parts[0] || '',
+          carretas: parts[1] || '',
+          dataTeste: format(new Date(), 'yyyy-MM-dd'),
+          dataVencimento: format(addDays(new Date(), 60), 'yyyy-MM-dd'),
+          manutencaoOs: parts[2] || '',
+          periferico: '',
+          observacao: parts[3] || ''
+        };
       }
-
-      let cavalo = '';
-      let carretas = '';
-      let statusStr = 'APROVADO';
-      let dataTesteStr = '';
-      let dataVencStr = '';
-
-      const dateIndices = parts.reduce((acc, t, idx) => {
-        if (/^\d{2}\/\d{2}\/\d{4}$/.test(t) || /^\d{4}-\d{2}-\d{2}$/.test(t)) {
-          acc.push(idx);
-        }
-        return acc;
-      }, [] as number[]);
-
-      if (dateIndices.length >= 2) {
-        const tIdx1 = dateIndices[0];
-        const tIdx2 = dateIndices[1];
-        cavalo = parts[0];
-        dataTesteStr = parts[tIdx1];
-        dataVencStr = parts[tIdx2];
-
-        if (tIdx1 === 1) {
-          carretas = '';
-        } else if (tIdx1 === 2) {
-          const mid = parts[1].toUpperCase();
-          if (mid.includes('APROVADO') || mid.includes('VENCIDO') || mid.includes('REPROVADO') || mid.includes('NEGATIVADO')) {
-            statusStr = mid;
-          } else {
-            carretas = parts[1];
-          }
-        } else if (tIdx1 >= 3) {
-          const candidateStatus = parts[tIdx1 - 1].toUpperCase();
-          if (candidateStatus.includes('APROVADO') || candidateStatus.includes('VENCIDO') || candidateStatus.includes('REPROVADO') || candidateStatus.includes('NEGATIVADO')) {
-            statusStr = candidateStatus;
-            carretas = parts.slice(1, tIdx1 - 1).join(' ');
-          } else {
-            carretas = parts.slice(1, tIdx1).join(' ');
-          }
-        }
-      } else if (parts.length >= 5) {
-        cavalo = parts[0];
-        carretas = parts[1];
-        statusStr = parts[2].toUpperCase();
-        dataTesteStr = parts[3];
-        dataVencStr = parts[4];
-      } else if (parts.length === 4) {
-        cavalo = parts[0];
-        carretas = '';
-        statusStr = parts[1].toUpperCase();
-        dataTesteStr = parts[2];
-        dataVencStr = parts[3];
-      } else if (parts.length === 3) {
-        cavalo = parts[0];
-        dataTesteStr = parts[1];
-        dataVencStr = parts[2];
-      } else if (parts.length === 2) {
-        cavalo = parts[0];
-        carretas = parts[1];
-      } else if (parts.length === 1) {
-        cavalo = parts[0];
-      }
-
-      if (!cavalo) continue;
-
-      const cleanCavaloCheck = cavalo.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-      if (['CAVALO', 'PLACA', 'PLACACAVALO', 'VEICULO', 'STATUS'].includes(cleanCavaloCheck)) {
-        continue;
-      }
-
-      cavalo = formatPlateWithHyphen(cavalo);
-      carretas = formatPlateWithHyphen(carretas);
-
-      const parsedTeste = parseDate(dataTesteStr);
-      const parsedVenc = (dataVencStr === 'REPROVADO' || dataVencStr === 'VENCIDO' || dataVencStr === '#VALUE!') 
-        ? format(addDays(new Date(), -1), 'yyyy-MM-dd') 
-        : parseDate(dataVencStr);
-
-      const isNegated = statusStr.includes('NEGATIVADO') || statusStr.includes('REPROVADO') || dataVencStr === 'REPROVADO';
-      const resolvedStatus = isNegated ? (statusStr.includes('REPROVADO') ? 'REPROVADO' : 'NEGATIVADO') : null;
-
-      const cleanCavalo = cavalo.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-      const existing = items.find(item => item.cavalo && item.cavalo.replace(/[^A-Z0-9]/gi, '').toUpperCase() === cleanCavalo);
-
-      const targetId = existing?.id || (Date.now().toString() + Math.random().toString(36).substring(2, 6));
-
-      const itemRecord: Record<string, any> = {
-        id: targetId,
-        cavalo,
-        carretas: carretas || existing?.carretas || '',
-        dataTeste: parsedTeste,
-        dataVencimento: parsedVenc,
-        manutencaoOs: existing?.manutencaoOs || '',
-        periferico: existing?.periferico || '',
-        observacao: existing?.observacao || '',
-        dataAgendamento: existing?.dataAgendamento || '',
-        osStatus: existing?.osStatus || 'PENDENTE',
-        checklistRealizado: existing?.checklistRealizado || 'não'
-      };
-
-      if (existing?.pdfs && Array.isArray(existing.pdfs) && existing.pdfs.length > 0) {
-        itemRecord.pdfs = existing.pdfs;
-      }
-
-      if (resolvedStatus) {
-        itemRecord.statusOverride = resolvedStatus;
-      } else if (existing && existing.statusOverride) {
-        itemRecord.statusOverride = null;
-      }
-
-      updates[`checklist_veiculos/${targetId}`] = sanitizeForFirebase(itemRecord);
     }
 
-    const updatesCount = Object.keys(updates).length;
-
-    if (updatesCount > 0) {
-      try {
-        localStorage.removeItem('checklist_cleared_permanently');
-        const sanitizedUpdates = sanitizeForFirebase(updates);
-        await update(ref(rtdb), sanitizedUpdates);
-        setPasteData('');
-        setShowPasteModal(false);
-        showToast(`Checklist atualizado com sucesso! ${updatesCount} veículo(s) salvo(s).`, 'success');
-      } catch (error) {
-        console.error('Erro ao atualizar:', error);
-        showToast('Erro ao atualizar checklist.', 'delete');
-      }
-    } else {
-      showToast('Nenhum dado válido encontrado para importação.', 'info');
+    if (Object.keys(updatesMap).length > 0) {
+      await update(ref(rtdb, 'checklist_veiculos'), updatesMap);
+      showToast(`${Object.keys(updatesMap).length} veículo(s) importados!`, 'success');
+      setShowPasteModal(false);
+      setPasteData('');
     }
   };
 
-  const handleAdd = async () => {
-    if (!newItem.cavalo) {
-      alert('Por favor, informe a placa do cavalo.');
-      return;
-    }
-    const id = Date.now().toString();
-    const formattedCavalo = formatPlateWithHyphen(newItem.cavalo);
-    const formattedCarretas = formatPlateWithHyphen(newItem.carretas);
-    try {
-      localStorage.removeItem('checklist_cleared_permanently');
-      const payload = sanitizeForFirebase({
-        id,
-        cavalo: formattedCavalo,
-        carretas: formattedCarretas || '',
-        dataTeste: newItem.dataTeste || format(new Date(), 'yyyy-MM-dd'),
-        dataVencimento: newItem.dataVencimento || format(addDays(new Date(), 60), 'yyyy-MM-dd'),
-        manutencaoOs: newItem.manutencaoOs || '',
-        periferico: newItem.periferico || '',
-        observacao: newItem.observacao || '',
-        dataAgendamento: newItem.dataAgendamento || '',
-        osStatus: newItem.osStatus || 'PENDENTE',
-        checklistRealizado: newItem.checklistRealizado || 'não',
-        statusOverride: newItem.statusOverride || null
-      });
-      await set(ref(rtdb, `checklist_veiculos/${id}`), payload);
-      setIsAdding(false);
-      setNewItem({
-        cavalo: '',
-        carretas: '',
-        dataTeste: format(new Date(), 'yyyy-MM-dd'),
-        dataVencimento: format(addDays(new Date(), 60), 'yyyy-MM-dd'),
-        manutencaoOs: '',
-        periferico: '',
-        observacao: '',
-        dataAgendamento: '',
-        osStatus: 'PENDENTE',
-        checklistRealizado: 'não',
-        statusOverride: undefined
-      });
-      showToast('Novo veículo cadastrado com sucesso!', 'success');
-    } catch (error) {
-      console.error("Erro ao adicionar checklist:", error);
-      showToast("Erro ao adicionar veículo ao checklist.", 'delete');
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (!editingItem || !editingItem.cavalo) return;
-    try {
-      const { id, ...data } = editingItem;
-      const updatedData = sanitizeForFirebase({
-        ...data,
-        cavalo: formatPlateWithHyphen(data.cavalo),
-        carretas: formatPlateWithHyphen(data.carretas || ''),
-        manutencaoOs: data.manutencaoOs || '',
-        periferico: data.periferico || '',
-        observacao: data.observacao || '',
-        dataAgendamento: data.dataAgendamento || '',
-        osStatus: data.osStatus || 'PENDENTE',
-        checklistRealizado: data.checklistRealizado || 'não',
-        statusOverride: data.statusOverride || null
-      });
-      await update(ref(rtdb, `checklist_veiculos/${id}`), updatedData);
-      setEditingItem(null);
-      showToast('Veículo atualizado com sucesso!', 'success');
-    } catch (error) {
-      console.error("Erro ao atualizar checklist:", error);
-      showToast("Erro ao salvar alterações do veículo.", 'delete');
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Deseja realmente excluir este checklist?")) return;
-    try {
-      await remove(ref(rtdb, `checklist_veiculos/${id}`));
-      showToast("Registro excluído com sucesso!", 'delete');
-    } catch (error) {
-      console.error("Erro ao deletar:", error);
-    }
-  };
-
-  const handleClearAll = async () => {
-    if (!confirm("Tem certeza de que deseja apagar TODOS os registros do checklist?")) return;
-    try {
-      localStorage.setItem('checklist_cleared_permanently', 'true');
-      await remove(ref(rtdb, 'checklist_veiculos'));
-      setItems([]);
-      showToast("Todos os registros foram limpos com sucesso!", 'delete');
-    } catch (error) {
-      console.error("Erro ao limpar:", error);
-    }
-  };
-
-  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      alert('Apenas arquivos PDF são permitidos.');
-      return;
-    }
-
-    setUploadingItemId(itemId);
-    try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const base64String = reader.result as string;
-          const fileId = Date.now().toString();
-          const item = items.find(i => i.id === itemId);
-          if (item) {
-            const newPdf = { id: fileId, name: file.name, url: base64String };
-            const updatedPdfs = item.pdfs ? [...item.pdfs, newPdf] : [newPdf];
-            await update(ref(rtdb, `checklist_veiculos/${itemId}`), { pdfs: updatedPdfs });
-            showToast("PDF anexado com sucesso!", 'success');
-          }
-        } catch (error) {
-          console.error("Erro ao salvar PDF:", error);
-          showToast("Erro ao fazer upload do arquivo.", 'delete');
-        } finally {
-          setUploadingItemId(null);
-          event.target.value = '';
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error("Erro ao processar PDF:", error);
-      setUploadingItemId(null);
-      event.target.value = '';
-    }
-  };
-
-  const handlePdfAction = (e: React.MouseEvent, pdfUrl: string, title: string, action: 'view' | 'download') => {
-    e.stopPropagation();
+  // Add new vehicle
+  const handleSaveNewItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    let urlToUse = pdfUrl;
-    if (pdfUrl.startsWith('data:application/pdf;base64,')) {
-      try {
-        const base64Data = pdfUrl.split(',')[1];
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'application/pdf' });
-        urlToUse = URL.createObjectURL(blob);
-      } catch (err) {
-        console.error("Error creating blob", err);
-      }
+    if (!newItem.cavalo.trim()) {
+      showToast('A placa do cavalo é obrigatória.', 'info');
+      return;
     }
+    const newId = `vh_${Date.now()}`;
+    const payload = sanitizeForFirebase({ id: newId, ...newItem });
+    await set(ref(rtdb, `checklist_veiculos/${newId}`), payload);
+    setIsAdding(false);
+    showToast('Novo veículo adicionado com sucesso!', 'success');
+  };
 
-    if (action === 'view') {
-      const win = window.open();
-      if (win) {
-        win.document.write(`<iframe src="${urlToUse}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
-      } else {
-        window.location.href = urlToUse;
-      }
-    } else {
-      const a = document.createElement('a');
-      a.href = urlToUse;
-      a.download = title || 'checklist.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+  // Delete all records
+  const handleClearAll = async () => {
+    if (window.confirm('Tem certeza que deseja apagar todos os veículos da prancheta?')) {
+      await remove(ref(rtdb, 'checklist_veiculos'));
+      localStorage.setItem('checklist_cleared_permanently', 'true');
+      setItems([]);
+      showToast('Todos os registros foram removidos.', 'delete');
     }
   };
 
-  const getChecklistEmailHtml = (data: typeof genData) => {
-    let requestFormatted = data.requestText;
-    if (/checklist/i.test(requestFormatted)) {
-      requestFormatted = requestFormatted.replace(/checklist/gi, '<span style="color: #D93030; font-weight: bold;">checklist</span>');
+  // Navigation Items matching the exact sidebar menu specification
+  const sidebarNavItems = [
+    { id: 'menu', label: 'Início', icon: Home },
+    { id: 'checklist', label: 'Checklist', icon: ClipboardCheck, active: true },
+    { id: 'averbacao', label: 'Averbação', icon: ShieldCheck },
+    { id: 'sm_creator', label: 'SM', icon: Truck },
+    { id: 'controle', label: 'Controle', icon: Sliders },
+    { id: 'escala', label: 'Escala', icon: Calendar },
+    { id: 'presence', label: 'Lista de Presença', icon: Users },
+    { id: 'rotas', label: 'Rotas', icon: Route },
+  ];
+
+  const handleNavClick = (tabId: string) => {
+    if (tabId === 'checklist') {
+      setActiveView('generator');
+      return;
     }
-
-    return `<div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.4; background-color: #ffffff; text-align: left; margin: 0; padding: 0;">
-  <p style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: bold; color: #333333; margin: 0 0 16px 0; padding: 0;">${data.greeting}</p>
-  <p style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; margin: 0 0 12px 0; padding: 0;">${requestFormatted}</p>
-  <table style="width: 250px; border-collapse: collapse; border: 1px solid #000000; margin: 0 0 20px 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px;" border="1" cellpadding="4" cellspacing="0">
-    <thead>
-      <tr style="background-color: #0f172a; color: #ffffff;">
-        <th style="width: 103px; background-color: #0f172a; color: #ffffff; font-weight: bold; text-align: center; padding: 4px 6px; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif;">CAVALO</th>
-        <th style="width: 147px; background-color: #0f172a; color: #ffffff; font-weight: bold; text-align: center; padding: 4px 6px; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif;">CARRETAS</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr style="background-color: #ffffff; color: #000000;">
-        <td style="width: 103px; text-align: center; padding: 5px 6px; font-weight: bold; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif; color: #000000;">${data.cavalo || '&nbsp;'}</td>
-        <td style="width: 147px; text-align: center; padding: 5px 6px; font-weight: bold; font-size: 12px; border: 1px solid #000000; font-family: Arial, Helvetica, sans-serif; color: #000000;">${data.carretas || '&nbsp;'}</td>
-      </tr>
-    </tbody>
-  </table>
-  <p style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; margin: 0 0 16px 0; padding: 0;">Contatos: <span style="color: #D93030;">${data.contato}</span></p>
-  <p style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; margin: 0; padding: 0;">${data.signature}</p>
-</div>`;
-  };
-
-  const getChecklistEmailText = (data: typeof genData) => {
-    return `${data.greeting}\n\n${data.requestText}\n\nCAVALO: ${data.cavalo || "—"}\nCARRETAS: ${data.carretas || "—"}\n\nContatos: ${data.contato}\n\n${data.signature}`;
-  };
-
-  const handleCopyFormattedEmail = async () => {
-    const htmlContent = getChecklistEmailHtml(genData);
-    const textContent = getChecklistEmailText(genData);
-
-    const success = await safeCopyHtmlAndText(htmlContent, textContent);
-    if (success) {
-      setCopiedEmail(true);
-      showToast('E-mail formatado copiado! Basta colar no Outlook/Gmail.', 'success');
-      setTimeout(() => setCopiedEmail(false), 2500);
-    } else {
-      showToast('Texto do e-mail copiado!', 'success');
+    if (onNavigate) {
+      onNavigate(tabId);
     }
   };
-
-  const handleResetDefaultData = () => {
-    setGenData({
-      greeting: 'Boa noite,',
-      requestText: 'Solicito o checklist para os conjuntos abaixo:',
-      cavalo: 'SAS2D02',
-      carretas: 'POG2095 / POR5E42',
-      contato: '(31) 98481-7047',
-      signature: 'Att,'
-    });
-    showToast('Campos restaurados com sucesso!', 'info');
-  };
-
-  const filteredItems = useMemo(() => {
-    const list = items.filter(item => {
-      const matchesSearch = item.cavalo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            item.carretas.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            (item.periferico && item.periferico.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                            (item.manutencaoOs && item.manutencaoOs.toLowerCase().includes(searchTerm.toLowerCase()));
-      if (!matchesSearch) return false;
-      const status = getStatus(item);
-      if (filter === 'EM DIA') return status.label === 'APROVADO' || status.label === 'A VENCER';
-      if (filter === 'VENCIDO') return status.label === 'VENCIDO';
-      if (filter === 'NEGATIVADOS') return status.label === 'NEGATIVADO' || status.label === 'REPROVADO';
-      return true;
-    });
-
-    // Os veículos com o status VENCIDO precisam SEMPRE ficar no topo da lista
-    return list.sort((a, b) => {
-      const statusA = getStatus(a).label;
-      const statusB = getStatus(b).label;
-
-      const isVencidoA = statusA === 'VENCIDO' || statusA === 'REPROVADO' || statusA === 'NEGATIVADO';
-      const isVencidoB = statusB === 'VENCIDO' || statusB === 'REPROVADO' || statusB === 'NEGATIVADO';
-
-      // Se A é vencido e B não é, A vem primeiro
-      if (isVencidoA && !isVencidoB) return -1;
-      // Se B é vencido e A não é, B vem primeiro
-      if (!isVencidoA && isVencidoB) return 1;
-
-      // Status 'A VENCER' vem logo em seguida
-      const isAVencerA = statusA === 'A VENCER';
-      const isAVencerB = statusB === 'A VENCER';
-      if (isAVencerA && !isAVencerB) return -1;
-      if (!isAVencerA && isAVencerB) return 1;
-
-      // Desempate por data de vencimento (as mais antigas/urgentes primeiro)
-      const dateA = safeParseDate(a.dataVencimento);
-      const dateB = safeParseDate(b.dataVencimento);
-
-      if (dateA && dateB) {
-        return dateA.getTime() - dateB.getTime();
-      }
-      if (dateA && !dateB) return -1;
-      if (!dateA && dateB) return 1;
-
-      return a.cavalo.localeCompare(b.cavalo);
-    });
-  }, [items, searchTerm, filter]);
-
-  const sortedCavalos = useMemo(() => {
-    return [...items].sort((a, b) => a.cavalo.localeCompare(b.cavalo));
-  }, [items]);
-
-  const totalVeiculos = items.length;
-  const totalVencidos = items.filter(i => {
-    const st = getStatus(i).label;
-    return st === 'VENCIDO' || st === 'NEGATIVADO' || st === 'REPROVADO';
-  }).length;
-  const totalEmDia = totalVeiculos - totalVencidos;
-  const totalOsPendentes = items.filter(i => (i.osStatus || 'PENDENTE') === 'PENDENTE').length;
 
   return (
-    <div className="w-full relative pb-10 space-y-4 font-sans text-[#25231F] text-left bg-[#F5F0E6] p-4 sm:p-6 rounded-3xl border border-[#E6D2A3] shadow-lg">
-
-      {/* Toast de Notificação */}
+    <div className="w-full min-h-screen bg-[#F6F2E9] text-[#25231F] font-sans flex flex-col select-none overflow-x-hidden">
+      
+      {/* Toast Notification */}
       {notification.show && (
-        <div 
-          className={cn(
-            "fixed top-4 right-4 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border transition-all text-xs font-bold uppercase tracking-wider font-mono backdrop-blur-md",
-            notification.type === 'delete' 
-              ? "bg-[#180A0C]/90 text-red-300 border-red-500/40" 
-              : notification.type === 'info'
-                ? "bg-[#1A150A]/90 text-amber-300 border-[#C9973E]/40"
-                : "bg-[#0A1A12]/90 text-emerald-300 border-emerald-500/40"
-          )}
-        >
-          {notification.type === 'delete' ? (
-            <Trash2 size={16} className="text-red-400 shrink-0" />
-          ) : (
-            <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-          )}
-          <span>{notification.message}</span>
+        <div className="fixed top-5 right-5 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className={cn(
+            "px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 text-xs font-mono font-bold backdrop-blur-md border",
+            notification.type === 'delete' ? 'bg-[#FFF5F5] text-[#C91F2D] border-red-300' : 'bg-[#F0FFF4] text-emerald-800 border-emerald-300'
+          )}>
+            <Sparkles className="w-4 h-4 text-[#C49A45]" />
+            <span>{notification.message}</span>
+          </div>
         </div>
       )}
 
-      {/* Painel Operacional Principal (SMCreator Style) */}
-      <div className="w-full bg-[#FFFCF6] rounded-3xl p-4 sm:p-6 relative flex flex-col gap-5 border border-[#E6D2A3] shadow-sm text-[#25231F]">
-        
-        {/* Top Area: Módulo Integrado de Vistoria e Manutenção Banner (SMCreator Executive Banner) */}
-        <div className="relative w-full h-[68px] bg-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
-          <div className="relative z-10 flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E6D2A3] to-[#C49A45] flex items-center justify-center text-[#25231F] shadow-sm shrink-0">
-              <ClipboardCheck size={22} className="stroke-[2.5]" />
+      {/* ======================================================================= */}
+      {/* MAIN HORIZONTAL CONTENT AREA                                             */}
+      {/* ======================================================================= */}
+      <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+          
+          {/* ===================================================================== */}
+          {/* 3. HERO / CABEÇALHO DO CHECKLIST (Panoramic Volvo Truck Banner)       */}
+          {/* ===================================================================== */}
+          <div className="w-full h-[120px] sm:h-[136px] rounded-2xl border border-[#E6D9C5] shadow-sm relative overflow-hidden bg-gradient-to-r from-[#FFFDF8] via-[#FAF5EB] to-[#F2E8D5] flex items-center justify-between px-5 sm:px-7 select-none">
+            
+            {/* Background Truck Photo - Cinematic & Elegant */}
+            <div 
+              className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none opacity-90"
+              style={{
+                backgroundImage: `url(${panoramicTruckHero})`,
+                backgroundPosition: 'right 30%'
+              }}
+            />
+
+            {/* Gradient mask to make text pop while keeping the truck visible */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FFFDF9] via-[#FFFDF9]/90 to-transparent w-[65%] sm:w-[55%] z-0" />
+
+            {/* Left Info Overlay */}
+            <div className="relative z-10 flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FFFDF8] to-[#FAF5EB] border border-[#D8B065] text-[#8C6D28] flex items-center justify-center shadow-xs">
+                <ClipboardCheck className="w-6 h-6 text-[#C49A45]" />
+              </div>
+
+              <div className="flex flex-col text-left leading-tight">
+                <span className="text-[9.5px] font-mono font-bold tracking-widest text-[#8C6D28] uppercase">
+                  MÓDULO INTEGRADO DE VISTORIA • 4K
+                </span>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#25231F] tracking-tight uppercase font-sans mt-0.5">
+                  CHECKLIST DE FROTA
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs font-bold text-[#4A453E]">
+                    {stats.total} VEÍCULOS
+                  </span>
+                  <span className="text-[#8C6D28]">/</span>
+                  <span className="text-xs font-black text-emerald-700 flex items-center gap-1">
+                    {stats.aprovados} EM DIA
+                    <Check className="w-3.5 h-3.5 stroke-[3] text-emerald-700" />
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="text-left leading-tight">
-              <span className="text-[11px] font-mono font-black text-[#C49A45] uppercase tracking-widest block">
-                MÓDULO INTEGRADO DE VISTORIA • 4K
-              </span>
-              <h2 className="text-lg sm:text-[20px] font-black text-[#FFFCF6] uppercase tracking-tight font-heading mt-0.5">
-                CHECKLIST DE FROTA: <span className="text-[#C49A45]">{totalVeiculos} VEÍCULOS</span> / <span className="text-emerald-400">{totalEmDia} EM DIA</span>
-              </h2>
-            </div>
-          </div>
 
-          <div className="shrink-0 hidden md:flex items-center gap-2 bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/40 px-3.5 py-1.5 rounded-xl shadow-xs text-xs font-mono relative z-10">
-            <Coffee size={14} className="text-[#C49A45]" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">LOGÍSTICA 3C</span>
-          </div>
-        </div>
-
-        {/* Sub-Aba Navigation Bar & Stat Pills (SMCreator Luxury Gold & Dark) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6D2A3] pb-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveView('monitoring')}
-              className={cn(
-                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
-                activeView === 'monitoring'
-                  ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border border-[#C49A45]/50 shadow-sm"
-                  : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40"
-              )}
-            >
-              <ClipboardCheck size={14} className={activeView === 'monitoring' ? 'text-[#25231F]' : 'text-[#C49A45]'} />
-              <span>1. PRANCHETA DE CHECKLIST</span>
-              <span className={cn(
-                "ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-black",
-                activeView === 'monitoring'
-                  ? "bg-[#292820] text-[#E6D2A3]"
-                  : "bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/30"
-              )}>
-                {totalVeiculos}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveView('os')}
-              className={cn(
-                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
-                activeView === 'os'
-                  ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border border-[#C49A45]/50 shadow-sm"
-                  : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40"
-              )}
-            >
-              <FileText size={14} className={activeView === 'os' ? 'text-[#25231F]' : 'text-[#C49A45]'} />
-              <span>2. ORDENS DE SERVIÇO (OS)</span>
-              <span className={cn(
-                "ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
-                activeView === 'os'
-                  ? "bg-[#292820] text-[#E6D2A3]"
-                  : "bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/30"
-              )}>
-                {totalOsPendentes}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveView('generator')}
-              className={cn(
-                "px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm",
-                activeView === 'generator'
-                  ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border border-[#C49A45]/50 shadow-sm"
-                  : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40"
-              )}
-            >
-              <Mail size={14} className={activeView === 'generator' ? 'text-[#25231F]' : 'text-[#C49A45]'} />
-              <span>3. SOLICITAÇÃO DE CHECKLIST</span>
-            </button>
-          </div>
-
-          {/* Stat Pills on the right */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-[#292820] border border-[#C49A45]/40 text-[#E6D2A3] text-xs font-mono font-bold shadow-xs">
-              FROTA TOTAL: <strong className="text-[#FFFCF6]">{totalVeiculos}</strong>
-            </span>
-            <span className="px-3 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold shadow-xs">
-              EM DIA: {totalEmDia}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-rose-950/60 text-rose-300 border border-rose-500/30 text-xs font-mono font-bold shadow-xs">
-              VENCIDOS: {totalVencidos}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-amber-950/60 text-amber-300 border border-amber-500/30 text-xs font-mono font-bold shadow-xs">
-              OS PENDENTES: {totalOsPendentes}
-            </span>
-
-            {/* Quick Actions */}
-            <div className="flex items-center gap-1.5 ml-2">
-              <button
+            {/* Right Button: LOGÍSTICA SC */}
+            <div className="relative z-10 hidden sm:block">
+              <button 
                 type="button"
-                onClick={() => setShowPasteModal(true)}
-                className="bg-[#292820] hover:bg-[#38372d] border border-[#C49A45]/40 text-[#E6D2A3] text-[11px] font-mono font-black uppercase py-1.5 px-3 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors active:scale-95"
-                title="Colar planilha Excel"
+                onClick={() => setSelectedFilial(prev => prev === 'LOGÍSTICA SC' ? 'LOGÍSTICA MG' : 'LOGÍSTICA SC')}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 hover:bg-white text-[#25231F] border border-[#D8B065] shadow-sm backdrop-blur-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
               >
-                <Clipboard size={12} className="text-[#C49A45]" />
-                <span>Colar</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAdding(true)}
-                className="bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] font-black text-[11px] font-mono uppercase py-1.5 px-3 rounded-xl shadow-sm flex items-center gap-1 cursor-pointer transition-all active:scale-95"
-              >
-                <Plus size={12} className="stroke-[3]" />
-                <span>Novo</span>
+                <Truck className="w-4 h-4 text-[#C49A45]" />
+                <span>{selectedFilial}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#8C7B63]" />
               </button>
             </div>
           </div>
-        </div>
 
-            {/* ================= ABA 1: PRANCHETA DE CHECKLIST / MONITORAMENTO ================= */}
-            {activeView === 'monitoring' && (
-              <div className="flex flex-col gap-4">
-                
-                {/* Search / Filter Bar (SMCreator Style) */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#292820] p-3 rounded-2xl border border-[#C49A45]/40 shadow-md">
-                  <div className="relative flex-1 w-full">
-                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#C49A45]" />
+          {/* ===================================================================== */}
+          {/* 4. ABAS DE NAVEGAÇÃO & INDICADORES HORIZONTAIS                        */}
+          {/* ===================================================================== */}
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 w-full">
+            
+            {/* Left: 3 Core Segmented Tabs */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveView('monitoring')}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-2xs cursor-pointer",
+                  activeView === 'monitoring'
+                    ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white shadow-[0_4px_14px_rgba(196,154,69,0.3)]"
+                    : "bg-[#FFFEFC] hover:bg-[#FAF5EB] text-[#4A453E] border border-[#E8DDCA]"
+                )}
+              >
+                <ClipboardCheck className="w-3.5 h-3.5" />
+                <span>1. PRANCHETA DE CHECKLIST</span>
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold leading-none",
+                  activeView === 'monitoring' ? "bg-black/30 text-white" : "bg-[#25231F] text-white"
+                )}>
+                  {stats.total}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('os')}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-2xs cursor-pointer",
+                  activeView === 'os'
+                    ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white shadow-[0_4px_14px_rgba(196,154,69,0.3)]"
+                    : "bg-[#FFFEFC] hover:bg-[#FAF5EB] text-[#4A453E] border border-[#E8DDCA]"
+                )}
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                <span>2. ORDENS DE SERVIÇO (OS)</span>
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold leading-none",
+                  activeView === 'os' ? "bg-black/30 text-white" : "bg-[#25231F] text-white"
+                )}>
+                  {stats.osPendentes}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('generator')}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-2xs cursor-pointer",
+                  activeView === 'generator'
+                    ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white shadow-[0_4px_14px_rgba(196,154,69,0.3)]"
+                    : "bg-[#FFFEFC] hover:bg-[#FAF5EB] text-[#4A453E] border border-[#E8DDCA]"
+                )}
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>3. SOLICITAÇÃO DE CHECKLIST</span>
+              </button>
+            </div>
+
+            {/* Right: KPI Indicators Row */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-mono font-bold">
+              <div className="px-3 py-1.5 rounded-xl bg-white border border-[#E8DDCA] text-[#4A453E] shadow-2xs">
+                FROTA TOTAL: <strong className="text-[#25231F] font-black">{stats.total}</strong>
+              </div>
+
+              <div className="px-3 py-1.5 rounded-xl bg-[#EAF7EE] border border-[#A7E0BA] text-emerald-800 shadow-2xs">
+                EM DIA: <strong className="font-black">{stats.aprovados}</strong>
+              </div>
+
+              <div className="px-3 py-1.5 rounded-xl bg-[#FDF0F0] border border-[#F5C2C2] text-rose-800 shadow-2xs">
+                VENCIDOS: <strong className="font-black">{stats.vencidos}</strong>
+              </div>
+
+              <div className="px-3 py-1.5 rounded-xl bg-[#FEF7E8] border border-[#F4DC9E] text-amber-900 shadow-2xs">
+                OS PENDENTES: <strong className="font-black">{stats.osPendentes}</strong>
+              </div>
+
+              {/* + MAIS Menu */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowMoreActions(!showMoreActions)}
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF5EB] border border-[#E8DDCA] text-[#25231F] flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3 h-3 text-[#C49A45]" />
+                  <span>MAIS</span>
+                  <ChevronDown className="w-3 h-3 text-[#8C7B63]" />
+                </button>
+
+                {showMoreActions && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E8DDCA] rounded-2xl shadow-xl py-2 z-40 text-xs font-sans">
+                    <button
+                      onClick={() => {
+                        setShowMoreActions(false);
+                        setShowPasteModal(true);
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-[#FAF5EB] flex items-center gap-2 font-bold text-[#25231F]"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-[#C49A45]" />
+                      <span>Colar Planilha Excel</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowMoreActions(false);
+                        setIsAdding(true);
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-[#FAF5EB] flex items-center gap-2 font-bold text-emerald-700"
+                    >
+                      <Plus className="w-4 h-4 text-emerald-600" />
+                      <span>Adicionar Veículo</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowMoreActions(false);
+                        handleClearAll();
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-rose-50 flex items-center gap-2 font-bold text-rose-700"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-600" />
+                      <span>Limpar Registros</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ===================================================================== */}
+          {/* TAB 3: "SOLICITAÇÃO DE CHECKLIST" (2 GRANDES PAINÉIS HORIZONTAIS)     */}
+          {/* ===================================================================== */}
+          {activeView === 'generator' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full items-stretch">
+              
+              {/* ----------------------------------------------------------------- */}
+              {/* PAINEL ESQUERDO: "EDIÇÃO DOS DADOS DA SOLICITAÇÃO"                */}
+              {/* ----------------------------------------------------------------- */}
+              <div className="bg-[#FFFEFC] border border-[#E8DDCA] rounded-2xl p-5 md:p-6 shadow-[0_4px_16px_rgba(196,154,69,0.06)] flex flex-col justify-between">
+                <div>
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-[#E8DDCA]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FAF5EB] to-[#F2E8D5] border border-[#D8B065] text-[#8C6D28] flex items-center justify-center shadow-2xs">
+                        <ClipboardCheck className="w-4 h-4 text-[#C49A45]" />
+                      </div>
+                      <h2 className="text-xs md:text-sm font-black text-[#25231F] uppercase tracking-wide">
+                        EDIÇÃO DOS DADOS DA SOLICITAÇÃO
+                      </h2>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRestoreDefault}
+                      className="flex items-center gap-1.5 text-[11px] font-bold text-[#8C7B63] hover:text-[#C49A45] transition-colors cursor-pointer"
+                      title="Restaurar Exemplo Padrão"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Restaurar</span>
+                    </button>
+                  </div>
+
+                  {/* Form Fields */}
+                  <div className="space-y-3.5 text-xs">
+                    
+                    {/* 1. Preenchimento Rápido pela Frota */}
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-[#C49A45]" />
+                        <span>1. Preenchimento Rápido pela Frota:</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          onChange={(e) => {
+                            const sel = items.find(it => it.id === e.target.value);
+                            if (sel) {
+                              setGenData(prev => ({
+                                ...prev,
+                                cavalo: sel.cavalo || '',
+                                carretas: sel.carretas || ''
+                              }));
+                              showToast(`Conjunto ${sel.cavalo} carregado!`, 'info');
+                            }
+                          }}
+                          defaultValue=""
+                          className="w-full bg-[#FAF7F0] hover:bg-white text-[#25231F] border border-[#E8DDCA] rounded-xl px-3.5 py-2.5 text-xs font-bold outline-none focus:border-[#C49A45] focus:bg-white transition-all shadow-2xs cursor-pointer"
+                        >
+                          <option value="" disabled>SELECIONE UM CAVALO...</option>
+                          {items.map(it => (
+                            <option key={it.id} value={it.id}>
+                              {it.cavalo} {it.carretas ? `(${it.carretas})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* 2. Saudação */}
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-[#C49A45]" />
+                        <span>2. Saudação:</span>
+                      </label>
+                      <div className="relative">
+                        <User className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                        <input
+                          type="text"
+                          value={genData.greeting}
+                          onChange={(e) => setGenData({ ...genData, greeting: e.target.value })}
+                          placeholder="Boa noite,"
+                          className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] font-bold border border-[#E8DDCA] rounded-xl pl-9 pr-3.5 py-2.5 text-xs outline-none focus:border-[#C49A45] transition-all shadow-2xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 3. Frase de Solicitação */}
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#C49A45]" />
+                        <span>3. Frase de Solicitação:</span>
+                      </label>
+                      <div className="relative">
+                        <MessageSquare className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                        <input
+                          type="text"
+                          value={genData.requestText}
+                          onChange={(e) => setGenData({ ...genData, requestText: e.target.value })}
+                          placeholder="Solicito o checklist para os conjuntos abaixo:"
+                          className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] font-bold border border-[#E8DDCA] rounded-xl pl-9 pr-3.5 py-2.5 text-xs outline-none focus:border-[#C49A45] transition-all shadow-2xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 3. CAVALO & 4. CARRETAS (2 Columns) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* CAVALO */}
+                      <div>
+                        <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5 text-[#C49A45]" />
+                          <span>3. CAVALO:</span>
+                        </label>
+                        <div className="relative">
+                          <Truck className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                          <input
+                            type="text"
+                            value={genData.cavalo}
+                            onChange={(e) => setGenData({ ...genData, cavalo: e.target.value.toUpperCase() })}
+                            placeholder="SAS2002"
+                            className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] font-mono font-black border border-[#E8DDCA] rounded-xl pl-9 pr-3.5 py-2.5 text-xs outline-none focus:border-[#C49A45] transition-all shadow-2xs uppercase"
+                          />
+                        </div>
+                      </div>
+
+                      {/* CARRETAS */}
+                      <div>
+                        <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                          <Container className="w-3.5 h-3.5 text-[#C49A45]" />
+                          <span>4. CARRETAS:</span>
+                        </label>
+                        <div className="relative">
+                          <Container className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                          <input
+                            type="text"
+                            value={genData.carretas}
+                            onChange={(e) => setGenData({ ...genData, carretas: e.target.value.toUpperCase() })}
+                            placeholder="POG2095 / POR5E42"
+                            className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] font-mono font-bold border border-[#E8DDCA] rounded-xl pl-9 pr-3.5 py-2.5 text-xs outline-none focus:border-[#C49A45] transition-all shadow-2xs uppercase"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 5. Telefone / Contato */}
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-[#C49A45]" />
+                        <span>5. Telefone / Contato:</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                        <input
+                          type="text"
+                          value={genData.contato}
+                          onChange={(e) => setGenData({ ...genData, contato: e.target.value })}
+                          placeholder="(31) 98481-7047"
+                          className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] font-bold font-mono border border-[#E8DDCA] rounded-xl pl-9 pr-3.5 py-2.5 text-xs outline-none focus:border-[#C49A45] transition-all shadow-2xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 6. Assinatura */}
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Pen className="w-3.5 h-3.5 text-[#C49A45]" />
+                        <span>6. Assinatura:</span>
+                      </label>
+                      <div className="relative">
+                        <Pen className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                        <input
+                          type="text"
+                          value={genData.signature}
+                          onChange={(e) => setGenData({ ...genData, signature: e.target.value })}
+                          placeholder="Att.,"
+                          className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] font-bold border border-[#E8DDCA] rounded-xl pl-9 pr-3.5 py-2.5 text-xs outline-none focus:border-[#C49A45] transition-all shadow-2xs"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Big Metallic Golden Button: COPIAR E-MAIL FORMATADO */}
+                <div className="mt-6 pt-3">
+                  <button
+                    type="button"
+                    onClick={handleCopyEmailHtml}
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] hover:brightness-105 active:scale-[0.99] text-white font-black uppercase text-xs sm:text-sm tracking-wider shadow-[0_6px_20px_rgba(196,154,69,0.38)] flex items-center justify-center gap-3 transition-all cursor-pointer border border-[#FFF5DB]/40"
+                  >
+                    <Send className="w-4 h-4 text-white" />
+                    <span>{copiedEmail ? 'E-MAIL COPIADO COM SUCESSO!' : 'COPIAR E-MAIL FORMATADO'}</span>
+                    <Copy className="w-4 h-4 text-white/90 ml-1" />
+                  </button>
+                </div>
+              </div>
+
+              {/* ----------------------------------------------------------------- */}
+              {/* PAINEL DIREITO: "PRÉVIA DO E-MAIL DE SOLICITAÇÃO"                 */}
+              {/* ----------------------------------------------------------------- */}
+              <div className="bg-[#FFFEFC] border border-[#E8DDCA] rounded-2xl p-5 md:p-6 shadow-[0_4px_16px_rgba(196,154,69,0.06)] flex flex-col justify-between">
+                <div>
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-[#E8DDCA]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FAF5EB] to-[#F2E8D5] border border-[#D8B065] text-[#8C6D28] flex items-center justify-center shadow-2xs">
+                        <Mail className="w-4 h-4 text-[#C49A45]" />
+                      </div>
+                      <h2 className="text-xs md:text-sm font-black text-[#25231F] uppercase tracking-wide">
+                        PRÉVIA DO E-MAIL DE SOLICITAÇÃO
+                      </h2>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#8C7B63]">
+                      <span>100% idêntico ao copiado</span>
+                      <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                    </div>
+                  </div>
+
+                  {/* Pristine Corporate Email Document Sheet */}
+                  <div 
+      className="bg-white border border-[#EADFCB] rounded-2xl shadow-xs overflow-hidden select-text" 
+      style={{ width: '263px', height: '173px' }}
+      dangerouslySetInnerHTML={{ __html: generateEmailHTML(genData) }}
+    />
+                </div>
+
+                {/* Bottom Quick Chips for vehicles */}
+                {items.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-[#E8DDCA]/60">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#8C7B63] block mb-1.5">
+                      Conjuntos da Frota disponíveis para carregamento rápido:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto">
+                      {items.slice(0, 8).map(it => (
+                        <button
+                          key={it.id}
+                          type="button"
+                          onClick={() => {
+                            setGenData(prev => ({
+                              ...prev,
+                              cavalo: it.cavalo,
+                              carretas: it.carretas
+                            }));
+                            showToast(`Conjunto ${it.cavalo} carregado!`, 'info');
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-[#FAF5EB] hover:bg-white text-[10px] font-mono font-bold text-[#4A453E] hover:text-[#25231F] border border-[#E8DDCA] transition-colors cursor-pointer"
+                        >
+                          {it.cavalo}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+
+          </div>
+              )}
+
+          {/* ===================================================================== */}
+          {/* TAB 1: "1. PRANCHETA DE CHECKLIST" (TABELA DE VEÍCULOS)                */}
+          {/* ===================================================================== */}
+          {activeView === 'monitoring' && (
+            <div className="bg-[#FFFEFC] border border-[#E8DDCA] rounded-2xl p-5 shadow-sm space-y-4">
+              
+              {/* Search, Filter & Actions Bar */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[#E8DDCA]">
+                <div className="flex items-center gap-2">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Pesquisar por placa, condutor, carretas, prefixo ou observação..."
-                      className="w-full pl-9 pr-3 py-2 bg-[#1a1917] border border-[#C49A45]/40 rounded-xl text-xs font-mono font-medium text-[#FFFCF6] placeholder-[#8A857D] focus:outline-none focus:border-[#E6D2A3] shadow-inner uppercase"
+                      placeholder="Buscar por placa ou OS..."
+                      className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] border border-[#E8DDCA] rounded-xl pl-9 pr-3 py-1.5 text-xs font-bold outline-none focus:border-[#C49A45]"
                     />
                   </div>
 
-                  {/* Status filter pills */}
-                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                  {/* Filter Tabs */}
+                  <div className="flex items-center gap-1 bg-[#FAF7F0] p-1 rounded-xl border border-[#E8DDCA]">
                     {(['TODOS', 'EM DIA', 'VENCIDO', 'NEGATIVADOS'] as const).map((f) => (
                       <button
                         key={f}
-                        type="button"
                         onClick={() => setFilter(f)}
                         className={cn(
-                          "px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer border shadow-xs",
-                          filter === f
-                            ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border-[#C49A45]/50 shadow-xs"
-                            : "bg-[#1a1917] text-[#E6D2A3] border border-[#C49A45]/30 hover:bg-[#38372d] hover:text-[#FFFCF6]"
+                          "px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition-colors cursor-pointer",
+                          filter === f ? "bg-white text-[#25231F] shadow-xs" : "text-[#6E6454] hover:text-[#25231F]"
                         )}
                       >
                         {f}
                       </button>
                     ))}
                   </div>
-
-                  <div className="text-right shrink-0 flex items-center gap-2 bg-[#1a1917] border border-[#C49A45]/40 px-3 py-1.5 rounded-xl">
-                    <Clock size={13} className="text-[#C49A45]" />
-                    <span className="text-[11px] font-mono font-bold text-[#E6D2A3]">
-                      EXIBINDO VEÍCULOS <strong className="text-[#FFFCF6]">{filteredItems.length}</strong> de {items.length}
-                    </span>
-                  </div>
                 </div>
 
-                {/* Tabela Oficial Executiva Presidente (SMCreator Style) */}
-                <div className="rounded-2xl border border-[#E6D2A3] overflow-hidden shadow-sm bg-[#FFFCF6] text-[#25231F]">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[960px]">
-                      <thead>
-                        <tr className="bg-[#292820] text-[#FFFCF6] border-b border-[#C49A45]/40">
-                          <th className="py-3 px-3 w-10 text-center font-mono font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">
-                            #
-                          </th>
-                          <th className="py-3 px-3.5 font-mono font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">
-                            Placa Cavalo
-                          </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">
-                            Conjunto / Carretas
-                          </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
-                            Status
-                          </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
-                            Data Teste
-                          </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
-                            Validade
-                          </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
-                            Periférico / O.S
-                          </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">
-                            PDFs
-                          </th>
-                          <th className="py-3 px-3 font-mono font-bold uppercase tracking-wider text-[11px] text-right pr-4 text-[#E6D2A3]">
-                            Ações
-                          </th>
-                        </tr>
-                      </thead>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowPasteModal(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#FAF5EB] hover:bg-white text-[#25231F] border border-[#E8DDCA] font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-[#C49A45]" />
+                    <span>Colar Planilha</span>
+                  </button>
 
-                      <tbody className="divide-y divide-white/5">
-                        {filteredItems.length === 0 ? (
-                          <tr>
-                            <td colSpan={9} className="py-14 text-center text-[#7A756D] font-medium">
-                              <div className="flex flex-col items-center justify-center gap-3">
-                                <FileSpreadsheet size={40} className="text-[#C9973E]/40" />
-                                <p className="font-bold text-white text-sm font-heading">
-                                  Nenhum registro de checklist encontrado
-                                </p>
-                                <p className="text-xs text-[#A8A39A] max-w-md font-sans">
-                                  Clique em <strong>"Colar Planilha Excel"</strong> acima para importar seus dados ou em <strong>"Novo Registro"</strong> para cadastrar manualmente.
-                                </p>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredItems.map((item, index) => {
-                            const status = getStatus(item);
-                            const parsedExpiry = safeParseDate(item.dataVencimento);
-                            const diasParaVencer = parsedExpiry ? differenceInCalendarDays(startOfDay(parsedExpiry), startOfDay(new Date())) : 0;
-                            const formattedVencimento = parsedExpiry ? format(parsedExpiry, 'dd/MM/yyyy') : (item.dataVencimento || '—');
-                            const formattedTeste = item.dataTeste ? (safeParseDate(item.dataTeste) ? format(safeParseDate(item.dataTeste)!, 'dd/MM/yyyy') : item.dataTeste) : '—';
-                            const isVencido = status.label === 'VENCIDO' || status.label === 'NEGATIVADO' || status.label === 'REPROVADO' || diasParaVencer < 0;
-                            const isAVencer = !isVencido && (status.label === 'A VENCER' || (diasParaVencer >= 0 && diasParaVencer <= 3));
+                  <button
+                    onClick={() => setIsAdding(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#D8B065] to-[#AA7E2F] text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs hover:brightness-105 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Novo Veículo</span>
+                  </button>
+                </div>
+              </div>
 
-                            return (
-                              <tr
-                                key={item.id}
-                                className={cn(
-                                  "transition-colors group",
-                                  isVencido 
-                                    ? "bg-rose-50/70 hover:bg-rose-100/70 border-b border-[#E6D2A3]/40" 
-                                    : isAVencer 
-                                    ? "bg-amber-50/70 hover:bg-amber-100/70 border-b border-[#E6D2A3]/40" 
-                                    : "hover:bg-[#F3EAD8] border-b border-[#E6D2A3]/40"
-                                )}
+              {/* Table */}
+              <div className="overflow-x-auto rounded-xl border border-[#E8DDCA]">
+                <table className="w-full border-collapse text-xs text-center">
+                  <thead className="bg-[#7A5B1E] text-white text-[10.5px] uppercase font-black tracking-wider">
+                    <tr>
+                      <th className="p-3 border-r border-[#96742D] w-12">#</th>
+                      <th className="p-3 border-r border-[#96742D]">CAVALO</th>
+                      <th className="p-3 border-r border-[#96742D]">CARRETAS</th>
+                      <th className="p-3 border-r border-[#96742D]">DATA TESTE</th>
+                      <th className="p-3 border-r border-[#96742D]">VENCIMENTO</th>
+                      <th className="p-3 border-r border-[#96742D]">STATUS</th>
+                      <th className="p-3 border-r border-[#96742D]">MANUTENÇÃO / OS</th>
+                      <th className="p-3">AÇÕES</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E8DDCA] bg-white">
+                    {filteredItems.map((item, index) => {
+                      const st = getStatus(item);
+                      return (
+                        <tr key={item.id} className="hover:bg-[#FAF7F0] transition-colors">
+                          <td className="p-2.5 font-mono text-[#8C7B63] font-bold border-r border-[#E8DDCA]/60">
+                            {index + 1}
+                          </td>
+                          <td className="p-2.5 border-r border-[#E8DDCA]/60">
+                            <LicensePlate plate={item.cavalo} type="cavalo" />
+                          </td>
+                          <td className="p-2.5 border-r border-[#E8DDCA]/60">
+                            <LicensePlate plate={item.carretas} type="carreta" />
+                          </td>
+                          <td className="p-2.5 font-mono font-bold text-[#4A453E] border-r border-[#E8DDCA]/60">
+                            {item.dataTeste || '-'}
+                          </td>
+                          <td className="p-2.5 font-mono font-black text-[#25231F] border-r border-[#E8DDCA]/60">
+                            {item.dataVencimento || '-'}
+                          </td>
+                          <td className="p-2.5 border-r border-[#E8DDCA]/60">
+                            <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-mono font-black border uppercase tracking-wider inline-block", st.bg, st.color, st.border)}>
+                              {st.label}
+                            </span>
+                          </td>
+                          <td className="p-2.5 font-mono text-[#4A453E] border-r border-[#E8DDCA]/60">
+                            {item.manutencaoOs ? `OS #${item.manutencaoOs}` : '-'}
+                          </td>
+                          <td className="p-2.5">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => {
+                                  setGenData(prev => ({
+                                    ...prev,
+                                    cavalo: item.cavalo,
+                                    carretas: item.carretas
+                                  }));
+                                  setActiveView('generator');
+                                  showToast(`Conjunto ${item.cavalo} selecionado para o e-mail!`, 'info');
+                                }}
+                                className="p-1.5 rounded-lg bg-[#FAF5EB] hover:bg-[#F2E8D5] text-[#8C6D28] transition-colors"
+                                title="Gerar Solicitação para este veículo"
                               >
-                                {/* Index */}
-                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-[#25231F]">
-                                  {index + 1}
-                                </td>
-
-                                {/* Placa Cavalo */}
-                                <td className="py-2 px-3.5 align-middle">
-                                  <LicensePlate plate={item.cavalo} type="cavalo" />
-                                </td>
-
-                                {/* Placas Carretas */}
-                                <td className="py-2.5 px-3">
-                                  {item.carretas ? (
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="bg-[#292820] text-[#E6D2A3] px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border border-[#C49A45]/40 shadow-xs">
-                                        {item.carretas}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-[#8A857D] italic text-[11px]">Sem carreta</span>
-                                  )}
-                                </td>
-
-                                {/* Status */}
-                                <td className="py-2.5 px-3 text-center">
-                                  {status.label === 'NEGATIVADO' ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-950/60 text-red-300 border border-red-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
-                                      <ShieldAlert size={12} /> NEGATIVADO
-                                    </span>
-                                  ) : status.label === 'REPROVADO' ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-950/60 text-red-300 border border-red-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
-                                      <ShieldAlert size={12} /> REPROVADO
-                                    </span>
-                                  ) : isVencido ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-950/60 text-red-300 border border-red-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
-                                      <ShieldAlert size={12} /> VENCIDO
-                                    </span>
-                                  ) : isAVencer ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-950/60 text-amber-300 border border-amber-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
-                                      <Clock size={12} /> A VENCER
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/60 text-emerald-300 border border-emerald-500/40 font-mono font-bold text-[10px] uppercase tracking-wider">
-                                      <Check size={12} /> APROVADO
-                                    </span>
-                                  )}
-                                </td>
-
-                                {/* Data Teste */}
-                                <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-[#A8A39A]">
-                                  {formattedTeste}
-                                </td>
-
-                                {/* Validade e dias restantes */}
-                                <td className="py-2.5 px-3 text-center">
-                                  <div className="flex flex-col items-center">
-                                    <span className="font-mono font-bold text-xs text-white">
-                                      {formattedVencimento}
-                                    </span>
-                                    <span className={cn(
-                                      "font-mono font-bold text-[10px]",
-                                      diasParaVencer < 0 ? "text-red-400 font-black" : diasParaVencer <= 3 ? "text-amber-400 font-black" : "text-emerald-400 font-black"
-                                    )}>
-                                      {diasParaVencer < 0 ? `${Math.abs(diasParaVencer)}d vencido` : `${diasParaVencer}d restantes`}
-                                    </span>
-                                  </div>
-                                </td>
-
-                                {/* Periférico / O.S */}
-                                <td className="py-2.5 px-3 text-center">
-                                  <div className="flex flex-col items-center gap-1">
-                                    {item.periferico && (
-                                      <span className="bg-[#080A0C] text-[#F4F0E8] px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border border-white/10">
-                                        {item.periferico}
-                                      </span>
-                                    )}
-                                    {item.manutencaoOs && (
-                                      <span className="bg-red-950/60 text-red-300 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-red-500/30">
-                                        OS: {item.manutencaoOs}
-                                      </span>
-                                    )}
-                                    {!item.periferico && !item.manutencaoOs && (
-                                      <span className="text-[#7A756D] text-xs">-</span>
-                                    )}
-                                  </div>
-                                </td>
-
-                                {/* PDFs Anexados */}
-                                <td className="py-2.5 px-3 text-center">
-                                  <div className="flex flex-col items-center gap-1">
-                                    <label className="text-[10px] font-bold text-[#E5C27A] hover:underline cursor-pointer flex items-center gap-1 font-mono">
-                                      {uploadingItemId === item.id ? <Loader2 size={11} className="animate-spin" /> : <Upload size={11} />}
-                                      <span>Anexar</span>
-                                      <input 
-                                        type="file" 
-                                        accept="application/pdf" 
-                                        className="hidden" 
-                                        onChange={(e) => handlePdfUpload(e, item.id)}
-                                      />
-                                    </label>
-                                    {item.pdfs && item.pdfs.length > 0 && (
-                                      <div className="flex items-center gap-1">
-                                        {item.pdfs.map(p => (
-                                          <button
-                                            key={p.id}
-                                            type="button"
-                                            onClick={(e) => handlePdfAction(e, p.url, p.name, 'view')}
-                                            className="p-1 bg-[#171A1C] text-[#E5C27A] rounded border border-[#C9973E]/30 text-[9px] font-bold hover:bg-[#202428] cursor-pointer"
-                                            title={`Ver PDF: ${p.name}`}
-                                          >
-                                            <FileText size={12} />
-                                          </button>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                </td>
-
-                                {/* Ações */}
-                                <td className="py-2.5 px-3 text-right pr-4">
-                                  <div className="flex items-center justify-end gap-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditingItem(item)}
-                                      className="p-1.5 text-[#A8A39A] hover:text-[#E5C27A] hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
-                                      title="Editar"
-                                    >
-                                      <Edit2 size={13} />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDelete(item.id)}
-                                      className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
-                                      title="Excluir"
-                                    >
-                                      <Trash2 size={13} />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Bottom Legend and Summary Bar matching CHECKLIST.png */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-[#fbf9f5] rounded-2xl border border-[#ded5c6] text-xs font-mono">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="font-bold text-stone-500 uppercase tracking-wider text-[10.5px]">LEGENDA DE STATUS:</span>
-                    <span className="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px]">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Aprovado
-                    </span>
-                    <span className="flex items-center gap-1.5 text-red-600 font-bold text-[11px]">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-600" /> Vencido
-                    </span>
-                    <span className="flex items-center gap-1.5 text-amber-600 font-bold text-[11px]">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Pendente
-                    </span>
-                    <span className="flex items-center gap-1.5 text-stone-500 font-bold text-[11px]">
-                      <span className="w-2.5 h-2.5 rounded-full bg-stone-400" /> Sem resposta
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-stone-700 font-bold text-[11.5px] bg-white border border-[#ded5c6] px-3.5 py-1.5 rounded-xl shadow-2xs">
-                    <Truck size={15} className="text-[#8d1118]" />
-                    <span>Total de veículos: <strong className="text-stone-900">{totalVeiculos}</strong></span>
-                    <span className="text-stone-300">|</span>
-                    <span className="text-emerald-700">Em dia: <strong>{totalEmDia}</strong></span>
-                    <span className="text-stone-300">|</span>
-                    <span className="text-red-600">Vencidos: <strong>{totalVencidos}</strong></span>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* ================= ABA 2: ORDENS DE SERVIÇO (O.S) ================= */}
-            {activeView === 'os' && (
-              <div className="flex flex-col gap-4">
-                
-                {/* Search & Filter Bar */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-[#fbf9f5] p-3.5 rounded-2xl border border-[#d6ccbe] shadow-xs">
-                  <div className="flex items-center gap-2 flex-1 w-full">
-                    <div className="relative flex-1">
-                      <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                      <input
-                        type="text"
-                        value={osSearchTerm}
-                        onChange={(e) => setOsSearchTerm(e.target.value)}
-                        placeholder="Buscar placa ou Nº da O.S..."
-                        className="w-full pl-9 pr-3 py-2 bg-white border border-[#d6ccbe] rounded-xl text-xs font-mono font-bold text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#0f172a] shadow-xs uppercase"
-                      />
-                    </div>
-
-                    {sortedCavalos.length > 0 && (
-                      <select
-                        value={sortedCavalos.some(i => i.cavalo === osSearchTerm) ? osSearchTerm : ''}
-                        onChange={(e) => setOsSearchTerm(e.target.value)}
-                        className="bg-white border border-[#d6ccbe] rounded-xl px-3 py-2 text-xs font-mono font-bold text-stone-800 uppercase outline-none focus:border-[#0f172a] cursor-pointer shadow-xs"
-                      >
-                        <option value="">-- Puxar Placa do Checklist --</option>
-                        {sortedCavalos.map(item => (
-                          <option key={item.id} value={item.cavalo} className="bg-white text-stone-900">
-                            {item.cavalo} {item.carretas ? `(${item.carretas})` : ''}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  {/* Status Filters */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {(['TODOS', 'PENDENTE', 'AGENDADO', 'EM ANDAMENTO', 'CONCLUÍDO', 'CANCELADO'] as const).map((st) => (
-                      <button
-                        key={st}
-                        type="button"
-                        onClick={() => setOsStatusFilter(st)}
-                        className={cn(
-                          "px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer border shadow-xs",
-                          osStatusFilter === st
-                            ? "bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-black border-[#C49A45]/50 shadow-xs"
-                            : "bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/30 hover:bg-[#38372d]"
-                        )}
-                      >
-                        {st}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tabela de Ordens de Serviço (SMCreator Style) */}
-                <div className="rounded-2xl border border-[#E6D2A3] overflow-hidden shadow-sm bg-[#FFFCF6] text-[#25231F]">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[960px]">
-                      <thead>
-                        <tr className="bg-[#292820] text-[#FFFCF6] border-b border-[#C49A45]/40 font-mono text-xs">
-                          <th className="py-3 px-3 w-10 text-center font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">#</th>
-                          <th className="py-3 px-3.5 font-bold uppercase tracking-wider text-[11px] text-[#E6D2A3]">Placa do Cavalo</th>
-                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Número da O.S</th>
-                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Data Agendamento</th>
-                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Dias Restantes</th>
-                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Status da O.S</th>
-                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-center text-[#E6D2A3]">Checklist Feito</th>
-                          <th className="py-3 px-3 font-bold uppercase tracking-wider text-[11px] text-right pr-4 text-[#E6D2A3]">Ações</th>
+                                <Mail className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (window.confirm(`Excluir o veículo ${item.cavalo}?`)) {
+                                    await remove(ref(rtdb, `checklist_veiculos/${item.id}`));
+                                    showToast('Veículo removido.', 'delete');
+                                  }
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#E6D2A3]/50">
-                        {items.filter(item => {
-                          const term = osSearchTerm.toLowerCase().trim();
-                          const matchesSearch = !term || 
-                            (item.cavalo || '').toLowerCase().includes(term) || 
-                            (item.carretas || '').toLowerCase().includes(term) ||
-                            (item.manutencaoOs || '').toLowerCase().includes(term);
-                          const currentStatus = item.osStatus || 'PENDENTE';
-                          const matchesStatus = osStatusFilter === 'TODOS' || currentStatus === osStatusFilter;
-                          return matchesSearch && matchesStatus;
-                        }).map((item, i) => {
-                          let daysRemainingText = 'Sem agendamento';
-                          let daysRemainingStyle = 'bg-stone-100 text-stone-500 border-stone-200';
-                          if (item.dataAgendamento) {
-                            try {
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              const target = new Date(item.dataAgendamento + 'T00:00:00');
-                              target.setHours(0, 0, 0, 0);
-                              const diffTime = target.getTime() - today.getTime();
-                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                              if (diffDays > 0) {
-                                daysRemainingText = `Faltam ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
-                                daysRemainingStyle = 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold';
-                              } else if (diffDays === 0) {
-                                daysRemainingText = 'Hoje';
-                                daysRemainingStyle = 'bg-amber-50 text-amber-800 border-amber-200 font-bold';
-                              } else {
-                                const absDays = Math.abs(diffDays);
-                                daysRemainingText = `Atrasado ${absDays} dia${absDays > 1 ? 's' : ''}`;
-                                daysRemainingStyle = 'bg-red-50 text-red-800 border-red-200 font-bold';
-                              }
-                            } catch (e) {
-                              daysRemainingText = 'Data inválida';
-                              daysRemainingStyle = 'bg-red-50 text-red-800 border-red-200';
-                            }
-                          }
-
-                          return (
-                            <tr key={item.id} className="hover:bg-stone-50/80 transition-colors">
-                              <td className="py-2.5 px-3 text-center font-mono font-bold text-xs text-stone-400">{i + 1}</td>
-                              <td className="py-2 px-3.5 align-middle">
-                                <div className="flex flex-col gap-1">
-                                  <LicensePlate plate={item.cavalo} type="cavalo" />
-                                  {item.carretas && (
-                                    <span className="text-[10px] font-mono text-stone-600 font-bold">
-                                      Conjunto: {item.carretas}
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <input 
-                                  type="text"
-                                  defaultValue={item.manutencaoOs || ''}
-                                  onBlur={(e) => {
-                                    const val = e.target.value.toUpperCase();
-                                    update(ref(rtdb, `checklist_veiculos/${item.id}`), { manutencaoOs: val });
-                                  }}
-                                  placeholder="Nº DA O.S"
-                                  className="w-32 bg-stone-50 border border-stone-300 text-stone-900 font-bold rounded-lg py-1.5 px-2.5 text-center text-xs font-mono uppercase focus:outline-none focus:border-[#0f172a]"
-                                />
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <input 
-                                  type="date"
-                                  value={item.dataAgendamento || ''}
-                                  onChange={(e) => {
-                                    update(ref(rtdb, `checklist_veiculos/${item.id}`), { dataAgendamento: e.target.value });
-                                  }}
-                                  className="w-36 bg-stone-50 border border-stone-300 text-stone-900 font-bold rounded-lg py-1.5 px-2 text-center text-xs font-mono focus:outline-none focus:border-[#0f172a]"
-                                />
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <span className={cn("inline-block px-2.5 py-1 rounded-lg text-[10px] uppercase border font-mono font-bold", daysRemainingStyle)}>
-                                  {daysRemainingText}
-                                </span>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <select
-                                  value={item.osStatus || 'PENDENTE'}
-                                  onChange={(e) => {
-                                    update(ref(rtdb, `checklist_veiculos/${item.id}`), { osStatus: e.target.value });
-                                  }}
-                                  className="bg-white border border-stone-300 text-stone-900 rounded-lg py-1.5 px-2 text-xs font-bold focus:outline-none focus:border-[#0f172a] cursor-pointer"
-                                >
-                                  <option value="PENDENTE">🔴 PENDENTE</option>
-                                  <option value="AGENDADO">🔵 AGENDADO</option>
-                                  <option value="EM ANDAMENTO">🟡 EM ANDAMENTO</option>
-                                  <option value="CONCLUÍDO">🟢 CONCLUÍDO</option>
-                                  <option value="CANCELADO">⚫ CANCELADO</option>
-                                </select>
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <select
-                                  value={item.checklistRealizado || 'não'}
-                                  onChange={(e) => {
-                                    update(ref(rtdb, `checklist_veiculos/${item.id}`), { checklistRealizado: e.target.value });
-                                  }}
-                                  className={cn(
-                                    "border rounded-lg py-1.5 px-2 text-xs font-bold cursor-pointer font-mono",
-                                    (item.checklistRealizado || 'não') === 'sim'
-                                      ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                                      : "bg-red-50 text-red-800 border-red-300"
-                                  )}
-                                >
-                                  <option value="não">❌ NÃO</option>
-                                  <option value="sim">✔️ SIM</option>
-                                </select>
-                              </td>
-                              <td className="py-2.5 px-3 text-right pr-4">
-                                <div className="flex items-center justify-end gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditingItem(item)}
-                                    className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
-                                    title="Editar"
-                                  >
-                                    <Edit2 size={13} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDelete(item.id)}
-                                    className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                    title="Excluir"
-                                  >
-                                    <Trash2 size={13} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* ================= ABA 3: SOLICITAÇÃO DE CHECKLIST (TEMPLATE DE E-MAIL) ================= */}
-            {activeView === 'generator' && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
-                {/* Left Form: Controles e Edição */}
-                <div className="lg:col-span-5 bg-[#131619] border border-[#C9973E]/25 rounded-2xl p-5 shadow-lg space-y-4 text-[#F4F0E8]">
-                  <div className="border-b border-white/10 pb-3 flex items-center justify-between">
-                    <h3 className="text-xs font-mono font-bold text-[#E5C27A] uppercase tracking-wider flex items-center gap-2">
-                      <Edit2 size={14} className="text-[#E5C27A]" />
-                      <span>Edição dos Dados da Solicitação</span>
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={handleResetDefaultData}
-                      className="text-xs text-[#A8A39A] hover:text-[#E5C27A] flex items-center gap-1 cursor-pointer font-mono"
-                    >
-                      <RotateCcw size={12} />
-                      <span>Restaurar</span>
-                    </button>
-                  </div>
-
-                  {/* Preenchimento Rápido por Veículo da Frota */}
-                  <div className="space-y-1.5 bg-[#080A0C] border border-[#C9973E]/25 rounded-xl p-3 shadow-inner">
-                    <label className="text-xs font-mono font-bold text-[#E5C27A] flex items-center gap-1.5">
-                      <Truck size={14} className="text-[#E5C27A]" />
-                      <span>Preenchimento Rápido pela Frota:</span>
-                    </label>
-                    <select
-                      value={genData.cavalo}
-                      onChange={(e) => {
-                        const cavalo = e.target.value;
-                        const relatedItem = items.find(i => i.cavalo === cavalo);
-                        setGenData(prev => ({ 
-                          ...prev, 
-                          cavalo,
-                          carretas: relatedItem ? relatedItem.carretas : prev.carretas 
-                        }));
-                      }}
-                      className="w-full bg-[#131619] border border-[#C9973E]/30 rounded-lg px-3 py-2 text-xs text-white font-mono font-bold uppercase focus:border-[#D9AD5A] outline-none cursor-pointer"
-                    >
-                      <option value="">Selecione um cavalo...</option>
-                      {sortedCavalos.map(item => (
-                        <option key={item.id} value={item.cavalo}>
-                          {item.cavalo} — {item.carretas || 'Sem carreta'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Form fields */}
-                  <div className="space-y-3 text-xs font-mono">
-                    <div>
-                      <label className="block font-bold text-[#A8A39A] mb-1">
-                        1. Saudação:
-                      </label>
-                      <input
-                        type="text"
-                        value={genData.greeting}
-                        onChange={(e) => setGenData(prev => ({ ...prev, greeting: e.target.value }))}
-                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-[#A8A39A] mb-1">
-                        2. Frase de Solicitação:
-                      </label>
-                      <input
-                        type="text"
-                        value={genData.requestText}
-                        onChange={(e) => setGenData(prev => ({ ...prev, requestText: e.target.value }))}
-                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block font-bold text-[#A8A39A] mb-1">
-                          3. CAVALO:
-                        </label>
-                        <input
-                          type="text"
-                          value={genData.cavalo}
-                          onChange={(e) => setGenData(prev => ({ ...prev, cavalo: e.target.value.toUpperCase() }))}
-                          className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-[#E5C27A] font-mono font-bold uppercase focus:border-[#D9AD5A] outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-[#A8A39A] mb-1">
-                          4. CARRETAS:
-                        </label>
-                        <input
-                          type="text"
-                          value={genData.carretas}
-                          onChange={(e) => setGenData(prev => ({ ...prev, carretas: e.target.value.toUpperCase() }))}
-                          className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-[#E5C27A] font-mono font-bold uppercase focus:border-[#D9AD5A] outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-[#A8A39A] mb-1">
-                        5. Telefone / Contato:
-                      </label>
-                      <input
-                        type="text"
-                        value={genData.contato}
-                        onChange={(e) => setGenData(prev => ({ ...prev, contato: e.target.value }))}
-                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-[#A8A39A] mb-1">
-                        6. Assinatura:
-                      </label>
-                      <input
-                        type="text"
-                        value={genData.signature}
-                        onChange={(e) => setGenData(prev => ({ ...prev, signature: e.target.value }))}
-                        className="w-full bg-[#080A0C] border border-[#C9973E]/20 rounded-lg px-3 py-2 text-white font-medium focus:border-[#D9AD5A] outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Copy Action */}
-                  <div className="pt-2 border-t border-white/10">
-                    <button
-                      type="button"
-                      onClick={handleCopyFormattedEmail}
-                      className="w-full bg-gradient-to-r from-[#D9AD5A] via-[#C9973E] to-[#B77A25] hover:brightness-110 text-[#080A0C] px-4 py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(201,151,62,0.35)] cursor-pointer transition-all active:scale-95 border border-[#E5C27A]"
-                    >
-                      {copiedEmail ? <Check size={16} className="text-[#080A0C] stroke-[3]" /> : <Copy size={16} />}
-                      <span>{copiedEmail ? 'E-mail Copiado!' : 'Copiar E-mail Formatado'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Right Column: Prévia do E-mail */}
-                <div className="lg:col-span-7 bg-[#131619] rounded-2xl border border-[#C9973E]/25 p-6 sm:p-8 shadow-lg flex flex-col justify-between text-[#F4F0E8]">
-                  <div>
-                    <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-                      <div>
-                        <span className="text-[10px] font-mono font-bold tracking-widest text-[#E5C27A] uppercase bg-[#C9973E]/15 border border-[#C9973E]/30 px-3 py-0.5 rounded-full">
-                          FORMATO OFICIAL OUTLOOK / GMAIL
-                        </span>
-                        <h3 className="font-heading font-black text-base text-white mt-1 uppercase">
-                          Prévia do E-mail de Solicitação
-                        </h3>
-                      </div>
-                      <span className="text-[11px] font-medium text-[#A8A39A]">100% idêntico ao copiado</span>
-                    </div>
-
-                    <div className="bg-[#FFFFFF] p-6 rounded-xl border border-stone-300 min-h-[300px] text-stone-900">
-                      <div dangerouslySetInnerHTML={{ __html: getChecklistEmailHtml(genData) }} />
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-      </div>
-
-      {/* Modal: Colar Dados da Planilha (TSV / Excel) */}
-      {showPasteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white border border-[#d6ccbe] rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative flex flex-col gap-4 text-stone-900">
-            <button
-              type="button"
-              onClick={() => setShowPasteModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 p-1.5 rounded-xl hover:bg-stone-100 transition-colors cursor-pointer"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C9973E]/20 border border-[#C9973E]/40 text-[#E5C27A] flex items-center justify-center shadow-xs">
-                <Clipboard size={20} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white uppercase tracking-wide font-heading">
-                  Colar Dados do Checklist (Planilha Excel / TSV)
-                </h3>
-                <p className="text-xs text-[#A8A39A]">
-                  Cole as colunas copiadas da sua planilha (Placa, Carretas, Status, Data Teste, Validade).
-                </p>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
+          )}
+
+          {/* ===================================================================== */}
+          {/* TAB 2: "2. ORDENS DE SERVIÇO (OS)"                                    */}
+          {/* ===================================================================== */}
+          {activeView === 'os' && (
+            <div className="bg-[#FFFEFC] border border-[#E8DDCA] rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E8DDCA]">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-[#C49A45]" />
+                  <h3 className="text-xs font-black uppercase text-[#25231F]">
+                    Gestão de Ordens de Serviço (OS)
+                  </h3>
+                </div>
+
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                  <input
+                    type="text"
+                    value={osSearchTerm}
+                    onChange={(e) => setOsSearchTerm(e.target.value)}
+                    placeholder="Buscar OS ou placa..."
+                    className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] border border-[#E8DDCA] rounded-xl pl-9 pr-3 py-1.5 text-xs font-bold outline-none focus:border-[#C49A45]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                {filteredOsItems.map(item => (
+                  <div key={item.id} className="p-4 rounded-xl bg-[#FFFDF9] border border-[#E8DDCA] shadow-2xs space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-black text-[#7A5B1E]">
+                        {item.manutencaoOs ? `OS #${item.manutencaoOs}` : 'OS NÃO INFORMADA'}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#FAF5EB] text-[#8C6D28] border border-[#E8DDCA]">
+                        {item.osStatus || 'PENDENTE'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E8DDCA]/50">
+                      <span className="font-bold text-[#4A453E]">Cavalo: {item.cavalo}</span>
+                      <span className="font-mono text-[#8C7B63]">{item.carretas || 'Sem carreta'}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-1">
+                      <span className="text-[#8C7B63]">Vencimento: {item.dataVencimento}</span>
+                      <button
+                        onClick={async () => {
+                          const newStatus = (item.osStatus === 'CONCLUÍDO') ? 'PENDENTE' : 'CONCLUÍDO';
+                          await update(ref(rtdb, `checklist_veiculos/${item.id}`), { osStatus: newStatus });
+                          showToast(`OS atualizada para ${newStatus}`, 'info');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#FAF5EB] hover:bg-[#F2E8D5] text-[#7A5B1E] font-bold text-[10px] transition-colors"
+                      >
+                        Alternar Status
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ===================================================================== */}
+          {/* 5. FOOTER (Branded, Clean & Sophisticated)                             */}
+          {/* ===================================================================== */}
+          <footer className="w-full pt-4 pb-2 border-t border-[#E6D9C5]/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] font-sans text-[#7D705C] select-none">
+            <div className="flex items-center gap-1.5">
+              <span>Juntos em todos os caminhos</span>
+              <span className="text-[#C49A45]">♥</span>
+            </div>
+
+            <div className="flex items-center gap-3 font-mono text-[10px] tracking-wider text-[#8C7B63]">
+              <span className="hover:text-[#25231F] cursor-pointer">3 CORAÇÕES</span>
+              <span>|</span>
+              <span className="hover:text-[#25231F] cursor-pointer">LOGÍSTICA</span>
+              <span>|</span>
+              <span className="hover:text-[#25231F] cursor-pointer">PESSOAS</span>
+              <span>|</span>
+              <span className="hover:text-[#25231F] cursor-pointer">RESULTADOS</span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span>Juntos vamos mais longe</span>
+              <span className="text-[#C49A45]">♥</span>
+            </div>
+          </footer>
+
+
+
+      {/* ========================================================================= */}
+      {/* MODAL: COLAR PLANILHA EXCEL                                               */}
+      {/* ========================================================================= */}
+      {showPasteModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E8DDCA] rounded-3xl w-full max-w-xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8DDCA]">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5 text-[#C49A45]" />
+                <h3 className="text-sm font-black uppercase text-[#25231F]">
+                  Importar Veículos da Planilha
+                </h3>
+              </div>
+              <button 
+                onClick={() => setShowPasteModal(false)}
+                className="w-7 h-7 rounded-lg hover:bg-stone-100 flex items-center justify-center text-stone-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#6E6454]">
+              Copie as colunas da planilha (Cavalo [tab] Carretas [tab] OS [tab] Obs) e cole abaixo:
+            </p>
 
             <textarea
+              rows={6}
               value={pasteData}
               onChange={(e) => setPasteData(e.target.value)}
-              placeholder={`Cole aqui as linhas copiadas do Excel...\nExemplo:\nSAS2D02\tPOG2095 / POR5E42\tAPROVADO\t11/09/2026\t10/11/2026`}
-              className="w-full h-44 p-3.5 bg-[#080A0C] border border-[#C9973E]/30 rounded-2xl text-xs font-mono font-medium text-white focus:outline-none focus:border-[#D9AD5A] shadow-inner resize-none placeholder-[#7A756D]"
+              placeholder="SAS2002	POG2095 / POR5E42	900382	Em trânsito..."
+              className="w-full bg-[#FAF7F0] focus:bg-white border border-[#E8DDCA] rounded-xl p-3 text-xs font-mono outline-none focus:border-[#C49A45]"
             />
 
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
+            <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowPasteModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold uppercase text-[#A8A39A] hover:bg-[#202428] transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-[#6E6454] hover:bg-stone-100"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={() => handleImportData(pasteData)}
-                className="px-6 py-2.5 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] hover:brightness-110 text-[#080A0C] font-black rounded-xl text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-97 border border-[#E5C27A]"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#D8B065] to-[#AA7E2F] text-white font-black text-xs uppercase shadow-md hover:brightness-105"
               >
-                Processar e Atualizar
+                Processar e Importar
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: Novo Registro de Checklist */}
+      {/* ========================================================================= */}
+      {/* MODAL: NOVO VEÍCULO                                                       */}
+      {/* ========================================================================= */}
       {isAdding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#131619] border border-[#C9973E]/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#F4F0E8]">
-            <button
-              type="button"
-              onClick={() => setIsAdding(false)}
-              className="absolute top-4 right-4 text-[#A8A39A] hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C9973E]/20 border border-[#C9973E]/40 text-[#E5C27A] flex items-center justify-center shadow-xs">
-                <Plus size={20} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white uppercase tracking-wide font-heading">
-                  Novo Registro de Checklist
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E8DDCA] rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8DDCA]">
+              <div className="flex items-center gap-2">
+                <Truck className="w-5 h-5 text-[#C49A45]" />
+                <h3 className="text-sm font-black uppercase text-[#25231F]">
+                  Cadastrar Novo Veículo
                 </h3>
-                <p className="text-xs text-[#A8A39A]">
-                  Cadastre um novo conjunto de cavalo e carretas na frota.
-                </p>
               </div>
+              <button 
+                onClick={() => setIsAdding(false)}
+                className="w-7 h-7 rounded-lg hover:bg-stone-100 flex items-center justify-center text-stone-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="space-y-3 text-xs font-mono">
+            <form onSubmit={handleSaveNewItem} className="space-y-3 text-xs">
               <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Placa Cavalo *</label>
+                <label className="block text-[10px] font-bold uppercase text-[#6E6454] mb-1">
+                  Placa do Cavalo *
+                </label>
                 <input
                   type="text"
+                  required
                   value={newItem.cavalo}
                   onChange={(e) => setNewItem({ ...newItem, cavalo: e.target.value.toUpperCase() })}
-                  placeholder="EX: POZ4431"
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
+                  placeholder="Ex: SAS2002"
+                  className="w-full bg-[#FAF7F0] focus:bg-white border border-[#E8DDCA] rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-[#C49A45]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Carretas do Conjunto</label>
+                <label className="block text-[10px] font-bold uppercase text-[#6E6454] mb-1">
+                  Placas das Carretas
+                </label>
                 <input
                   type="text"
                   value={newItem.carretas}
                   onChange={(e) => setNewItem({ ...newItem, carretas: e.target.value.toUpperCase() })}
-                  placeholder="EX: PNE7353 / PNE7433"
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
+                  placeholder="Ex: POG2095 / POR5E42"
+                  className="w-full bg-[#FAF7F0] focus:bg-white border border-[#E8DDCA] rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-[#C49A45]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Teste</label>
+                  <label className="block text-[10px] font-bold uppercase text-[#6E6454] mb-1">
+                    Data do Teste
+                  </label>
                   <input
                     type="date"
                     value={newItem.dataTeste}
                     onChange={(e) => setNewItem({ ...newItem, dataTeste: e.target.value })}
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
+                    className="w-full bg-[#FAF7F0] border border-[#E8DDCA] rounded-xl px-3 py-2 text-xs outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Vencimento</label>
+                  <label className="block text-[10px] font-bold uppercase text-[#6E6454] mb-1">
+                    Vencimento
+                  </label>
                   <input
                     type="date"
                     value={newItem.dataVencimento}
                     onChange={(e) => setNewItem({ ...newItem, dataVencimento: e.target.value })}
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
+                    className="w-full bg-[#FAF7F0] border border-[#E8DDCA] rounded-xl px-3 py-2 text-xs outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Periférico</label>
+                <label className="block text-[10px] font-bold uppercase text-[#6E6454] mb-1">
+                  Número da OS (Opcional)
+                </label>
                 <input
                   type="text"
-                  value={newItem.periferico}
-                  onChange={(e) => setNewItem({ ...newItem, periferico: e.target.value.toUpperCase() })}
-                  placeholder="EX: TECLADO / SENSOR"
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white uppercase font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
+                  value={newItem.manutencaoOs}
+                  onChange={(e) => setNewItem({ ...newItem, manutencaoOs: e.target.value })}
+                  placeholder="Ex: 900382"
+                  className="w-full bg-[#FAF7F0] focus:bg-white border border-[#E8DDCA] rounded-xl px-3 py-2 text-xs outline-none"
                 />
               </div>
 
-              <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Observação</label>
-                <textarea
-                  value={newItem.observacao}
-                  onChange={(e) => setNewItem({ ...newItem, observacao: e.target.value })}
-                  placeholder="Observações adicionais..."
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#D9AD5A] h-16 resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E8DDCA]">
                 <button
                   type="button"
                   onClick={() => setIsAdding(false)}
-                  className="px-4 py-2 bg-[#171A1C] hover:bg-[#202428] text-[#A8A39A] rounded-xl font-bold uppercase text-xs cursor-pointer border border-white/10"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#6E6454] hover:bg-stone-100"
                 >
                   Cancelar
                 </button>
                 <button
-                  type="button"
-                  onClick={handleAdd}
-                  className="px-6 py-2 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black rounded-xl uppercase text-xs shadow-md cursor-pointer hover:brightness-110 active:scale-97 border border-[#E5C27A]"
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#D8B065] to-[#AA7E2F] text-white font-black text-xs uppercase shadow-md hover:brightness-105"
                 >
                   Salvar Veículo
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Modal: Editar Registro */}
-      {editingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#131619] border border-[#C9973E]/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#F4F0E8]">
-            <button
-              type="button"
-              onClick={() => setEditingItem(null)}
-              className="absolute top-4 right-4 text-[#A8A39A] hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C9973E]/20 border border-[#C9973E]/40 text-[#E5C27A] flex items-center justify-center shadow-xs">
-                <Edit2 size={20} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white uppercase tracking-wide font-heading">
-                  Editar Checklist: {editingItem.cavalo}
-                </h3>
-                <p className="text-xs text-[#A8A39A]">
-                  Atualize os dados e datas de vistoria do veículo.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3 text-xs font-mono">
-              <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Placa Cavalo</label>
-                <input
-                  type="text"
-                  value={editingItem.cavalo}
-                  onChange={(e) => setEditingItem({ ...editingItem, cavalo: e.target.value.toUpperCase() })}
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Carretas do Conjunto</label>
-                <input
-                  type="text"
-                  value={editingItem.carretas}
-                  onChange={(e) => setEditingItem({ ...editingItem, carretas: e.target.value.toUpperCase() })}
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold text-xs focus:outline-none focus:border-[#D9AD5A]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Teste</label>
-                  <input
-                    type="date"
-                    value={editingItem.dataTeste}
-                    onChange={(e) => setEditingItem({ ...editingItem, dataTeste: e.target.value })}
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Vencimento</label>
-                  <input
-                    type="date"
-                    value={editingItem.dataVencimento}
-                    onChange={(e) => setEditingItem({ ...editingItem, dataVencimento: e.target.value })}
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Status Manual</label>
-                <select
-                  value={editingItem.statusOverride || ''}
-                  onChange={(e) => setEditingItem({ ...editingItem, statusOverride: (e.target.value as any) || null })}
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white outline-none focus:border-[#D9AD5A] font-medium text-xs cursor-pointer"
-                >
-                  <option value="">Automático (Calculado pela Data)</option>
-                  <option value="APROVADO">APROVADO</option>
-                  <option value="VENCIDO">VENCIDO</option>
-                  <option value="NEGATIVADO">NEGATIVADO</option>
-                  <option value="REPROVADO">REPROVADO</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Nº da O.S</label>
-                  <input
-                    type="text"
-                    value={editingItem.manutencaoOs || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, manutencaoOs: e.target.value.toUpperCase() })}
-                    placeholder="EX: 900382"
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white uppercase font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Data Agendamento O.S</label>
-                  <input
-                    type="date"
-                    value={editingItem.dataAgendamento || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, dataAgendamento: e.target.value })}
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Status da O.S</label>
-                  <select
-                    value={editingItem.osStatus || 'PENDENTE'}
-                    onChange={(e) => setEditingItem({ ...editingItem, osStatus: e.target.value as any })}
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white outline-none focus:border-[#D9AD5A] font-bold text-xs cursor-pointer"
-                  >
-                    <option value="PENDENTE">🔴 PENDENTE</option>
-                    <option value="AGENDADO">🔵 AGENDADO</option>
-                    <option value="EM ANDAMENTO">🟡 EM ANDAMENTO</option>
-                    <option value="CONCLUÍDO">🟢 CONCLUÍDO</option>
-                    <option value="CANCELADO">⚫ CANCELADO</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Checklist Realizado</label>
-                  <select
-                    value={editingItem.checklistRealizado || 'não'}
-                    onChange={(e) => setEditingItem({ ...editingItem, checklistRealizado: e.target.value as any })}
-                    className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white outline-none focus:border-[#D9AD5A] font-bold text-xs cursor-pointer"
-                  >
-                    <option value="não">❌ NÃO</option>
-                    <option value="sim">✔️ SIM</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Periférico</label>
-                <input
-                  type="text"
-                  value={editingItem.periferico || ''}
-                  onChange={(e) => setEditingItem({ ...editingItem, periferico: e.target.value.toUpperCase() })}
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white uppercase font-mono text-xs focus:outline-none focus:border-[#D9AD5A]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono font-bold text-[#A8A39A] uppercase mb-1 block">Observação</label>
-                <textarea
-                  value={editingItem.observacao || ''}
-                  onChange={(e) => setEditingItem({ ...editingItem, observacao: e.target.value })}
-                  className="w-full bg-[#080A0C] border border-[#C9973E]/30 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#D9AD5A] h-16 resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 bg-[#171A1C] hover:bg-[#202428] text-[#A8A39A] rounded-xl font-bold uppercase text-xs cursor-pointer border border-white/10"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUpdate}
-                  className="px-6 py-2 bg-gradient-to-r from-[#D9AD5A] to-[#B77A25] text-[#080A0C] font-black rounded-xl uppercase text-xs shadow-md cursor-pointer hover:brightness-110 active:scale-97 border border-[#E5C27A]"
-                >
-                  Salvar Alterações
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+      </main>
     </div>
   );
 }

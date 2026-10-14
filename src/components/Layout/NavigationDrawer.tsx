@@ -10,13 +10,16 @@ import {
   FileSpreadsheet, 
   Truck, 
   Calendar, 
-  Route,
-  Settings,
-  ChevronRight,
-  Package
+  Route, 
+  Settings, 
+  ChevronRight, 
+  Package, 
+  Users2,
+  Users
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { PageDefinition, ICON_MAP } from '../../data/pagesConfig';
+import { PageDefinition } from '../../data/pagesConfig';
+import goldMedalLogo from '../../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 
 interface NavigationDrawerProps {
   activeTab: string;
@@ -26,6 +29,7 @@ interface NavigationDrawerProps {
   setIsOpen?: (open: boolean) => void;
   pageVisibility?: Record<string, boolean>;
   availablePages?: PageDefinition[];
+  isDark?: boolean;
 }
 
 export default function NavigationDrawer({
@@ -35,11 +39,14 @@ export default function NavigationDrawer({
   isOpen: propIsOpen,
   setIsOpen: propSetIsOpen,
   pageVisibility,
-  availablePages,
+  isDark = true,
 }: NavigationDrawerProps) {
   const [internalIsOpen, setInternalIsOpen] = useState<boolean>(false);
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
   const setIsOpen = propSetIsOpen || setInternalIsOpen;
+
+  // Estado para controlar se o menu flutuante em páginas claras está expandido ou minimizado (apenas ícones)
+  const [isMinimized, setIsMinimized] = useState<boolean>(true);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -52,16 +59,14 @@ export default function NavigationDrawer({
   }, [isOpen, setIsOpen]);
 
   const defaultItems = [
-    { id: 'menu', label: 'INÍCIO', subtitle: 'PAINEL CENTRAL', icon: Home },
-    { id: 'checklist', label: 'CHECKLIST', subtitle: 'DIVERGÊNCIAS', icon: ClipboardCheck },
-    { id: 'averbacao', label: 'AVERBAÇÃO', subtitle: 'SEGUROS DE CARGA', icon: FileCheck2 },
-    { id: 'sm_creator', label: 'SM', subtitle: 'MONITORAMENTO', icon: Radio },
-    { id: 'iscas', label: 'ISCAS', subtitle: 'RASTREAMENTO & DESTINOS', icon: Package },
-    { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'ISCAS & CONTROLE PGR', icon: Sliders },
-    { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'VEÍCULOS PÁTIO', icon: Truck },
-    { id: 'escala', label: 'ESCALA 3C', subtitle: 'PLANTÃO LOGÍSTICO', icon: FileSpreadsheet },
-    { id: 'presence', label: 'CALENDÁRIO', subtitle: 'FREQUÊNCIA & AGENDA', icon: Calendar },
-    { id: 'rotas', label: 'ROTAS', subtitle: 'P&R E DESTINOS', icon: Route },
+    { id: 'menu', label: 'Início', subtitle: 'Painel Central', icon: Home },
+    { id: 'checklist', label: 'Checklist', subtitle: 'Vistoria de Frota', icon: ClipboardCheck },
+    { id: 'averbacao', label: 'Averbação', subtitle: 'Seguros de Carga', icon: FileCheck2 },
+    { id: 'sm_creator', label: 'SM', subtitle: 'Monitoramento', icon: Radio },
+    { id: 'controle', label: 'Controle', subtitle: 'Iscas & PGR', icon: Sliders },
+    { id: 'escala', label: 'Escala', subtitle: 'Plantão Logístico', icon: Calendar },
+    { id: 'presence', label: 'Lista de Presença', subtitle: 'Frequência & Agenda', icon: Users },
+    { id: 'rotas', label: 'Rotas', subtitle: 'P&R e Destinos', icon: Route },
   ];
 
   const menuItems = React.useMemo(() => {
@@ -81,46 +86,41 @@ export default function NavigationDrawer({
 
   return (
     <>
-      {/* 2. BACKDROP OVERLAY */}
+      {/* ===================================================================== */}
+      {/* 1. FLOATING MINIMIZED SIDEBAR (SEM FUNDO, APENAS ÍCONES) NAS PÁGINAS   */}
+      {/* ===================================================================== */}
+      {/* ===================================================================== */}
+      {/* 2. MOBILE DRAWER OR SLIDE-OVER DRAWER (FOR INÍCIO OR ON PHONES)       */}
+      {/* ===================================================================== */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 transition-opacity duration-250"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 transition-opacity duration-200"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* 3. EXPANDED SIDEBAR (MATCHING PRÉ-ALERTA INTERFACE STYLE) */}
       <aside 
         aria-label="Menu Operacional"
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-50 w-[310px] sm:w-[330px] max-w-[88vw] bg-[#F5EFE4] border-r border-[#D9C39B] shadow-[15px_0_50px_rgba(198,154,69,0.15)] flex flex-col select-none transition-transform duration-250 ease-out motion-reduce:transition-none",
+          "fixed left-0 top-0 bottom-0 z-50 w-[290px] sm:w-[320px] max-w-[85vw] bg-[#FAF6EE] border-r border-[#E6D9C5] shadow-2xl flex flex-col select-none transition-transform duration-250 ease-out font-sans",
           isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
       >
         {/* HEADER */}
-        <div className="pt-4 px-4 pb-2 shrink-0">
+        <div className="pt-4 px-4 pb-3 shrink-0 border-b border-[#E6D9C5]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#7f0b12] border-2 border-[#D9C39B] shadow-[0_0_14px_rgba(212,26,34,0.3)] flex flex-col items-center justify-center relative overflow-hidden shrink-0">
-                <div className="flex items-center justify-center -space-x-0.5 mb-0.5">
-                  <span className="text-white text-[10px] leading-none">♥</span>
-                  <span className="text-white text-[12px] leading-none -translate-y-0.5">♥</span>
-                  <span className="text-white text-[10px] leading-none">♥</span>
-                </div>
-                <span className="text-white text-[5.5px] font-black tracking-tight leading-none uppercase">
-                  3corações
-                </span>
+              <div className="w-9 h-9 rounded-full p-0.5 bg-white border border-[#D8B065] shadow-xs flex items-center justify-center overflow-hidden">
+                <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
               </div>
 
-              <div className="h-7 w-[1px] bg-[#D9C39B]" />
-
-              <div className="flex flex-col justify-center leading-none">
-                <span className="text-[13px] font-black text-[#33291B] tracking-wider uppercase font-sans">
-                  MENU OPERACIONAL
+              <div className="flex flex-col text-left leading-none">
+                <span className="text-sm font-black text-[#25231F] uppercase font-sans">
+                  CENTRAL GR
                 </span>
-                <span className="text-[8.5px] font-mono font-bold text-[#91651F] tracking-widest uppercase mt-1 bg-[#EEE2CD] px-2 py-0.5 rounded border border-[#D9C39B] inline-block">
-                  PAINEL CENTRAL
+                <span className="text-[8.5px] font-bold text-[#8C6D28] uppercase mt-0.5">
+                  Menu Operacional
                 </span>
               </div>
             </div>
@@ -128,19 +128,15 @@ export default function NavigationDrawer({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              aria-label="Fechar Menu"
-              title="Fechar Menu"
-              className="w-8 h-8 rounded-xl bg-[#EEE2CD] hover:bg-[#E7D4AF] text-[#91651F] hover:text-[#33291B] border border-[#D9C39B] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95 shrink-0"
+              className="w-8 h-8 rounded-xl bg-[#FAF5EB] hover:bg-[#F2EAE0] text-[#4A453E] border border-[#E8DDCA] flex items-center justify-center cursor-pointer"
             >
-              <X size={17} className="stroke-[2.5]" />
+              <X size={16} />
             </button>
           </div>
-
-          <div className="mt-3 h-[1px] w-full bg-gradient-to-r from-transparent via-[#D9C39B] to-transparent" />
         </div>
 
         {/* NAVIGATION LIST */}
-        <div className="flex-1 overflow-y-auto py-2 px-3 space-y-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5">
           {menuItems.map((item) => {
             const isActive = activeTab === item.id;
             const IconComponent = item.icon;
@@ -151,72 +147,45 @@ export default function NavigationDrawer({
                 type="button"
                 onClick={() => handleSelect(item.id)}
                 className={cn(
-                  "w-full flex items-center justify-between px-3.5 py-3 rounded-2xl transition-all cursor-pointer group text-left relative overflow-hidden border active:scale-[0.99]",
+                  "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all cursor-pointer text-left border",
                   isActive
-                    ? "bg-[#DDB76B] text-[#33291B] border-[#C69A45] shadow-[0_0_15px_rgba(198,154,69,0.3)] font-black"
-                    : "bg-[#FFF9EF] hover:bg-[#EEE2CD] text-[#33291B] border-[#D9C39B] hover:border-[#C69A45]"
+                    ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white font-black border-[#C59B48] shadow-md"
+                    : "bg-white hover:bg-[#FAF5EB] text-[#25231F] border-[#E8DDCA]"
                 )}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 border",
-                    isActive
-                      ? "bg-[#33291B] text-[#DDB76B] border-[#33291B] font-black shadow-sm"
-                      : "bg-[#FFF9EF] text-[#C69A45] border-[#D9C39B]"
-                  )}>
-                    <IconComponent size={19} className="stroke-[2.2]" />
-                  </div>
-
-                  <div className="flex flex-col justify-center min-w-0">
-                    <span className="text-[12px] font-black text-[#33291B] group-hover:text-[#91651F] uppercase tracking-tight font-sans truncate">
-                      {item.label}
-                    </span>
-                    <span className="text-[9px] font-mono text-[#857662] uppercase tracking-wider font-semibold truncate mt-0.5">
-                      {item.subtitle}
-                    </span>
-                  </div>
+                  <IconComponent size={17} className={isActive ? "text-white" : "text-[#8C6D28]"} />
+                  <span className="text-xs font-bold truncate">{item.label}</span>
                 </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  {isActive && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#33291B] border border-[#33291B] text-[9px] font-mono font-black text-[#F5EFE4] uppercase tracking-widest">
-                      ATIVO
-                    </span>
-                  )}
-                  <ChevronRight 
-                    size={16} 
-                    className={cn(
-                      "transition-transform",
-                      isActive ? "text-[#33291B]" : "text-[#857662] group-hover:text-[#91651F] group-hover:translate-x-0.5"
-                    )} 
-                  />
-                </div>
+                {isActive && (
+                  <span className="text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded-full bg-black/20 text-white">
+                    ATIVO
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
 
-        {/* FOOTER: SETTINGS */}
-        <div className="p-3 pt-2 border-t border-[#D9C39B] shrink-0 bg-[#EEE2CD]">
-          <button
-            type="button"
-            onClick={() => {
-              if (onOpenSettings) onOpenSettings();
-              setIsOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-3.5 py-3 rounded-xl bg-[#FFF9EF] hover:bg-[#E7D4AF] text-[#33291B] hover:text-[#91651F] border border-[#D9C39B] transition-all cursor-pointer group shadow-sm active:scale-98"
-          >
-            <div className="flex items-center gap-2.5">
-              <Settings size={17} className="text-[#C69A45] group-hover:rotate-45 transition-transform" />
-              <span className="h-3.5 w-[1px] bg-[#D9C39B]" />
-              <span className="text-[10px] font-mono font-black uppercase tracking-wider text-[#33291B]">
-                CONFIGURAÇÕES & PÁGINAS
-              </span>
-            </div>
-            <ChevronRight size={15} className="text-[#C69A45] group-hover:translate-x-0.5 transition-transform" />
-          </button>
-        </div>
-
+        {/* FOOTER */}
+        {onOpenSettings && (
+          <div className="p-3 border-t border-[#E6D9C5] bg-[#FAF5EB]">
+            <button
+              type="button"
+              onClick={() => {
+                onOpenSettings();
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#FAF5EB] text-[#25231F] border border-[#E8DDCA] font-bold text-xs cursor-pointer shadow-xs"
+            >
+              <div className="flex items-center gap-2">
+                <Settings size={15} className="text-[#C49A45]" />
+                <span>Configurações & Páginas</span>
+              </div>
+              <ChevronRight size={14} className="text-[#8C7B63]" />
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );

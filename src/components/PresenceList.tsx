@@ -1,43 +1,87 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ChevronLeft, 
-  ChevronRight, 
   Calendar as CalendarIcon,
-  Plus,
-  Check,
-  ArrowRightLeft,
-  Trash2,
-  UserCheck,
-  Coffee,
-  Sparkles,
-  ShieldCheck,
-  Truck,
-  Clock,
-  MapPin,
-  AlertCircle,
   CalendarDays,
-  ListFilter,
+  Clock,
+  Plus,
+  Trash2,
+  Copy,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Sliders,
+  ShieldCheck,
+  AlertTriangle,
+  ArrowRightLeft,
+  Filter,
   Layers,
+  Search,
+  CheckCircle2,
+  UserCheck,
   Briefcase,
-  Navigation
+  User,
+  Coffee,
+  X,
+  LayoutGrid,
+  List,
+  Columns
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
-import heroCinematicEscala from '../assets/images/hero_cinematic_escala_1790216226888.jpg';
+import { safeCopyText } from '../utils/clipboard';
 
-interface Appointment {
+// Color themes identical to Pre-Alerta and Checklist
+const COLOR_THEMES = {
+  amarelo: {
+    name: 'AMARELO CAFÉ',
+    highlightClass: 'bg-[#FFFF00] text-black border border-yellow-500 font-bold',
+    badgeClass: 'bg-yellow-100 text-yellow-900 border-yellow-300',
+    accentColor: '#C49A45',
+    activeBg: 'bg-[#C49A45] text-white',
+    circleBg: 'bg-[#FFFF00]'
+  },
+  vermelho: {
+    name: 'VERMELHO 3C',
+    highlightClass: 'bg-red-600 text-white border border-red-700 font-bold',
+    badgeClass: 'bg-red-100 text-red-900 border-red-300',
+    accentColor: '#E11D48',
+    activeBg: 'bg-red-600 text-white',
+    circleBg: 'bg-red-600'
+  },
+  azul: {
+    name: 'AZUL FROTA',
+    highlightClass: 'bg-blue-600 text-white border border-blue-700 font-bold',
+    badgeClass: 'bg-blue-100 text-blue-900 border-blue-300',
+    accentColor: '#2563EB',
+    activeBg: 'bg-blue-600 text-white',
+    circleBg: 'bg-blue-600'
+  },
+  verde: {
+    name: 'VERDE LOG',
+    highlightClass: 'bg-emerald-600 text-white border border-emerald-700 font-bold',
+    badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+    accentColor: '#10B981',
+    activeBg: 'bg-emerald-600 text-white',
+    circleBg: 'bg-emerald-600'
+  }
+};
+
+export interface Appointment {
   id: string;
-  date: string;
+  date: string; // YYYY-MM-DD
   time: string;
   title: string;
-  type: 'pessoal' | 'corporativo';
+  type: 'pessoal' | 'corporativo' | 'plantao' | 'auditoria';
+  description?: string;
 }
 
 interface PresenceListProps {
   onBack?: () => void;
 }
+
+type CalendarDisplayFormat = 'grade_executiva' | 'timeline_semanal' | 'agenda_feed' | 'matriz_compacta';
 
 export default function PresenceList({ onBack }: PresenceListProps) {
   const getTodayStr = () => {
@@ -45,11 +89,16 @@ export default function PresenceList({ onBack }: PresenceListProps) {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   };
 
-  const [selectedDate, setSelectedDate] = useState(getTodayStr());
+  const todayStr = getTodayStr();
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [viewDate, setViewDate] = useState<Date>(new Date());
-  const [calendarViewMode, setCalendarViewMode] = useState<'mes' | 'semana' | 'lista'>('mes');
-  const [filterCategory, setFilterCategory] = useState<'todos' | 'escala' | 'compromisso' | 'pendente'>('todos');
+  
+  // New Calendar format display switcher
+  const [displayFormat, setDisplayFormat] = useState<CalendarDisplayFormat>('grade_executiva');
+  const [themeKey, setThemeKey] = useState<'amarelo' | 'vermelho' | 'azul' | 'verde'>('amarelo');
+  const activeTheme = COLOR_THEMES[themeKey];
 
+  // Database states
   const [dayStatuses, setDayStatuses] = useState<Record<string, 'trabalhei' | 'falta' | 'folga' | ''>>({});
   const [escalaConfig, setEscalaConfig] = useState<{ enabled: boolean; startDate: string }>({
     enabled: true,
@@ -57,17 +106,22 @@ export default function PresenceList({ onBack }: PresenceListProps) {
   });
   const [appointments, setAppointments] = useState<Record<string, Appointment>>({});
 
-  // Appointment form
+  // Appointment creation form
   const [newAppTitle, setNewAppTitle] = useState('');
   const [newAppTime, setNewAppTime] = useState('09:00');
-  const [newAppType, setNewAppType] = useState<'pessoal' | 'corporativo'>('corporativo');
+  const [newAppType, setNewAppType] = useState<'pessoal' | 'corporativo' | 'plantao' | 'auditoria'>('corporativo');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Notifications
   const [notification, setNotification] = useState<string | null>(null);
+  const [copiedEscala, setCopiedEscala] = useState(false);
 
   const showToast = (msg: string) => {
     setNotification(msg);
-    setTimeout(() => setNotification(null), 2500);
+    setTimeout(() => setNotification(null), 2800);
   };
 
+  // Firebase Realtime DB synchronization
   useEffect(() => {
     const presenceRef = ref(db, 'presence_list');
     const unsubscribe = onValue(presenceRef, (snapshot) => {
@@ -102,19 +156,41 @@ export default function PresenceList({ onBack }: PresenceListProps) {
     return Math.abs(diff) % 2 === 0;
   };
 
+  // Compute effective day status: manual override or automatic escala
+  const getDayEffectiveStatus = (dateStr: string) => {
+    const manual = dayStatuses[dateStr];
+    if (manual === 'trabalhei') return { type: 'trabalhei', label: 'TRABALHO (REGISTRADO)', badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300', isWork: true };
+    if (manual === 'falta') return { type: 'falta', label: 'FALTA / ATESTADO', badgeColor: 'bg-red-100 text-red-800 border-red-300', isWork: false };
+    if (manual === 'folga') return { type: 'folga', label: 'FOLGA (REGISTRADA)', badgeColor: 'bg-slate-100 text-slate-700 border-slate-300', isWork: false };
+    
+    // Automatic scale
+    if (isAutomaticWorkDay(dateStr)) {
+      return { type: 'escala_trabalho', label: 'ESCALA ATIVA 3C', badgeColor: 'bg-[#EDE2CE] text-[#8C6D28] border-[#E6D2A3]', isWork: true };
+    }
+    return { type: 'escala_folga', label: 'FOLGA ESCALA', badgeColor: 'bg-[#F5F0E6] text-[#77736B] border-[#EDE2CE]', isWork: false };
+  };
+
   const updateStatus = (date: string, status: 'trabalhei' | 'falta' | 'folga' | '') => {
     setDayStatuses(prev => ({ ...prev, [date]: status }));
     update(ref(db, 'presence_list/statuses'), { [date]: status });
-    showToast(`Status de ${date} atualizado para ${status.toUpperCase() || 'PADRÃO'}`);
+    showToast(`Status atualizado para ${status ? status.toUpperCase() : 'ESCALA PADRÃO'}`);
   };
 
-  const addAppointment = (time: string, title: string, type: 'pessoal' | 'corporativo') => {
+  const toggleEscalaConfig = () => {
+    const nextState = !escalaConfig.enabled;
+    const updated = { ...escalaConfig, enabled: nextState };
+    setEscalaConfig(updated);
+    update(ref(db, 'presence_list/escalaConfig'), updated);
+    showToast(`Escala automática ${nextState ? 'ATIVADA' : 'DESATIVADA'}`);
+  };
+
+  const addAppointment = (time: string, title: string, type: 'pessoal' | 'corporativo' | 'plantao' | 'auditoria') => {
     if (!title.trim() || !time) return;
     const id = `app_${Date.now()}`;
     const newApp: Appointment = { id, date: selectedDate, time, title, type };
     update(ref(db, `presence_list/appointments`), { [id]: newApp });
     setNewAppTitle('');
-    showToast('Compromisso agendado com sucesso!');
+    showToast('Compromisso registrado com sucesso!');
   };
 
   const deleteAppointment = (id: string) => {
@@ -133,11 +209,11 @@ export default function PresenceList({ onBack }: PresenceListProps) {
 
   const jumpToToday = () => {
     setViewDate(new Date());
-    setSelectedDate(getTodayStr());
-    showToast('Navegado para Hoje');
+    setSelectedDate(todayStr);
+    showToast('Navegado para o dia de Hoje');
   };
 
-  // Calendar matrix calculation
+  // Calendar monthly matrix
   const calendarDays = useMemo(() => {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -162,7 +238,7 @@ export default function PresenceList({ onBack }: PresenceListProps) {
       days.push({ dayNumber: d, dateStr, isCurrentMonth: true });
     }
 
-    // Next month padding to fill 42 cells (6 rows x 7 cols)
+    // Next month padding to fill grid
     const remaining = 42 - days.length;
     for (let d = 1; d <= remaining; d++) {
       const m = month === 11 ? 1 : month + 2;
@@ -174,255 +250,412 @@ export default function PresenceList({ onBack }: PresenceListProps) {
     return days;
   }, [viewDate]);
 
-  // Statistics for current month
+  // Current Week days for Timeline Semanal format
+  const currentWeekDays = useMemo(() => {
+    const sel = new Date(selectedDate + 'T12:00:00');
+    const dayOfWeek = sel.getDay(); // 0 is Sunday
+    const sunday = new Date(sel);
+    sunday.setDate(sel.getDate() - dayOfWeek);
+
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const cur = new Date(sunday);
+      cur.setDate(sunday.getDate() + i);
+      const dateStr = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+      week.push({
+        dateStr,
+        dayNumber: cur.getDate(),
+        dayName: ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'][i],
+        shortDay: ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][i],
+        isToday: dateStr === todayStr,
+        isSelected: dateStr === selectedDate
+      });
+    }
+    return week;
+  }, [selectedDate, todayStr]);
+
+  // Monthly stats
   const stats = useMemo(() => {
     let workDays = 0;
     let offDays = 0;
+    let faltas = 0;
     calendarDays.filter(d => d.isCurrentMonth).forEach(d => {
-      const status = dayStatuses[d.dateStr];
-      if (status === 'trabalhei' || (!status && isAutomaticWorkDay(d.dateStr))) {
-        workDays++;
-      } else if (status === 'folga') {
-        offDays++;
-      }
+      const st = getDayEffectiveStatus(d.dateStr);
+      if (st.type === 'falta') faltas++;
+      else if (st.isWork) workDays++;
+      else offDays++;
     });
-    const totalApps = Object.keys(appointments).length;
-    return { workDays, offDays, totalApps };
-  }, [calendarDays, dayStatuses, appointments]);
+    const monthApps = (Object.values(appointments) as Appointment[]).filter(a => {
+      const ym = a.date.substring(0, 7);
+      const currentYm = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}`;
+      return ym === currentYm;
+    }).length;
 
-  const upcomingAppointmentsList = useMemo(() => {
-    return (Object.values(appointments) as Appointment[])
-      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  }, [appointments]);
+    return { workDays, offDays, faltas, totalAppointments: monthApps };
+  }, [calendarDays, dayStatuses, appointments, escalaConfig, viewDate]);
 
+  // Appointments for selected date
   const selectedDayAppointments = useMemo(() => {
-    return (Object.values(appointments) as Appointment[]).filter((app) => app.date === selectedDate);
+    return (Object.values(appointments) as Appointment[])
+      .filter((app) => app.date === selectedDate)
+      .sort((a, b) => a.time.localeCompare(b.time));
   }, [appointments, selectedDate]);
+
+  // Appointments grouped by date for Agenda Feed
+  const allAppointmentsSorted = useMemo(() => {
+    return (Object.values(appointments) as Appointment[])
+      .filter(app => {
+        if (!searchQuery) return true;
+        return app.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+               app.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               app.date.includes(searchQuery);
+      })
+      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  }, [appointments, searchQuery]);
+
+  // Copy monthly summary to clipboard
+  const handleCopySummary = async () => {
+    const monthName = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    let text = `*RELATÓRIO DE FREQUÊNCIA & ESCALA 3C - ${monthName.toUpperCase()}*\n`;
+    text += `Total de Dias de Trabalho: ${stats.workDays}\n`;
+    text += `Total de Folgas: ${stats.offDays}\n`;
+    text += `Faltas/Atestados: ${stats.faltas}\n`;
+    text += `Compromissos Agendados: ${stats.totalAppointments}\n\n`;
+    text += `*COMPROMISSOS REGISTRADOS:*\n`;
+    if (selectedDayAppointments.length > 0) {
+      selectedDayAppointments.forEach(app => {
+        text += `• [${app.time}] ${app.title} (${app.type.toUpperCase()})\n`;
+      });
+    } else {
+      text += `Nenhum compromisso marcado para ${selectedDate}.\n`;
+    }
+    text += `\nGerado via Central Oficial 3 Corações.`;
+
+    const success = await safeCopyText(text);
+    if (success) {
+      setCopiedEscala(true);
+      showToast('Resumo copiado para a área de transferência!');
+      setTimeout(() => setCopiedEscala(false), 2000);
+    }
+  };
+
+  const selectedDateFormatted = useMemo(() => {
+    try {
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    } catch {
+      return selectedDate;
+    }
+  }, [selectedDate]);
 
   const monthName = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="w-full relative pb-10 space-y-4 font-sans text-[#25231F] text-left bg-[#F5F0E6] p-4 sm:p-6 rounded-3xl border border-[#E6D2A3] shadow-xl">
+    <div className="w-full h-full flex flex-col relative text-left bg-[#F5F0E6] p-3 sm:p-5 text-[#25231F] font-sans overflow-y-auto space-y-4">
       
       {/* Toast Notification */}
-      <AnimatePresence>
-        {notification && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/40 text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md"
-          >
-            <Check size={16} className="text-[#C49A45]" />
+      {notification && (
+        <div className="fixed top-4 right-4 z-50 animate-bounce">
+          <div className="px-4 py-3 rounded-2xl bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/40 text-xs font-mono font-bold flex items-center space-x-2.5 shadow-2xl backdrop-blur-md">
+            <Sparkles className="w-4 h-4 text-[#C49A45]" />
             <span>{notification}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
 
-      <div className="w-full space-y-4">
-        
-        {/* ========================================================================= */}
-        {/* 1. EXECUTIVE DASHBOARD HEADER BANNER                                      */}
-        {/* ========================================================================= */}
-        <div className="relative w-full h-[72px] bg-gradient-to-r from-[#292820] via-[#1f1e18] to-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
-          <div className="absolute inset-0 opacity-10 bg-repeat bg-[radial-gradient(#C49A45_1px,transparent_1px)] [background-size:16px_16px]" />
+      {/* ========================================================================= */}
+      {/* 1. HEADER BANNER - 100% IDENTICAL TO PRÉ-ALERTA & CHECKLIST              */}
+      {/* ========================================================================= */}
+      <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-sm relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
           
-          <div className="relative z-10 flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#E6D2A3] via-[#C49A45] to-[#A07A33] flex items-center justify-center text-[#25231F] shadow-md shrink-0 border border-[#fff5db]/40">
-              <CalendarIcon size={22} className="stroke-[2.5]" />
-            </div>
-            <div className="flex flex-col text-left leading-none">
-              <span className="text-[10px] font-black tracking-widest text-[#C49A45] uppercase font-mono">
-                AGENDA CORPORATIVA • CENTRAL GR 3C
-              </span>
-              <span className="text-[18px] sm:text-[22px] font-black tracking-tight text-[#FFFCF6] uppercase mt-0.5 font-heading drop-shadow-sm">
-                CALENDÁRIO & FREQUÊNCIA 3C
-              </span>
+          {/* Title & Icon */}
+          <div className="space-y-1">
+            <div className="flex items-center space-x-3">
+              <div className={cn("p-2.5 rounded-xl shadow-sm", activeTheme.highlightClass)}>
+                <CalendarDays className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#25231F] flex items-center gap-2.5 uppercase font-sans">
+                  CALENDÁRIO & FREQUÊNCIA OPERACIONAL
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#E6D2A3]/30 text-[#8C6D28] border border-[#E6D2A3] uppercase font-mono tracking-wider font-bold">
+                    SISTEMA OFICIAL 3C
+                  </span>
+                </h1>
+                <p className="text-[#77736B] text-xs font-medium">
+                  Gestão estratégica de frequência de escalas, compromissos corporativos e plantão logístico.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="bg-[#1a1917]/90 border border-[#C49A45]/40 px-3.5 py-1.5 rounded-xl hidden sm:flex items-center gap-2 shadow-inner">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-mono text-[#E6D2A3] font-bold">MINHA ESCALA:</span>
-              <span className="font-mono font-black text-xs text-[#FFFCF6]">{stats.workDays} DIAS ATIVOS</span>
+          {/* Theme Selector & Actions */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Color Theme Selector */}
+            <div className="flex items-center bg-[#F5F0E6] p-1 rounded-xl border border-[#E6D2A3] shadow-inner">
+              {Object.entries(COLOR_THEMES).map(([key, theme]) => (
+                <button
+                  key={key}
+                  onClick={() => setThemeKey(key as any)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer",
+                    themeKey === key 
+                      ? theme.highlightClass + " shadow-sm scale-105" 
+                      : "text-[#77736B] hover:text-[#25231F] hover:bg-white"
+                  )}
+                >
+                  <span className={cn("w-2 h-2 rounded-full", theme.circleBg)} />
+                  <span className="font-mono text-[11px]">{theme.name}</span>
+                </button>
+              ))}
             </div>
 
+            {/* Copy Summary */}
+            <button
+              onClick={handleCopySummary}
+              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#292820] hover:bg-black text-[#E6D2A3] font-mono font-bold text-xs shadow-sm transition-all border border-[#C49A45]/30 cursor-pointer active:scale-95"
+              title="Copiar resumo mensal"
+            >
+              {copiedEscala ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-[#C49A45]" />}
+              <span>COPIAR ESCALA</span>
+            </button>
+
+            {/* Back Button */}
             {onBack && (
               <button
                 onClick={onBack}
-                className="px-4 py-2 text-xs font-black rounded-xl border bg-gradient-to-r from-[#C49A45] to-[#A07A33] hover:brightness-110 text-white border-[#E6D2A3] cursor-pointer transition-all flex items-center gap-1.5 shadow-md active:scale-95"
-                title="Voltar ao menu"
+                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] hover:brightness-110 text-[#25231F] font-mono font-black text-xs shadow-sm transition-all border border-[#E6D2A3] cursor-pointer active:scale-95"
+                title="Voltar ao início"
               >
-                <ArrowRightLeft size={13} />
-                <span>Voltar</span>
+                <ArrowRightLeft className="w-4 h-4" />
+                <span>VOLTAR</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* ========================================================================= */}
-        {/* 2. MAIN GRID (CALENDÁRIO + SIDEBAR)                                       */}
-        {/* ========================================================================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          
-          {/* ===================================================================== */}
-          {/* MAIN CALENDÁRIO CARD (~68% width -> lg:col-span-8)                    */}
-          {/* ===================================================================== */}
-          <div className="lg:col-span-8 w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between text-[#25231F]">
-            
-            {/* TOP CONTROLS BAR: MÊS, SEMANA, LISTA & NAVIGATION */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 border-b border-[#E6D2A3] pb-3.5">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <button
-                  onClick={jumpToToday}
-                  className="px-3.5 py-2 bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 rounded-xl text-xs font-mono font-black uppercase transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
-                >
-                  <Sparkles size={13} className="text-[#C49A45]" />
-                  <span>HOJE</span>
-                </button>
-                
-                {/* View Mode Selector Tabs */}
-                <div className="flex items-center bg-[#F5F0E6] p-1 rounded-xl border border-[#E6D2A3]">
-                  <button
-                    onClick={() => setCalendarViewMode('mes')}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer",
-                      calendarViewMode === 'mes' ? "bg-[#292820] text-[#E6D2A3] shadow-xs" : "text-[#77736B] hover:text-[#25231F]"
-                    )}
-                  >
-                    MÊS
-                  </button>
-                  <button
-                    onClick={() => setCalendarViewMode('semana')}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer",
-                      calendarViewMode === 'semana' ? "bg-[#292820] text-[#E6D2A3] shadow-xs" : "text-[#77736B] hover:text-[#25231F]"
-                    )}
-                  >
-                    SEMANA
-                  </button>
-                  <button
-                    onClick={() => setCalendarViewMode('lista')}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer",
-                      calendarViewMode === 'lista' ? "bg-[#292820] text-[#E6D2A3] shadow-xs" : "text-[#77736B] hover:text-[#25231F]"
-                    )}
-                  >
-                    LISTA
-                  </button>
-                </div>
-              </div>
+        {/* Top KPI Metrics Bar - Pré-Alerta Style */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#E6D2A3]/60">
+          <div className="bg-[#F5F0E6] p-3 rounded-xl border border-[#EDE2CE] flex flex-col">
+            <span className="text-[10px] font-mono font-bold uppercase text-[#77736B]">Dias de Trabalho</span>
+            <span className="text-xl font-mono font-black text-[#25231F] mt-0.5">{stats.workDays} DIAS</span>
+            <span className="text-[10px] text-emerald-700 font-bold mt-0.5">● Escala Ativa</span>
+          </div>
+          <div className="bg-[#F5F0E6] p-3 rounded-xl border border-[#EDE2CE] flex flex-col">
+            <span className="text-[10px] font-mono font-bold uppercase text-[#77736B]">Folgas Previstas</span>
+            <span className="text-xl font-mono font-black text-[#25231F] mt-0.5">{stats.offDays} DIAS</span>
+            <span className="text-[10px] text-slate-600 font-bold mt-0.5">● Descanso Legítimo</span>
+          </div>
+          <div className="bg-[#F5F0E6] p-3 rounded-xl border border-[#EDE2CE] flex flex-col">
+            <span className="text-[10px] font-mono font-bold uppercase text-[#77736B]">Compromissos Mês</span>
+            <span className="text-xl font-mono font-black text-[#8C6D28] mt-0.5">{stats.totalAppointments} ITENS</span>
+            <span className="text-[10px] text-[#8C6D28] font-bold mt-0.5">● Agenda Corporativa</span>
+          </div>
+          <div className="bg-[#F5F0E6] p-3 rounded-xl border border-[#EDE2CE] flex flex-col">
+            <span className="text-[10px] font-mono font-bold uppercase text-[#77736B]">Status do Dia de Hoje</span>
+            <span className="text-sm font-mono font-black text-[#25231F] mt-1 truncate">
+              {getDayEffectiveStatus(todayStr).label}
+            </span>
+            <span className="text-[10px] text-[#77736B] font-mono mt-0.5">{todayStr}</span>
+          </div>
+        </div>
+      </div>
 
-              {/* Month Navigator */}
-              <div className="flex items-center gap-2 bg-[#292820] p-1.5 rounded-xl border border-[#C49A45]/40 shadow-xs">
-                <button
-                  onClick={prevMonth}
-                  className="p-1.5 rounded-lg bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/30 transition-all cursor-pointer"
-                  title="Mês Anterior"
-                >
-                  <ChevronLeft size={15} />
-                </button>
-                
-                <span className="font-mono font-black text-xs sm:text-sm text-[#FFFCF6] uppercase px-3 text-center tracking-wider font-heading">
-                  {monthName}
+      {/* ========================================================================= */}
+      {/* 2. CALENDAR CONTROL BAR: VIEW FORMAT SWITCHER & MONTH NAVIGATION         */}
+      {/* ========================================================================= */}
+      <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        
+        {/* Formats Switcher (mude o formato do calendário de como aparece) */}
+        <div className="flex items-center bg-[#F5F0E6] p-1 rounded-xl border border-[#EDE2CE] overflow-x-auto">
+          <button
+            onClick={() => setDisplayFormat('grade_executiva')}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap",
+              displayFormat === 'grade_executiva'
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#25231F] shadow-xs border border-[#C49A45]/40"
+                : "text-[#77736B] hover:text-[#25231F]"
+            )}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>1. GRADE EXECUTIVA</span>
+          </button>
+
+          <button
+            onClick={() => setDisplayFormat('timeline_semanal')}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap",
+              displayFormat === 'timeline_semanal'
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#25231F] shadow-xs border border-[#C49A45]/40"
+                : "text-[#77736B] hover:text-[#25231F]"
+            )}
+          >
+            <Columns className="w-3.5 h-3.5" />
+            <span>2. LINHA DO TEMPO SEMANAL</span>
+          </button>
+
+          <button
+            onClick={() => setDisplayFormat('agenda_feed')}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap",
+              displayFormat === 'agenda_feed'
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#25231F] shadow-xs border border-[#C49A45]/40"
+                : "text-[#77736B] hover:text-[#25231F]"
+            )}
+          >
+            <List className="w-3.5 h-3.5" />
+            <span>3. AGENDA / FEED</span>
+          </button>
+
+          <button
+            onClick={() => setDisplayFormat('matriz_compacta')}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap",
+              displayFormat === 'matriz_compacta'
+                ? "bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] text-[#25231F] shadow-xs border border-[#C49A45]/40"
+                : "text-[#77736B] hover:text-[#25231F]"
+            )}
+          >
+            <CalendarIcon className="w-3.5 h-3.5" />
+            <span>4. COMPACTA</span>
+          </button>
+        </div>
+
+        {/* Month Navigator & Jump to Today */}
+        <div className="flex items-center gap-2 self-end md:self-auto">
+          <button
+            onClick={jumpToToday}
+            className="px-3 py-1.5 bg-[#292820] hover:bg-black text-[#E6D2A3] border border-[#C49A45]/30 rounded-xl text-xs font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#C49A45]" />
+            <span>HOJE</span>
+          </button>
+
+          <div className="flex items-center gap-1.5 bg-[#292820] p-1 rounded-xl border border-[#C49A45]/30">
+            <button
+              onClick={prevMonth}
+              className="p-1.5 rounded-lg bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/20 cursor-pointer transition-all"
+              title="Mês Anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="font-mono font-black text-xs uppercase text-[#FFFCF6] px-3 tracking-wider">
+              {monthName}
+            </span>
+            <button
+              onClick={nextMonth}
+              className="p-1.5 rounded-lg bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/20 cursor-pointer transition-all"
+              title="Próximo Mês"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. MAIN WORKSPACE: CALENDAR DISPLAY + SELECTED DAY SIDEBAR               */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        
+        {/* Left Section: Calendar format renders here (Col 8) */}
+        <div className="lg:col-span-8 space-y-4">
+
+          {/* =================================================================== */}
+          {/* FORMAT 1: GRADE EXECUTIVA 3C (Rich Day Cards with Badges & Shifts)  */}
+          {/* =================================================================== */}
+          {displayFormat === 'grade_executiva' && (
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3 border-b border-[#E6D2A3]/60 pb-2">
+                <span className="text-xs font-mono font-black uppercase text-[#25231F] flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-[#C49A45]" />
+                  VISÃO MENSAL EM CARDS INTERATIVOS
                 </span>
-
-                <button
-                  onClick={nextMonth}
-                  className="p-1.5 rounded-lg bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/30 transition-all cursor-pointer"
-                  title="Próximo Mês"
-                >
-                  <ChevronRight size={15} />
-                </button>
-              </div>
-            </div>
-
-            {/* COMPACT CALENDAR GRID */}
-            <div className="w-full flex-1 flex flex-col mb-3">
-              {/* Days of Week Header */}
-              <div className="grid grid-cols-7 gap-1 text-center font-mono text-[11px] font-bold uppercase mb-2">
-                <span className="py-1.5 rounded-lg bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/30">DOM</span>
-                <span className="py-1.5 rounded-lg bg-[#292820] text-[#FFFCF6]">SEG</span>
-                <span className="py-1.5 rounded-lg bg-[#292820] text-[#FFFCF6]">TER</span>
-                <span className="py-1.5 rounded-lg bg-[#292820] text-[#FFFCF6]">QUA</span>
-                <span className="py-1.5 rounded-lg bg-[#292820] text-[#FFFCF6]">QUI</span>
-                <span className="py-1.5 rounded-lg bg-[#292820] text-[#FFFCF6]">SEX</span>
-                <span className="py-1.5 rounded-lg bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/30">SÁB</span>
+                <span className="text-[11px] font-mono text-[#77736B]">Clique em qualquer dia para inspecionar</span>
               </div>
 
-              {/* 42-cell Calendar Grid (Compact & Elegantly Spaced) */}
-              <div className="grid grid-cols-7 gap-1">
-                {calendarDays.map((d, i) => {
-                  const isSelected = selectedDate === d.dateStr;
-                  const isToday = d.dateStr === getTodayStr();
-                  const isWork = dayStatuses[d.dateStr] === 'trabalhei' || (!dayStatuses[d.dateStr] && isAutomaticWorkDay(d.dateStr));
-                  const isOff = dayStatuses[d.dateStr] === 'folga';
-                  
-                  const dayApps = (Object.values(appointments) as Appointment[]).filter((a: Appointment) => a.date === d.dateStr);
+              {/* Days of week */}
+              <div className="grid grid-cols-7 gap-2 mb-2 text-center">
+                {['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'].map((d, idx) => (
+                  <div 
+                    key={d} 
+                    className={cn(
+                      "py-1.5 rounded-xl font-mono text-[11px] font-black uppercase border",
+                      idx === 0 || idx === 6 
+                        ? "bg-[#EDE2CE]/80 text-[#8C6D28] border-[#E6D2A3]" 
+                        : "bg-[#292820] text-[#FFFCF6] border-[#38372d]"
+                    )}
+                  >
+                    {d}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-2">
+                {calendarDays.map((day, idx) => {
+                  const isSelected = day.dateStr === selectedDate;
+                  const isToday = day.dateStr === todayStr;
+                  const effectiveStatus = getDayEffectiveStatus(day.dateStr);
+                  const dayApps = (Object.values(appointments) as Appointment[]).filter(a => a.date === day.dateStr);
 
                   return (
                     <div
-                      key={i}
-                      onClick={() => setSelectedDate(d.dateStr)}
+                      key={idx}
+                      onClick={() => setSelectedDate(day.dateStr)}
                       className={cn(
-                        "min-h-[58px] sm:min-h-[66px] p-1 rounded-xl border flex flex-col justify-between transition-all cursor-pointer relative group text-left",
-                        isSelected
-                          ? "border-[#C49A45] bg-[#FFF8E8] ring-2 ring-[#C49A45]/50 shadow-sm z-10"
-                          : isWork
-                            ? "bg-gradient-to-br from-[#123531] to-[#0D2522] text-white border-[#1B4D46] shadow-2xs hover:brightness-110"
-                            : isOff
-                              ? "bg-[#F3EAD8] border-[#E6D2A3]/70 hover:bg-[#EFE3CF]"
-                              : "bg-white border-[#E6D2A3]/60 hover:bg-[#FAF6EE]",
-                        !d.isCurrentMonth && "opacity-30 bg-[#EFE9DD]"
+                        "min-h-[92px] p-2 rounded-xl border flex flex-col justify-between transition-all cursor-pointer relative group select-none",
+                        day.isCurrentMonth ? "bg-white" : "bg-[#F5F0E6]/50 opacity-60",
+                        isSelected 
+                          ? "ring-2 ring-[#C49A45] border-[#C49A45] shadow-md bg-[#FFFDF7]" 
+                          : "border-[#EDE2CE] hover:border-[#C49A45]/60 hover:shadow-xs",
+                        isToday && "border-2 border-[#C49A45]"
                       )}
                     >
-                      {/* Top Row: Number & Exclusive Scale / Status Badge */}
-                      <div className="flex items-center justify-between gap-0.5">
+                      {/* Top Bar of Day Card */}
+                      <div className="flex items-center justify-between">
                         <span className={cn(
-                          "font-mono font-bold text-[10px] px-1.5 py-0.2 rounded transition-all",
+                          "w-6 h-6 rounded-lg flex items-center justify-center font-mono text-xs font-black",
                           isToday 
-                            ? "bg-[#292820] text-[#E6D2A3] font-black shadow-xs ring-1 ring-[#C49A45]" 
-                            : isSelected 
-                              ? "bg-[#C49A45] text-[#25231F] font-black" 
-                              : isWork
-                                ? "text-emerald-300 font-black"
-                                : "text-[#25231F]"
+                            ? "bg-[#C49A45] text-white shadow-xs" 
+                            : isSelected ? "bg-[#292820] text-[#E6D2A3]" : "text-[#25231F]"
                         )}>
-                          {d.dayNumber}
+                          {day.dayNumber}
                         </span>
 
-                        {isWork && (
-                          <span className="px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono text-[7.5px] font-black uppercase tracking-tight flex items-center gap-0.5">
-                            <ShieldCheck size={9} /> MINHA ESCALA
-                          </span>
-                        )}
-                        {isOff && (
-                          <span className="px-1 py-0.2 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 font-mono text-[7.5px] font-bold uppercase">
-                            FOLGA
+                        {isToday && (
+                          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#E6D2A3]/50 text-[#8C6D28] font-mono font-black">
+                            HOJE
                           </span>
                         )}
                       </div>
 
-                      {/* Event Indicators */}
-                      <div className="space-y-0.5 overflow-hidden mt-0.5">
-                        {dayApps.slice(0, 1).map((app) => (
+                      {/* Status indicator pill */}
+                      <div className="my-1">
+                        <span className={cn(
+                          "text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold block truncate border",
+                          effectiveStatus.badgeColor
+                        )}>
+                          {effectiveStatus.isWork ? 'TRABALHO 3C' : 'FOLGA'}
+                        </span>
+                      </div>
+
+                      {/* Appointments indicator tags */}
+                      <div className="space-y-0.5">
+                        {dayApps.slice(0, 2).map((app) => (
                           <div 
                             key={app.id} 
-                            className={cn(
-                              "border rounded px-1 py-0.5 text-[8px] font-mono truncate flex items-center gap-1 shadow-2xs",
-                              app.type === 'corporativo' 
-                                ? "bg-[#292820] text-[#E6D2A3] border-[#C49A45]/40" 
-                                : "bg-white text-stone-900 border-stone-200"
-                            )}
+                            className="text-[9px] bg-[#292820] text-[#E6D2A3] px-1.5 py-0.5 rounded truncate font-mono flex items-center gap-1"
+                            title={`${app.time} - ${app.title}`}
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#C49A45] shrink-0" />
+                            <Clock className="w-2.5 h-2.5 shrink-0 text-[#C49A45]" />
                             <span className="truncate">{app.title}</span>
                           </div>
                         ))}
-                        {dayApps.length > 1 && (
-                          <span className={cn("text-[8px] font-mono font-bold block pl-0.5", isWork ? "text-emerald-200" : "text-[#C49A45]")}>
-                            +{dayApps.length - 1} mais
+                        {dayApps.length > 2 && (
+                          <span className="text-[8.5px] font-mono text-[#8C6D28] font-bold block text-right">
+                            +{dayApps.length - 2} evento(s)
                           </span>
                         )}
                       </div>
@@ -431,230 +664,434 @@ export default function PresenceList({ onBack }: PresenceListProps) {
                 })}
               </div>
             </div>
+          )}
 
-            {/* ACTION & CREATION BAR (BOTTOM) */}
-            <div className="pt-3 border-t border-[#E6D2A3] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              
-              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-                <span className="font-mono font-bold uppercase text-[#E6D2A3] bg-[#292820] px-3 py-1.5 rounded-xl border border-[#C49A45]/40 text-[10px] shadow-2xs">
-                  📅 {selectedDate}
+          {/* =================================================================== */}
+          {/* FORMAT 2: LINHA DO TEMPO SEMANAL (Horizontal Stream of 7 Days)       */}
+          {/* =================================================================== */}
+          {displayFormat === 'timeline_semanal' && (
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-[#E6D2A3]/60 pb-2">
+                <span className="text-xs font-mono font-black uppercase text-[#25231F] flex items-center gap-2">
+                  <Columns className="w-4 h-4 text-[#C49A45]" />
+                  SEMANA EM DESTAQUE (DIAS E TURNOS DETALHADOS)
+                </span>
+                <span className="text-[11px] font-mono text-[#77736B]">Semana da data selecionada</span>
+              </div>
+
+              <div className="space-y-2.5">
+                {currentWeekDays.map((item) => {
+                  const effectiveStatus = getDayEffectiveStatus(item.dateStr);
+                  const dayApps = (Object.values(appointments) as Appointment[]).filter(a => a.date === item.dateStr);
+
+                  return (
+                    <div
+                      key={item.dateStr}
+                      onClick={() => setSelectedDate(item.dateStr)}
+                      className={cn(
+                        "p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3",
+                        item.isSelected 
+                          ? "bg-[#FFFDF7] border-2 border-[#C49A45] shadow-md" 
+                          : "bg-white border-[#EDE2CE] hover:border-[#C49A45]/50",
+                        item.isToday && "ring-1 ring-[#C49A45]"
+                      )}
+                    >
+                      {/* Left: Day & Date header */}
+                      <div className="flex items-center gap-3 min-w-[210px]">
+                        <div className={cn(
+                          "w-12 h-12 rounded-xl flex flex-col items-center justify-center font-mono border",
+                          item.isToday 
+                            ? "bg-[#C49A45] text-white border-[#C49A45]" 
+                            : item.isSelected 
+                              ? "bg-[#292820] text-[#E6D2A3] border-[#38372d]" 
+                              : "bg-[#F5F0E6] text-[#25231F] border-[#EDE2CE]"
+                        )}>
+                          <span className="text-[10px] font-bold leading-none">{item.shortDay}</span>
+                          <span className="text-lg font-black leading-tight">{item.dayNumber}</span>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-sm text-[#25231F]">
+                              {item.dayName}
+                            </span>
+                            {item.isToday && (
+                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#E6D2A3] text-[#8C6D28] font-mono font-black">
+                                HOJE
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] font-mono text-[#77736B] block">
+                            {item.dateStr}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Center: Shift & Work Status */}
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "px-3 py-1.5 rounded-xl font-mono text-xs font-black uppercase border",
+                          effectiveStatus.badgeColor
+                        )}>
+                          {effectiveStatus.label}
+                        </span>
+                      </div>
+
+                      {/* Right: Appointments summary */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {dayApps.length === 0 ? (
+                          <span className="text-xs text-[#77736B] font-mono italic">
+                            Nenhum compromisso
+                          </span>
+                        ) : (
+                          dayApps.map(app => (
+                            <span 
+                              key={app.id} 
+                              className="px-2.5 py-1 rounded-lg bg-[#292820] text-[#E6D2A3] text-[10px] font-mono font-bold flex items-center gap-1 border border-[#C49A45]/30"
+                            >
+                              <Clock className="w-3 h-3 text-[#C49A45]" />
+                              {app.time} • {app.title}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================== */}
+          {/* FORMAT 3: AGENDA / FEED CRONOLÓGICO                                 */}
+          {/* =================================================================== */}
+          {displayFormat === 'agenda_feed' && (
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E6D2A3]/60 pb-3">
+                <span className="text-xs font-mono font-black uppercase text-[#25231F] flex items-center gap-2">
+                  <List className="w-4 h-4 text-[#C49A45]" />
+                  FEED CRONOLÓGICO DE COMPROMISSOS & EVENTOS
                 </span>
 
+                {/* Filter and search */}
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#77736B]" />
+                    <input
+                      type="text"
+                      placeholder="Filtrar eventos..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-8 pr-3 py-1 rounded-xl bg-[#F5F0E6] border border-[#EDE2CE] text-xs font-mono text-[#25231F] focus:outline-hidden focus:border-[#C49A45]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Feed items */}
+              {allAppointmentsSorted.length === 0 ? (
+                <div className="p-8 text-center bg-[#F5F0E6] rounded-2xl border border-[#EDE2CE] space-y-2">
+                  <CalendarIcon className="w-10 h-10 mx-auto text-[#77736B]/50" />
+                  <p className="text-sm font-bold text-[#77736B]">Nenhum compromisso cadastrado para esta pesquisa.</p>
+                  <p className="text-xs text-[#77736B]">Utilize o painel ao lado para agendar um novo compromisso na data desejada.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {allAppointmentsSorted.map((app) => {
+                    const isSelected = app.date === selectedDate;
+                    return (
+                      <div
+                        key={app.id}
+                        onClick={() => setSelectedDate(app.date)}
+                        className={cn(
+                          "p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3",
+                          isSelected 
+                            ? "bg-[#FFFDF7] border-2 border-[#C49A45] shadow-xs" 
+                            : "bg-white border-[#EDE2CE] hover:border-[#C49A45]/40"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#292820] text-[#E6D2A3] flex items-center justify-center font-mono shrink-0 border border-[#C49A45]/30">
+                            <Clock className="w-4 h-4 text-[#C49A45]" />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-black text-sm text-[#25231F]">{app.title}</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EDE2CE] text-[#8C6D28] font-mono font-bold uppercase border border-[#E6D2A3]">
+                                {app.type}
+                              </span>
+                            </div>
+                            <span className="text-xs font-mono text-[#77736B]">
+                              Data: {app.date} às {app.time}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteAppointment(app.id);
+                            }}
+                            className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all cursor-pointer"
+                            title="Excluir compromisso"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =================================================================== */}
+          {/* FORMAT 4: MATRIZ COMPACTA (Quick monthly view)                       */}
+          {/* =================================================================== */}
+          {displayFormat === 'matriz_compacta' && (
+            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm">
+              <div className="grid grid-cols-7 gap-1 text-center font-mono text-[11px] font-black uppercase mb-2">
+                <span className="py-1 rounded-lg bg-[#EDE2CE] text-[#8C6D28] border border-[#E6D2A3]">DOM</span>
+                <span className="py-1 rounded-lg bg-[#292820] text-[#FFFCF6]">SEG</span>
+                <span className="py-1 rounded-lg bg-[#292820] text-[#FFFCF6]">TER</span>
+                <span className="py-1 rounded-lg bg-[#292820] text-[#FFFCF6]">QUA</span>
+                <span className="py-1 rounded-lg bg-[#292820] text-[#FFFCF6]">QUI</span>
+                <span className="py-1 rounded-lg bg-[#292820] text-[#FFFCF6]">SEX</span>
+                <span className="py-1 rounded-lg bg-[#EDE2CE] text-[#8C6D28] border border-[#E6D2A3]">SÁB</span>
+              </div>
+
+              <div className="grid grid-cols-7 gap-1">
+                {calendarDays.map((day, idx) => {
+                  const isSelected = day.dateStr === selectedDate;
+                  const isToday = day.dateStr === todayStr;
+                  const effectiveStatus = getDayEffectiveStatus(day.dateStr);
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedDate(day.dateStr)}
+                      className={cn(
+                        "h-14 p-1.5 rounded-xl border flex flex-col justify-between items-center transition-all cursor-pointer font-mono",
+                        day.isCurrentMonth ? "bg-white" : "bg-[#F5F0E6]/50 opacity-50",
+                        isSelected 
+                          ? "ring-2 ring-[#C49A45] border-[#C49A45] bg-[#FFFDF7]" 
+                          : "border-[#EDE2CE] hover:border-[#C49A45]",
+                        isToday && "border-2 border-[#C49A45]"
+                      )}
+                    >
+                      <span className={cn(
+                        "text-xs font-black",
+                        isToday ? "text-[#C49A45]" : "text-[#25231F]"
+                      )}>
+                        {day.dayNumber}
+                      </span>
+                      <span className={cn(
+                        "w-2 h-2 rounded-full",
+                        effectiveStatus.isWork ? "bg-emerald-500" : "bg-slate-300"
+                      )} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Escala Configuration Toggle */}
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-[#292820] text-[#E6D2A3] border border-[#C49A45]/30">
+                <Sliders className="w-5 h-5 text-[#C49A45]" />
+              </div>
+              <div>
+                <h3 className="text-xs font-mono font-black uppercase text-[#25231F]">
+                  MOTOR DE ESCALA AUTOMÁTICA 3C (12x36 / ALTERNADA)
+                </h3>
+                <p className="text-[11px] text-[#77736B]">
+                  Calcula automaticamente os plantões a partir da data-base ({escalaConfig.startDate}).
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={toggleEscalaConfig}
+              className={cn(
+                "px-4 py-2 rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer border shadow-xs active:scale-95",
+                escalaConfig.enabled 
+                  ? "bg-emerald-600 text-white border-emerald-700" 
+                  : "bg-slate-200 text-slate-700 border-slate-300"
+              )}
+            >
+              {escalaConfig.enabled ? 'ESCALA ATIVA ✓' : 'ESCALA DESLIGADA'}
+            </button>
+          </div>
+        </div>
+
+        {/* ===================================================================== */}
+        {/* RIGHT SECTION: PAINEL DO DIA SELECIONADO & AGENDADOR (Col 4)          */}
+        {/* ===================================================================== */}
+        <div className="lg:col-span-4 space-y-4">
+          
+          {/* Selected Date Card */}
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+            
+            <div className="border-b border-[#E6D2A3]/60 pb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#8C6D28]">
+                  // DIA SELECIONADO
+                </span>
+                <span className="text-xs font-mono font-bold text-[#77736B]">{selectedDate}</span>
+              </div>
+              <h2 className="text-lg font-black uppercase tracking-tight text-[#25231F] font-sans mt-1 capitalize">
+                {selectedDateFormatted}
+              </h2>
+            </div>
+
+            {/* Quick Status Setting Buttons (Trabalhei, Folga, Falta, Limpar) */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-mono font-bold uppercase text-[#77736B] block">
+                Definir Frequência no Dia:
+              </span>
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => updateStatus(selectedDate, 'trabalhei')}
-                  className="px-2.5 py-1.5 bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 rounded-xl font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-1 text-[10px] active:scale-95"
+                  className={cn(
+                    "px-3 py-2 rounded-xl font-mono text-xs font-black uppercase transition-all border cursor-pointer",
+                    dayStatuses[selectedDate] === 'trabalhei'
+                      ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
+                      : "bg-[#F5F0E6] hover:bg-emerald-50 text-emerald-800 border-emerald-200"
+                  )}
                 >
-                  <UserCheck size={12} className="text-[#C49A45]" />
-                  <span>Marcar Escala</span>
+                  ✓ TRABALHEI
                 </button>
 
                 <button
                   onClick={() => updateStatus(selectedDate, 'folga')}
-                  className="px-2.5 py-1.5 bg-[#FFFCF6] hover:bg-[#F3EAD8] text-[#25231F] border border-[#E6D2A3] rounded-xl font-mono font-bold uppercase transition-all cursor-pointer flex items-center gap-1 text-[10px] active:scale-95"
+                  className={cn(
+                    "px-3 py-2 rounded-xl font-mono text-xs font-black uppercase transition-all border cursor-pointer",
+                    dayStatuses[selectedDate] === 'folga'
+                      ? "bg-slate-700 text-white border-slate-800 shadow-xs"
+                      : "bg-[#F5F0E6] hover:bg-slate-100 text-slate-700 border-slate-300"
+                  )}
                 >
-                  <Coffee size={12} className="text-[#C49A45]" />
-                  <span>Folga</span>
+                  ☕ FOLGA
                 </button>
-              </div>
-
-              {/* Appointment Creator Form */}
-              <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto justify-end">
-                <input
-                  type="text"
-                  value={newAppTitle}
-                  onChange={(e) => setNewAppTitle(e.target.value)}
-                  placeholder="Novo compromisso..."
-                  className="bg-white border border-[#E6D2A3] rounded-xl px-3 py-1.5 text-xs text-[#25231F] focus:border-[#C49A45] outline-none w-36 sm:w-44 font-mono font-bold shadow-inner"
-                />
-
-                <input
-                  type="time"
-                  value={newAppTime}
-                  onChange={(e) => setNewAppTime(e.target.value)}
-                  className="bg-white border border-[#E6D2A3] rounded-xl px-2 py-1.5 text-xs font-mono font-bold text-[#25231F] focus:border-[#C49A45] outline-none shadow-inner"
-                />
 
                 <button
-                  onClick={() => addAppointment(newAppTime, newAppTitle, newAppType)}
-                  className="px-4 py-1.5 bg-gradient-to-r from-[#C49A45] to-[#A07A33] hover:brightness-110 text-white rounded-xl font-mono text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0 active:scale-95 border border-[#E6D2A3]"
+                  onClick={() => updateStatus(selectedDate, 'falta')}
+                  className={cn(
+                    "px-3 py-2 rounded-xl font-mono text-xs font-black uppercase transition-all border cursor-pointer",
+                    dayStatuses[selectedDate] === 'falta'
+                      ? "bg-red-600 text-white border-red-700 shadow-xs"
+                      : "bg-[#F5F0E6] hover:bg-red-50 text-red-700 border-red-200"
+                  )}
                 >
-                  <Plus size={13} className="stroke-[3]" />
-                  <span>Novo Compromisso</span>
+                  ⚠ FALTA/ATESTADO
+                </button>
+
+                <button
+                  onClick={() => updateStatus(selectedDate, '')}
+                  className="px-3 py-2 rounded-xl font-mono text-xs font-bold uppercase transition-all border bg-[#F5F0E6] hover:bg-[#EDE2CE] text-[#77736B] border-[#EDE2CE] cursor-pointer"
+                  title="Restaurar regra automática da escala"
+                >
+                  ↺ PADRÃO ESCALA
                 </button>
               </div>
-
             </div>
 
-            {/* Selected Day Appointments Details Box */}
-            {selectedDayAppointments.length > 0 && (
-              <div className="mt-3 pt-2.5 border-t border-[#E6D2A3] bg-[#FAF6EE] rounded-xl p-3 text-left space-y-1.5 border border-[#E6D2A3]">
-                <span className="text-[10px] font-mono font-black text-[#C49A45] uppercase tracking-wider block">
-                  COMPROMISSOS EM {selectedDate}:
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* List of Appointments for the selected day */}
+            <div className="space-y-2 pt-2 border-t border-[#E6D2A3]/60">
+              <span className="text-[10px] font-mono font-bold uppercase text-[#77736B] flex items-center justify-between">
+                <span>Compromissos Agendados:</span>
+                <span className="text-[#8C6D28] font-black">{selectedDayAppointments.length}</span>
+              </span>
+
+              {selectedDayAppointments.length === 0 ? (
+                <div className="p-4 rounded-xl bg-[#F5F0E6] border border-[#EDE2CE] text-center text-xs font-mono text-[#77736B]">
+                  Nenhum compromisso marcado para este dia.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                   {selectedDayAppointments.map((app) => (
-                    <div key={app.id} className="bg-white border border-[#E6D2A3] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-mono shadow-2xs">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <span className="bg-[#292820] text-[#E6D2A3] px-2 py-0.5 rounded-lg font-bold text-[10px] border border-[#C49A45]/30">
-                          {app.time}
+                    <div
+                      key={app.id}
+                      className="p-2.5 rounded-xl bg-white border border-[#EDE2CE] flex items-center justify-between gap-2 shadow-2xs"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-mono font-black text-[#C49A45]">{app.time}</span>
+                          <span className="text-xs font-mono font-bold text-[#25231F] truncate">{app.title}</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-[#77736B] uppercase block">
+                          {app.type}
                         </span>
-                        <span className="font-bold text-[#25231F] truncate">{app.title}</span>
                       </div>
+
                       <button
                         onClick={() => deleteAppointment(app.id)}
-                        className="text-stone-400 hover:text-red-600 transition-colors p-1 cursor-pointer"
-                        title="Excluir"
+                        className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+                        title="Remover compromisso"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-          </div>
-
-
-          {/* ===================================================================== */}
-          {/* RIGHT SIDEBAR (~32% width -> lg:col-span-4)                           */}
-          {/* ===================================================================== */}
-          <div className="lg:col-span-4 w-full space-y-4">
-            
-            {/* CARD 1: LEGENDA OPERACIONAL */}
-            <div className="w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5 text-[#25231F]">
-              <div className="flex items-center justify-between border-b border-[#E6D2A3] pb-2.5">
-                <span className="text-xs font-mono font-black text-[#C49A45] uppercase tracking-wider flex items-center gap-2">
-                  <CalendarIcon size={14} />
-                  LEGENDA OPERACIONAL
-                </span>
-                <span className="text-[10px] font-mono text-[#77736B]">SISTEMA 3C</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2.5 text-xs font-mono text-[#25231F]">
-                <div className="flex items-center gap-2 bg-[#F5F0E6] p-2.5 rounded-xl border border-[#E6D2A3]">
-                  <span className="w-3 h-3 rounded-full bg-orange-500 shrink-0 shadow-2xs" />
-                  <span className="font-bold text-[11px]">Viagem / Rota</span>
-                </div>
-
-                <div className="flex items-center gap-2 bg-[#F5F0E6] p-2.5 rounded-xl border border-[#E6D2A3]">
-                  <span className="w-3 h-3 rounded-full bg-[#292820] shrink-0 shadow-2xs" />
-                  <span className="font-bold text-[11px]">Compromisso</span>
-                </div>
-
-                <div className="flex items-center gap-2 bg-[#F5F0E6] p-2.5 rounded-xl border border-[#E6D2A3]">
-                  <span className="px-1.5 py-0.5 rounded bg-[#123531] text-emerald-300 border border-emerald-500/30 text-[9px] font-black">ESC</span>
-                  <span className="font-bold text-[11px]">Minha Escala</span>
-                </div>
-
-                <div className="flex items-center gap-2 bg-[#F5F0E6] p-2.5 rounded-xl border border-[#E6D2A3]">
-                  <span className="w-3 h-3 rounded-full bg-[#C91F2D] shrink-0 shadow-2xs" />
-                  <span className="font-bold text-[11px]">Pendente</span>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-[#E6D2A3]/60 flex items-center justify-between text-[11px] font-mono font-bold text-stone-600">
-                <span>Total de compromissos no mês:</span>
-                <span className="text-[#C49A45] font-black text-xs font-mono">{stats.totalApps}</span>
-              </div>
+              )}
             </div>
 
+            {/* Add New Appointment Form */}
+            <div className="space-y-2 pt-2 border-t border-[#E6D2A3]/60">
+              <span className="text-[10px] font-mono font-bold uppercase text-[#77736B] block">
+                + Novo Compromisso no Dia
+              </span>
 
-            {/* CARD 2: PRÓXIMOS COMPROMISSOS */}
-            <div className="w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5 text-[#25231F]">
-              <div className="flex items-center justify-between border-b border-[#E6D2A3] pb-2.5">
-                <span className="text-xs font-mono font-black text-[#C49A45] uppercase tracking-wider flex items-center gap-2">
-                  <Clock size={14} />
-                  PRÓXIMOS COMPROMISSOS
-                </span>
-                <span className="text-[10px] font-mono font-bold text-[#292820] bg-[#F5F0E6] px-2.5 py-0.5 rounded-full border border-[#E6D2A3]">
-                  {upcomingAppointmentsList.length}
-                </span>
-              </div>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Título (ex: Reunião PGR, Vistoria)"
+                  value={newAppTitle}
+                  onChange={(e) => setNewAppTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#F5F0E6] border border-[#EDE2CE] text-xs font-mono text-[#25231F] placeholder:text-[#77736B] focus:outline-hidden focus:border-[#C49A45]"
+                />
 
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                {upcomingAppointmentsList.length === 0 ? (
-                  <div className="text-center py-6 text-xs font-mono text-[#77736B]">
-                    Nenhum compromisso agendado.
-                  </div>
-                ) : (
-                  upcomingAppointmentsList.map((app) => (
-                    <div 
-                      key={app.id}
-                      className="bg-[#F5F0E6] border border-[#E6D2A3] hover:border-[#C49A45] rounded-xl p-3 transition-all space-y-1 group shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between text-[11px] font-mono text-[#77736B]">
-                        <span className="text-[#C49A45] font-black flex items-center gap-1">
-                          <CalendarIcon size={11} />
-                          {app.date}
-                        </span>
-                        <span className="flex items-center gap-1 text-[#25231F] bg-white px-2 py-0.5 rounded-lg border border-[#E6D2A3] font-bold shadow-2xs">
-                          <Clock size={10} className="text-[#C49A45]" />
-                          {app.time}
-                        </span>
-                      </div>
-                      <div className="text-xs font-mono font-bold text-[#25231F] group-hover:text-[#C49A45] transition-colors">
-                        {app.title}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="time"
+                    value={newAppTime}
+                    onChange={(e) => setNewAppTime(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-[#F5F0E6] border border-[#EDE2CE] text-xs font-mono text-[#25231F] focus:outline-hidden focus:border-[#C49A45]"
+                  />
 
-            {/* DECORATIVE CINEMATIC COFFEE BANNER */}
-            <div className="relative rounded-2xl overflow-hidden border border-[#C49A45]/40 shadow-md group">
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent z-10" />
-              <img 
-                src={heroCinematicEscala} 
-                alt="Café 3 Corações" 
-                className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 z-20 p-4 flex flex-col justify-between text-white">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-red-700 flex items-center justify-center text-[10px] font-black shadow-md border border-white/40">
-                    ♥
-                  </div>
-                  <span className="text-[10px] font-mono font-black uppercase tracking-wider text-[#E6D2A3]">
-                    3 CORAÇÕES
-                  </span>
+                  <select
+                    value={newAppType}
+                    onChange={(e) => setNewAppType(e.target.value as any)}
+                    className="px-3 py-2 rounded-xl bg-[#F5F0E6] border border-[#EDE2CE] text-xs font-mono text-[#25231F] focus:outline-hidden focus:border-[#C49A45]"
+                  >
+                    <option value="corporativo">Corporativo</option>
+                    <option value="plantao">Plantão 3C</option>
+                    <option value="auditoria">Auditoria</option>
+                    <option value="pessoal">Pessoal</option>
+                  </select>
                 </div>
-                <div>
-                  <h4 className="text-xs font-heading font-black uppercase tracking-tight text-[#FFFCF6]">
-                    Juntos vamos mais longe!
-                  </h4>
-                  <p className="text-[10px] text-stone-300 font-sans">
-                    Compromisso e excelência na logística de cada dia.
-                  </p>
-                </div>
+
+                <button
+                  onClick={() => addAppointment(newAppTime, newAppTitle, newAppType)}
+                  disabled={!newAppTitle.trim()}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#E6D2A3] via-[#C49A45] to-[#B08632] hover:brightness-110 disabled:opacity-50 text-[#25231F] font-mono font-black text-xs uppercase shadow-sm transition-all border border-[#E6D2A3] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>AGENDAR COMPROMISSO</span>
+                </button>
               </div>
             </div>
 
           </div>
-
         </div>
 
       </div>
-
-      {/* FOOTER */}
-      <footer className="w-full bg-[#292820] border-t border-[#C49A45]/40 py-3.5 px-6 text-center text-xs font-mono text-[#E6D2A3] rounded-2xl shadow-md mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#C49A45] animate-pulse" />
-          <span className="font-bold text-[#FFFCF6]">Juntos em todos os caminhos</span>
-        </div>
-        <div className="flex items-center gap-4 text-[11px] uppercase tracking-widest text-[#E6D2A3] font-bold">
-          <span>3 CORAÇÕES</span>
-          <span>|</span>
-          <span>LOGÍSTICA</span>
-          <span>|</span>
-          <span>PESSOAS</span>
-          <span>|</span>
-          <span>RESULTADOS</span>
-        </div>
-        <div className="text-[11px] text-[#FFFCF6] font-bold">
-          Paixão por cada entrega ☕
-        </div>
-      </footer>
 
     </div>
   );

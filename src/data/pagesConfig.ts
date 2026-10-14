@@ -156,6 +156,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     isDefaultVisible: false,
     isRestrictedByDefault: true,
     badge: 'Trajetos'
+  },
+  { 
+    id: 'cadastro', 
+    label: 'Cadastro', 
+    buttonLabel: 'Usuários', 
+    category: 'Acessos & Segurança',
+    iconName: 'Users2',
+    description: 'Gestão de usuários, senhas operacionais e níveis de acesso ao sistema.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Acessos'
   }
 ];
 

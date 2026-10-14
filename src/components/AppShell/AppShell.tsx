@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState } from 'react';
 import DashboardLayout from '../Layout/DashboardLayout';
 import PremiumHeader from './PremiumHeader';
 import NavigationDrawer from '../Layout/NavigationDrawer';
@@ -32,18 +32,20 @@ export default function AppShell({
   children
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const isDark = activeTab === 'menu';
 
   return (
     <DashboardLayout
+      isDark={isDark}
       header={
         <PremiumHeader 
           activeTab={activeTab}
           onSelectTab={onSelectTab}
           onOpenWallpaper={onOpenWallpaper}
-          isWallpaperOpen={isWallpaperOpen}
           onOpenSettings={onOpenSettings}
           onLogout={onLogout}
           onToggleDrawer={() => setDrawerOpen(prev => !prev)}
+          isWallpaperOpen={isWallpaperOpen}
           isAdmin={true}
         />
       }
@@ -56,9 +58,10 @@ export default function AppShell({
           setIsOpen={setDrawerOpen}
           pageVisibility={pageVisibility}
           availablePages={availablePages}
+          isDark={isDark}
         />
       }
-      footer={<OperationalFooter />}
+      footer={<OperationalFooter isDark={isDark} />}
     >
       {children}
     </DashboardLayout>

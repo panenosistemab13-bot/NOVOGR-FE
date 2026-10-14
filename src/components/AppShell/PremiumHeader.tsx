@@ -2,14 +2,17 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { cn } from '../../lib/utils';
 import { 
   Sun, 
+  Cloud,
   User, 
-  MapPin,
-  ShieldCheck,
-  LogOut,
-  ChevronDown,
-  Menu,
-  Settings 
+  MapPin, 
+  ShieldCheck, 
+  LogOut, 
+  ChevronDown, 
+  Menu, 
+  Settings,
+  Globe
 } from 'lucide-react';
+import goldMedalLogo from '../../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 
 interface PremiumHeaderProps {
   activeTab: string;
@@ -24,30 +27,37 @@ interface PremiumHeaderProps {
 }
 
 export default function PremiumHeader({ 
+  activeTab,
   onNavigateHome, 
-  onOpenWallpaper,
-  onOpenSettings,
-  onLogout,
-  isWallpaperOpen,
-  onToggleDrawer,
+  onOpenWallpaper, 
+  onOpenSettings, 
+  onLogout, 
+  isWallpaperOpen, 
+  onToggleDrawer, 
   isAdmin = false 
 }: PremiumHeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [loggedUser, setLoggedUser] = useState({ name: 'Jefferson', role: 'Administrador' });
+  const isDark = activeTab === 'menu';
+
+  const [loggedUser, setLoggedUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('logged_user');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { name: 'JEFFERSON', role: 'admin' };
+  });
 
   useEffect(() => {
-    import('../../firebase').then(({ auth }) => {
-      const user = auth.currentUser;
-      if (user) {
-        let name = user.displayName || 'Usuário';
-        if (name.toLowerCase() === 'jeff') name = 'Jefferson'; 
-        setLoggedUser({
-          name: name,
-          role: 'Administrador'
-        });
+    try {
+      const saved = localStorage.getItem('logged_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.name) {
+          setLoggedUser(parsed);
+        }
       }
-    });
+    } catch {}
 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -57,7 +67,6 @@ export default function PremiumHeader({
     return currentTime.toLocaleTimeString('pt-BR', { 
       hour: '2-digit', 
       minute: '2-digit', 
-      second: '2-digit',
       hour12: false 
     });
   }, [currentTime]);
@@ -69,9 +78,166 @@ export default function PremiumHeader({
     const m = months[currentTime.getMonth()];
     const y = currentTime.getFullYear();
     const dayName = days[currentTime.getDay()];
-    return `${d < 10 ? '0' + d : d} ${m} ${y} - ${dayName}`;
+    return `${d < 10 ? '0' + d : d} ${m} ${y}`;
   }, [currentTime]);
 
+  const formattedDayOfWeek = useMemo(() => {
+    const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+    return days[currentTime.getDay()];
+  }, [currentTime]);
+
+  // =========================================================================
+  // LIGHT HEADER (FOR ALL PAGES EXCEPT INÍCIO, EXACTLY MATCHING USER IMAGE)
+  // =========================================================================
+  if (!isDark) {
+    return (
+      <header className="w-full h-[68px] bg-[#FFFEFC] border-b border-[#E8DDCA] px-4 md:px-7 flex items-center justify-between shadow-[0_2px_10px_rgba(196,154,69,0.05)] shrink-0 z-30 select-none font-sans">
+        
+        {/* Left: Hamburger + Logo + Brand Title + Location */}
+        <div className="flex items-center gap-3.5 shrink-0">
+          <button 
+            type="button"
+            onClick={onToggleDrawer}
+            className="w-9 h-9 rounded-xl hover:bg-[#F5EFE4] text-[#4A453E] hover:text-[#C49A45] flex items-center justify-center transition-colors cursor-pointer"
+            title="Menu Operacional"
+          >
+            <Menu className="w-5 h-5 stroke-[2.2]" />
+          </button>
+
+          {/* Logo Café Três Corações */}
+          <div 
+            onClick={onNavigateHome}
+            className="flex items-center gap-3 cursor-pointer group"
+            title="Central GR - 3 Corações"
+          >
+            <div className="w-10 h-10 rounded-full p-0.5 bg-white border-2 border-[#D8B065] shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden">
+              <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
+            </div>
+
+            <div className="flex flex-col text-left leading-none">
+              <span className="text-[17px] font-black text-[#25231F] tracking-tight font-sans">
+                CENTRAL GR
+              </span>
+              <span className="text-[8.5px] font-bold text-[#8C6D28] tracking-widest uppercase mt-0.5">
+                LOGÍSTICA QUE APROXIMA
+              </span>
+            </div>
+          </div>
+
+          {/* Location Badge */}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5EB] border border-[#E8DDCA] text-[10px] font-black text-[#6B5A3E] uppercase tracking-wider ml-1 shadow-2xs">
+            <MapPin className="w-3.5 h-3.5 text-[#C49A45]" />
+            <span>SANTA LUZIA - MG</span>
+          </div>
+        </div>
+
+        {/* Center: Calligraphy Tagline with subtle golden accent */}
+        <div className="hidden lg:flex flex-col items-center justify-center text-center">
+          <span className="font-serif italic text-[#8C6D28] text-[16px] tracking-wide font-medium">
+            Juntos movemos o que importa
+          </span>
+          <div className="w-32 h-[1.5px] bg-gradient-to-r from-transparent via-[#D8B065] to-transparent mt-0.5 opacity-80" />
+        </div>
+
+        {/* Right: Weather Chips + Date/Time + User Profile Badge */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          
+          {/* Weather 1 */}
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAF5EB] border border-[#E8DDCA] shadow-2xs">
+            <Sun className="w-4 h-4 text-[#D9A74A]" />
+            <div className="flex flex-col text-left leading-none">
+              <span className="text-[11px] font-black text-[#25231F]">36°</span>
+              <span className="text-[8px] font-bold text-[#8C7B63] uppercase">ENSOLARADO</span>
+            </div>
+          </div>
+
+          {/* Weather 2 */}
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAF5EB] border border-[#E8DDCA] shadow-2xs">
+            <Cloud className="w-4 h-4 text-[#999080]" />
+            <div className="flex flex-col text-left leading-none">
+              <span className="text-[11px] font-black text-[#25231F]">28°C</span>
+              <span className="text-[8px] font-bold text-[#8C7B63] uppercase">CÉU LIMPO</span>
+            </div>
+          </div>
+
+          {/* Date & Time */}
+          <div className="hidden md:flex flex-col text-right leading-none px-3 py-1.5 rounded-xl bg-[#FAF5EB] border border-[#E8DDCA] shadow-2xs font-mono">
+            <span className="text-[11px] font-black text-[#25231F]">
+              {formattedDate}
+            </span>
+            <span className="text-[8.5px] font-bold text-[#8C7B63] uppercase mt-0.5">
+              {formattedDayOfWeek} • {formattedTime}
+            </span>
+          </div>
+
+          {/* User Profile Badge */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowUserDropdown(!showUserDropdown)}
+              className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl bg-[#FAF5EB] hover:bg-[#F2EAE0] border border-[#E8DDCA] transition-all cursor-pointer shadow-2xs"
+            >
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#D8B065] to-[#AA7E2F] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                <User className="w-4 h-4" />
+              </div>
+              <div className="hidden sm:flex flex-col text-left leading-none">
+                <span className="text-[11px] font-black text-[#25231F] tracking-wide uppercase">
+                  {loggedUser?.name || 'JEFFERSON'}
+                </span>
+                <span className="text-[8.5px] font-bold text-[#8C6D28] uppercase">
+                  {loggedUser?.role === 'Administrador' ? 'admin' : (loggedUser?.role || 'admin')}
+                </span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-[#8C7B63]" />
+            </button>
+
+            {showUserDropdown && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowUserDropdown(false)} 
+                />
+                <div className="absolute right-0 mt-2 w-52 bg-white border border-[#E8DDCA] rounded-2xl shadow-xl py-2 z-50 text-xs">
+                  <div className="px-4 py-2 border-b border-[#E8DDCA] text-stone-500">
+                    <p className="font-bold text-[#25231F] uppercase">{loggedUser?.name || 'JEFFERSON'}</p>
+                    <p className="text-[10px] text-[#8C6D28] font-bold">Acesso Administrador Fixo</p>
+                  </div>
+                  {onOpenSettings && (
+                    <button
+                      onClick={() => {
+                        setShowUserDropdown(false);
+                        onOpenSettings();
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-[#FAF5EB] flex items-center gap-2 text-[#25231F] font-semibold cursor-pointer"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-[#C49A45]" />
+                      <span>Configurações & Páginas</span>
+                    </button>
+                  )}
+                  {onLogout && (
+                    <button
+                      onClick={() => {
+                        setShowUserDropdown(false);
+                        onLogout();
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-rose-50 text-rose-700 flex items-center gap-2 font-semibold cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Sair do Sistema</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // =========================================================================
+  // DARK HEADER (STRICTLY FOR THE INÍCIO PAGE AS REQUESTED BY USER)
+  // =========================================================================
   return (
     <header className="w-full h-[70px] px-4 sm:px-6 flex items-center justify-between select-none relative font-sans bg-[#0B1012]/95 backdrop-blur-md border-b border-[rgba(201,151,62,0.20)] shadow-[0_4px_20px_rgba(0,0,0,0.6)] z-30">
       
@@ -91,15 +257,8 @@ export default function PremiumHeader({
           className="flex items-center gap-3.5 cursor-pointer group"
           title="Central GR - 3 Corações"
         >
-          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#7f0b12] border-2 border-white/90 shadow-[0_0_18px_rgba(212,26,34,0.5)] flex flex-col items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform shrink-0">
-            <div className="flex items-center justify-center -space-x-1 mb-0.5">
-              <span className="text-white text-[11px] leading-none drop-shadow-xs">♥</span>
-              <span className="text-white text-[13px] leading-none -translate-y-0.5 drop-shadow-xs">♥</span>
-              <span className="text-white text-[11px] leading-none drop-shadow-xs">♥</span>
-            </div>
-            <span className="text-white text-[6px] font-black tracking-tight leading-none uppercase">
-              3corações
-            </span>
+          <div className="w-11 h-11 rounded-full p-0.5 bg-white border-2 border-[#D6A84F] shadow-[0_0_18px_rgba(214,168,79,0.3)] flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shrink-0">
+            <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
           </div>
           
           <div className="text-left leading-none flex flex-col justify-center">
@@ -178,7 +337,7 @@ export default function PremiumHeader({
             {formattedTime}
           </span>
           <span className="text-[8px] font-mono font-bold text-stone-400 mt-0.5 uppercase tracking-wide">
-            {formattedDate}
+            {formattedDate} - {formattedDayOfWeek}
           </span>
         </div>
 

@@ -54,9 +54,11 @@ import Checklist from './components/Checklist';
 import Controle from './components/Controle';
 import Escala from './components/Escala';
 import Disponibilidade from './components/Disponibilidade';
+import CalendarioView from './components/views/CalendarioView';
 import LoginScreen from './components/LoginScreen';
 import RestrictedPagesModal from './components/RestrictedPagesModal';
-import ConfiguracoesView from './components/ConfiguracoesView';
+import CadastroView from './components/CadastroView';
+import ConfiguracoesPaginasView from './components/ConfiguracoesPaginasView';
 import UpdateTopBanner from './components/UpdateTopBanner';
 import { 
   PageDefinition, 
@@ -85,22 +87,26 @@ import factoryEscalaBg from './assets/images/factory_wallpaper_escala_1791328684
 import factoryDisponibilidadeBg from './assets/images/factory_wallpaper_disponibilidade_1791328698210.jpg';
 import factoryPresenceBg from './assets/images/factory_wallpaper_presence_1791328708994.jpg';
 import factoryRotasBg from './assets/images/factory_wallpaper_rotas_1791328719413.jpg';
+import tresCoracoes8kBg from './assets/images/tres_coracoes_wallpaper_1791938048589.jpg';
 import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'iscas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'settings';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'iscas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'calendario' | 'settings' | 'cadastro';
 
 const backgroundImages: Record<Tab, string> = {
-  menu: factoryMenuBg,
-  presence: factoryPresenceBg,
-  risk: factorySmBg,
-  averbacao: factoryAverbacaoBg,
-  sm_creator: factorySmBg,
-  rotas: factoryRotasBg,
-  checklist: factoryChecklistBg,
-  controle: factoryControleBg,
-  escala: factoryEscalaBg,
-  disponibilidade: factoryDisponibilidadeBg,
-  iscas: factoryMenuBg
+  menu: tresCoracoes8kBg,
+  presence: tresCoracoes8kBg,
+  risk: tresCoracoes8kBg,
+  averbacao: tresCoracoes8kBg,
+  sm_creator: tresCoracoes8kBg,
+  rotas: tresCoracoes8kBg,
+  checklist: tresCoracoes8kBg,
+  controle: tresCoracoes8kBg,
+  escala: tresCoracoes8kBg,
+  disponibilidade: tresCoracoes8kBg,
+  calendario: tresCoracoes8kBg,
+  iscas: tresCoracoes8kBg,
+  settings: tresCoracoes8kBg,
+  cadastro: tresCoracoes8kBg
 };
 
 const allTabs = [
@@ -109,8 +115,11 @@ const allTabs = [
   { id: 'averbacao', label: 'Averbação', icon: FileCheck2 },
   { id: 'sm_creator', label: 'SM', icon: CalendarDays },
   { id: 'controle', label: 'Controle', icon: Sliders },
+  { id: 'cadastro', label: 'Cadastro', icon: Users2 },
+  { id: 'settings', label: 'Configurações & Páginas', icon: Sliders },
   { id: 'escala', label: 'Escala', icon: FileSpreadsheet },
   { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
+  { id: 'calendario', label: 'Calendário', icon: CalendarDays },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: Route },
   { id: 'iscas', label: 'Iscas', icon: Package },
@@ -162,6 +171,53 @@ export default function App() {
 
   const [appointments, setAppointments] = useState<Record<string, Appointment>>({});
   const [isAlertDismissed, setIsAlertDismissed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const fixedAdmin = {
+        id: 1,
+        name: 'jefferson',
+        role: 'Administrador',
+        email: 'jefferson@3coracoes.com.br',
+        password: '#trescafe2029'
+      };
+      const saved = localStorage.getItem('app_users');
+      if (saved) {
+        let parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Remover qualquer login "jeff" antigo
+          parsed = parsed.filter(u => String(u?.name || '').trim().toLowerCase() !== 'jeff');
+          const idx = parsed.findIndex(u => String(u?.name || '').trim().toLowerCase() === 'jefferson');
+          if (idx === -1) {
+            parsed.unshift(fixedAdmin);
+          } else {
+            parsed[idx] = {
+              ...parsed[idx],
+              name: 'jefferson',
+              role: 'Administrador',
+              email: parsed[idx].email || 'jefferson@3coracoes.com.br',
+              password: '#trescafe2029'
+            };
+          }
+          localStorage.setItem('app_users', JSON.stringify(parsed));
+        }
+      } else {
+        localStorage.setItem('app_users', JSON.stringify([fixedAdmin]));
+      }
+
+      // Se o usuário logado atualmente for "jeff", deslogar
+      const loggedRaw = localStorage.getItem('logged_user');
+      if (loggedRaw) {
+        const logged = JSON.parse(loggedRaw);
+        if (String(logged?.name || '').trim().toLowerCase() === 'jeff') {
+          localStorage.removeItem('logged_user');
+          localStorage.removeItem('user_email');
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   useEffect(() => {
     const appsRef = ref(db, 'presence_list/appointments');
@@ -356,8 +412,12 @@ export default function App() {
         return <Escala onBack={() => setActiveTab('menu')} />;
       case 'disponibilidade':
         return <Disponibilidade onBack={() => setActiveTab('menu')} />;
+      case 'calendario':
+        return <CalendarioView onBack={() => setActiveTab('menu')} />;
       case 'settings':
-        return <ConfiguracoesView />;
+        return <ConfiguracoesPaginasView onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} />;
+      case 'cadastro':
+        return <CadastroView onBack={() => setActiveTab('menu')} />;
       default:
         return (
           <div className="flex flex-col items-center justify-center p-20 text-zinc-500">
@@ -432,7 +492,14 @@ export default function App() {
   const renderActiveModuleContent = () => {
     switch (activeTab) {
       case 'checklist':
-        return <Checklist />;
+        return (
+          <Checklist
+            onNavigate={(tab) => setActiveTab(tab as Tab)}
+            onLogout={handleLogout}
+            onOpenSettings={() => setActiveTab('settings')}
+            pageVisibility={pageVisibility}
+          />
+        );
       case 'averbacao':
         return <Averbacao view={averbacaoView} onBack={() => setActiveTab('menu')} />;
       case 'sm_creator':
@@ -450,7 +517,9 @@ export default function App() {
       case 'iscas':
         return <Iscas onBack={() => setActiveTab('menu')} />;
       case 'settings':
-        return <ConfiguracoesView />;
+        return <ConfiguracoesPaginasView onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} />;
+      case 'cadastro':
+        return <CadastroView onBack={() => setActiveTab('menu')} />;
       default:
         return null;
     }
