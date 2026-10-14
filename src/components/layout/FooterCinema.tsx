@@ -36,13 +36,16 @@ export default function FooterCinema() {
       </div>
 
       {/* Right: Copyright & Mini Coffee Bean Art */}
-      <div className="flex items-center gap-2 text-[10px] text-[#8c735d]">
-        {/* Tiny Roasted Coffee Beans Vector */}
-        <div className="flex items-center gap-0.5">
-          <span className="w-2 h-1.5 rounded-full bg-[#caa031] inline-block rotate-12" />
-          <span className="w-2 h-1.5 rounded-full bg-[#8c6136] inline-block -rotate-12" />
+      <div className="flex flex-col sm:flex-row items-center gap-2 text-[10px] text-[#8c735d]">
+        <div className="flex items-center gap-1">
+          {/* Tiny Roasted Coffee Beans Vector */}
+          <div className="flex items-center gap-0.5">
+            <span className="w-2 h-1.5 rounded-full bg-[#caa031] inline-block rotate-12" />
+            <span className="w-2 h-1.5 rounded-full bg-[#8c6136] inline-block -rotate-12" />
+          </div>
+          <span>A&B Café • Todos os direitos reservados.</span>
         </div>
-        <span>A&B Café • Todos os direitos reservados.</span>
+        <span className="text-[#caa031] font-medium lowercase">criado por jefferson augusto</span>
       </div>
     </footer>
   );

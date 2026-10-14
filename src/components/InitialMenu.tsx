@@ -484,9 +484,12 @@ export default function InitialMenu({
             <div className="w-48 z-10" />
 
             {/* Center Slogan */}
-            <div className="z-10 text-center">
+            <div className="z-10 text-center flex flex-col items-center">
               <span className="text-[10px] font-mono font-bold tracking-[0.28em] text-[#C5A059] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                 JUNTOS, LEVAMOS O MELHOR DO CAFÉ MAIS LONGE.
+              </span>
+              <span className="text-[9px] font-sans font-semibold tracking-wide text-[#dfb15b] lowercase mt-0.5">
+                criado por jefferson augusto
               </span>
             </div>
 

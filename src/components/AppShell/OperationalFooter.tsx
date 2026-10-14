@@ -29,16 +29,21 @@ export default function OperationalFooter({ isDark = true }: OperationalFooterPr
 
       {/* Center: 3 CORAÇÕES | LOGÍSTICA | PESSOAS | RESULTADOS */}
       <div className={cn(
-        "hidden md:flex items-center gap-4 text-[10px] font-black tracking-widest uppercase font-mono",
+        "hidden md:flex flex-col items-center gap-0.5 text-[10px] font-black tracking-widest uppercase font-mono",
         isDark ? "text-[#a8a39a]" : "text-[#8C7B63]"
       )}>
-        <span className={isDark ? "text-white" : "text-[#25231F]"}>3 CORAÇÕES</span>
-        <span className={isDark ? "text-[#c9973e]/40" : "text-[#D8B065]"}>|</span>
-        <span>LOGÍSTICA</span>
-        <span className={isDark ? "text-[#c9973e]/40" : "text-[#D8B065]"}>|</span>
-        <span>PESSOAS</span>
-        <span className={isDark ? "text-[#c9973e]/40" : "text-[#D8B065]"}>|</span>
-        <span>RESULTADOS</span>
+        <div className="flex items-center gap-4">
+          <span className={isDark ? "text-white" : "text-[#25231F]"}>3 CORAÇÕES</span>
+          <span className={isDark ? "text-[#c9973e]/40" : "text-[#D8B065]"}>|</span>
+          <span>LOGÍSTICA</span>
+          <span className={isDark ? "text-[#c9973e]/40" : "text-[#D8B065]"}>|</span>
+          <span>PESSOAS</span>
+          <span className={isDark ? "text-[#c9973e]/40" : "text-[#D8B065]"}>|</span>
+          <span>RESULTADOS</span>
+        </div>
+        <span className="text-[9.5px] font-sans font-semibold tracking-normal text-[#c9973e] lowercase">
+          criado por jefferson augusto
+        </span>
       </div>
 
       {/* Right: Juntos vamos mais longe + 3 Corações emblem */}
