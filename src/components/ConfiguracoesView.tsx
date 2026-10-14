@@ -1,53 +1,83 @@
-import React, { useState } from 'react';
-import { User, Save, Trash2, Camera, Shield, Mail } from 'lucide-react';
-import { UserProfile } from '../types';
+import React, { useState, useEffect } from 'react';
+import { User, Save, Trash2, Camera, Shield, Eye, EyeOff, Plus, UserPlus } from 'lucide-react';
+
+interface UserData {
+  id: number;
+  name: string;
+  role: 'Administrador' | 'Funcionario';
+  email: string;
+  password: string;
+}
 
 export default function ConfiguracoesView() {
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Jefferson', role: 'Administrador', email: 'jefferson@3coracoes.com.br', password: 'password', avatar: null },
-    { id: 2, name: 'Funcionario', role: 'Funcionario', email: 'funcionario@3coracoes.com.br', password: 'password', avatar: null }
-  ]);
-  const [selectedUserId, setSelectedUserId] = useState<number>(1);
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [users, setUsers] = useState<UserData[]>(() => {
+    const saved = localStorage.getItem('app_users');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, name: 'Jefferson', role: 'Administrador', email: 'jefferson@3coracoes.com.br', password: '#trescafe2029' },
+      { id: 2, name: 'Funcionario', role: 'Funcionario', email: 'funcionario@3coracoes.com.br', password: 'password' }
+    ];
+  });
+
+  const [selectedUserId, setSelectedUserId] = useState<number>(users[0]?.id || 1);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('app_users', JSON.stringify(users));
+  }, [users]);
 
   const selectedUser = users.find(u => u.id === selectedUserId) || users[0];
 
+  const updateUser = (field: keyof UserData, value: string) => {
+    setUsers(users.map(u => u.id === selectedUserId ? { ...u, [field]: value } : u));
+  };
+
   const deleteUser = (id: number) => {
-    setUsers(users.filter(u => u.id !== id));
+    if (users.length <= 1) return;
+    const updatedUsers = users.filter(u => u.id !== id);
+    setUsers(updatedUsers);
     if (selectedUserId === id) {
-      setSelectedUserId(users[0]?.id || 0);
+      setSelectedUserId(updatedUsers[0]?.id);
     }
   };
 
-  const handleSave = () => {
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+  const addUser = () => {
+    const newUser: UserData = {
+      id: Date.now(),
+      name: 'Novo Usuário',
+      role: 'Funcionario',
+      email: '',
+      password: 'password'
+    };
+    setUsers([...users, newUser]);
+    setSelectedUserId(newUser.id);
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 p-6 gap-6">
-      {/* Coluna 1: Lista de Usuários */}
-      <div className="w-1/4 bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
-        <h2 className="text-xl font-bold mb-6">Equipe</h2>
-        <div className="space-y-3">
+    <div className="flex h-full p-6 gap-6 bg-zinc-950 text-zinc-100">
+      <div className="w-80 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Usuários</h2>
+          <button onClick={addUser} className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-500">
+            <Plus size={18} />
+          </button>
+        </div>
+        <div className="space-y-2 flex-grow overflow-y-auto">
           {users.map(user => (
             <div
               key={user.id}
-              className={`w-full p-4 rounded-2xl flex items-center justify-between gap-3 ${selectedUserId === user.id ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-gray-100'}`}
+              className={`p-3 rounded-xl flex items-center justify-between cursor-pointer ${selectedUserId === user.id ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'}`}
+              onClick={() => setSelectedUserId(user.id)}
             >
-              <button
-                onClick={() => setSelectedUserId(user.id)}
-                className="flex items-center gap-3 flex-grow text-left"
-              >
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <User size={20} />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center">
+                  <User size={14} />
                 </div>
-                <div>
-                  <p className="font-bold text-sm">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.role}</p>
+                <div className='text-sm'>
+                  <p className="font-medium">{user.name}</p>
+                  <p className="text-xs text-zinc-400">{user.role}</p>
                 </div>
-              </button>
-              <button onClick={() => deleteUser(user.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full">
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); deleteUser(user.id); }} className="text-red-400 hover:text-red-300">
                 <Trash2 size={16} />
               </button>
             </div>
@@ -55,41 +85,37 @@ export default function ConfiguracoesView() {
         </div>
       </div>
 
-      {/* Coluna 2: Detalhes do Usuário */}
-      <div className="w-2/4 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm space-y-6">
-        <h2 className="text-2xl font-bold">Editar Perfil</h2>
-        <div className="space-y-4">
+      <div className="flex-grow bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
+        <h2 className="text-2xl font-bold">Editar Usuário</h2>
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium mb-1">Nome Completo</label>
-            <input type="text" value={selectedUser?.name || ''} onChange={e => updateUser('name', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
+            <label className="block text-sm text-zinc-400 mb-1">Nome</label>
+            <input type="text" value={selectedUser?.name || ''} onChange={e => updateUser('name', e.target.value)} className="w-full p-3 bg-zinc-800 rounded-xl border border-zinc-700" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input type="email" value={selectedUser?.email || ''} onChange={e => updateUser('email', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
+            <label className="block text-sm text-zinc-400 mb-1">Email</label>
+            <input type="email" value={selectedUser?.email || ''} onChange={e => updateUser('email', e.target.value)} className="w-full p-3 bg-zinc-800 rounded-xl border border-zinc-700" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Cargo/Role</label>
-            <input type="text" value={selectedUser?.role || ''} onChange={e => updateUser('role', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
+            <label className="block text-sm text-zinc-400 mb-1">Cargo</label>
+            <select value={selectedUser?.role || 'Funcionario'} onChange={e => updateUser('role', e.target.value as any)} className="w-full p-3 bg-zinc-800 rounded-xl border border-zinc-700">
+              <option value="Administrador">Administrador</option>
+              <option value="Funcionario">Funcionario</option>
+            </select>
+          </div>
+          <div className="relative">
+            <label className="block text-sm text-zinc-400 mb-1">Senha</label>
+            <input 
+              type={showPassword ? 'text' : 'password'} 
+              value={selectedUser?.password || ''} 
+              onChange={e => updateUser('password', e.target.value)} 
+              className="w-full p-3 bg-zinc-800 rounded-xl border border-zinc-700" 
+            />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-9 text-zinc-400">
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Coluna 3: Ações e Segurança */}
-      <div className="w-1/4 space-y-6">
-        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-4">
-          <h3 className="font-bold flex items-center gap-2"><Shield size={18}/> Segurança</h3>
-          <input type="password" placeholder="Nova Senha" value={selectedUser?.password || ''} onChange={e => updateUser('password', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
-        </div>
-        
-        <button onClick={handleSave} className="w-full p-4 rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-indigo-700 transition">
-          <Save size={18} /> Salvar Alterações
-        </button>
-
-        {savedSuccess && (
-          <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm font-bold animate-pulse">
-            Salvo com sucesso!
-          </div>
-        )}
       </div>
     </div>
   );
