@@ -423,6 +423,22 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     };
   }, []);
 
+  useEffect(() => {
+    setIsIdaMaximized(idaRows.length > 0);
+  }, [idaRows.length]);
+
+  useEffect(() => {
+    setIsVoltaMaximized(voltaRows.length > 0);
+  }, [voltaRows.length]);
+
+  useEffect(() => {
+    setIsNordesteMaximized(nordesteRows.length > 0);
+  }, [nordesteRows.length]);
+
+  useEffect(() => {
+    setIsVespasianoMaximized(vespasianoRows.length > 0);
+  }, [vespasianoRows.length]);
+
   const historyRef = useRef<Array<{ ida: SMRow[]; volta: SMRow[]; nordeste: SMRow[]; vespasiano: SMRow[]; calc: string[] }>>([]);
   const lastPushTimeRef = useRef<number>(0);
   const [historyCount, setHistoryCount] = useState<number>(0);
