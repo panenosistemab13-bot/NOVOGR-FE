@@ -44,6 +44,7 @@ export default function AppShell({
           onOpenSettings={onOpenSettings}
           onLogout={onLogout}
           onToggleDrawer={() => setDrawerOpen(prev => !prev)}
+          isAdmin={true}
         />
       }
       drawer={

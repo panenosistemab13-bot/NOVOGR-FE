@@ -7,7 +7,8 @@ import {
   ShieldCheck,
   LogOut,
   ChevronDown,
-  Menu
+  Menu,
+  Settings 
 } from 'lucide-react';
 
 interface PremiumHeaderProps {
@@ -19,30 +20,32 @@ interface PremiumHeaderProps {
   onLogout?: () => void;
   isWallpaperOpen?: boolean;
   onToggleDrawer?: () => void;
+  isAdmin?: boolean; 
 }
 
 export default function PremiumHeader({ 
   onNavigateHome, 
   onOpenWallpaper,
+  onOpenSettings,
   onLogout,
   isWallpaperOpen,
-  onToggleDrawer
+  onToggleDrawer,
+  isAdmin = false 
 }: PremiumHeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [loggedUser, setLoggedUser] = useState({ name: 'Carregando...', role: 'Administrador' });
+  const [loggedUser, setLoggedUser] = useState({ name: 'Jefferson', role: 'Administrador' });
 
   useEffect(() => {
-    // Import auth here or pass it as prop, but I'll import it
     import('../../firebase').then(({ auth }) => {
       const user = auth.currentUser;
       if (user) {
+        let name = user.displayName || 'Usuário';
+        if (name.toLowerCase() === 'jeff') name = 'Jefferson'; 
         setLoggedUser({
-          name: user.displayName || 'Usuário',
+          name: name,
           role: 'Administrador'
         });
-      } else {
-        setLoggedUser({ name: 'Usuário', role: 'Administrador' });
       }
     });
 
@@ -72,9 +75,6 @@ export default function PremiumHeader({
   return (
     <header className="w-full h-[70px] px-4 sm:px-6 flex items-center justify-between select-none relative font-sans bg-[#0B1012]/95 backdrop-blur-md border-b border-[rgba(201,151,62,0.20)] shadow-[0_4px_20px_rgba(0,0,0,0.6)] z-30">
       
-      {/* ------------------------------------------------------------- */}
-      {/* LEFT: 3 CORAÇÕES LOGO EMBLEM + CENTRAL GR + SANTA LUZIA - MG  */}
-      {/* ------------------------------------------------------------- */}
       <div className="flex items-center gap-3 shrink-0">
         <button
           type="button"
@@ -91,7 +91,6 @@ export default function PremiumHeader({
           className="flex items-center gap-3.5 cursor-pointer group"
           title="Central GR - 3 Corações"
         >
-          {/* 3 Corações Circular Red Emblem */}
           <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#d41a22] via-[#b3141d] to-[#7f0b12] border-2 border-white/90 shadow-[0_0_18px_rgba(212,26,34,0.5)] flex flex-col items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform shrink-0">
             <div className="flex items-center justify-center -space-x-1 mb-0.5">
               <span className="text-white text-[11px] leading-none drop-shadow-xs">♥</span>
@@ -103,7 +102,6 @@ export default function PremiumHeader({
             </span>
           </div>
           
-          {/* Central GR Text Labels */}
           <div className="text-left leading-none flex flex-col justify-center">
             <span className="text-[17px] font-black text-white tracking-tight uppercase leading-none font-sans drop-shadow-sm">
               CENTRAL GR
@@ -114,30 +112,32 @@ export default function PremiumHeader({
           </div>
         </div>
 
-        {/* Vertical divider */}
         <div className="hidden sm:block h-7 w-[1px] bg-stone-700/60" />
 
-        {/* Location Badge */}
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[rgba(201,151,62,0.12)] border border-[rgba(201,151,62,0.25)] text-[#e5c27a] text-[10px] font-black uppercase tracking-wider">
           <MapPin size={11} className="text-red-500" />
           <span>SANTA LUZIA - MG</span>
         </div>
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* CENTER: LOCATION BADGE FOR MOBILE ONLY                        */}
-      {/* ------------------------------------------------------------- */}
       <div className="flex sm:hidden items-center gap-1 px-2.5 py-1 rounded-full bg-[rgba(201,151,62,0.12)] border border-[rgba(201,151,62,0.25)] text-[#e5c27a] text-[9px] font-black uppercase tracking-wider">
         <MapPin size={10} className="text-red-500" />
         <span>SANTA LUZIA - MG</span>
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* RIGHT: CLIMATE, CLOCK, USER PROFILE (JEFFERSON / ADMIN)       */}
-      {/* ------------------------------------------------------------- */}
       <div className="flex items-center gap-3 sm:gap-4 shrink-0">
         
-        {/* 360° Button */}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="p-2 rounded-full bg-[#141c21] hover:bg-[#1a2329] text-[#e5c27a] border-[rgba(201,151,62,0.3)] shadow-[0_0_10px_rgba(201,151,62,0.15)] transition-all cursor-pointer border"
+            title="Configurações"
+          >
+            <Settings size={18} />
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onOpenWallpaper}
@@ -155,10 +155,8 @@ export default function PremiumHeader({
           </span>
         </button>
 
-        {/* Vertical divider */}
         <div className="hidden lg:block h-7 w-[1px] bg-stone-700/60" />
 
-        {/* Climate Widget: ☀ 28°C Céu limpo */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#12181b] border border-stone-700/80 text-left">
           <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
             <Sun size={14} className="animate-spin-slow" />
@@ -173,10 +171,8 @@ export default function PremiumHeader({
           </div>
         </div>
 
-        {/* Vertical divider */}
         <div className="hidden sm:block h-7 w-[1px] bg-stone-700/60" />
 
-        {/* Clock & Date */}
         <div className="hidden sm:flex flex-col text-right leading-none px-2.5 py-1.5 rounded-xl bg-[#12181b] border border-stone-700/80">
           <span className="text-[12px] font-mono font-black text-[#e5c27a] tracking-wider">
             {formattedTime}
@@ -186,10 +182,8 @@ export default function PremiumHeader({
           </span>
         </div>
 
-        {/* Vertical divider */}
         <div className="hidden md:block h-7 w-[1px] bg-stone-700/60" />
 
-        {/* User Profile: Jefferson | Administrador (Clickable with Logout option) */}
         <div className="relative">
           <div 
             onClick={() => setShowUserDropdown(prev => !prev)}
@@ -213,10 +207,8 @@ export default function PremiumHeader({
             <ChevronDown size={13} className="text-stone-400 group-hover:text-[#e5c27a] transition-transform ml-0.5" />
           </div>
 
-          {/* User Profile Dropdown Menu */}
           {showUserDropdown && (
             <>
-              {/* Invisible backdrop to dismiss */}
               <div 
                 className="fixed inset-0 z-40" 
                 onClick={() => setShowUserDropdown(false)} 
@@ -249,9 +241,7 @@ export default function PremiumHeader({
             </>
           )}
         </div>
-
       </div>
-
     </header>
   );
 }

@@ -54,9 +54,7 @@ const DEFAULT_ISCAS_DATA: IscaItem[] = [
   { id: 'ISC-3C-506', destino: 'RODOVIA ANHANGUERA KM 85 (SP)', status: 'EXTRAVIADA', motorista: 'Bateria Descarregada / Investigação', cavalo: 'BBA-7744', carreta: 'LLM-2233', unidade: 'PGR Três Corações', data: 'Sinal Intermitente' },
 ];
 
-const STATES = [
-  'BR', 'MG', 'SP', 'RJ', 'PR', 'BA', 'CE', 'PE', 'RN', 'RS', 'SC', 'GO', 'DF'
-];
+
 
 interface MainDashboardProps {
   onNavigate?: (tabId: string) => void;
@@ -66,7 +64,6 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
   const [iscasList, setIscasList] = useState<IscaItem[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedStatusTab, setSelectedStatusTab] = useState<'TODAS' | 'ROTA IDA' | 'ROTA VOLTA' | 'NO DESTINO' | 'PREPARAÇÃO' | 'EXTRAVIADA'>('TODAS');
-  const [selectedState, setSelectedState] = useState('BR');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Sincronização em tempo real com o banco de dados Firebase e cache local do módulo Iscas
@@ -184,11 +181,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
         if (!combined.includes('EXTRAVI') && !combined.includes('PERDID') && !combined.includes('SINISTRO') && !combined.includes('ALERTA')) return false;
       }
 
-      // Filtro de UF selecionada (se não for BR)
-      if (selectedState !== 'BR') {
-        const text = `${item.destino} ${item.unidade || ''}`.toUpperCase();
-        if (!text.includes(selectedState)) return false;
-      }
+
 
       // Filtro de busca de texto
       if (searchTerm.trim()) {
@@ -205,7 +198,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
 
       return true;
     });
-  }, [iscasList, selectedStatusTab, selectedState, searchTerm]);
+  }, [iscasList, selectedStatusTab, searchTerm]);
 
   const getStatusBadgeStyle = (status: string) => {
     const up = (status || '').toUpperCase();
@@ -651,32 +644,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
             )}
           </div>
 
-          {/* Filtro Rápido de Estados Federativos */}
-          <div className="w-full pt-2 border-t border-[rgba(201,151,62,0.18)] flex items-center justify-between gap-1 overflow-x-auto scrollbar-none">
-            <span className="text-[8.5px] font-black text-[#a8a39a] uppercase tracking-wider shrink-0 mr-1">
-              FILTRAR UF:
-            </span>
-            <div className="flex items-center gap-1">
-              {STATES.map((uf) => {
-                const isSelected = selectedState === uf;
-                return (
-                  <button
-                    key={uf}
-                    onClick={() => setSelectedState(uf)}
-                    className={cn(
-                      "px-2 py-0.5 rounded-full text-[9px] font-black transition-all cursor-pointer shrink-0 leading-none",
-                      isSelected
-                        ? "bg-gradient-to-r from-[#e5c27a] to-[#b77a25] text-[#080a0c] shadow-xs"
-                        : "bg-[#171a1c] text-[#a8a39a] hover:text-white hover:bg-[#232628] border border-[rgba(201,151,62,0.15)]"
-                    )}
-                  >
-                    {uf === 'BR' && <span className="mr-0.5">🇧🇷</span>}
-                    {uf}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+
 
         </div>
 

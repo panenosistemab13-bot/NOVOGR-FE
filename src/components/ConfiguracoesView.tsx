@@ -1,31 +1,23 @@
 import React, { useState } from 'react';
-import {
-  Settings,
-  Building,
-  User,
-  Sliders,
-  CheckCircle2,
-  Save,
-  Sparkles
-} from 'lucide-react';
+import { User, Save, Trash2, Camera, Shield, Mail } from 'lucide-react';
 import { UserProfile } from '../types';
 
-interface ConfiguracoesViewProps {
-  user?: UserProfile;
-}
-
-export default function ConfiguracoesView({
-  user = {
-    name: 'Jefferson Augusto',
-    role: 'Sistema Web',
-    site: '3 COR - BH',
-    email: 'jefferson@3coracoes.com.br'
-  }
-}: ConfiguracoesViewProps) {
-  const [activeSite, setActiveSite] = useState(user.site);
-  const [telemetryAutoSync, setTelemetryAutoSync] = useState(true);
-  const [cinematicMode, setCinematicMode] = useState(true);
+export default function ConfiguracoesView() {
+  const [users, setUsers] = useState([
+    { id: 1, name: 'Jefferson', role: 'Administrador', email: 'jefferson@3coracoes.com.br', password: 'password', avatar: null },
+    { id: 2, name: 'Funcionario', role: 'Funcionario', email: 'funcionario@3coracoes.com.br', password: 'password', avatar: null }
+  ]);
+  const [selectedUserId, setSelectedUserId] = useState<number>(1);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const selectedUser = users.find(u => u.id === selectedUserId) || users[0];
+
+  const deleteUser = (id: number) => {
+    setUsers(users.filter(u => u.id !== id));
+    if (selectedUserId === id) {
+      setSelectedUserId(users[0]?.id || 0);
+    }
+  };
 
   const handleSave = () => {
     setSavedSuccess(true);
@@ -33,124 +25,71 @@ export default function ConfiguracoesView({
   };
 
   return (
-    <div className="w-full space-y-6 pb-20">
-      {/* Top Banner */}
-      <div className="bg-[#FFF9EF] rounded-3xl p-6 border border-[#D9C39B] shadow-[0_15px_35px_rgba(198,154,69,0.15)] flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#33291B] p-0.5 shadow-md flex items-center justify-center">
-            <div className="w-full h-full rounded-2xl bg-[#DDB76B] flex items-center justify-center text-[#33291B]">
-              <Settings size={24} />
+    <div className="flex h-screen bg-gray-50 text-gray-900 p-6 gap-6">
+      {/* Coluna 1: Lista de Usuários */}
+      <div className="w-1/4 bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+        <h2 className="text-xl font-bold mb-6">Equipe</h2>
+        <div className="space-y-3">
+          {users.map(user => (
+            <div
+              key={user.id}
+              className={`w-full p-4 rounded-2xl flex items-center justify-between gap-3 ${selectedUserId === user.id ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-gray-100'}`}
+            >
+              <button
+                onClick={() => setSelectedUserId(user.id)}
+                className="flex items-center gap-3 flex-grow text-left"
+              >
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                  <User size={20} />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.role}</p>
+                </div>
+              </button>
+              <button onClick={() => deleteUser(user.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full">
+                <Trash2 size={16} />
+              </button>
             </div>
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-[#33291B]">
-              Configurações & Preferências
-            </h2>
-            <p className="text-xs text-[#857662]">
-              Personalize unidades, telemetria e integrações institucionais.
-            </p>
-          </div>
+          ))}
         </div>
-
-        <button
-          onClick={handleSave}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#33291B] hover:bg-[#12181b] text-[#DDB76B] border border-[#DDB76B] font-black text-xs shadow-md transition-all active:scale-98"
-        >
-          <Save size={15} />
-          SALVAR ALTERAÇÕES
-        </button>
       </div>
 
-      {savedSuccess && (
-        <div className="p-4 bg-[#EEE2CD] border border-[#C69A45] rounded-2xl text-[#33291B] font-black text-xs flex items-center gap-2 animate-fade-in">
-          <CheckCircle2 size={18} className="text-[#91651F]" />
-          Configurações sincronizadas com sucesso.
+      {/* Coluna 2: Detalhes do Usuário */}
+      <div className="w-2/4 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm space-y-6">
+        <h2 className="text-2xl font-bold">Editar Perfil</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Nome Completo</label>
+            <input type="text" value={selectedUser?.name || ''} onChange={e => updateUser('name', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input type="email" value={selectedUser?.email || ''} onChange={e => updateUser('email', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Cargo/Role</label>
+            <input type="text" value={selectedUser?.role || ''} onChange={e => updateUser('role', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* Settings Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Coluna 3: Ações e Segurança */}
+      <div className="w-1/4 space-y-6">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-4">
+          <h3 className="font-bold flex items-center gap-2"><Shield size={18}/> Segurança</h3>
+          <input type="password" placeholder="Nova Senha" value={selectedUser?.password || ''} onChange={e => updateUser('password', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200" />
+        </div>
         
-        {/* Box 1: Unidade Operacional & Site */}
-        <div className="bg-[#FFF9EF] rounded-3xl p-6 border border-[#D9C39B] shadow-[0_15px_35px_rgba(198,154,69,0.1)] space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-[#D9C39B]">
-            <Building className="text-[#91651F]" size={20} />
-            <h3 className="text-base font-black text-[#33291B]">Unidade / Site Operacional</h3>
-          </div>
+        <button onClick={handleSave} className="w-full p-4 rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-indigo-700 transition">
+          <Save size={18} /> Salvar Alterações
+        </button>
 
-          <div className="space-y-3 text-xs">
-            <div>
-              <label className="font-black text-[#857662] block mb-1">Site Principal Conectado</label>
-              <select
-                value={activeSite}
-                onChange={(e) => setActiveSite(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-[#F5EFE4] border border-[#D9C39B] font-black text-[#33291B] focus:outline-none focus:border-[#C69A45]"
-              >
-                <option value="3 COR - BH">3 COR - BH (Belo Horizonte - Minas Gerais)</option>
-                <option value="Matriz - São Paulo">Matriz - São Paulo (CD Central)</option>
-                <option value="CD Varginha - Sul de Minas">CD Varginha - Sul de Minas (Armazém Geral)</option>
-                <option value="Porto de Santos - Exportação">Porto de Santos - Terminal de Exportação</option>
-                <option value="Unidade Manhuaçu - Matas de Minas">Unidade Manhuaçu - Matas de Minas</option>
-              </select>
-            </div>
-
-            <div className="p-3 bg-[#EEE2CD] rounded-xl border border-[#D9C39B]">
-              <span className="text-[11px] text-[#33291B] font-bold block">
-                As consultas serão filtradas prioritariamente por esta unidade.
-              </span>
-            </div>
+        {savedSuccess && (
+          <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm font-bold animate-pulse">
+            Salvo com sucesso!
           </div>
-        </div>
-
-        {/* Box 2: Perfil do Usuário */}
-        <div className="bg-[#FFF9EF] rounded-3xl p-6 border border-[#D9C39B] shadow-[0_15px_35px_rgba(198,154,69,0.1)] space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-[#D9C39B]">
-            <User className="text-[#91651F]" size={20} />
-            <h3 className="text-base font-black text-[#33291B]">Perfil de Acesso</h3>
-          </div>
-
-          <div className="space-y-3 text-xs">
-            <div>
-              <label className="font-black text-[#857662] block mb-1">Nome do Operador</label>
-              <input
-                type="text"
-                defaultValue={user.name}
-                className="w-full p-2.5 rounded-xl bg-[#F5EFE4] border border-[#D9C39B] font-black text-[#33291B]"
-              />
-            </div>
-            <div>
-              <label className="font-black text-[#857662] block mb-1">E-mail Corporativo</label>
-              <input
-                type="email"
-                defaultValue={user.email}
-                className="w-full p-2.5 rounded-xl bg-[#F5EFE4] border border-[#D9C39B] font-mono text-[#33291B]"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Box 3: Experiência Visual 3D 4K */}
-        <div className="bg-[#FFF9EF] rounded-3xl p-6 border border-[#D9C39B] shadow-[0_15px_35px_rgba(198,154,69,0.1)] space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-[#D9C39B]">
-            <Sparkles className="text-[#91651F]" size={20} />
-            <h3 className="text-base font-black text-[#33291B]">Motor de Renderização Tridimensional</h3>
-          </div>
-
-          <div className="space-y-3 text-xs">
-            <label className="flex items-center justify-between p-3 rounded-xl bg-[#F5EFE4] border border-[#D9C39B] cursor-pointer">
-              <div>
-                <strong className="block text-[#33291B] font-black">Gráficos Volumétricos 3D</strong>
-                <span className="text-[11px] text-[#857662] font-semibold">Habilita sombreamento, cilindros e radar 3D</span>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={cinematicMode} 
-                onChange={(e) => setCinematicMode(e.target.checked)}
-                className="w-5 h-5 accent-[#C69A45]"
-              />
-            </label>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

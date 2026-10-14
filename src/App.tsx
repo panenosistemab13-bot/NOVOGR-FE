@@ -56,6 +56,7 @@ import Escala from './components/Escala';
 import Disponibilidade from './components/Disponibilidade';
 import LoginScreen from './components/LoginScreen';
 import RestrictedPagesModal from './components/RestrictedPagesModal';
+import ConfiguracoesView from './components/ConfiguracoesView';
 import UpdateTopBanner from './components/UpdateTopBanner';
 import { 
   PageDefinition, 
@@ -86,7 +87,7 @@ import factoryPresenceBg from './assets/images/factory_wallpaper_presence_179132
 import factoryRotasBg from './assets/images/factory_wallpaper_rotas_1791328719413.jpg';
 import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'iscas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'iscas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'settings';
 
 const backgroundImages: Record<Tab, string> = {
   menu: factoryMenuBg,
@@ -355,6 +356,8 @@ export default function App() {
         return <Escala onBack={() => setActiveTab('menu')} />;
       case 'disponibilidade':
         return <Disponibilidade onBack={() => setActiveTab('menu')} />;
+      case 'settings':
+        return <ConfiguracoesView />;
       default:
         return (
           <div className="flex flex-col items-center justify-center p-20 text-zinc-500">
@@ -446,6 +449,8 @@ export default function App() {
         return <Rotas onBack={() => setActiveTab('menu')} />;
       case 'iscas':
         return <Iscas onBack={() => setActiveTab('menu')} />;
+      case 'settings':
+        return <ConfiguracoesView />;
       default:
         return null;
     }
@@ -465,7 +470,7 @@ export default function App() {
     <AppShell
       activeTab={activeTab}
       onSelectTab={(id) => setActiveTab(id as Tab)}
-      onOpenSettings={handleOpenPageSelector}
+      onOpenSettings={() => setActiveTab('settings')}
       onLogout={handleLogout}
       showPresenceList={Boolean(pageVisibility['presence'])}
       showRotasPage={Boolean(pageVisibility['rotas'])}

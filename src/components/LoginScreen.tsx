@@ -3,7 +3,9 @@ import {
   User, 
   Key, 
   ArrowRight, 
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import goldMedalLogo from '../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 
@@ -14,6 +16,7 @@ interface LoginScreenProps {
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [username, setUsername] = useState('jeff');
   const [password, setPassword] = useState('#trescafe2029');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -52,15 +55,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full mx-auto p-1 bg-[#181A1D] border-2 border-[#C5A059] shadow-[0_4px_20px_rgba(197,160,89,0.35)] flex items-center justify-center mb-4">
             <img src={goldMedalLogo} alt="Café Três Corações" className="w-full h-full object-contain" />
-          </div>
-
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="bg-[#C91F2D] text-white font-black text-[10px] px-3 py-1 rounded-full shadow-md tracking-widest uppercase border border-red-400/40 font-heading">
-              3CORAÇÕES
-            </span>
-            <span className="bg-[#181A1D] text-[#C5A059] font-mono font-bold text-[10px] px-3 py-1 rounded-full shadow-inner border border-[#C5A059]/40 uppercase tracking-widest">
-              CENTRAL GR
-            </span>
           </div>
 
           <h1 className="text-2xl font-black text-[#FAF7F0] tracking-wide uppercase font-heading">
@@ -105,13 +99,20 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <div className="relative">
               <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
               <input 
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="#trescafe2029"
-                className="w-full bg-[#181A1D] border border-[#C5A059]/50 focus:border-[#C5A059] rounded-xl pl-11 pr-4 py-3 text-xs font-mono font-black text-[#FAF7F0] placeholder-stone-500 focus:outline-none transition-all shadow-inner"
+                className="w-full bg-[#181A1D] border border-[#C5A059]/50 focus:border-[#C5A059] rounded-xl pl-11 pr-12 py-3 text-xs font-mono font-black text-[#FAF7F0] placeholder-stone-500 focus:outline-none transition-all shadow-inner"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-[#C5A059] transition-colors"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
