@@ -831,16 +831,18 @@ export function Averbacao({ onBack }: AverbacaoProps) {
           )}
 
           {/* SEARCH BAR (Wide) */}
-          <div className="relative w-full">
-            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#77736B]" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por placa, nota fiscal, motorista, protocolo ou destino..."
-              className="w-full bg-[#FFFCF6] text-[#292820] border border-[#E6D2A3] rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#C49A45] shadow-inner placeholder-[#77736B]"
-            />
-          </div>
+          {!hideAnexos && (
+            <div className="relative w-full">
+              <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#77736B]" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por placa, nota fiscal, motorista, protocolo ou destino..."
+                className="w-full bg-[#FFFCF6] text-[#292820] border border-[#E6D2A3] rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#C49A45] shadow-inner placeholder-[#77736B]"
+              />
+            </div>
+          )}
 
           {/* COLOR THEME PICKER */}
           <div className="flex items-center justify-between bg-[#292820] text-white px-4 py-2.5 rounded-xl border border-[#E6D2A3]">
