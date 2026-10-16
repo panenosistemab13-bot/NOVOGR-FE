@@ -491,11 +491,15 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     return `ROTA: ${origem || '-'} X MÚLTIPLOS DESTINOS (${uniqueDestinos.join(', ')})`;
   };
 
-  const getProtocolsList = (rows: AverbacaoRow[]) => {
+  const getUniqueProtocols = (rows: AverbacaoRow[]): string[] => {
     const activeRows = rows.length > 0 ? rows : parsedRows;
-    if (activeRows.length === 0) return '-';
-    const uniqueProtocols = Array.from(new Set(activeRows.map(r => r.protocolo?.trim()).filter(Boolean)));
-    return uniqueProtocols.length > 0 ? uniqueProtocols.join(', ') : 'PENDENTE';
+    if (activeRows.length === 0) return [];
+    return Array.from(new Set(activeRows.map(r => r.protocolo?.trim()).filter(Boolean)));
+  };
+
+  const getProtocolsList = (rows: AverbacaoRow[]) => {
+    const protocols = getUniqueProtocols(rows);
+    return protocols.length > 0 ? protocols.join(', ') : 'PENDENTE';
   };
 
   const getUniqueTransportRows = (rows: AverbacaoRow[]) => {
@@ -526,31 +530,54 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     const primaryPlacaCarr = activeRows.find(r => r.placaCarr && r.placaCarr.trim() !== '' && r.placaCarr !== '-')?.placaCarr || extraData.placaCarr || '';
     const primaryOrigem = activeRows.find(r => r.origem && r.origem.trim() !== '' && r.origem !== '-')?.origem || extraData.origem || '';
 
-    const seen = new Set<string>();
-    const uniqueList: AverbacaoRow[] = [];
+    const tripGroups = new Map<string, {
+      baseRow: AverbacaoRow;
+      carretas: Set<string>;
+    }>();
 
     activeRows.forEach(row => {
       const orig = (row.origem && row.origem !== '-') ? row.origem : (extraData.origem || primaryOrigem || '');
       const dest = (row.destino && row.destino !== '-') ? row.destino : (extraData.destino || '');
       const cav = (row.placaCav && row.placaCav !== '-') ? row.placaCav : (extraData.placaCav || primaryPlacaCav || '');
-      const carr = (row.placaCarr && row.placaCarr !== '-') ? row.placaCarr : (extraData.placaCarr || primaryPlacaCarr || '');
+      const carr = (row.placaCarr && row.placaCarr !== '-') ? row.placaCarr : '';
 
-      const key = `${orig.toUpperCase().trim()}|${dest.toUpperCase().trim()}|${cav.toUpperCase().trim()}|${carr.toUpperCase().trim()}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        uniqueList.push({
-          ...row,
-          origem: orig,
-          destino: dest,
-          placaCav: cav,
-          placaCarr: carr,
-          transportadora: row.transportadora || extraData.transportadora || '',
-          tecnologia: row.tecnologia || extraData.tecnologia || '',
-          nomeMotorista: row.nomeMotorista || extraData.nomeMotorista || '',
-          cpf: row.cpf || extraData.cpf || '',
-          telefone: row.telefone || extraData.telefone || ''
+      const key = `${orig.toUpperCase().trim()}|${dest.toUpperCase().trim()}|${cav.toUpperCase().trim()}`;
+      if (!tripGroups.has(key)) {
+        tripGroups.set(key, {
+          baseRow: {
+            ...row,
+            origem: orig,
+            destino: dest,
+            placaCav: cav
+          },
+          carretas: new Set<string>()
         });
       }
+
+      if (carr) {
+        carr.split(/[\/,;]+/).forEach(c => {
+          const clean = c.trim().toUpperCase();
+          if (clean) tripGroups.get(key)!.carretas.add(clean);
+        });
+      }
+    });
+
+    const uniqueList: AverbacaoRow[] = [];
+    tripGroups.forEach(({ baseRow, carretas }) => {
+      let combinedCarretas = Array.from(carretas).join(' / ');
+      if (!combinedCarretas) {
+        combinedCarretas = extraData.placaCarr || primaryPlacaCarr || '';
+      }
+
+      uniqueList.push({
+        ...baseRow,
+        placaCarr: combinedCarretas,
+        transportadora: baseRow.transportadora || extraData.transportadora || '',
+        tecnologia: baseRow.tecnologia || extraData.tecnologia || '',
+        nomeMotorista: baseRow.nomeMotorista || extraData.nomeMotorista || '',
+        cpf: baseRow.cpf || extraData.cpf || '',
+        telefone: baseRow.telefone || extraData.telefone || ''
+      });
     });
 
     return uniqueList.length > 0 ? uniqueList : [defaultEmptyRow];
@@ -643,6 +670,23 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       </tr>
     `).join('');
 
+    const uniqueProtocols = getUniqueProtocols(rowsToUse);
+    const protocolsHtml = uniqueProtocols.length > 0
+      ? uniqueProtocols.map(p => `
+          <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 4px;">
+            PROTOCOLO: <span style="color: #2563eb; font-family: monospace, Courier, monospace; font-weight: bold;">${p}</span>
+          </div>
+        `).join('')
+      : `
+          <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 4px;">
+            PROTOCOLO: <span style="color: #2563eb; font-family: monospace, Courier, monospace; font-weight: bold;">-</span>
+          </div>
+        `;
+
+    const protocolsPlainText = uniqueProtocols.length > 0
+      ? uniqueProtocols.map(p => `PROTOCOLO: ${p}`).join('\n')
+      : 'PROTOCOLO: -';
+
     const htmlContent = `
       <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #111827; line-height: 1.6; max-width: 950px; background-color: #ffffff; padding: 16px; border: 1px solid #e5e7eb; border-radius: 12px;">
         <p style="font-weight: bold; margin: 0 0 12px 0; color: #000000; font-size: 15px;">Bom dia!</p>
@@ -652,16 +696,18 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         </p>
 
         <div style="background-color: #f8f9fa; border-left: 5px solid ${accentHex}; padding: 14px 18px; border-radius: 8px; margin: 16px 0; font-family: Arial, sans-serif;">
-          <div style="font-size: 14px; font-weight: bold; color: #000000; margin-bottom: 6px; text-transform: uppercase;">
+          <div style="font-size: 14px; font-weight: bold; color: #2563eb; margin-bottom: 6px; text-transform: uppercase;">
             ${routeTitle || 'AGUARDANDO DADOS'}
           </div>
-          <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 6px;">
-            PROTOCOLO: <span style="color: #2563eb; font-family: monospace, Courier, monospace; font-weight: bold;">${protocolosList || '-'}</span>
-          </div>
-          <div style="font-size: 13px; font-weight: bold; color: #000000;">
+          ${protocolsHtml}
+          <div style="font-size: 13px; font-weight: bold; color: #000000; margin-top: 4px;">
             Valor da Carga: <span style="color: #dc2626; font-family: monospace, Courier, monospace; font-weight: bold;">${totalCarga}</span>
           </div>
         </div>
+
+        <p style="margin: 14px 0 10px 0; color: #1f2937; font-size: 13px; font-weight: 500;">
+          Segue dados e NF's em anexo.
+        </p>
 
         ${uniqueTransportRows.length > 0 ? `
           <div style="margin: 18px 0; overflow-x: auto;">
@@ -694,7 +740,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       `${r.origem || '-'} | ${r.destino || '-'} | ${r.transportadora || extraData.transportadora || '-'} | ${r.placaCav || '-'} | ${r.placaCarr || '-'} | ${r.tecnologia || extraData.tecnologia || '-'} | ${r.nomeMotorista || extraData.nomeMotorista || '-'} | ${r.cpf || extraData.cpf || '-'} | ${r.telefone || extraData.telefone || '-'}`
     ).join('\n');
 
-    const plainText = `Bom dia!\n\nSegue AVERBAÇÃO realizada via sistema.\n\n${routeTitle || 'AGUARDANDO DADOS'}\nPROTOCOLO: ${protocolosList || '-'}\nValor da Carga: ${totalCarga}\n\n${uniqueTransportRows.length > 0 ? `ORIGEM | DESTINO | TRANSPORTADORA | PLACA CAVALO | PLACAS CARRETAS | TECNOLOGIA | NOME MOTORISTA | CPF | TELEFONE\n${plainTextTable}\n\n` : ''}Att,`;
+    const plainText = `Bom dia!\n\nSegue AVERBAÇÃO realizada via sistema.\n\n${routeTitle || 'AGUARDANDO DADOS'}\n${protocolsPlainText}\nValor da Carga: ${totalCarga}\n\nSegue dados e NF's em anexo.\n\n${uniqueTransportRows.length > 0 ? `ORIGEM | DESTINO | TRANSPORTADORA | PLACA CAVALO | PLACAS CARRETAS | TECNOLOGIA | NOME MOTORISTA | CPF | TELEFONE\n${plainTextTable}\n\n` : ''}Att,`;
 
     const copiedSuccessfully = await safeCopyHtmlAndText(htmlContent, plainText, imageBlob);
     if (copiedSuccessfully) {
@@ -927,16 +973,28 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 className="bg-[#FAF7F0] p-4.5 rounded-xl space-y-1.5 shadow-2xs border border-[#E6D2A3]/40"
                 style={{ borderLeft: `5px solid ${activeTheme.accentColor}` }}
               >
-                <div className="text-xs sm:text-[13px] font-black text-stone-950 uppercase">
+                <div className="text-xs sm:text-[13px] font-black text-blue-600 uppercase">
                   {getRouteTitle(filteredRows.length > 0 ? filteredRows : parsedRows) || 'AGUARDANDO DADOS'}
                 </div>
-                <div className="text-xs font-black text-stone-900">
-                  PROTOCOLO: <span className="text-[#C49A45] font-extrabold font-mono">{getProtocolsList(filteredRows.length > 0 ? filteredRows : parsedRows) || '-'}</span>
-                </div>
-                <div className="text-xs font-black text-stone-900">
+                {getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0 ? (
+                  getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).map((prot, idx) => (
+                    <div key={idx} className="text-xs font-black text-stone-900">
+                      PROTOCOLO: <span className="text-blue-600 font-extrabold font-mono">{prot}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs font-black text-stone-900">
+                    PROTOCOLO: <span className="text-blue-600 font-extrabold font-mono">-</span>
+                  </div>
+                )}
+                <div className="text-xs font-black text-stone-900 pt-0.5">
                   Valor da Carga: <span className="text-[#C91F2D] font-extrabold font-mono">{getTotalValue()}</span>
                 </div>
               </div>
+
+              <p className="text-xs sm:text-sm font-semibold text-stone-800">
+                Segue dados e NF's em anexo.
+              </p>
 
               {/* Operational Transport Data Table */}
               <div className="overflow-x-auto rounded-xl border border-black shadow-xs my-2">
@@ -1339,11 +1397,24 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                   <span className="text-stone-600">Valor Total:</span>
                   <span className="font-mono text-red-700">{getTotalValue()}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-bold">
-                  <span className="text-stone-600">Protocolo(s):</span>
-                  <span className="font-mono text-blue-700 truncate max-w-[170px]" title={getProtocolsList(parsedRows)}>
-                    {getProtocolsList(parsedRows)}
-                  </span>
+                <div className="flex flex-col gap-1 border-t border-[#E6D2A3]/50 pt-1.5 mt-1">
+                  <div className="flex justify-between items-center text-[11px] font-bold">
+                    <span className="text-stone-600">Protocolo(s):</span>
+                    <span className="font-mono text-blue-700 font-extrabold">{getUniqueProtocols(parsedRows).length}</span>
+                  </div>
+                  {getUniqueProtocols(parsedRows).length > 0 ? (
+                    getUniqueProtocols(parsedRows).map((prot, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-[10.5px] font-mono text-blue-700 bg-blue-50/70 px-2 py-0.5 rounded border border-blue-200/50">
+                        <span className="text-stone-500 font-sans text-[8.5px] uppercase font-bold">PROTOCOLO:</span>
+                        <span className="font-extrabold">{prot}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex justify-between items-center text-[10.5px] font-mono text-stone-400">
+                      <span>PROTOCOLO:</span>
+                      <span>-</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1392,6 +1463,19 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               >
                 <Clipboard size={12} />
                 <span>Colar da Área de Transferência</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const example = `DATA AVERBAÇÃO\tORIGEM\tDESTINO\tPLACA CAV\tPLACA CARR\tNF\tVALOR NF\tSOMA VL/NF's\tNº PROTOCOLO\n03/08/2026\tMONTES CLAROS/MG\tVESPASIANO/MG\tRTK4C72\tTEM5E12\t8601\tR$ 560.321,21\tR$ 1.190.002,14\t361\n\t\t\t\tTEM5E25\t8602\tR$ 629.680,93\t\t362`;
+                  setRawInputText(example);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold flex items-center gap-1.5 cursor-pointer border border-amber-300 shadow-2xs"
+                title="Inserir modelo de exemplo conforme planilha de averbação"
+              >
+                <Sparkles size={12} className="text-[#C49A45]" />
+                <span>Carregar Exemplo (Montes Claros ➔ Vespasiano)</span>
               </button>
             </div>
 

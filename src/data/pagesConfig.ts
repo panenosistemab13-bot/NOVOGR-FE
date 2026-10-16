@@ -82,7 +82,7 @@ export const DEFAULT_PAGES: PageDefinition[] = [
   },
   { 
     id: 'sm_creator', 
-    label: 'SM', 
+    label: 'monitoramento', 
     buttonLabel: 'Eventos', 
     category: 'Eventos & PGR',
     iconName: 'CalendarDays',
@@ -104,7 +104,7 @@ export const DEFAULT_PAGES: PageDefinition[] = [
   },
   { 
     id: 'controle', 
-    label: 'Controle', 
+    label: 'Pré alerta', 
     buttonLabel: 'Gerais', 
     category: 'Operações Gerais',
     iconName: 'Sliders',
@@ -126,7 +126,7 @@ export const DEFAULT_PAGES: PageDefinition[] = [
   },
   { 
     id: 'escala', 
-    label: 'Escala 3C', 
+    label: 'frota escala', 
     buttonLabel: 'Conversor', 
     category: 'Operacional & Frota',
     iconName: 'FileSpreadsheet',
@@ -137,7 +137,7 @@ export const DEFAULT_PAGES: PageDefinition[] = [
   },
   { 
     id: 'presence', 
-    label: 'Lista de Presença', 
+    label: 'calendário', 
     buttonLabel: 'Efetivo', 
     category: 'Efetivo & Escala',
     iconName: 'Users2',

@@ -17,6 +17,7 @@ interface AppShellProps {
   isWallpaperOpen?: boolean;
   pageVisibility?: Record<string, boolean>;
   availablePages?: PageDefinition[];
+  currentUser?: { email: string; name: string; role: string } | null;
   children: ReactNode;
 }
 
@@ -29,14 +30,15 @@ export default function AppShell({
   isWallpaperOpen,
   pageVisibility,
   availablePages,
+  currentUser,
   children
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const isDark = activeTab === 'menu';
+  const isDark = false;
 
   return (
     <DashboardLayout
-      isDark={isDark}
+      isDark={false}
       header={
         <PremiumHeader 
           activeTab={activeTab}
@@ -46,7 +48,8 @@ export default function AppShell({
           onLogout={onLogout}
           onToggleDrawer={() => setDrawerOpen(prev => !prev)}
           isWallpaperOpen={isWallpaperOpen}
-          isAdmin={true}
+          isAdmin={currentUser?.role === 'admin'}
+          currentUser={currentUser}
         />
       }
       drawer={

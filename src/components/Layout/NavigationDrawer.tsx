@@ -18,7 +18,7 @@ import {
   Users
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { PageDefinition } from '../../data/pagesConfig';
+import { PageDefinition, getAllAvailablePages, loadPageVisibility, ICON_MAP } from '../../data/pagesConfig';
 import goldMedalLogo from '../../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 
 interface NavigationDrawerProps {
@@ -58,25 +58,23 @@ export default function NavigationDrawer({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, setIsOpen]);
 
-  const defaultItems = [
-    { id: 'menu', label: 'Início', subtitle: 'Painel Central', icon: Home },
-    { id: 'checklist', label: 'Checklist', subtitle: 'Vistoria de Frota', icon: ClipboardCheck },
-    { id: 'averbacao', label: 'Averbação', subtitle: 'Seguros de Carga', icon: FileCheck2 },
-    { id: 'sm_creator', label: 'SM', subtitle: 'Monitoramento', icon: Radio },
-    { id: 'controle', label: 'Controle', subtitle: 'Iscas & PGR', icon: Sliders },
-    { id: 'escala', label: 'Escala', subtitle: 'Plantão Logístico', icon: Calendar },
-    { id: 'presence', label: 'Lista de Presença', subtitle: 'Frequência & Agenda', icon: Users },
-    { id: 'rotas', label: 'Rotas', subtitle: 'P&R e Destinos', icon: Route },
-  ];
-
   const menuItems = React.useMemo(() => {
-    if (pageVisibility) {
-      return defaultItems.filter(item => {
-        if (item.id === 'menu') return true;
-        return pageVisibility[item.id] !== false;
-      });
-    }
-    return defaultItems;
+    const pages = getAllAvailablePages();
+    const vis = pageVisibility || loadPageVisibility();
+    const items: Array<{ id: string; label: string; subtitle: string; icon: React.ElementType }> = [
+      { id: 'menu', label: 'Início', subtitle: 'Painel Central', icon: Home }
+    ];
+    pages.forEach(p => {
+      if (p.id !== 'cadastro' && vis[p.id] !== false) {
+        items.push({
+          id: p.id,
+          label: p.label,
+          subtitle: p.category || p.badge || 'Módulo',
+          icon: ICON_MAP[p.iconName] || Route
+        });
+      }
+    });
+    return items;
   }, [pageVisibility]);
 
   const handleSelect = (id: string) => {

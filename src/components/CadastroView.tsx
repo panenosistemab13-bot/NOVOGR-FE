@@ -17,6 +17,7 @@ import {
   KeyRound,
   Sparkles
 } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 
@@ -72,9 +73,12 @@ const sanitizeUsers = (userList: any[]): UserAccount[] => {
 
 interface CadastroViewProps {
   onBack?: () => void;
+  currentUser?: { email: string; name: string; role: string } | null;
 }
 
-export default function CadastroView({ onBack }: CadastroViewProps) {
+export default function CadastroView({ onBack, currentUser }: CadastroViewProps) {
+  const isAdmin = currentUser?.role === 'admin';
+
   const [users, setUsers] = useState<UserAccount[]>(() => {
     try {
       const saved = localStorage.getItem('app_users');
@@ -87,7 +91,14 @@ export default function CadastroView({ onBack }: CadastroViewProps) {
     return DEFAULT_USERS;
   });
 
-  const [selectedUserId, setSelectedUserId] = useState<number>(() => users[0]?.id || 1);
+  // If not admin, the "selected user" is always themselves
+  const [selectedUserId, setSelectedUserId] = useState<number>(() => {
+    if (!isAdmin && currentUser) {
+      const self = users.find(u => u.email === currentUser.email || u.name === currentUser.name);
+      return self?.id || users[0]?.id || 1;
+    }
+    return users[0]?.id || 1;
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -189,29 +200,31 @@ export default function CadastroView({ onBack }: CadastroViewProps) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-[#25231F] tracking-tight font-heading">
-                  CADASTRO DE USUÁRIOS
+                <h1 className="text-xl sm:text-2xl font-black text-[#25231F] tracking-tight font-heading uppercase">
+                  {isAdmin ? 'CADASTRO DE USUÁRIOS' : 'MEU PERFIL / SEGURANÇA'}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#8C6D28] border border-amber-300 text-[10px] font-mono font-bold uppercase">
-                  Controle de Acessos
+                  {isAdmin ? 'Controle de Acessos' : 'Dados da Conta'}
                 </span>
               </div>
               <p className="text-xs text-[#77736B] font-mono uppercase tracking-wider mt-0.5">
-                Gerencie credenciais e senhas válidas para login no sistema
+                {isAdmin ? 'Gerencie credenciais e senhas válidas para login no sistema' : 'Mantenha seus dados de acesso e senha atualizados'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={handleAddUser}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
-            >
-              <UserPlus size={16} className="text-[#C5A059]" />
-              <span>Novo Usuário</span>
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={handleAddUser}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+              >
+                <UserPlus size={16} className="text-[#C5A059]" />
+                <span>Novo Usuário</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* FEEDBACK TOAST */}
@@ -229,93 +242,95 @@ export default function CadastroView({ onBack }: CadastroViewProps) {
         {/* MAIN 2-COLUMN MANAGEMENT */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-          {/* LEFT: USERS LIST */}
-          <div className="md:col-span-5 bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-5 shadow-sm space-y-3 flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E6D2A3]">
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-[#C49A45]" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#25231F]">
-                  Usuários Autorizados ({users.length})
-                </h2>
+          {/* LEFT: USERS LIST - ONLY FOR ADMINS */}
+          {isAdmin && (
+            <div className="md:col-span-5 bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-5 shadow-sm space-y-3 flex flex-col">
+              <div className="flex items-center justify-between pb-3 border-b border-[#E6D2A3]">
+                <div className="flex items-center gap-2">
+                  <Shield size={16} className="text-[#C49A45]" />
+                  <h2 className="text-xs font-black uppercase tracking-wider text-[#25231F]">
+                    Usuários Autorizados ({users.length})
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono text-[#77736B] font-bold">
+                  Somente estes acessam
+                </span>
               </div>
-              <span className="text-[10px] font-mono text-[#77736B] font-bold">
-                Somente estes acessam
-              </span>
-            </div>
 
-            <div className="space-y-2 overflow-y-auto max-h-[500px] pr-1">
-              {users.map((u) => {
-                const isSelected = selectedUserId === u.id;
-                return (
-                  <div
-                    key={u.id}
-                    onClick={() => setSelectedUserId(u.id)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                      isSelected
-                        ? 'bg-[#F5F0E6] border-[#C49A45] shadow-sm ring-1 ring-[#C49A45]/30'
-                        : 'bg-white border-[#EDE2CE] hover:border-[#D9C39B] hover:bg-stone-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
-                        isSelected 
-                          ? 'bg-[#292820] text-[#C49A45] border-[#C49A45]' 
-                          : 'bg-stone-100 text-[#77736B] border-stone-200'
-                      }`}>
-                        <Users size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-black text-[#25231F] truncate leading-tight">
-                          {u.name}
-                        </p>
-                        <p className="text-[11px] text-[#77736B] font-mono truncate">
-                          {u.email || 'Sem e-mail'}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase ${
-                            u.role === 'Administrador'
-                              ? 'bg-amber-100 text-[#8C6D28] border border-amber-300'
-                              : 'bg-stone-100 text-stone-700 border border-stone-200'
-                          }`}>
-                            {u.role}
-                          </span>
+              <div className="space-y-2 overflow-y-auto max-h-[500px] pr-1">
+                {users.map((u) => {
+                  const isSelected = selectedUserId === u.id;
+                  return (
+                    <div
+                      key={u.id}
+                      onClick={() => setSelectedUserId(u.id)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                        isSelected
+                          ? 'bg-[#F5F0E6] border-[#C49A45] shadow-sm ring-1 ring-[#C49A45]/30'
+                          : 'bg-white border-[#EDE2CE] hover:border-[#D9C39B] hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                          isSelected 
+                            ? 'bg-[#292820] text-[#C49A45] border-[#C49A45]' 
+                            : 'bg-stone-100 text-[#77736B] border-stone-200'
+                        }`}>
+                          <Users size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-[#25231F] truncate leading-tight">
+                            {u.name}
+                          </p>
+                          <p className="text-[11px] text-[#77736B] font-mono truncate">
+                            {u.email || 'Sem e-mail'}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase ${
+                              u.role === 'Administrador'
+                                ? 'bg-amber-100 text-[#8C6D28] border border-amber-300'
+                                : 'bg-stone-100 text-stone-700 border border-stone-200'
+                            }`}>
+                              {u.role}
+                            </span>
+                          </div>
                         </div>
                       </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteUser(u.id);
+                        }}
+                        className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Excluir usuário"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
+                  );
+                })}
+              </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteUser(u.id);
-                      }}
-                      className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      title="Excluir usuário"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                );
-              })}
+              <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 text-[11px] text-[#8C6D28] font-mono flex items-start gap-2 mt-auto">
+                <Lock size={14} className="shrink-0 mt-0.5 text-amber-600" />
+                <span>
+                  Gerenciamento restrito ao perfil de Administrador.
+                </span>
+              </div>
             </div>
-
-            <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 text-[11px] text-[#8C6D28] font-mono flex items-start gap-2 mt-auto">
-              <Sparkles size={14} className="shrink-0 mt-0.5 text-amber-600" />
-              <span>
-                Usuário "jefferson" cadastrado como administrativo fixo do sistema.
-              </span>
-            </div>
-          </div>
+          )}
 
           {/* RIGHT: EDIT FORM */}
-          <div className="md:col-span-7 bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-6 shadow-sm space-y-5">
+          <div className={cn("bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-6 shadow-sm space-y-5", isAdmin ? "md:col-span-7" : "md:col-span-12 max-w-2xl mx-auto w-full")}>
             {selectedUser ? (
               <>
                 <div className="flex items-center justify-between pb-4 border-b border-[#E6D2A3]">
                   <div className="flex items-center gap-2.5">
                     <UserCheck size={18} className="text-[#C49A45]" />
                     <h2 className="text-sm font-black uppercase tracking-wider text-[#25231F]">
-                      Editar Cadastro: {selectedUser.name}
+                      {isAdmin ? `Editar Cadastro: ${selectedUser.name}` : 'Meus Dados de Acesso'}
                     </h2>
                   </div>
                   {saveSuccess && (
@@ -326,32 +341,40 @@ export default function CadastroView({ onBack }: CadastroViewProps) {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* NOME / LOGIN */}
+                  {/* NOME / LOGIN - Only editable by Admin */}
                   <div className="sm:col-span-2">
                     <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
-                      Nome / Usuário de Login
+                      Nome Completo
                     </label>
                     <div className="relative">
                       <Users size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                       <input
                         type="text"
+                        disabled={!isAdmin}
                         value={selectedUser.name}
                         onChange={(e) => updateUserField('name', e.target.value)}
                         placeholder="Ex: João Silva"
-                        className="w-full bg-white border border-[#E6D2A3] rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
+                        className={cn(
+                          "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold focus:outline-none",
+                          !isAdmin ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                        )}
                       />
                     </div>
                   </div>
 
-                  {/* CARGO / PERFIL */}
+                  {/* CARGO / PERFIL - Only editable by Admin */}
                   <div>
                     <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
                       Perfil de Acesso
                     </label>
                     <select
+                      disabled={!isAdmin}
                       value={selectedUser.role}
-                      onChange={(e) => updateUserField('role', e.target.value)}
-                      className="w-full bg-white border border-[#E6D2A3] rounded-xl px-3 py-2.5 text-xs font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
+                      onChange={(e) => updateUserField('role', (e.target.value as any))}
+                      className={cn(
+                        "w-full border rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none",
+                        !isAdmin ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                      )}
                     >
                       <option value="Administrador">Administrador</option>
                       <option value="Funcionario">Funcionário</option>

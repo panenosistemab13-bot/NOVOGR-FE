@@ -54,6 +54,24 @@ export default function MobileAverbacao({ onBack }: { onBack?: () => void }) {
   return (
     <div className="w-full min-h-screen bg-[#0d0603] text-[#f5ebd6] select-none pb-28">
       <div className="px-4 pt-3 space-y-4 max-w-full overflow-x-hidden">
+        {/* TEMPLATE HERO BANNER (CONFORME IMAGEM OFICIAL) */}
+        <div className="relative w-full rounded-2xl overflow-hidden border border-[#523A28]/40 shadow-xl bg-[#1B110B]">
+          <img
+            src="/images/averbacao_template_banner.png"
+            alt="Averbação Módulo Ativo"
+            className="w-full h-36 object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+          <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[9px] font-mono text-[#E6C875]">
+            <span className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-[#D4AF37]/30">
+              SEGUROS 3C
+            </span>
+            <span className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/20 text-white">
+              AT&M CONECTADO
+            </span>
+          </div>
+        </div>
+
         {/* HEADER INTRO */}
         <div className="w-full rounded-3xl bg-gradient-to-r from-red-950/60 via-[#261308] to-[#1a0c05] border border-red-500/30 p-4 shadow-xl">
           <span className="text-[9px] font-mono uppercase text-red-400 block mb-0.5">

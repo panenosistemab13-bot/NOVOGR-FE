@@ -24,6 +24,7 @@ import {
   Award
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { getAllAvailablePages, loadPageVisibility, ICON_MAP, PageDefinition } from '../data/pagesConfig';
 
 // Image assets
 import goldMedalLogo from '../assets/images/gold_logo_medal_3c_1790406432555.jpg';
@@ -35,10 +36,34 @@ import goldPodiumImg from '../assets/images/gold_trophy_podium_1791473848875.jpg
 interface DashboardInicioFuturisticProps {
   onNavigate?: (tab: string) => void;
   activeTab?: string;
+  pageVisibility?: Record<string, boolean>;
+  availablePages?: PageDefinition[];
+  currentUser?: { email: string; name: string; role: string } | null;
 }
 
-export default function DashboardInicioFuturistic({ onNavigate, activeTab = 'rotas' }: DashboardInicioFuturisticProps) {
+export default function DashboardInicioFuturistic({ 
+  onNavigate, 
+  activeTab = 'rotas',
+  pageVisibility = {},
+  availablePages = [],
+  currentUser
+}: DashboardInicioFuturisticProps) {
   const [rankingTab, setRankingTab] = useState<'geral' | 'estado' | 'regiao'>('geral');
+
+  const menuModules = React.useMemo(() => {
+    // If props are empty, fallback to local loading (but props should be provided by InitialMenu)
+    const pages = availablePages.length > 0 ? availablePages : getAllAvailablePages();
+    const vis = Object.keys(pageVisibility).length > 0 ? pageVisibility : loadPageVisibility();
+    
+    return pages
+      .filter(p => p.id !== 'cadastro' && vis[p.id] !== false)
+      .map(p => ({
+        id: p.id,
+        label: p.label,
+        desc: p.description || p.category,
+        icon: ICON_MAP[p.iconName] || MapPin
+      }));
+  }, [availablePages, pageVisibility]);
 
   const rankingItems = [
     { pos: 1, name: 'FLAVIO BOLSONARO', party: 'PL - Nº 22 • Vice: Alfredo Gaspar', percent: '49,58%', votes: '37.568.895 votos', color: 'bg-amber-400' },
@@ -50,20 +75,20 @@ export default function DashboardInicioFuturistic({ onNavigate, activeTab = 'rot
     <div className="w-full h-full flex flex-col justify-between select-none font-sans overflow-y-auto bg-[#141412] text-[#F3F0E6] p-4 gap-4">
       
       {/* Top Header Bar */}
-      <header className="w-full h-[64px] flex items-center justify-between px-6 bg-[#1A1916] border border-[#333026] rounded-2xl shadow-md shrink-0">
+      <header className="w-full h-[64px] flex items-center justify-between px-6 bg-[#FFFEFC] border border-[#E8DDCA] rounded-2xl shadow-sm shrink-0">
         
         {/* Left: Menu Icon & Logo */}
         <div className="flex items-center gap-4">
-          <button className="w-10 h-10 rounded-xl bg-[#262420] border border-[#3E3A2F] flex items-center justify-center text-[#E6C575] cursor-pointer hover:bg-[#333026] transition-colors">
+          <button className="w-10 h-10 rounded-xl bg-[#F5EFE4] border border-[#E8DDCA] flex items-center justify-center text-[#C49A45] cursor-pointer hover:bg-[#E8DDCA] transition-colors">
             <MenuIcon size={20} />
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#C69A45] shadow-md bg-[#262420]">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#C69A45] shadow-sm bg-white">
               <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
             </div>
             <div className="text-left leading-tight">
-              <span className="text-[15px] font-black tracking-wider text-white uppercase font-heading block">
+              <span className="text-[15px] font-black tracking-wider text-[#25231F] uppercase font-heading block">
                 CENTRAL GR
               </span>
               <span className="text-[8px] font-bold tracking-[0.25em] text-[#C69A45] uppercase block mt-0.5 font-mono">
@@ -74,33 +99,37 @@ export default function DashboardInicioFuturistic({ onNavigate, activeTab = 'rot
         </div>
 
         {/* Center/Left Badge: Location */}
-        <div className="hidden md:flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#262420] border border-[#3E3A2F] shadow-xs">
+        <div className="hidden md:flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#F5EFE4] border border-[#E8DDCA] shadow-xs">
           <MapPin size={15} className="text-[#C69A45]" />
-          <span className="text-[11px] font-black uppercase tracking-wider text-white">
+          <span className="text-[11px] font-black uppercase tracking-wider text-[#25231F]">
             SANTA LUZIA - MG
           </span>
-          <ChevronRight size={13} className="text-[#A39274]" />
+          <ChevronRight size={13} className="text-[#8C7B63]" />
         </div>
 
         {/* Right: User profile, Time & Status */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#262420] border border-[#3E3A2F] px-3.5 py-2 rounded-xl">
-            <Radio size={14} className="text-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-mono font-bold text-white">AO VIVO</span>
+          <div className="flex items-center gap-2 bg-[#F5EFE4] border border-[#E8DDCA] px-3.5 py-2 rounded-xl">
+            <Radio size={14} className="text-emerald-600 animate-pulse" />
+            <span className="text-[11px] font-mono font-bold text-[#25231F]">AO VIVO</span>
           </div>
 
-          <button className="w-10 h-10 rounded-full bg-[#262420] border border-[#3E3A2F] flex items-center justify-center text-white hover:bg-[#333026] transition-colors cursor-pointer relative shadow-xs">
+          <button className="w-10 h-10 rounded-full bg-[#F5EFE4] border border-[#E8DDCA] flex items-center justify-center text-[#25231F] hover:bg-[#E8DDCA] transition-colors cursor-pointer relative shadow-xs">
             <Bell size={16} />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#C91F2D] border border-[#1A1916]" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#C91F2D] border border-white" />
           </button>
 
-          <div className="flex items-center gap-2.5 pl-3 border-l border-[#3E3A2F]">
+          <div className="flex items-center gap-2.5 pl-3 border-l border-[#E8DDCA]">
             <div className="w-9 h-9 rounded-full overflow-hidden border border-[#C69A45]">
-              <img src={avatarJefferson} alt="Jefferson" className="w-full h-full object-cover" />
+              <img src={avatarJefferson} alt="User" className="w-full h-full object-cover" />
             </div>
             <div className="text-left hidden sm:block">
-              <span className="text-xs font-bold text-white block">JEFFERSON</span>
-              <span className="text-[9px] text-[#C69A45] font-mono block">Administrador</span>
+              <span className="text-xs font-bold text-[#25231F] block uppercase">
+                {currentUser?.name || 'JEFFERSON'}
+              </span>
+              <span className="text-[9px] text-[#C69A45] font-mono block">
+                {currentUser?.role === 'admin' ? 'Administrador' : 'Funcionário'}
+              </span>
             </div>
           </div>
         </div>
@@ -379,8 +408,8 @@ export default function DashboardInicioFuturistic({ onNavigate, activeTab = 'rot
             </div>
           </div>
 
-          <div className="relative z-10 pt-3 border-t border-white/10 grid grid-cols-3 gap-2 text-center">
-            {menuModules.slice(0, 3).map((mod) => {
+          <div className="relative z-10 pt-3 border-t border-white/10 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 text-center">
+            {menuModules.map((mod) => {
               const Icon = mod.icon;
               return (
                 <button

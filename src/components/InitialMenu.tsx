@@ -19,10 +19,11 @@ import {
   X,
   Settings,
   Package,
-  Truck
+  Truck,
+  Route
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { PageDefinition } from '../data/pagesConfig';
+import { PageDefinition, ICON_MAP, getAllAvailablePages, loadPageVisibility } from '../data/pagesConfig';
 
 import Checklist from './Checklist';
 import Averbacao from './Averbacao';
@@ -33,11 +34,10 @@ import Disponibilidade from './Disponibilidade';
 import Iscas from './Iscas';
 import PresenceList from './PresenceList';
 import Rotas from './Rotas';
-import DashboardInicioFuturistic from './DashboardInicioFuturistic';
+import MainDashboard from './Dashboard/MainDashboard';
 
 // High-fidelity image assets
 import avatarJefferson from '../assets/images/avatar_jefferson_dias_1790206857666.jpg';
-import coffeeLatteCup from '../assets/images/latte_cup_saucer_beans_1790406410066.jpg';
 import goldMedalLogo from '../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 import footerBeansBanner from '../assets/images/footer_beans_banner_1790423099535.jpg';
 
@@ -51,10 +51,11 @@ interface InitialMenuProps {
   smCreatorView?: 'generator' | 'codes';
   focusedIndex?: any;
   setFocusedIndex?: any;
-  pageVisibility?: any;
-  availablePages?: any;
+  pageVisibility?: Record<string, boolean>;
+  availablePages?: PageDefinition[];
   showPresenceList?: boolean;
   showRotasPage?: boolean;
+  currentUser?: { email: string; name: string; role: string } | null;
 }
 
 export default function InitialMenu({
@@ -64,6 +65,9 @@ export default function InitialMenu({
   onLogout,
   averbacaoView = 'generator',
   smCreatorView = 'generator',
+  pageVisibility = {},
+  availablePages = [],
+  currentUser
 }: InitialMenuProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -117,19 +121,18 @@ export default function InitialMenu({
     return `${day} ${month} ${year}`;
   }, [currentTime]);
 
-  // Sidebar navigation items matching the layout
-  const sidebarItems = [
-    { id: 'menu', label: 'Início', icon: Home },
-    { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
-    { id: 'averbacao', label: 'Averbação', icon: FileCheck2 },
-    { id: 'sm_creator', label: 'SM', icon: Share2 },
-    { id: 'iscas', label: 'Iscas', icon: Package },
-    { id: 'controle', label: 'Controle', icon: BarChart3 },
-    { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
-    { id: 'escala', label: 'Escala', icon: Calendar },
-    { id: 'presence', label: 'Lista de Presença', icon: Users2 },
-    { id: 'rotas', label: 'Rotas', icon: MapPin },
-  ];
+  // Sidebar navigation items dynamically generated from shared config
+  const sidebarItems = useMemo(() => {
+    const base = [{ id: 'menu', label: 'Início', icon: Home }];
+    const pages = (availablePages.length > 0 ? availablePages : getAllAvailablePages())
+      .filter(p => p.id !== 'cadastro' && Boolean((pageVisibility && pageVisibility[p.id]) ?? true))
+      .map(p => ({
+        id: p.id,
+        label: p.label,
+        icon: ICON_MAP[p.iconName] || Route
+      }));
+    return [...base, ...pages];
+  }, [availablePages, pageVisibility]);
 
   const handleItemClick = (id: string) => {
     setActiveNav(id);
@@ -193,7 +196,7 @@ export default function InitialMenu({
           {/* ===================================================================== */}
           {/* 1. TOPBAR OPERACIONAL CAFÉ TRÊS CORAÇÕES (HEIGHT = 65px)              */}
           {/* ===================================================================== */}
-          <header className="w-full h-[65px] px-6 border-b border-[#C5A059] flex items-center justify-between z-40 shrink-0" style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}>
+          <header className="w-full h-[65px] px-6 border-b border-[#E8DDCA] flex items-center justify-between z-40 shrink-0 bg-[#FFFEFC]">
             
             {/* Left: Brand Identity & Sistema Operacional Title */}
             <div className="flex items-center gap-6">
@@ -201,8 +204,7 @@ export default function InitialMenu({
                 onClick={() => handleItemClick('menu')}
                 className="flex items-center gap-3 cursor-pointer group"
               >
-                {/* 3D Gold Rimmed Red Circle Medal with 3 Corações Heart Logo */}
-                <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(180,130,40,0.35)] group-hover:scale-105 transition-transform flex items-center justify-center bg-transparent border-2 border-[#C5A059]">
+                <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(180,130,40,0.15)] group-hover:scale-105 transition-transform flex items-center justify-center bg-transparent border-2 border-[#D8B065]">
                   <img 
                     src={goldMedalLogo} 
                     alt="Café Três Corações"
@@ -211,23 +213,23 @@ export default function InitialMenu({
                 </div>
                 
                 <div className="leading-tight text-left">
-                  <strong className="text-[16px] font-black text-[#FAF7F0] tracking-wide font-sans block">
+                  <strong className="text-[16px] font-black text-[#25231F] tracking-wide font-sans block">
                     Café Três Corações
                   </strong>
-                  <span className="text-[8px] font-bold text-[#C5A059] uppercase tracking-widest block mt-0.5">
+                  <span className="text-[8px] font-bold text-[#8C6D28] uppercase tracking-widest block mt-0.5">
                     SEGURANÇA • LOGÍSTICA • RESULTADOS
                   </span>
                 </div>
               </div>
 
-              <div className="h-7 w-px bg-[#C5A059] shrink-0" />
+              <div className="h-7 w-px bg-[#E8DDCA] shrink-0" />
 
               {/* Sistema Operacional Center Title */}
               <div className="flex flex-col text-left leading-tight shrink-0">
-                <span className="text-[13.5px] font-black uppercase tracking-wider text-[#FAF7F0] font-sans">
+                <span className="text-[13.5px] font-black uppercase tracking-wider text-[#25231F] font-sans">
                   SISTEMA OPERACIONAL
                 </span>
-                <span className="text-[8px] font-bold uppercase tracking-widest text-[#C5A059] mt-0.5">
+                <span className="text-[8px] font-bold uppercase tracking-widest text-[#8C6D28] mt-0.5">
                   CONTROLE TÁTICO • GESTÃO • RESULTADOS
                 </span>
               </div>
@@ -236,7 +238,6 @@ export default function InitialMenu({
             {/* Center-Right & Right: Search, Notifications, Profile, Weather & Clock */}
             <div className="flex items-center gap-4 shrink-0">
 
-              {/* Search Bar Pill (Width ~280px, Height ~40px, Radius ~25px) */}
               <div className="flex items-center gap-2.5 px-4 h-[40px] rounded-[25px] bg-[#f2e8d8]/85 border border-[#dfd6c6] w-[275px] shadow-inner text-stone-600 focus-within:bg-white focus-within:border-stone-400 transition-all">
                 <Search size={14} className="text-stone-400 shrink-0" />
                 <input 
@@ -246,7 +247,6 @@ export default function InitialMenu({
                 />
               </div>
 
-              {/* Notification Bell with Badge 3 */}
               <div className="relative shrink-0">
                 <button 
                   type="button"
@@ -260,7 +260,6 @@ export default function InitialMenu({
                 </span>
               </div>
 
-              {/* User Profile Capsule */}
               <div className="relative shrink-0">
                 <div 
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -272,13 +271,16 @@ export default function InitialMenu({
                     className="w-7.5 h-7.5 rounded-full object-cover border border-stone-300 shadow-xs"
                   />
                   <div className="flex flex-col text-left">
-                    <span className="text-[12px] font-bold text-stone-900 leading-tight">Jefferson Dias</span>
-                    <span className="text-[9px] text-stone-500 font-medium leading-none mt-0.5">Administrador</span>
+                    <span className="text-[12px] font-bold text-stone-900 leading-tight">
+                      {currentUser?.name || 'Jefferson Dias'}
+                    </span>
+                    <span className="text-[9px] text-stone-500 font-medium leading-none mt-0.5">
+                      {currentUser?.role === 'admin' ? 'Administrador' : 'Funcionário'}
+                    </span>
                   </div>
                   <ChevronDown size={13} className="text-stone-400 group-hover:text-stone-700 ml-0.5 transition-colors" />
                 </div>
 
-                {/* Profile Dropdown */}
                 <AnimatePresence>
                   {showProfileMenu && (
                     <motion.div
@@ -312,7 +314,6 @@ export default function InitialMenu({
                 </AnimatePresence>
               </div>
 
-              {/* Date, Time & Weather (Fortaleza - CE ☀️ 28°C) */}
               <div className="flex flex-col items-end border-l border-[#dfd6c6] pl-4 leading-tight shrink-0">
                 <span className="text-[9px] font-mono font-bold text-stone-500 uppercase tracking-wider">
                   {formattedDate}
@@ -332,44 +333,35 @@ export default function InitialMenu({
           </header>
 
           {/* ===================================================================== */}
-          {/* 2. MAIN WORKSPACE: SIDEBAR (~200px) + DASHBOARD CONTENT (~1700px)     */}
+          {/* 2. MAIN WORKSPACE: SIDEBAR (~280px) + CONTENT AREA                   */}
           {/* ===================================================================== */}
           <main className="flex-1 w-full px-4 py-2.5 gap-3 flex items-stretch overflow-hidden min-h-0">
             
-            {/* ------------------------------------------------------------------- */}
-            {/* LEFT SIDEBAR (~200px)                                               */}
-            {/* ------------------------------------------------------------------- */}
-            {/* ------------------------------------------------------------------- */}
-            {/* LEFT SIDEBAR (~280px) - MENU OPERACIONAL                            */}
-            {/* ------------------------------------------------------------------- */}
-            <aside className="w-[280px] shrink-0 bg-[#121417] border border-[#C5A059] rounded-[22px] p-3 shadow-[0_4px_25px_rgba(0,0,0,0.4)] flex flex-col justify-between h-full overflow-y-auto">
+            <aside className="w-[280px] shrink-0 bg-[#FAF6EE] border border-[#E8DDCA] rounded-[22px] p-3 shadow-sm flex flex-col justify-between h-full overflow-y-auto">
               
               <div className="flex flex-col gap-3">
-                {/* Header in sidebar matching image */}
-                <div className="flex items-center justify-between pb-3 border-b border-[#C5A059]/50">
+                <div className="flex items-center justify-between pb-3 border-b border-[#E8DDCA]">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#C5A059] flex items-center justify-center bg-[#181A1D]">
+                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-[#D8B065] flex items-center justify-center bg-white shadow-xs">
                       <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
                     </div>
                     <div className="text-left leading-tight">
-                      <span className="text-[12.5px] font-black text-[#C5A059] uppercase tracking-wider block font-heading">
+                      <span className="text-[12.5px] font-black text-[#25231F] uppercase tracking-wider block font-heading">
                         MENU OPERACIONAL
                       </span>
-                      <span className="text-[7.5px] font-bold text-stone-400 uppercase tracking-widest block mt-0.5 font-mono">
+                      <span className="text-[7.5px] font-bold text-[#8C6D28] uppercase tracking-widest block mt-0.5 font-mono">
                         PAINEL CENTRAL DO SISTEMA
                       </span>
                     </div>
                   </div>
                   <button 
                     onClick={() => handleItemClick('menu')}
-                    className="w-7 h-7 rounded-full bg-[#181A1D] border border-[#C5A059]/60 flex items-center justify-center text-[#C5A059] hover:bg-[#C91F2D] hover:text-white transition-colors cursor-pointer shadow-xs"
-                    title="Fechar / Início"
+                    className="w-7 h-7 rounded-full bg-white border border-[#E8DDCA] flex items-center justify-center text-[#8C6D28] hover:bg-stone-50 transition-colors cursor-pointer shadow-xs"
                   >
                     <X size={13} />
                   </button>
                 </div>
 
-                {/* Navigation Links */}
                 <nav className="flex flex-col gap-2">
                   {sidebarItems.map((item) => {
                     const isActive = activeNav === item.id;
@@ -381,14 +373,14 @@ export default function InitialMenu({
                         className={cn(
                           "w-full h-[48px] flex items-center justify-between px-3.5 rounded-[16px] font-black uppercase text-[11.5px] tracking-wide transition-all duration-200 cursor-pointer group text-left relative",
                           isActive
-                            ? "bg-gradient-to-r from-[#8e0b18] via-[#a91625] to-[#6f0712] text-white shadow-[0_4px_16px_rgba(201,31,45,0.45)] border border-red-500/50"
-                            : "bg-[#181A1D] text-[#FAF7F0] hover:text-[#C5A059] hover:bg-[#1f2429] border border-[#C5A059]/30"
+                            ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white shadow-md border border-[#C59B48]"
+                            : "bg-white text-[#25231F] hover:bg-[#FAF6EE] border border-[#E8DDCA]"
                         )}
                       >
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "w-7.5 h-7.5 rounded-full flex items-center justify-center shrink-0 transition-colors shadow-2xs border",
-                            isActive ? "bg-[#C5A059] text-[#121417] border-[#fff8e3]" : "bg-[#121417] text-[#C5A059] border-[#C5A059]/60"
+                            isActive ? "bg-white/20 text-white border-white/30" : "bg-stone-50 text-[#8C6D28] border-stone-200"
                           )}>
                             <Icon size={14} />
                           </div>
@@ -399,7 +391,7 @@ export default function InitialMenu({
 
                         <div className="flex items-center gap-2">
                           {isActive && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/30 border border-white/20 text-[9px] font-black text-white tracking-widest uppercase">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/10 border border-white/20 text-[9px] font-black text-white tracking-widest uppercase">
                               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                               ATIVO
                             </span>
@@ -408,7 +400,7 @@ export default function InitialMenu({
                             size={14} 
                             className={cn(
                               "shrink-0 transition-transform",
-                              isActive ? "text-[#C5A059]" : "text-stone-500 group-hover:text-[#C5A059]"
+                              isActive ? "text-white" : "text-stone-400 group-hover:text-[#8C6D28]"
                             )} 
                           />
                         </div>
@@ -418,41 +410,45 @@ export default function InitialMenu({
                 </nav>
               </div>
 
-              {/* Bottom Config Button */}
-              <div className="mt-2 pt-2 border-t border-[#C5A059]/50">
+              <div className="mt-2 pt-2 border-t border-[#E8DDCA]">
                 <button
-                  onClick={() => handleItemClick('controle')}
-                  className="w-full h-[45px] flex items-center justify-between px-3.5 rounded-[16px] bg-[#181A1D] hover:bg-[#1f2429] text-[#FAF7F0] hover:text-[#C5A059] border border-[#C5A059]/40 font-black uppercase text-[11px] tracking-wide transition-all cursor-pointer shadow-xs"
+                  onClick={() => {
+                    if (currentUser?.role === 'admin') {
+                      handleItemClick('settings');
+                    } else {
+                      handleItemClick('cadastro');
+                    }
+                  }}
+                  className="w-full h-[45px] flex items-center justify-between px-3.5 rounded-[16px] bg-white hover:bg-stone-50 text-[#25231F] hover:text-[#8C6D28] border border-[#E8DDCA] font-black uppercase text-[11px] tracking-wide transition-all cursor-pointer shadow-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-7.5 h-7.5 rounded-full bg-[#121417] text-[#C5A059] border border-[#C5A059]/60 flex items-center justify-center shrink-0">
+                    <div className="w-7.5 h-7.5 rounded-full bg-stone-50 text-[#8C6D28] border border-stone-200 flex items-center justify-center shrink-0">
                       <Settings size={14} />
                     </div>
-                    <span>CONFIGURAÇÕES & PÁGINAS</span>
+                    <span>{currentUser?.role === 'admin' ? 'CONFIGURAÇÕES & PÁGINAS' : 'MEU PERFIL / SENHA'}</span>
                   </div>
-                  <ChevronRight size={14} className="text-stone-500" />
+                  <ChevronRight size={14} className="text-stone-400" />
                 </button>
               </div>
 
             </aside>
 
-            {/* ------------------------------------------------------------------- */}
-            {/* MAIN CONTENT AREA: DASHBOARD OR ACTIVE SUB-MODULE                   */}
-            {/* ------------------------------------------------------------------- */}
             <section className="flex-1 min-w-0 h-full overflow-hidden">
               {activeNav === 'menu' ? (
-                <DashboardInicioFuturistic onNavigate={handleItemClick} />
+                <MainDashboard 
+                  onNavigate={handleItemClick} 
+                />
               ) : (
-                <div id="main-scroll-container" className="bg-[#121417] rounded-[22px] h-full overflow-y-auto border border-[#C5A059] shadow-md relative z-10 p-5">
-                  <div className="mb-4 pb-3 border-b border-[#C5A059] flex items-center justify-between">
+                <div id="main-scroll-container" className="bg-white rounded-[22px] h-full overflow-y-auto border border-[#E8DDCA] shadow-sm relative z-10 p-5">
+                  <div className="mb-4 pb-3 border-b border-[#E8DDCA] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleItemClick('menu')}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#181A1D] hover:bg-[#252A30] text-[#FAF7F0] text-xs font-bold transition-colors cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100 text-[#25231F] text-xs font-bold transition-colors cursor-pointer border border-stone-200"
                       >
                         ‹ Voltar ao Início
                       </button>
-                      <span className="text-xs font-bold text-[#FAF7F0] uppercase tracking-wider">
+                      <span className="text-xs font-bold text-[#25231F] uppercase tracking-wider">
                         {sidebarItems.find(i => i.id === activeNav)?.label}
                       </span>
                     </div>
@@ -467,10 +463,9 @@ export default function InitialMenu({
           {/* ===================================================================== */}
           {/* 3. CINEMATIC BOTTOM FOOTER BAR                                        */}
           {/* ===================================================================== */}
-          <footer className="w-full h-[40px] px-6 border-t border-[#C5A059] flex items-center justify-between relative overflow-hidden shrink-0 z-30 shadow-inner" style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}>
+          <footer className="w-full h-[40px] px-6 border-t border-[#E8DDCA] flex items-center justify-between relative overflow-hidden shrink-0 z-30 bg-[#FFFEFC]">
             
-            {/* Background roasted coffee beans texture on the right */}
-            <div className="absolute inset-0 opacity-45 pointer-events-none">
+            <div className="absolute inset-0 opacity-10 pointer-events-none">
               <img 
                 src={footerBeansBanner} 
                 alt="Coffee Beans Banner" 
@@ -478,35 +473,28 @@ export default function InitialMenu({
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-[#181A1D] via-[#181A1D]/80 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FFFEFC] via-[#FFFEFC]/80 to-transparent pointer-events-none" />
 
-            {/* Left Spacer */}
             <div className="w-48 z-10" />
 
-            {/* Center Slogan */}
             <div className="z-10 text-center flex flex-col items-center">
-              <span className="text-[10px] font-mono font-bold tracking-[0.28em] text-[#C5A059] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+              <span className="text-[10px] font-mono font-bold tracking-[0.28em] text-[#8C6D28] uppercase drop-shadow-sm">
                 JUNTOS, LEVAMOS O MELHOR DO CAFÉ MAIS LONGE.
               </span>
-              <span className="text-[9px] font-sans font-semibold tracking-wide text-[#dfb15b] lowercase mt-0.5">
+              <span className="text-[9px] font-sans font-semibold tracking-wide text-[#A39274] lowercase mt-0.5">
                 criado por jefferson augusto
               </span>
             </div>
 
-            {/* Right Brand Badges: 3 Corações Heart Logo + Gold Line + Yoki Logo */}
             <div className="flex items-center gap-3 z-10">
-              
-              {/* 3 Corações Round Red/Gold Badge */}
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#8e0b18] to-[#5a060f] border border-[#dfb15b] p-0.5 shadow-md flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#dfb15b]">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
               </div>
 
-              {/* Vertical Gold Divider */}
-              <div className="h-4 w-px bg-[#dfb15b]/60" />
+              <div className="h-4 w-px bg-[#D8B065]/60" />
 
-              {/* Yoki Brand Oval Logo Badge */}
               <div className="px-2.5 py-0.5 rounded-full bg-[#e11d24] border border-[#ffdd00] shadow-sm flex items-center justify-center">
                 <span className="text-[10px] font-black tracking-tight text-[#ffdd00] font-sans italic">
                   Yoki

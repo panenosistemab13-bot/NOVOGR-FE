@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import AppShell from './components/AppShell/AppShell';
 import MainDashboard from './components/Dashboard/MainDashboard';
@@ -44,6 +44,7 @@ interface Appointment {
   title: string;
   type: 'pessoal' | 'corporativo';
 }
+import InitialMenu from './components/InitialMenu';
 import PresenceList from './components/PresenceList';
 import Dashboard from './components/Dashboard';
 import Averbacao from './components/Averbacao';
@@ -113,7 +114,7 @@ const allTabs = [
   { id: 'menu', label: 'Início', icon: LayoutGrid },
   { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
   { id: 'averbacao', label: 'Averbação', icon: FileCheck2 },
-  { id: 'sm_creator', label: 'SM', icon: CalendarDays },
+  { id: 'sm_creator', label: 'monitoramento', icon: CalendarDays },
   { id: 'controle', label: 'Controle', icon: Sliders },
   { id: 'cadastro', label: 'Cadastro', icon: Users2 },
   { id: 'settings', label: 'Configurações & Páginas', icon: Sliders },
@@ -127,10 +128,13 @@ const allTabs = [
 
 export default function App() {
   const principle = useCurrentPrinciple();
-  const [currentUser] = useState<{ email: string; name: string; role: string }>({
-    email: 'admin@3coracoes.com.br',
-    name: 'Administrador 3C',
-    role: 'admin'
+  const [currentUser, setCurrentUser] = useState<{ email: string; name: string; role: string } | null>(() => {
+    try {
+      const saved = localStorage.getItem('logged_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -147,10 +151,10 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState<string>('');
   const [passwordError, setPasswordError] = useState<boolean>(false);
 
-  // Dynamic visible tabs calculation
-  const visibleTabs = [
-    { id: 'menu', label: 'Início', icon: LayoutGrid },
-    ...availablePages
+  // Dynamic visible tabs calculation - ensuring it's synchronized across the app
+  const visibleTabs = useMemo(() => {
+    const base = [{ id: 'menu', label: 'Início', icon: LayoutGrid }];
+    const pages = availablePages
       .filter(p => Boolean(pageVisibility[p.id]))
       .map(p => {
         const found = allTabs.find(t => t.id === p.id);
@@ -160,8 +164,9 @@ export default function App() {
           label: p.label,
           icon: IconComponent
         };
-      })
-  ];
+      });
+    return [...base, ...pages];
+  }, [availablePages, pageVisibility]);
 
   const [activeTab, setActiveTab] = useState<Tab>('menu');
   const [focusedCardIndex, setFocusedCardIndex] = useState<number>(0);
@@ -532,14 +537,23 @@ export default function App() {
   };
 
   if (!isAuthenticated) {
-    return <LoginScreen onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <LoginScreen onLoginSuccess={(user) => {
+      setIsAuthenticated(true);
+      setCurrentUser(user);
+    }} />;
   }
 
   return (
     <AppShell
       activeTab={activeTab}
       onSelectTab={(id) => setActiveTab(id as Tab)}
-      onOpenSettings={() => setActiveTab('settings')}
+      onOpenSettings={() => {
+        if (currentUser?.role === 'admin') {
+          setActiveTab('settings');
+        } else {
+          setActiveTab('cadastro'); // Employees go directly to their profile
+        }
+      }}
       onLogout={handleLogout}
       showPresenceList={Boolean(pageVisibility['presence'])}
       showRotasPage={Boolean(pageVisibility['rotas'])}
@@ -547,15 +561,20 @@ export default function App() {
       isWallpaperOpen={showWallpaperModal}
       pageVisibility={pageVisibility}
       availablePages={availablePages}
+      currentUser={currentUser}
     >
       <div 
         className="w-full h-full overflow-y-auto relative"
-        style={{
-          backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed'
-        }}
+        style={
+          activeTab === 'menu'
+            ? { backgroundColor: '#F6F2E9' }
+            : {
+                backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundAttachment: 'fixed'
+              }
+        }
       >
         {activeTab === 'menu' ? (
           <MainDashboard onNavigate={(id) => setActiveTab(id as Tab)} />

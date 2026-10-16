@@ -49,8 +49,8 @@ export default function OperationalMenu({
     {
       id: 'sm_creator',
       number: '02',
-      name: 'SM',
-      description: 'MONITORAMENTO',
+      name: 'MONITORAMENTO',
+      description: 'SOLICITAÇÕES',
       icon: Radio
     },
     {
