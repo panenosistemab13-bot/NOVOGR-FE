@@ -33,7 +33,14 @@ import { ApoliceItem } from './ApoliceEscala';
 import { DEFAULT_TRANSPORTADORAS, findClosestTransportador } from '../data/transportadoras';
 
 // Configuração do Worker do PDF.js (100% no navegador)
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+  } catch {
+    const v = pdfjsLib.version || '6.2.108';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${v}/build/pdf.worker.min.mjs`;
+  }
+}
 
 // Canto angular cibernético HUD para quinas 4K
 function TechCorner({ className }: { className?: string }) {

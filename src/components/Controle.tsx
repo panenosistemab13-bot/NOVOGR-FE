@@ -100,11 +100,11 @@ const EMBARQUE_IMAGES = [
     label: "Carga Batida (Padrão)",
   },
   { value: "https://lh3.googleusercontent.com/d/1RdjcMTVC2ofuxQVzajM0S01VSMAXLaMf", label: "AMARELIN" },
-  { value: "https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh", label: "SUPERIOR BATIDO" },
+  { value: "https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh", label: "LADO DIREITO SUPERIOR (PADRÃO)" },
   { value: "https://lh3.googleusercontent.com/d/1JGe0rvxIMqBpMMxclgFpQj47GqVl1VMX", label: "CASTANHA" },
   { value: "https://lh3.googleusercontent.com/d/1kI3l33NFrTlqnDveMgKWHfFfU5WA6OTQ", label: "IZOTONICO" },
   { value: "https://lh3.googleusercontent.com/d/1EQ5fMDDHViGvBd8-ehlwhyE4yyOc_peH", label: "ALMOFADA" },
-  { value: "https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV", label: "LADO DIREITO SUPERIOR BATIDO (PORTA)" },
+  { value: "https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV", label: "PORTA LADO DIREITO" },
   { value: "https://lh3.googleusercontent.com/d/14F4wPXwU607GmwqphSzlXk7xZ_EhOdWS", label: "LADO ESQUERDO SUPERIOR BATIDO" },
   { value: "https://lh3.googleusercontent.com/d/1J3nx_-iBh-5AiBJEB5fZrv_wW9sJNIXI", label: "LADO DIREITO SUPERIOR - BATIDO/PALETIZADO" },
   { value: "https://lh3.googleusercontent.com/d/1cw1CQiD8FUzeIBh36sBObz91h8k3bls1", label: "LADO ESQUERDO SUPERIOR - BATIDO/PALETIZADO" },
@@ -126,6 +126,61 @@ export const getLocalFallbackImg = (url: string) => {
   if (url.includes("1cw1CQiD8FUzeIBh36sBObz91h8k3bls1")) return url;
   if (url.startsWith("/images/")) return url;
   return url;
+};
+
+export const isValorCargaEmpty = (valor: string): boolean => {
+  if (!valor) return true;
+  const trimmed = valor.trim().toUpperCase();
+  return !trimmed || trimmed === "0" || trimmed === "0,00" || trimmed === "R$ 0,00" || trimmed === "R$ 0" || trimmed === "---";
+};
+
+export const getValorCargaFormatted = (valor: string): string => {
+  if (isValorCargaEmpty(valor)) {
+    return "CAFE TRES CORAÇÕES";
+  }
+  return valor.trim();
+};
+
+export const matchEmbarqueUrl = (esquema: string): string => {
+  if (!esquema) return "";
+  const upperE = esquema.toUpperCase();
+
+  // 1. LADO DIREITO SUPERIOR - BATIDO/PALETIZADO
+  if (upperE.includes("LADO DIREITO") && (upperE.includes("BATIDO/PALETIZADO") || (upperE.includes("PALETIZADO") && upperE.includes("BATIDO")))) {
+    return "https://lh3.googleusercontent.com/d/1J3nx_-iBh-5AiBJEB5fZrv_wW9sJNIXI";
+  }
+  // 2. LADO ESQUERDO SUPERIOR - BATIDO/PALETIZADO
+  if (upperE.includes("LADO ESQUERDO") && (upperE.includes("BATIDO/PALETIZADO") || (upperE.includes("PALETIZADO") && upperE.includes("BATIDO")))) {
+    return "https://lh3.googleusercontent.com/d/1cw1CQiD8FUzeIBh36sBObz91h8k3bls1";
+  }
+  // 3. LADO DIREITO SUPERIOR (PADRÃO)
+  if (
+    upperE.includes("LADO DIREITO SUPERIOR") || 
+    upperE.includes("SUPERIOR BATIDO") || 
+    (upperE.includes("LADO DIREITO") && upperE.includes("SUPERIOR"))
+  ) {
+    return "https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh";
+  }
+  // 4. LADO ESQUERDO SUPERIOR BATIDO
+  if (upperE.includes("LADO ESQUERDO SUPERIOR") || (upperE.includes("LADO ESQUERDO") && upperE.includes("SUPERIOR"))) {
+    return "https://lh3.googleusercontent.com/d/14F4wPXwU607GmwqphSzlXk7xZ_EhOdWS";
+  }
+  // 5. PORTA LADO DIREITO
+  if (upperE.includes("PORTA") || upperE.includes("PORTA LADO DIREITO")) {
+    return "https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV";
+  }
+  // 6. Outros esquemas específicos
+  if (upperE.includes("AMARELIN")) return "https://lh3.googleusercontent.com/d/1RdjcMTVC2ofuxQVzajM0S01VSMAXLaMf";
+  if (upperE.includes("CASTANHA")) return "https://lh3.googleusercontent.com/d/1JGe0rvxIMqBpMMxclgFpQj47GqVl1VMX";
+  if (upperE.includes("IZOTONICO") || upperE.includes("ISOTONICO")) return "https://lh3.googleusercontent.com/d/1kI3l33NFrTlqnDveMgKWHfFfU5WA6OTQ";
+  if (upperE.includes("ALMOFADA")) return "https://lh3.googleusercontent.com/d/1EQ5fMDDHViGvBd8-ehlwhyE4yyOc_peH";
+  if (upperE.includes("LADO DIREITO")) return "https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV";
+  if (upperE.includes("LADO ESQUERDO")) return "https://lh3.googleusercontent.com/d/14F4wPXwU607GmwqphSzlXk7xZ_EhOdWS";
+  if (upperE.includes("SUPERIOR")) return "https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh";
+  if (upperE.includes("PALETIZADO")) return "https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF";
+  if (upperE.includes("BATIDO")) return "https://lh3.googleusercontent.com/d/1L3oKNxekiqIQ_Uy8L9a7q8qZwx772qmH";
+
+  return "";
 };
 
 export const DESTINOS_PLANILHA_ISCAS = [
@@ -2122,20 +2177,8 @@ export default function Controle({ onBack }: ControleProps) {
       if (c1.nf) setNfInicio(c1.nf.trim().replace(/[\s.]/g, ""));
 
       if (c1.esquema) {
-        const upperE = c1.esquema.toUpperCase();
-        if (upperE.includes("LADO DIREITO") && (upperE.includes("PALETIZADO") || upperE.includes("BATIDO/PALETIZADO"))) {
-          setSidebarEmbarque1("https://lh3.googleusercontent.com/d/1J3nx_-iBh-5AiBJEB5fZrv_wW9sJNIXI");
-        } else if (upperE.includes("LADO ESQUERDO") && (upperE.includes("PALETIZADO") || upperE.includes("BATIDO/PALETIZADO"))) {
-          setSidebarEmbarque1("https://lh3.googleusercontent.com/d/1cw1CQiD8FUzeIBh36sBObz91h8k3bls1");
-        } else if (upperE.includes("LADO DIREITO")) {
-          setSidebarEmbarque1("https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV");
-        } else if (upperE.includes("LADO ESQUERDO")) {
-          setSidebarEmbarque1("https://lh3.googleusercontent.com/d/14F4wPXwU607GmwqphSzlXk7xZ_EhOdWS");
-        } else if (upperE.includes("SUPERIOR") || upperE.includes("BATIDO")) {
-          setSidebarEmbarque1("https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh");
-        } else if (upperE.includes("PALETIZADO")) {
-          setSidebarEmbarque1("https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF");
-        }
+        const matched = matchEmbarqueUrl(c1.esquema);
+        if (matched) setSidebarEmbarque1(matched);
       }
 
       if (info.carretas.length > 1) {
@@ -2151,20 +2194,8 @@ export default function Controle({ onBack }: ControleProps) {
         if (c2.nf) setNfFim(c2.nf.trim().replace(/[\s.]/g, ""));
 
         if (c2.esquema) {
-          const upperE = c2.esquema.toUpperCase();
-          if (upperE.includes("LADO DIREITO") && (upperE.includes("PALETIZADO") || upperE.includes("BATIDO/PALETIZADO"))) {
-            setSidebarEmbarque2("https://lh3.googleusercontent.com/d/1J3nx_-iBh-5AiBJEB5fZrv_wW9sJNIXI");
-          } else if (upperE.includes("LADO ESQUERDO") && (upperE.includes("PALETIZADO") || upperE.includes("BATIDO/PALETIZADO"))) {
-            setSidebarEmbarque2("https://lh3.googleusercontent.com/d/1cw1CQiD8FUzeIBh36sBObz91h8k3bls1");
-          } else if (upperE.includes("LADO DIREITO")) {
-            setSidebarEmbarque2("https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV");
-          } else if (upperE.includes("LADO ESQUERDO")) {
-            setSidebarEmbarque2("https://lh3.googleusercontent.com/d/14F4wPXwU607GmwqphSzlXk7xZ_EhOdWS");
-          } else if (upperE.includes("SUPERIOR") || upperE.includes("BATIDO")) {
-            setSidebarEmbarque2("https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh");
-          } else if (upperE.includes("PALETIZADO")) {
-            setSidebarEmbarque2("https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF");
-          }
+          const matched = matchEmbarqueUrl(c2.esquema);
+          if (matched) setSidebarEmbarque2(matched);
         }
       } else {
         setNumCarretas(1);
@@ -2434,10 +2465,16 @@ export default function Controle({ onBack }: ControleProps) {
                     </div>
                   </td>
                   <td style="vertical-align: middle; text-align: left;">
-                    <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">VALOR DA CARGA:</div>
-                    <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px;">
-                      ${valorCarga || '---'}
-                    </div>
+                    ${!isValorCargaEmpty(valorCarga) ? `
+                      <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">VALOR DA CARGA:</div>
+                      <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px;">
+                        ${valorCarga.trim()}
+                      </div>
+                    ` : `
+                      <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px;">
+                        CAFE TRES CORAÇÕES
+                      </div>
+                    `}
                   </td>
                 </tr>
               </table>
@@ -2655,7 +2692,7 @@ ${infoAbaixo}
 · ${instrucao1}${!pastePlanilha.trim() ? "\n· O site das iscas está temporariamente fora do ar." : ""}
 
 -----------------------------------------------------------------------------------------------------------------
-NÚMERO DA NF: ${[nfInicio, (numCarretas === 2 && isca2 !== "SEM ISCA" ? nfFim : "")].filter(Boolean).map(v => v.replace(/-/g, '')).join(' ')} | TRANSPORTADORA: ${transportadora}${valorCarga ? ` | VALOR CARGA: ${valorCarga}` : ""}
+NÚMERO DA NF: ${[nfInicio, (numCarretas === 2 && isca2 !== "SEM ISCA" ? nfFim : "")].filter(Boolean).map(v => v.replace(/-/g, '')).join(' ')} | TRANSPORTADORA: ${transportadora}${!isValorCargaEmpty(valorCarga) ? ` | VALOR CARGA: ${valorCarga.trim()}` : " | CAFE TRES CORAÇÕES"}
 -----------------------------------------------------------------------------------------------------------------
 MOTORISTA: ${motorista}
 CAVALO: ${cavalo.replace(/-/g, '')}
@@ -4202,28 +4239,30 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       </div>
                     </div>
 
-                    {/* MODULE 3: VALOR DA CARGA */}
-                    <div className="md:col-span-3 p-2.5 sm:p-3 flex items-center justify-between gap-3 relative bg-[linear-gradient(135deg,#1F2328_0%,#181A1D_100%)]">
-                      <div className="flex items-center gap-2.5">
+                    {/* MODULE 3: VALOR DA CARGA / CAFE TRES CORAÇÕES */}
+                    <div className="md:col-span-3 p-2.5 sm:p-3 flex items-center justify-between gap-2 sm:gap-3 relative bg-[linear-gradient(135deg,#1F2328_0%,#181A1D_100%)] min-w-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#F59E0B] via-[#C5A059] to-[#8C6D2B] p-[1.5px] shadow-sm flex items-center justify-center shrink-0">
                           <div className="w-full h-full rounded-full bg-[#181A1D] flex items-center justify-center">
                             <Coins size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
-                        <div className="flex flex-col text-left">
-                          <span className="font-extrabold text-[#C5A059] text-[10px] uppercase tracking-wider leading-none">
-                            VALOR DA CARGA
-                          </span>
-                        </div>
+                        {!isValorCargaEmpty(valorCarga) && (
+                          <div className="flex flex-col text-left">
+                            <span className="font-extrabold text-[#C5A059] text-[10px] uppercase tracking-wider leading-none">
+                              VALOR DA CARGA
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="bg-[#121417] rounded-xl px-3 py-1.5 border border-[#C5A059] shadow-inner flex items-center justify-center">
+                      <div className="bg-[#121417] rounded-xl px-2.5 sm:px-3 py-1.5 border border-[#C5A059] shadow-inner flex items-center justify-center min-w-0 flex-1">
                         <input
                           type="text"
                           value={valorCarga}
                           onChange={(e) => setValorCarga(e.target.value)}
-                          className="w-24 sm:w-28 text-right font-black uppercase text-[#FAF7F0] bg-transparent border-none outline-none text-[13.5px] tracking-tight hover:bg-black/40 focus:bg-black rounded px-1 transition-all"
-                          placeholder="355565"
-                          title="Valor da Carga"
+                          className="w-full text-right font-black uppercase text-[#FAF7F0] bg-transparent border-none outline-none text-[12px] sm:text-[13px] tracking-tight hover:bg-black/40 focus:bg-black rounded px-1 transition-all placeholder:text-[#C5A059] placeholder:font-black"
+                          placeholder="CAFE TRES CORAÇÕES"
+                          title="Valor da Carga (NF) - Quando vazia exibe: CAFE TRES CORAÇÕES"
                         />
                       </div>
                     </div>
@@ -6033,8 +6072,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 value={valorCarga}
                 onChange={(e) => setValorCarga(e.target.value)}
                 className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3 py-2 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] outline-none transition-all shadow-2xs placeholder:text-[#77736B]"
-                placeholder="R$ 0,00"
-                title="Importado da coluna VALOR NF na aba SANTA LUZIA"
+                placeholder="CAFE TRES CORAÇÕES"
+                title="Importado da coluna VALOR NF na aba SANTA LUZIA (Se vazio, exibe: CAFE TRES CORAÇÕES)"
               />
             </div>
 

@@ -19,9 +19,17 @@ async function startServer() {
   app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
     next();
   });
+
+  // Serve static files from public/ with proper MIME type for .mjs workers
+  app.use(express.static(path.join(process.cwd(), 'public'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.mjs')) {
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      }
+    }
+  }));
 
   // API routes go here FIRST
   app.get("/api/health", (req, res) => {
@@ -238,6 +246,144 @@ Retorne estritamente o array JSON com as linhas encontradas.`;
     } catch (err) {
       console.error("Erro na rota /api/parse-prancheta:", err);
       return res.status(500).json({ error: "Erro interno ao processar a prancheta." });
+    }
+  });
+
+  app.post("/api/parse-danfe-pdf", async (req, res) => {
+    try {
+      const { files, fileBase64, fileName } = req.body;
+      const filesToProcess: Array<{ fileName: string; base64: string }> = [];
+
+      if (Array.isArray(files) && files.length > 0) {
+        filesToProcess.push(...files);
+      } else if (fileBase64) {
+        filesToProcess.push({ fileName: fileName || "nota-fiscal.pdf", base64: fileBase64 });
+      } else {
+        return res.status(400).json({ error: "Nenhum arquivo enviado." });
+      }
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      const results: Array<{
+        fileName: string;
+        numeroNf: string;
+        valor: number;
+        valorFormatado: string;
+        success: boolean;
+        error?: string;
+      }> = [];
+
+      for (const file of filesToProcess) {
+        const cleanBase64 = file.base64.replace(/^data:[^;]+;base64,/, "");
+        let extractedNumber = "---";
+        let extractedValue: number | null = null;
+        let extractedValueFormatado = "0,00";
+
+        // 1. First attempt: Fast PDF text extraction using pdf-parse & specialized DANFE extractor
+        try {
+          const buffer = Buffer.from(cleanBase64, "base64");
+          const pdfData = await pdf(buffer);
+          const text = (pdfData && pdfData.text) || "";
+
+          const parsed = extractNfValueFromText(text);
+          if (parsed && parsed.valor > 0) {
+            extractedNumber = parsed.numeroNf;
+            extractedValue = parsed.valor;
+            extractedValueFormatado = parsed.valorFormatado;
+          }
+        } catch (fastErr) {
+          console.warn("Fast PDF text extraction error for", file.fileName, fastErr);
+        }
+
+        // 2. Second attempt: If value not found or PDF is scanned/image-based, use Gemini Multimodal
+        if (extractedValue === null && apiKey) {
+          try {
+            const ai = new GoogleGenAI({
+              apiKey,
+              httpOptions: { headers: { "User-Agent": "aistudio-build" } }
+            });
+
+            const prompt = `Analise este documento fiscal brasileiro (DANFE / Nota Fiscal Eletrônica).
+Identifique com máxima precisão:
+1. "numeroNf": O número da nota fiscal (campo "Nº" ou "Nº 000.000.000" do cabeçalho).
+2. "valorTotalNf": O valor numérico do campo "VALOR TOTAL DA NOTA" ou "VALOR TOTAL DA NF" (ex: 660105.60 para R$ 660.105,60). Se houver vários valores, procure o valor total final da nota.
+
+Retorne em formato JSON estrito:
+{
+  "numeroNf": "string",
+  "valorTotalNf": number
+}`;
+
+            const response = await ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: {
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: "application/pdf",
+                      data: cleanBase64
+                    }
+                  },
+                  { text: prompt }
+                ]
+              },
+              config: {
+                responseMimeType: "application/json",
+                temperature: 0.1
+              }
+            });
+
+            let jsonText = (response.text || "").replace(/```json\n?|```/g, "").trim();
+            const parsed = JSON.parse(jsonText);
+            if (parsed && typeof parsed.valorTotalNf === "number" && !isNaN(parsed.valorTotalNf)) {
+              extractedValue = parsed.valorTotalNf;
+              extractedValueFormatado = new Intl.NumberFormat("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }).format(extractedValue);
+              if (parsed.numeroNf) {
+                extractedNumber = String(parsed.numeroNf).replace(/\D/g, "");
+              }
+            }
+          } catch (aiErr) {
+            console.warn("Gemini DANFE extraction error for", file.fileName, aiErr);
+          }
+        }
+
+        if (extractedValue !== null && !isNaN(extractedValue)) {
+          results.push({
+            fileName: file.fileName,
+            numeroNf: extractedNumber,
+            valor: extractedValue,
+            valorFormatado: extractedValueFormatado,
+            success: true
+          });
+        } else {
+          results.push({
+            fileName: file.fileName,
+            numeroNf: extractedNumber,
+            valor: 0,
+            valorFormatado: "0,00",
+            success: false,
+            error: "Valor Total da NF não localizado no documento"
+          });
+        }
+      }
+
+      const totalSum = results.reduce((acc, r) => acc + (r.valor || 0), 0);
+      const totalFormatado = new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(totalSum);
+
+      return res.status(200).json({
+        success: true,
+        items: results,
+        total: totalSum,
+        totalFormatado
+      });
+    } catch (err: any) {
+      console.error("Erro na rota /api/parse-danfe-pdf:", err);
+      return res.status(500).json({ error: err.message || "Erro ao processar as notas fiscais." });
     }
   });
 
@@ -693,17 +839,35 @@ Retorne estritamente o objeto JSON correspondente.`;
 function extractNfValueFromText(text: string): { valor: number; valorFormatado: string; numeroNf: string } | null {
   if (!text) return null;
 
+  // 1. Extração do Número da NF
   let numeroNf = '---';
-  const nfNumMatch = text.match(/(?:NF-e|NOTA FISCAL|Nº|Nº\.|Nº:)\s*(\d{1,3}(?:\.\d{3})+|\d{4,9})/i) ||
-                     text.match(/(?:SÉRIE|SERIE).*?(?:Nº|Nº\.|NUMERO)\s*(\d+)/i);
-  if (nfNumMatch) {
-    numeroNf = nfNumMatch[1];
+  
+  // A. Chave de acesso de 44 dígitos (dígitos 26 a 34 contêm os 9 dígitos do número da NF)
+  const chaveMatch = text.match(/\b\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\b/) ||
+                     text.match(/\b\d{44}\b/);
+  if (chaveMatch) {
+    const rawChave = chaveMatch[0].replace(/\D/g, '');
+    if (rawChave.length === 44) {
+      const nfFromChave = parseInt(rawChave.substring(25, 34), 10);
+      if (!isNaN(nfFromChave) && nfFromChave > 0) {
+        numeroNf = String(nfFromChave);
+      }
+    }
   }
 
-  const lines = text.split(/\r?\n/);
+  // B. Regex padrão de cabeçalho DANFE
+  if (numeroNf === '---') {
+    const nfNumMatch = text.match(/(?:NF-e|NOTA FISCAL|DANFE)[^\d]{0,30}N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{1,9})/i) ||
+                       text.match(/N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{4,9})/i) ||
+                       text.match(/(?:SÉRIE|SERIE).*?(?:Nº|Nº\.|NUMERO)\s*(\d+)/i);
+    if (nfNumMatch && nfNumMatch[1]) {
+      numeroNf = nfNumMatch[1].replace(/\D/g, '');
+    }
+  }
 
-  // 1. Explicit inline keywords like "VALOR TOTAL DA NOTA 15.420,50" or "VALOR TOTAL DA NOTA R$ 15.420,50"
-  const directMatch = text.match(/(?:VALOR\s+TOTAL\s+DA\s+NOTA|VALOR\s+TOTAL\s+DO\s+DOCUMENTO|VALOR\s+TOTAL\s+DA\s+NF|VALOR\s+TOTAL\s+DOS\s+PRODUTOS|V\.\s*TOTAL\s+DA\s+NOTA|TOTAL\s+DA\s+NOTA)\s*[:\.]?\s*(?:R\$\s*)?([\d\.]+\,\d{2})/i);
+  // 2. Extração do VALOR TOTAL DA NF / VALOR TOTAL DA NOTA
+  // ESTRATÉGIA A: Correspondência direta quando a etiqueta e o valor estão na mesma linha ou imediatamente adjacentes
+  const directMatch = text.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO)\s*[:\.]?\s*(?:R\$\s*)?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
   if (directMatch) {
     const strVal = directMatch[1];
     const numVal = parseFloat(strVal.replace(/\./g, '').replace(',', '.'));
@@ -716,7 +880,43 @@ function extractNfValueFromText(text: string): { valor: number; valorFormatado: 
     }
   }
 
-  // 2. Line-by-line DANFE block search
+  // ESTRATÉGIA B: Bloco de "CÁLCULO DO IMPOSTO" (Padrão Oficial DANFE da SEFAZ)
+  // O campo "VALOR TOTAL DA NOTA" fica no canto inferior direito do bloco de impostos.
+  const calcBlock = text.match(/(?:C[ÁA]LCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,900}?(?:DADOS\s+DO\s+TRANSPORTE|TRANSPORTADOR|FRETE\s+POR\s+CONTA|DADOS\s+DOS\s+PRODUTOS|RAZ[AÃ]O\s+SOCIAL)/i);
+  if (calcBlock) {
+    const allCurrencies = calcBlock[0].match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
+    if (allCurrencies && allCurrencies.length > 0) {
+      // O último valor monetário do bloco de impostos é universalmente o VALOR TOTAL DA NOTA
+      for (let idx = allCurrencies.length - 1; idx >= 0; idx--) {
+        const valStr = allCurrencies[idx];
+        const valNum = parseFloat(valStr.replace(/\./g, '').replace(',', '.'));
+        if (!isNaN(valNum) && valNum > 0) {
+          return {
+            valor: valNum,
+            valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valNum),
+            numeroNf
+          };
+        }
+      }
+    }
+  }
+
+  // ESTRATÉGIA C: Busca por proximidade da palavra-chave "VALOR TOTAL DA NOTA" ou "VALOR TOTAL DA NF"
+  const proximityMatch = text.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)[\s\S]{0,180}?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
+  if (proximityMatch) {
+    const strVal = proximityMatch[1];
+    const numVal = parseFloat(strVal.replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(numVal) && numVal > 0) {
+      return {
+        valor: numVal,
+        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(numVal),
+        numeroNf
+      };
+    }
+  }
+
+  // ESTRATÉGIA D: Linha a linha com busca nos 3 próximos itens
+  const lines = text.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const lineUpper = lines[i].toUpperCase();
     if (
@@ -724,9 +924,10 @@ function extractNfValueFromText(text: string): { valor: number; valorFormatado: 
       lineUpper.includes('VALOR TOTAL DO DOCUMENTO') || 
       lineUpper.includes('VALOR TOTAL DA NF') ||
       lineUpper.includes('V. TOTAL') ||
+      lineUpper.includes('TOTAL DA NOTA') ||
       lineUpper.includes('VALOR TOTAL DOS PRODUTOS')
     ) {
-      for (let j = i; j <= Math.min(i + 3, lines.length - 1); j++) {
+      for (let j = i; j <= Math.min(i + 4, lines.length - 1); j++) {
         const moneyMatches = lines[j].match(/(\d{1,3}(?:\.\d{3})*,\d{2})/g);
         if (moneyMatches && moneyMatches.length > 0) {
           const lastValStr = moneyMatches[moneyMatches.length - 1];
@@ -743,7 +944,7 @@ function extractNfValueFromText(text: string): { valor: number; valorFormatado: 
     }
   }
 
-  // 3. Fallback: Search all currency patterns with R$
+  // ESTRATÉGIA E: Fallback geral para maior valor monetário com R$ ou duplicata
   const allMoney = text.match(/(?:R\$\s*)(\d{1,3}(?:\.\d{3})*,\d{2})/g);
   if (allMoney && allMoney.length > 0) {
     let maxVal = 0;
@@ -815,7 +1016,7 @@ Campos que devem ser extraídos do documento:
 Retorne um array JSON com 1 objeto contendo exatamente esses campos.`;
 
           const response = await ai.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: {
               parts: [
                 {
@@ -978,7 +1179,7 @@ Retorne um array JSON com 1 objeto contendo exatamente esses campos.`;
         try {
           const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
           const genResponse = await ai.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: {
               parts: [
                 {

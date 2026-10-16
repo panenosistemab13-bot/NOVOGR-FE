@@ -19,7 +19,14 @@ import { cn } from '../lib/utils';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Configuração do Worker do pdfjs-dist para execução 100% Client-Side
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+  } catch {
+    const v = pdfjsLib.version || '6.2.108';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${v}/pdf.worker.min.mjs`;
+  }
+}
 
 export interface PranchetaRow {
   id: string;

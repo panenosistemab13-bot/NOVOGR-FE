@@ -213,17 +213,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
     return 'bg-[#F0F8FF] text-sky-800 border-[#BAE0FD]';
   };
 
-  // Módulos operacionais do aplicativo
-  const operationalModules = [
-    { id: 'iscas', label: 'ISCAS', subtitle: 'RASTREAMENTO E DESTINOS', active: true },
-    { id: 'checklist', label: 'CHECKLIST', subtitle: 'DIVERGÊNCIAS' },
-    { id: 'averbacao', label: 'AVERBAÇÃO', subtitle: 'SEGUROS DE CARGA' },
-    { id: 'sm_creator', label: 'SM', subtitle: 'MONITORAMENTO' },
-    { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'PGR E ALERTAS' },
-    { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'PÁTIO' },
-    { id: 'escala', label: 'ESCALA', subtitle: 'PLANTÃO' },
-    { id: 'rotas', label: 'ROTAS', subtitle: 'P/ DESTINOS' },
-  ];
+
 
   return (
     <div className="w-full min-h-full flex flex-col gap-4 p-4 md:p-6 text-[#25231F] select-none font-sans relative bg-[#F6F2E9]">
@@ -345,31 +335,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
 
       </div>
 
-      {/* ========================================================================= */}
-      {/* QUICK OPERATIONAL MODULES BAR (Horizontal Pills)                          */}
-      {/* ========================================================================= */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-none w-full">
-        {operationalModules.map(mod => (
-          <button
-            key={mod.id}
-            onClick={() => onNavigate?.(mod.id)}
-            className={cn(
-              "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[10.5px] font-black uppercase tracking-wider transition-all cursor-pointer shrink-0 shadow-2xs border",
-              mod.active
-                ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white border-[#C59B48] shadow-xs"
-                : "bg-[#FFFEFC] hover:bg-[#FAF5EB] text-[#4A453E] hover:text-[#25231F] border-[#E8DDCA]"
-            )}
-          >
-            <span>{mod.label}</span>
-            <span className={cn(
-              "text-[8.5px] font-normal",
-              mod.active ? "text-white/80" : "text-[#8C7B63]"
-            )}>
-              ({mod.subtitle})
-            </span>
-          </button>
-        ))}
-      </div>
+
 
       {/* ========================================================================= */}
       {/* 2. KPI BAR: OS 5 STATUS OFICIAIS + DISTRIBUIÇÃO DESTINO/UNIDADE           */}

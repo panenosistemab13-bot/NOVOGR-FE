@@ -30,7 +30,7 @@ export default function UpdateTopBanner({ className }: UpdateTopBannerProps) {
     <div
       id="top-update-banner"
       className={cn(
-        "w-full z-50 sticky top-0 bg-slate-950/80 backdrop-blur-md text-slate-200 border-b border-white/10 shadow-lg select-none transition-all duration-300",
+        "w-full z-50 sticky top-0 bg-slate-50/95 backdrop-blur-md text-slate-800 border-b border-slate-200 shadow-2xs select-none transition-all duration-300",
         className
       )}
     >
@@ -41,14 +41,14 @@ export default function UpdateTopBanner({ className }: UpdateTopBannerProps) {
           {/* Pulsing indicator */}
           <div className="relative flex items-center justify-center shrink-0">
             <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-            <span className="font-sans font-bold uppercase text-[10px] sm:text-xs tracking-wider text-slate-400 shrink-0">
+            <span className="font-sans font-bold uppercase text-[10px] sm:text-xs tracking-wider text-slate-600 shrink-0">
               Última sincronização:
             </span>
-            <span className="font-mono font-bold text-[11px] sm:text-xs text-cyan-300 bg-slate-900/90 px-2 py-0.5 rounded-md border border-white/10 tracking-wide truncate">
+            <span className="font-mono font-bold text-[11px] sm:text-xs text-cyan-800 bg-white px-2 py-0.5 rounded-md border border-slate-300 tracking-wide truncate shadow-2xs">
               {lastUpdateDate}
             </span>
           </div>

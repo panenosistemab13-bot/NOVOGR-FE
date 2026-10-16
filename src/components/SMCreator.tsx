@@ -38,11 +38,16 @@ import { rtdb as db } from '../firebase';
 import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
 import { ref, onValue, set, update } from 'firebase/database';
 
+// Configuração robusta do Worker do PDF.js (pdfjs-dist v6.2.108 usa .mjs)
+// 1. Arquivo local servido estaticamente em /public/pdf.worker.min.mjs (recomendado para empacotamento Vite)
+// 2. Vite new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)
+// 3. Fallbacks CDNJS / jsDelivr / unpkg com terminação .mjs
 if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
   try {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '3.11.174'}/pdf.worker.min.js`;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
   } catch (e) {
-    console.error('Error initializing PDF worker src:', e);
+    const version = pdfjsLib.version || '6.2.108';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
   }
 }
 
@@ -51,23 +56,53 @@ const ensurePdfWorker = async () => {
   if (isWorkerConfigured) return;
   if (typeof window === 'undefined') return;
 
+  const version = pdfjsLib.version || '6.2.108';
+
+  // 1. Prioridade máxima: Arquivo local estático (/pdf.worker.min.mjs)
   try {
-    const version = pdfjsLib.version || '3.11.174';
-    const cdnUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
-    const response = await fetch(cdnUrl);
-    if (response.ok) {
-      const workerCode = await response.text();
-      const blob = new Blob([workerCode], { type: 'application/javascript' });
-      pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob);
-    } else {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = cdnUrl;
+    const localRes = await fetch('/pdf.worker.min.mjs', { method: 'HEAD' });
+    if (localRes.ok) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+      isWorkerConfigured = true;
+      return;
     }
-  } catch (err) {
-    console.warn('Fallback workerSrc:', err);
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-  } finally {
-    isWorkerConfigured = true;
+  } catch {
+    // Caso falhe busca local, tenta Vite URL
   }
+
+  // 2. Segunda opção: new URL do Vite para pdfjs-dist build
+  try {
+    const viteWorkerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = viteWorkerUrl;
+    isWorkerConfigured = true;
+    return;
+  } catch {
+    // Continua para CDNs com terminação .mjs
+  }
+
+  // 3. CDNs compatíveis com .mjs (cdnjs, jsdelivr, unpkg)
+  const cdnOptions = [
+    `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`,
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`,
+    `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`
+  ];
+
+  for (const cdnUrl of cdnOptions) {
+    try {
+      const resp = await fetch(cdnUrl, { method: 'HEAD' });
+      if (resp.ok) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = cdnUrl;
+        isWorkerConfigured = true;
+        return;
+      }
+    } catch {
+      // Tenta próximo CDN
+    }
+  }
+
+  // Fallback final garantido com extensão .mjs
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
+  isWorkerConfigured = true;
 };
 
 const invertRoute = (trecho: string) => {
@@ -674,7 +709,8 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
           // Extrai o Número da NF se ainda não encontrado
           if (numeroNf === '---') {
-            const matchNf = combinedPageText.match(/Nº[\s\.:]*(\d[\d\.\-]*\d|\d+)/i) || 
+            const matchNf = combinedPageText.match(/(?:NF-e|NOTA FISCAL|DANFE)[^\d]{0,30}N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{1,9})/i) ||
+                            combinedPageText.match(/N[º°o]?[\s\.:]*(\d[\d\.\-]*\d|\d+)/i) || 
                             combinedPageText.match(/NF-e[\s\.:]*(\d+)/i) ||
                             combinedPageText.match(/NOTA\s+FISCAL[\s\S]{0,30}?(\d{3,9})/i);
             if (matchNf && matchNf[1]) {
@@ -686,22 +722,23 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
           let pageValNumerico: number | null = null;
 
           // ESTRATÉGIA 1: Correspondência direta quando a etiqueta e o valor estão adjacentes
-          const matchDirect1 = rawPageText.match(/VALOR\s+TOTAL\s+(?:DA\s+)?NF[^\d]*?([\d\.]+\,\d{2})/i) ||
-                               fullSpatialText.match(/VALOR\s+TOTAL\s+(?:DA\s+)?NF[^\d]*?([\d\.]+\,\d{2})/i);
+          // Cobre VALOR TOTAL DA NOTA, VALOR TOTAL DA NF, VALOR TOTAL DA NOTA FISCAL, V. TOTAL DA NOTA
+          const matchDirect1 = rawPageText.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO)\s*[:\.]?\s*(?:R\$\s*)?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
+                               fullSpatialText.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO)\s*[:\.]?\s*(?:R\$\s*)?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
           if (matchDirect1 && matchDirect1[1]) {
             pageValTexto = matchDirect1[1];
             pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
           }
 
-          // ESTRATÉGIA 2: Análise espacial por linhas
+          // ESTRATÉGIA 2: Análise espacial por linhas (procura etiqueta e valor na mesma linha ou abaixo)
           if (pageValNumerico === null) {
             for (let idx = 0; idx < lines.length; idx++) {
               const line = lines[idx];
-              if (/VALOR\s+TOTAL\s+(?:DA\s+)?NF/i.test(line.fullText)) {
+              if (/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)/i.test(line.fullText)) {
                 // Tenta encontrar valor na mesma linha após a etiqueta
-                const labelIdx = line.fullText.search(/VALOR\s+TOTAL\s+(?:DA\s+)?NF/i);
+                const labelIdx = line.fullText.search(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)/i);
                 const afterLabel = line.fullText.substring(labelIdx);
-                const afterMatch = afterLabel.match(/([\d\.]+\,\d{2})/);
+                const afterMatch = afterLabel.match(/([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/);
                 if (afterMatch) {
                   pageValTexto = afterMatch[1];
                   pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
@@ -709,7 +746,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                 }
 
                 // Senão procura nas 3 linhas imediatamente abaixo
-                const labelItem = line.items.slice().reverse().find(i => /NF|TOTAL|VALOR/i.test(i.str)) || line.items[line.items.length - 1];
+                const labelItem = line.items.slice().reverse().find(i => /NOTA|NF|TOTAL|VALOR/i.test(i.str)) || line.items[line.items.length - 1];
                 const labelX = labelItem ? labelItem.x : 400;
 
                 for (let offset = 1; offset <= 3; offset++) {
@@ -749,12 +786,13 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
           // ESTRATÉGIA 3: Região do quadro "CÁLCULO DO IMPOSTO"
           if (pageValNumerico === null) {
-            const regexBlock = /(?:CALCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,350}/i;
+            const regexBlock = /(?:C[ÁA]LCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,800}?(?:DADOS\s+DO\s+TRANSPORTE|TRANSPORTADOR|FRETE\s+POR\s+CONTA|DADOS\s+DOS\s+PRODUTOS|RAZ[AÃ]O\s+SOCIAL)/i;
             const blockMatch = combinedPageText.match(regexBlock);
             if (blockMatch) {
               const blockText = blockMatch[0];
               const allCurrencies = blockText.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
               if (allCurrencies && allCurrencies.length > 0) {
+                // O último valor monetário do quadro de impostos é o VALOR TOTAL DA NOTA
                 const lastVal = allCurrencies[allCurrencies.length - 1];
                 pageValTexto = lastVal;
                 pageValNumerico = parseFloat(lastVal.replace(/\./g, '').replace(',', '.'));
@@ -762,9 +800,9 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             }
           }
 
-          // ESTRATÉGIA 4: Fallback por regex geral
+          // ESTRATÉGIA 4: Fallback por proximidade
           if (pageValNumerico === null) {
-            const matchFallback = combinedPageText.match(/VALOR\s+TOTAL\s+(?:DA\s+)?NF[\s\S]{0,150}?([\d\.]+\,\d{2})/i);
+            const matchFallback = combinedPageText.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+TOTAL\s+DOS\s+PRODUTOS)[\s\S]{0,180}?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
             if (matchFallback && matchFallback[1]) {
               pageValTexto = matchFallback[1];
               pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
@@ -782,14 +820,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         let valorNumericoResult: number | null = null;
         let valorTextoResult: string | null = null;
 
-        // 1. Procura por valores positivos (> 0). Dá preferência ao valor preenchido na última folha que tiver valor > 0
         const nonZeroResults = pageResults.filter(p => p.valorNumerico !== null && p.valorNumerico > 0);
         if (nonZeroResults.length > 0) {
           const chosen = nonZeroResults[nonZeroResults.length - 1];
           valorNumericoResult = chosen.valorNumerico;
           valorTextoResult = chosen.valorTexto;
         } else {
-          // 2. Se nenhuma folha tinha valor > 0, pega o primeiro resultado válido (ex: 0,00)
           const anyResult = pageResults.find(p => p.valorNumerico !== null);
           if (anyResult) {
             valorNumericoResult = anyResult.valorNumerico;
@@ -797,7 +833,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
           }
         }
 
-        if (valorNumericoResult !== null && valorTextoResult !== null) {
+        if (valorNumericoResult !== null && valorTextoResult !== null && valorNumericoResult > 0) {
           const valorFormatado = new Intl.NumberFormat('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
@@ -844,8 +880,63 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     const fileArray: File[] = Array.from(files);
 
     try {
-      const newExtracted = await processarNotasFiscaisClient(fileArray);
-      const newItems = [...parsedPdfItems, ...newExtracted];
+      // 1. Tenta envio para a API de backend /api/parse-nf-pdfs (com pdf-parse + Gemini AI de fallback)
+      let finalExtracted: Array<{
+        fileName: string;
+        numeroNf: string;
+        valor: number;
+        valorFormatado: string;
+        success: boolean;
+        error?: string;
+      }> = [];
+
+      try {
+        const base64Files = await Promise.all(
+          fileArray.map(async (file) => {
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            return { name: file.name, base64 };
+          })
+        );
+
+        const resp = await fetch('/api/parse-nf-pdfs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ files: base64Files })
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && Array.isArray(data.items) && data.items.length > 0) {
+            finalExtracted = data.items;
+          }
+        }
+      } catch (apiErr) {
+        console.warn('Falha na API /api/parse-nf-pdfs, usando parser local do navegador:', apiErr);
+      }
+
+      // 2. Se a API não respondeu ou teve falhas gerais, executa o parser client-side avançado
+      if (finalExtracted.length === 0) {
+        finalExtracted = await processarNotasFiscaisClient(fileArray);
+      } else {
+        // Para arquivos que a API porventura não conseguiu ler, tenta o client
+        const needsClientFix = finalExtracted.some(item => !item.success || item.valor === 0);
+        if (needsClientFix) {
+          const clientFallback = await processarNotasFiscaisClient(fileArray);
+          finalExtracted = finalExtracted.map((item, idx) => {
+            if (!item.success && clientFallback[idx] && clientFallback[idx].success) {
+              return clientFallback[idx];
+            }
+            return item;
+          });
+        }
+      }
+
+      const newItems = [...parsedPdfItems, ...finalExtracted];
       const newTotal = newItems.reduce((acc, curr) => acc + (curr.valor || 0), 0);
       const newTotalFormatted = new Intl.NumberFormat('pt-BR', {
         minimumFractionDigits: 2,
@@ -856,8 +947,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       setPdfTotalSomado(newTotal);
       setPdfTotalSomadoFormatado(newTotalFormatted);
     } catch (err) {
-      console.error('Erro ao ler arquivos PDF:', err);
-      alert('Erro ao processar os arquivos PDF.');
+      console.error('Erro ao processar arquivos PDF:', err);
     } finally {
       setIsProcessingPdf(false);
       e.target.value = '';
@@ -904,7 +994,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setPdfTotalSomadoFormatado(newTotalFormatted);
   };
 
-  const applyPdfTotalToTarget = (section: 'ida' | 'volta' | 'vespasiano' | 'calc') => {
+  const applyPdfTotalToTarget = (section: 'ida' | 'volta' | 'vespasiano' | 'nordeste' | 'calc') => {
     const totalValStr = pdfTotalSomadoFormatado;
 
     if (section === 'calc') {
@@ -914,8 +1004,8 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         saveCalc([...calcValues, totalValStr], true);
       }
     } else {
-      const targetRows = section === 'ida' ? idaRows : section === 'volta' ? voltaRows : vespasianoRows;
-      const saveFunc = section === 'ida' ? saveIda : section === 'volta' ? saveVolta : saveVespasiano;
+      const targetRows = section === 'ida' ? idaRows : section === 'volta' ? voltaRows : section === 'nordeste' ? nordesteRows : vespasianoRows;
+      const saveFunc = section === 'ida' ? saveIda : section === 'volta' ? saveVolta : section === 'nordeste' ? saveNordeste : saveVespasiano;
 
       if (pdfTargetRowIndex !== null && targetRows[pdfTargetRowIndex]) {
         const updatedRows = [...targetRows];
@@ -945,6 +1035,28 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       }
     }
 
+    setIsPdfModalOpen(false);
+  };
+
+  // Opção para adicionar 1 linha para cada Nota Fiscal importada
+  const applyMultiplePdfRowsToTarget = (section: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
+    const validItems = parsedPdfItems.filter(item => item.valor > 0);
+    if (validItems.length === 0) return;
+
+    const targetRows = section === 'ida' ? idaRows : section === 'volta' ? voltaRows : section === 'nordeste' ? nordesteRows : vespasianoRows;
+    const saveFunc = section === 'ida' ? saveIda : section === 'volta' ? saveVolta : section === 'nordeste' ? saveNordeste : saveVespasiano;
+
+    const newRows: SMRow[] = validItems.map(item => ({
+      dataSaida: new Date().toLocaleDateString('pt-BR'),
+      motorista: '',
+      placa: '',
+      bau1: '',
+      bau2: '',
+      trecho: '',
+      valorNf: item.valorFormatado
+    }));
+
+    saveFunc([...targetRows, ...newRows], true);
     setIsPdfModalOpen(false);
   };
 
@@ -1476,17 +1588,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                       {isIdaMaximized ? 'Minimizar' : 'Maximizar'}
                     </button>
 
-                    {/* Botão de Ordenar por Valor NF */}
-                    {idaRows.length > 0 && (
-                      <button
-                        onClick={() => sortRowsByValorNf('ida')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
-                        title="Mandar informações vazias para o final e valores adicionados para o topo"
-                      >
-                        <ArrowDownUp size={12} className="text-[#C49A45]" />
-                        <span>Ordenar por Valor</span>
-                      </button>
-                    )}
+
 
                     <button 
                       onClick={() => addNewRow('ida')}
@@ -1562,14 +1664,17 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                               <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
                               <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
-                              <th 
-                                onClick={() => sortRowsByValorNf('ida')}
-                                className="px-2 py-2.5 w-36 text-right text-[#25231F] hover:text-[#C49A45] cursor-pointer select-none group/sort transition-colors"
-                                title="Clique para organizar: Valores adicionados no topo, vazios no final"
-                              >
-                                <div className="flex items-center justify-end gap-1.5">
-                                  <span>VALOR NF</span>
-                                  <ArrowDownUp size={12} className="text-[#C49A45] group-hover/sort:scale-125 transition-transform" />
+                              <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
+                                <div className="flex items-center justify-between gap-1 mb-1">
+                                  <span 
+                                    onClick={() => sortRowsByValorNf('ida')}
+                                    className="cursor-pointer hover:text-[#C49A45] flex items-center gap-1 font-mono font-bold text-[10px] uppercase tracking-wider"
+                                    title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                                  >
+                                    VALOR TOTAL DA NF
+                                    <ArrowDownUp size={11} className="text-[#C49A45]" />
+                                  </span>
+                                  <span className="text-[9px] font-mono text-[#7A756D] font-normal">(R$)</span>
                                 </div>
                               </th>
                               <th className="px-2 py-2.5 w-12 text-center text-[#25231F]">AÇÕES</th>
@@ -1668,34 +1773,48 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                       {findRouteCode(row.trecho, 'ida', routesList)}
                                     </div>
                                   </td>
-                                  <td className="p-1.5 text-right font-extrabold group/cell">
-                                    <div className="flex items-center justify-end gap-1">
+                                  <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      {/* Botão de Importação Direta de PDF para esta Linha */}
                                       <button 
+                                        type="button"
                                         onClick={() => openPdfModal('ida', i)}
-                                        className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded text-[#25231F] transition-all shrink-0 cursor-pointer shadow-xs"
-                                        title="Importar PDFs de NFs para esta linha"
+                                        className={cn(
+                                          "px-2 py-1.5 rounded-lg flex items-center gap-1 text-[10px] font-mono font-extrabold transition-all cursor-pointer shrink-0 shadow-xs border",
+                                          hasValue 
+                                            ? "bg-[#292820] text-[#E6D2A3] hover:bg-[#38372d] hover:text-white border-[#C49A45]/60" 
+                                            : "bg-[#F5F0E6] text-[#25231F] hover:bg-[#292820] hover:text-[#E6D2A3] border-[#E6D2A3] hover:border-[#C49A45]"
+                                        )}
+                                        title="Importar uma ou várias Notas Fiscais (PDF) para esta linha"
                                       >
-                                        <FileText size={12} className="text-[#C49A45]" />
+                                        <FileText size={11} className={hasValue ? "text-[#C49A45]" : "text-[#7A756D]"} />
+                                        <span>PDF</span>
                                       </button>
+
                                       <button 
+                                        type="button"
                                         onClick={() => safeCopyText(row.valorNf)}
-                                        className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded text-[#25231F] transition-all shrink-0 cursor-pointer shadow-xs"
+                                        className="p-1.5 text-[#7A756D] hover:text-[#25231F] hover:bg-[#F5F0E6] rounded-md transition-colors shrink-0 cursor-pointer"
                                         title="Copiar Valor"
                                       >
                                         <Copy size={12} />
                                       </button>
-                                      <input 
-                                        type="text"
-                                        value={row.valorNf}
-                                        onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
-                                        placeholder="0,00"
-                                        className={cn(
-                                          "w-full rounded-md py-1.5 px-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
-                                          hasValue 
-                                            ? "bg-[#FDFBF7] text-[#25231F] focus:bg-white focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]" 
-                                            : "bg-[#F5F0E6] text-stone-500 placeholder-stone-400 focus:bg-white focus:border-[#C49A45] focus:text-[#25231F]"
-                                        )}
-                                      />
+
+                                      <div className="relative flex items-center w-full min-w-[110px]">
+                                        <span className="absolute left-2 text-[10px] font-mono font-bold text-[#7A756D] pointer-events-none">R$</span>
+                                        <input 
+                                          type="text"
+                                          value={row.valorNf}
+                                          onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
+                                          placeholder="0,00"
+                                          className={cn(
+                                            "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
+                                            hasValue 
+                                              ? "bg-white text-[#25231F] border-[#C49A45]/40 shadow-xs focus:ring-1 focus:ring-[#C49A45]" 
+                                              : "bg-[#F5F0E6] text-stone-500 placeholder-stone-400 focus:bg-white focus:border-[#C49A45] focus:text-[#25231F]"
+                                          )}
+                                        />
+                                      </div>
                                     </div>
                                   </td>
                                   <td className="p-1.5 text-center">
@@ -1766,16 +1885,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                     >
                       {isVoltaMaximized ? 'Minimizar' : 'Maximizar'}
                     </button>
-                    {voltaRows.length > 0 && (
-                      <button
-                        onClick={() => sortRowsByValorNf('volta')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
-                        title="Mandar informações vazias para o final e valores adicionados para o topo"
-                      >
-                        <ArrowDownUp size={12} className="text-[#C49A45]" />
-                        <span>Ordenar por Valor</span>
-                      </button>
-                    )}
+
                     <button 
                       onClick={() => addNewRow('volta')}
                       className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[10px] bg-gradient-to-r from-[#C91F2D] to-[#990c11] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer hover:brightness-110 active:scale-95"
@@ -1838,21 +1948,26 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                               <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
                               <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
-                              <th 
-                                onClick={() => sortRowsByValorNf('volta')}
-                                className="px-2 py-2.5 w-36 text-right text-[#25231F] hover:text-[#C91F2D] cursor-pointer select-none group/sort transition-colors"
-                                title="Clique para organizar: Valores adicionados no topo, vazios no final"
-                              >
-                                <div className="flex items-center justify-end gap-1.5">
-                                  <span>VALOR NF</span>
-                                  <ArrowDownUp size={12} className="text-[#C91F2D] group-hover/sort:scale-125 transition-transform" />
+                              <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
+                                <div className="flex items-center justify-between gap-1 mb-1">
+                                  <span 
+                                    onClick={() => sortRowsByValorNf('volta')}
+                                    className="cursor-pointer hover:text-[#C91F2D] flex items-center gap-1 font-mono font-bold text-[10px] uppercase tracking-wider"
+                                    title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                                  >
+                                    VALOR TOTAL DA NF
+                                    <ArrowDownUp size={11} className="text-[#C91F2D]" />
+                                  </span>
+                                  <span className="text-[9px] font-mono text-[#7A756D] font-normal">(R$)</span>
                                 </div>
                               </th>
                               <th className="px-2 py-2.5 w-12 text-center text-[#25231F]">AÇÕES</th>
                             </tr>
                           </thead>
                           <tbody className="bg-[#FFFCF6] divide-y divide-[#E6D2A3]/30">
-                            {voltaRows.map((row, i) => (
+                            {voltaRows.map((row, i) => {
+                              const hasValue = !isValorNfEmpty(row.valorNf);
+                              return (
                               <tr key={i} className="text-xs text-[#25231F] group/row font-bold hover:bg-[#F5F0E6]/50 transition-colors">
                                 <td className="p-1.5 text-center text-[#C91F2D] font-mono text-xs w-8">
                                   {i + 1}
@@ -1946,28 +2061,48 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                     {findRouteCode(row.trecho, 'volta', routesList)}
                                   </div>
                                 </td>
-                                <td className="p-1.5 text-right font-extrabold group/cell">
-                                  <div className="flex items-center justify-end gap-1">
+                                <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {/* Botão de Importação Direta de PDF para esta Linha */}
                                     <button 
+                                      type="button"
                                       onClick={() => openPdfModal('volta', i)}
-                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded text-[#25231F] transition-all shrink-0 cursor-pointer shadow-xs"
-                                      title="Importar PDFs de NFs para esta linha"
+                                      className={cn(
+                                        "px-2 py-1.5 rounded-lg flex items-center gap-1 text-[10px] font-mono font-extrabold transition-all cursor-pointer shrink-0 shadow-xs border",
+                                        hasValue 
+                                          ? "bg-[#C91F2D] text-white hover:bg-[#a61723] border-[#C91F2D]" 
+                                          : "bg-[#F5F0E6] text-[#25231F] hover:bg-[#C91F2D] hover:text-white border-[#E6D2A3] hover:border-[#C91F2D]"
+                                      )}
+                                      title="Importar uma ou várias Notas Fiscais (PDF) para esta linha"
                                     >
-                                      <FileText size={12} className="text-[#C49A45]" />
+                                      <FileText size={11} className={hasValue ? "text-white" : "text-[#7A756D]"} />
+                                      <span>PDF</span>
                                     </button>
+
                                     <button 
-                                      onClick={() => navigator.clipboard.writeText(row.valorNf)}
-                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded text-[#25231F] transition-all shrink-0 cursor-pointer shadow-xs"
+                                      type="button"
+                                      onClick={() => safeCopyText(row.valorNf)}
+                                      className="p-1.5 text-[#7A756D] hover:text-[#25231F] hover:bg-[#F5F0E6] rounded-md transition-colors shrink-0 cursor-pointer"
                                       title="Copiar Valor"
                                     >
                                       <Copy size={12} />
                                     </button>
-                                    <input 
-                                      type="text"
-                                      value={row.valorNf}
-                                      onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'volta')}
-                                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] text-[#25231F] font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#C91F2D] focus:ring-1 focus:ring-[#C91F2D]/30 outline-none transition-all text-xs"
-                                    />
+
+                                    <div className="relative flex items-center w-full min-w-[110px]">
+                                      <span className="absolute left-2 text-[10px] font-mono font-bold text-[#7A756D] pointer-events-none">R$</span>
+                                      <input 
+                                        type="text"
+                                        value={row.valorNf}
+                                        onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'volta')}
+                                        placeholder="0,00"
+                                        className={cn(
+                                          "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
+                                          hasValue 
+                                            ? "bg-white text-[#25231F] border-[#C91F2D]/50 shadow-xs focus:ring-1 focus:ring-[#C91F2D]" 
+                                            : "bg-[#F5F0E6] text-stone-500 placeholder-stone-400 focus:bg-white focus:border-[#C91F2D] focus:text-[#25231F]"
+                                        )}
+                                      />
+                                    </div>
                                   </div>
                                 </td>
                                 <td className="p-1.5 text-center">
@@ -2006,7 +2141,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   </div>
                                 </td>
                               </tr>
-                            ))}
+                            ); })}
                           </tbody>
                         </table>
                       </div>
@@ -2019,14 +2154,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               {/* ROTA SANTA LUZIA X NORDESTE */}
               {(internalView === 'all' || internalView === 'nordeste') && (
               <section className="space-y-3 font-sans animate-fade-in">
-                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-[#E6D2A3]">
+                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-slate-800/20">
                   <div className="flex items-center gap-2.5">
-                    <TrendingUp size={18} className="text-[#C49A45]" /> 
+                    <TrendingUp size={18} className="text-slate-900" /> 
                     <h3 className="text-sm font-mono font-bold text-[#25231F] uppercase tracking-wider">
                       Rota Santa Luzia x Nordeste
                     </h3>
-                    <span className="text-[10px] font-mono font-black bg-[#F5F0E6] text-[#C49A45] border border-[#E6D2A3] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                      NORDESTE
+                    <span className="text-[10px] font-mono font-black bg-slate-900 text-slate-100 border border-slate-700 px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
+                      PRETA (NORDESTE)
                     </span>
                   </div>
 
@@ -2037,16 +2172,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                     >
                       {isNordesteMaximized ? 'Minimizar' : 'Maximizar'}
                     </button>
-                    {nordesteRows.length > 0 && (
-                      <button
-                        onClick={() => sortRowsByValorNf('nordeste')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer group/sortBtn"
-                        title="Mandar informações vazias para o final e valores adicionados para o topo"
-                      >
-                        <ArrowDownUp size={12} className="text-[#C49A45] group-hover/sortBtn:scale-125 transition-transform" />
-                        <span>Ordenar por Valor</span>
-                      </button>
-                    )}
+
                     <button 
                       onClick={() => addNewRow('nordeste')}
                       className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[10px] bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-mono font-black uppercase tracking-wider transition-all shadow-sm cursor-pointer hover:brightness-105 active:scale-95"
@@ -2109,21 +2235,26 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                               <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
                               <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
-                              <th 
-                                onClick={() => sortRowsByValorNf('nordeste')}
-                                className="px-2 py-2.5 w-36 text-right text-[#25231F] hover:text-[#C49A45] cursor-pointer select-none group/sort transition-colors"
-                                title="Clique para organizar: Valores adicionados no topo, vazios no final"
-                              >
-                                <div className="flex items-center justify-end gap-1.5">
-                                  <span>VALOR NF</span>
-                                  <ArrowDownUp size={12} className="text-[#C49A45] group-hover/sort:scale-125 transition-transform" />
+                              <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
+                                <div className="flex items-center justify-between gap-1 mb-1">
+                                  <span 
+                                    onClick={() => sortRowsByValorNf('nordeste')}
+                                    className="cursor-pointer hover:text-[#C49A45] flex items-center gap-1 font-mono font-bold text-[10px] uppercase tracking-wider"
+                                    title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                                  >
+                                    VALOR TOTAL DA NF
+                                    <ArrowDownUp size={11} className="text-[#C49A45]" />
+                                  </span>
+                                  <span className="text-[9px] font-mono text-[#7A756D] font-normal">(R$)</span>
                                 </div>
                               </th>
                               <th className="px-2 py-2.5 w-12 text-center text-[#25231F]">AÇÕES</th>
                             </tr>
                           </thead>
                           <tbody className="bg-[#FFFCF6] divide-y divide-[#E6D2A3]/30">
-                            {nordesteRows.map((row, i) => (
+                            {nordesteRows.map((row, i) => {
+                              const hasValue = !isValorNfEmpty(row.valorNf);
+                              return (
                               <tr key={i} className="text-xs text-[#25231F] group/row font-bold hover:bg-[#F5F0E6]/50 transition-colors">
                                 <td className="p-1.5 text-center text-[#C49A45] font-mono text-xs w-8">
                                   {i + 1}
@@ -2205,28 +2336,48 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                     {findRouteCode(row.trecho, 'ida', routesList)}
                                   </div>
                                 </td>
-                                <td className="p-1.5 text-right font-extrabold group/cell">
-                                  <div className="flex items-center justify-end gap-1">
+                                <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {/* Botão de Importação Direta de PDF para esta Linha */}
                                     <button 
+                                      type="button"
                                       onClick={() => openPdfModal('nordeste', i)}
-                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded text-[#25231F] transition-all shrink-0 cursor-pointer shadow-xs"
-                                      title="Importar PDFs de NFs para esta linha"
+                                      className={cn(
+                                        "px-2 py-1.5 rounded-lg flex items-center gap-1 text-[10px] font-mono font-extrabold transition-all cursor-pointer shrink-0 shadow-xs border",
+                                        hasValue 
+                                          ? "bg-[#292820] text-[#E6D2A3] hover:bg-[#38372d] hover:text-white border-[#C49A45]/60" 
+                                          : "bg-[#F5F0E6] text-[#25231F] hover:bg-[#292820] hover:text-[#E6D2A3] border-[#E6D2A3] hover:border-[#C49A45]"
+                                      )}
+                                      title="Importar uma ou várias Notas Fiscais (PDF) para esta linha"
                                     >
-                                      <FileText size={12} className="text-[#C49A45]" />
+                                      <FileText size={11} className={hasValue ? "text-[#C49A45]" : "text-[#7A756D]"} />
+                                      <span>PDF</span>
                                     </button>
+
                                     <button 
+                                      type="button"
                                       onClick={() => safeCopyText(row.valorNf)}
-                                      className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded text-[#25231F] transition-all shrink-0 cursor-pointer shadow-xs"
+                                      className="p-1.5 text-[#7A756D] hover:text-[#25231F] hover:bg-[#F5F0E6] rounded-md transition-colors shrink-0 cursor-pointer"
                                       title="Copiar Valor"
                                     >
                                       <Copy size={12} />
                                     </button>
-                                    <input 
-                                      type="text"
-                                      value={row.valorNf}
-                                      onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'nordeste')}
-                                      className="w-full bg-[#F5F0E6] border border-[#E6D2A3] text-[#25231F] font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 outline-none transition-all text-xs font-mono"
-                                    />
+
+                                    <div className="relative flex items-center w-full min-w-[110px]">
+                                      <span className="absolute left-2 text-[10px] font-mono font-bold text-[#7A756D] pointer-events-none">R$</span>
+                                      <input 
+                                        type="text"
+                                        value={row.valorNf}
+                                        onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'nordeste')}
+                                        placeholder="0,00"
+                                        className={cn(
+                                          "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
+                                          hasValue 
+                                            ? "bg-white text-[#25231F] border-[#C49A45]/40 shadow-xs focus:ring-1 focus:ring-[#C49A45]" 
+                                            : "bg-[#F5F0E6] text-stone-500 placeholder-stone-400 focus:bg-white focus:border-[#C49A45] focus:text-[#25231F]"
+                                        )}
+                                      />
+                                    </div>
                                   </div>
                                 </td>
                                 <td className="p-1.5 text-center">
@@ -2265,7 +2416,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   </div>
                                 </td>
                               </tr>
-                            ))}
+                            ); })}
                           </tbody>
                         </table>
                       </div>
@@ -2278,14 +2429,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               {/* ================= ROTA VESPASIANO ================= */}
               {(internalView === 'all' || internalView === 'vespasiano') && (
               <section className="space-y-3 font-sans animate-fade-in">
-                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-[#E6D2A3]">
+                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-emerald-600/30">
                   <div className="flex items-center gap-2.5">
-                    <Truck size={18} className="text-[#C49A45]" />
+                    <Truck size={18} className="text-emerald-700" />
                     <h3 className="text-sm font-mono font-bold text-[#25231F] uppercase tracking-wider">
                       Rota Vespasiano
                     </h3>
-                    <span className="text-[10px] font-mono font-black bg-[#F5F0E6] text-[#C49A45] border border-[#E6D2A3] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                      VESPASIANO
+                    <span className="text-[10px] font-mono font-black bg-emerald-800/10 text-emerald-800 border border-emerald-600/30 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                      VERDE (VESPASIANO)
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -2330,16 +2481,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                       </div>
                       
                       <div className="lg:col-span-3 flex items-end justify-start gap-2.5">
-                        {vespasianoRows.length > 0 && (
-                          <button 
-                            onClick={() => sortRowsByValorNf('vespasiano')}
-                            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#292820] hover:bg-[#38372d] border border-[#C49A45]/40 text-[#E6D2A3] rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs group/sortBtn"
-                            title="Mandar informações vazias para o final e valores adicionados para o topo"
-                          >
-                            <ArrowDownUp size={12} className="text-[#C49A45] group-hover/sortBtn:scale-125 transition-transform" />
-                            <span>Ordenar por Valor</span>
-                          </button>
-                        )}
+
                         <button 
                           onClick={() => addNewRow('vespasiano')}
                           className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] rounded-xl text-xs font-mono font-black uppercase tracking-wider transition-all shadow-sm cursor-pointer border border-[#C49A45]/50 active:scale-95"
@@ -2368,21 +2510,26 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                             <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                             <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
                             <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
-                            <th 
-                              onClick={() => sortRowsByValorNf('vespasiano')}
-                              className="px-2 py-2.5 w-36 text-right text-[#25231F] hover:text-[#C49A45] cursor-pointer select-none group/th transition-colors"
-                              title="Clique para organizar: Valores adicionados no topo, vazios no final"
-                            >
-                              <div className="flex items-center justify-end gap-1.5">
-                                <span>VALOR NF</span>
-                                <ArrowDownUp size={12} className="text-[#C49A45] group-hover/th:scale-125 transition-transform" />
+                            <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <span 
+                                  onClick={() => sortRowsByValorNf('vespasiano')}
+                                  className="cursor-pointer hover:text-[#C49A45] flex items-center gap-1 font-mono font-bold text-[10px] uppercase tracking-wider"
+                                  title="Clique para organizar: Valores adicionados no topo, vazios no final"
+                                >
+                                  VALOR TOTAL DA NF
+                                  <ArrowDownUp size={11} className="text-[#C49A45]" />
+                                </span>
+                                <span className="text-[9px] font-mono text-[#7A756D] font-normal">(R$)</span>
                               </div>
                             </th>
                             <th className="px-2 py-2.5 w-12 text-center text-[#25231F]">AÇÕES</th>
                           </tr>
                         </thead>
                         <tbody className="bg-[#FFFCF6] divide-y divide-[#E6D2A3]/30">
-                          {vespasianoRows.map((row, i) => (
+                          {vespasianoRows.map((row, i) => {
+                            const hasValue = !isValorNfEmpty(row.valorNf);
+                            return (
                             <tr key={i} className="text-xs text-[#25231F] group/row font-bold hover:bg-[#F5F0E6]/50 transition-colors">
                               <td className="p-1.5 text-center text-[#C49A45] font-mono text-xs w-8">
                                 {i + 1}
@@ -2465,21 +2612,48 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   {findRouteCode(row.trecho, 'ida', routesList)}
                                 </div>
                               </td>
-                              <td className="p-1.5 text-right font-extrabold group/cell">
-                                <div className="flex items-center justify-end gap-1">
+                              <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {/* Botão de Importação Direta de PDF para esta Linha */}
                                   <button 
+                                    type="button"
                                     onClick={() => openPdfModal('vespasiano', i)}
-                                    className="opacity-0 group-hover/cell:opacity-100 p-1.5 bg-[#F5F0E6] hover:bg-white border border-[#E6D2A3] rounded text-[#25231F] transition-all shrink-0 cursor-pointer shadow-xs"
-                                    title="Importar PDFs de NFs para esta linha"
+                                    className={cn(
+                                      "px-2 py-1.5 rounded-lg flex items-center gap-1 text-[10px] font-mono font-extrabold transition-all cursor-pointer shrink-0 shadow-xs border",
+                                      hasValue 
+                                        ? "bg-[#292820] text-[#E6D2A3] hover:bg-[#38372d] hover:text-white border-[#C49A45]/60" 
+                                        : "bg-[#F5F0E6] text-[#25231F] hover:bg-[#292820] hover:text-[#E6D2A3] border-[#E6D2A3] hover:border-[#C49A45]"
+                                    )}
+                                    title="Importar uma ou várias Notas Fiscais (PDF) para esta linha"
                                   >
-                                    <FileText size={12} className="text-[#C49A45]" />
+                                    <FileText size={11} className={hasValue ? "text-[#C49A45]" : "text-[#7A756D]"} />
+                                    <span>PDF</span>
                                   </button>
-                                  <input 
-                                    type="text"
-                                    value={row.valorNf}
-                                    onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'vespasiano')}
-                                    className="w-full bg-[#F5F0E6] border border-[#E6D2A3] text-[#25231F] font-mono font-extrabold rounded-md py-1.5 px-2 text-right focus:bg-white focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 outline-none transition-all text-xs"
-                                  />
+
+                                  <button 
+                                    type="button"
+                                    onClick={() => safeCopyText(row.valorNf)}
+                                    className="p-1.5 text-[#7A756D] hover:text-[#25231F] hover:bg-[#F5F0E6] rounded-md transition-colors shrink-0 cursor-pointer"
+                                    title="Copiar Valor"
+                                  >
+                                    <Copy size={12} />
+                                  </button>
+
+                                  <div className="relative flex items-center w-full min-w-[110px]">
+                                    <span className="absolute left-2 text-[10px] font-mono font-bold text-[#7A756D] pointer-events-none">R$</span>
+                                    <input 
+                                      type="text"
+                                      value={row.valorNf}
+                                      onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'vespasiano')}
+                                      placeholder="0,00"
+                                      className={cn(
+                                        "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
+                                        hasValue 
+                                          ? "bg-white text-[#25231F] border-[#C49A45]/40 shadow-xs focus:ring-1 focus:ring-[#C49A45]" 
+                                          : "bg-[#F5F0E6] text-stone-500 placeholder-stone-400 focus:bg-white focus:border-[#C49A45] focus:text-[#25231F]"
+                                      )}
+                                    />
+                                  </div>
                                 </div>
                               </td>
                               <td className="p-1.5 text-center">
@@ -2518,7 +2692,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                 </div>
                               </td>
                             </tr>
-                          ))}
+                          ); })}
                         </tbody>
                       </table>
                     </div>
@@ -2800,47 +2974,83 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             </div>
 
             {/* Modal Actions Footer */}
-            <div className="bg-[#F5F0E6] p-5 border-t border-[#E6D2A3] flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="text-xs text-[#25231F] font-mono text-center sm:text-left">
-                {pdfTargetRowIndex !== null ? (
-                  <span>Aplicando na linha #{pdfTargetRowIndex + 1} ({pdfTargetSection === 'ida' ? 'Rota Ida' : pdfTargetSection === 'volta' ? 'Rota Volta' : 'Rota Vespasiano'})</span>
-                ) : (
-                  <span>Selecione onde aplicar o valor somado (R$ {pdfTotalSomadoFormatado})</span>
+            <div className="bg-[#F5F0E6] p-5 border-t border-[#E6D2A3] flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div className="text-xs text-[#25231F] font-mono text-center sm:text-left">
+                  {pdfTargetRowIndex !== null ? (
+                    <span className="font-bold text-[#C49A45]">
+                      Destino: Linha #{pdfTargetRowIndex + 1} da {pdfTargetSection === 'ida' ? 'Rota Ida' : pdfTargetSection === 'volta' ? 'Rota Volta' : pdfTargetSection === 'nordeste' ? 'Rota Nordeste' : pdfTargetSection === 'vespasiano' ? 'Rota Vespasiano' : 'Calculadora'}
+                    </span>
+                  ) : (
+                    <span>Selecione onde adicionar o valor total somado (R$ {pdfTotalSomadoFormatado})</span>
+                  )}
+                </div>
+
+                {pdfTargetRowIndex !== null && pdfTargetSection !== 'calc' && (
+                  <button
+                    onClick={() => applyPdfTotalToTarget(pdfTargetSection)}
+                    disabled={parsedPdfItems.length === 0}
+                    className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 disabled:opacity-40 text-[#25231F] font-mono font-black text-xs rounded-xl uppercase tracking-wider transition-all shadow-sm cursor-pointer border border-[#C49A45] flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <Check size={14} className="stroke-[3]" />
+                    <span>Aplicar Soma (R$ {pdfTotalSomadoFormatado}) na Linha #{pdfTargetRowIndex + 1}</span>
+                  </button>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
-                <button 
-                  onClick={() => applyPdfTotalToTarget('ida')}
-                  disabled={parsedPdfItems.length === 0}
-                  className="px-3.5 py-2 bg-[#292820] hover:bg-[#38372d] disabled:opacity-40 text-[#E6D2A3] font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
-                >
-                  Preencher Ida
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E6D2A3]/50">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold text-[#7A756D] uppercase">Soma Total para:</span>
+                  <button 
+                    onClick={() => applyPdfTotalToTarget('ida')}
+                    disabled={parsedPdfItems.length === 0}
+                    className="px-3 py-1.5 bg-[#292820] hover:bg-[#38372d] disabled:opacity-40 text-[#E6D2A3] font-mono font-bold text-[11px] rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
+                  >
+                    Ida
+                  </button>
 
-                <button 
-                  onClick={() => applyPdfTotalToTarget('volta')}
-                  disabled={parsedPdfItems.length === 0}
-                  className="px-3.5 py-2 bg-[#C91F2D] hover:bg-[#a61723] disabled:opacity-40 text-white font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C91F2D]"
-                >
-                  Preencher Volta
-                </button>
+                  <button 
+                    onClick={() => applyPdfTotalToTarget('volta')}
+                    disabled={parsedPdfItems.length === 0}
+                    className="px-3 py-1.5 bg-[#C91F2D] hover:bg-[#a61723] disabled:opacity-40 text-white font-mono font-bold text-[11px] rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C91F2D]"
+                  >
+                    Volta
+                  </button>
 
-                <button 
-                  onClick={() => applyPdfTotalToTarget('vespasiano')}
-                  disabled={parsedPdfItems.length === 0}
-                  className="px-3.5 py-2 bg-[#292820] hover:bg-[#38372d] disabled:opacity-40 text-[#E6D2A3] font-mono font-bold text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
-                >
-                  Preencher Vespasiano
-                </button>
+                  <button 
+                    onClick={() => applyPdfTotalToTarget('nordeste')}
+                    disabled={parsedPdfItems.length === 0}
+                    className="px-3 py-1.5 bg-[#292820] hover:bg-[#38372d] disabled:opacity-40 text-[#E6D2A3] font-mono font-bold text-[11px] rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
+                  >
+                    Nordeste
+                  </button>
 
-                <button 
-                  onClick={() => applyPdfTotalToTarget('calc')}
-                  disabled={parsedPdfItems.length === 0}
-                  className="px-3.5 py-2 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 disabled:opacity-40 text-[#25231F] font-mono font-black text-xs rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/50"
-                >
-                  Lançar Calculadora
-                </button>
+                  <button 
+                    onClick={() => applyPdfTotalToTarget('vespasiano')}
+                    disabled={parsedPdfItems.length === 0}
+                    className="px-3 py-1.5 bg-[#292820] hover:bg-[#38372d] disabled:opacity-40 text-[#E6D2A3] font-mono font-bold text-[11px] rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
+                  >
+                    Vespasiano
+                  </button>
+
+                  <button 
+                    onClick={() => applyPdfTotalToTarget('calc')}
+                    disabled={parsedPdfItems.length === 0}
+                    className="px-3 py-1.5 bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 disabled:opacity-40 text-[#25231F] font-mono font-black text-[11px] rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/50"
+                  >
+                    Calculadora
+                  </button>
+                </div>
+
+                {parsedPdfItems.length > 1 && (
+                  <button 
+                    onClick={() => applyMultiplePdfRowsToTarget(pdfTargetSection === 'calc' ? 'ida' : pdfTargetSection)}
+                    className="px-3 py-1.5 bg-[#FFFCF6] hover:bg-white text-[#25231F] border border-[#E6D2A3] hover:border-[#C49A45] font-mono font-bold text-[10px] rounded-xl uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                    title="Cria uma linha separada para cada uma das notas fiscais importadas"
+                  >
+                    + Criar 1 Linha por NF
+                  </button>
+                )}
               </div>
             </div>
 
