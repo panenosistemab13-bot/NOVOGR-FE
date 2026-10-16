@@ -380,27 +380,27 @@ export default function Checklist({
   }, [items, osSearchTerm, osStatusFilter]);
 
   const generateEmailHTML = (data: typeof genData) => {
-    const requestTextWithRedChecklist = data.requestText.replace(/checklist/gi, '<span style="color: #E53945;">checklist</span>');
+    const requestTextWithRedChecklist = data.requestText.replace(/checklist/gi, '<span style="color: #E53945; font-weight: bold;">checklist</span>');
     return `
-      <div style="font-family: Arial, sans-serif; color: #25231F; font-size: 12px; line-height: 1.4; width: 263px;">
-        <p style="margin: 0 0 10px 0;">${data.greeting}</p>
-        <p style="margin: 0 0 10px 0;">${requestTextWithRedChecklist}</p>
-        <table style="border-collapse: collapse; width: 188px; text-align: center; font-size: 11px; margin-bottom: 10px; border: 1px solid #25231F;">
-          <thead style="background-color: #000; color: #fff;">
+      <div style="font-family: Arial, Helvetica, sans-serif; color: #25231F; font-size: 13px; line-height: 1.5; width: 100%; max-width: 480px; background-color: #ffffff;">
+        <p style="margin: 0 0 12px 0;">${data.greeting}</p>
+        <p style="margin: 0 0 14px 0;">${requestTextWithRedChecklist}</p>
+        <table style="border-collapse: collapse; width: 100%; text-align: center; font-size: 12px; margin-bottom: 14px; border: 1px solid #25231F;">
+          <thead style="background-color: #000000; color: #ffffff;">
             <tr>
-              <th style="padding: 4px; border: 1px solid #25231F;">CAVALO</th>
-              <th style="padding: 4px; border: 1px solid #25231F;">CARRETAS</th>
+              <th style="padding: 6px 12px; border: 1px solid #25231F; font-weight: bold;">CAVALO</th>
+              <th style="padding: 6px 12px; border: 1px solid #25231F; font-weight: bold;">CARRETAS</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="padding: 4px; border: 1px solid #25231F;">${data.cavalo}</td>
-              <td style="padding: 4px; border: 1px solid #25231F;">${data.carretas}</td>
+              <td style="padding: 8px 12px; border: 1px solid #25231F; font-weight: bold; font-family: monospace;">${data.cavalo}</td>
+              <td style="padding: 8px 12px; border: 1px solid #25231F; font-weight: bold; font-family: monospace;">${data.carretas}</td>
             </tr>
           </tbody>
         </table>
-        <p style="margin: 0 0 10px 0;">Contatos: <span style="color: #E53945;">${data.contato}</span></p>
-        <p style="margin: 0;">${data.signature}</p>
+        <p style="margin: 0 0 12px 0;">Contatos: <span style="color: #E53945; font-weight: bold;">${data.contato}</span></p>
+        <p style="margin: 0; font-weight: 500;">${data.signature}</p>
       </div>
     `;
   };
@@ -962,12 +962,37 @@ ${genData.signature}`;
                     </div>
                   </div>
 
-                  {/* Pristine Corporate Email Document Sheet */}
-                  <div 
-      className="bg-white border border-[#EADFCB] rounded-2xl shadow-xs overflow-hidden select-text" 
-      style={{ width: '263px', height: '173px' }}
-      dangerouslySetInnerHTML={{ __html: generateEmailHTML(genData) }}
-    />
+                  {/* Realistic E-mail Client Window Mockup */}
+                  <div className="bg-[#FAF7F0] border border-[#EADFCB] rounded-2xl overflow-hidden shadow-xs flex flex-col min-h-[320px] w-full">
+                    {/* Window Titlebar */}
+                    <div className="bg-[#EFE8DA] px-4 py-2.5 border-b border-[#E8DDCA] flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                        <span className="text-[10px] font-bold font-mono text-[#8C7B63] ml-2">
+                          Mensagem de Solicitação de Checklist
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-black uppercase text-[#8C6D28] bg-[#FAF5EB] px-2 py-0.5 rounded border border-[#D8B065]">
+                        Visualização E-mail
+                      </span>
+                    </div>
+
+                    {/* Email Headers */}
+                    <div className="bg-[#FAF7F0] px-4 py-2.5 border-b border-[#E8DDCA]/70 text-[11px] font-mono text-[#6E6454] space-y-1">
+                      <div><span className="font-bold text-[#25231F]">Assunto:</span> Solicitação de Checklist - {genData.cavalo || 'FROTA'}</div>
+                      <div><span className="font-bold text-[#25231F]">Para:</span> Central de Monitoramento PGR & Gestão de Risco</div>
+                    </div>
+
+                    {/* Email Document Body */}
+                    <div className="p-5 bg-white flex-1 overflow-auto select-text flex items-start justify-center">
+                      <div 
+                        className="w-full max-w-full"
+                        dangerouslySetInnerHTML={{ __html: generateEmailHTML(genData) }} 
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Bottom Quick Chips for vehicles */}

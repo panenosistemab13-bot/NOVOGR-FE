@@ -153,30 +153,28 @@ export const matchEmbarqueUrl = (esquema: string): string => {
   if (upperE.includes("LADO ESQUERDO") && (upperE.includes("BATIDO/PALETIZADO") || (upperE.includes("PALETIZADO") && upperE.includes("BATIDO")))) {
     return "https://lh3.googleusercontent.com/d/1cw1CQiD8FUzeIBh36sBObz91h8k3bls1";
   }
-  // 3. LADO DIREITO SUPERIOR (PADRÃO)
+  // 3. PORTA LADO DIREITO (apenas se expressamente contiver "PORTA")
+  if (upperE.includes("PORTA")) {
+    return "https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV";
+  }
+  // 4. LADO DIREITO SUPERIOR (PADRÃO)
   if (
     upperE.includes("LADO DIREITO SUPERIOR") || 
     upperE.includes("SUPERIOR BATIDO") || 
-    (upperE.includes("LADO DIREITO") && upperE.includes("SUPERIOR"))
+    upperE.includes("PADRÃO") ||
+    upperE.includes("LADO DIREITO")
   ) {
     return "https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh";
   }
-  // 4. LADO ESQUERDO SUPERIOR BATIDO
-  if (upperE.includes("LADO ESQUERDO SUPERIOR") || (upperE.includes("LADO ESQUERDO") && upperE.includes("SUPERIOR"))) {
+  // 5. LADO ESQUERDO SUPERIOR BATIDO
+  if (upperE.includes("LADO ESQUERDO SUPERIOR") || upperE.includes("LADO ESQUERDO")) {
     return "https://lh3.googleusercontent.com/d/14F4wPXwU607GmwqphSzlXk7xZ_EhOdWS";
-  }
-  // 5. PORTA LADO DIREITO
-  if (upperE.includes("PORTA") || upperE.includes("PORTA LADO DIREITO")) {
-    return "https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV";
   }
   // 6. Outros esquemas específicos
   if (upperE.includes("AMARELIN")) return "https://lh3.googleusercontent.com/d/1RdjcMTVC2ofuxQVzajM0S01VSMAXLaMf";
   if (upperE.includes("CASTANHA")) return "https://lh3.googleusercontent.com/d/1JGe0rvxIMqBpMMxclgFpQj47GqVl1VMX";
   if (upperE.includes("IZOTONICO") || upperE.includes("ISOTONICO")) return "https://lh3.googleusercontent.com/d/1kI3l33NFrTlqnDveMgKWHfFfU5WA6OTQ";
   if (upperE.includes("ALMOFADA")) return "https://lh3.googleusercontent.com/d/1EQ5fMDDHViGvBd8-ehlwhyE4yyOc_peH";
-  if (upperE.includes("LADO DIREITO")) return "https://lh3.googleusercontent.com/d/1-OVNvrvxJ_t6RCj8hQpU0ZDtk3BfVWBV";
-  if (upperE.includes("LADO ESQUERDO")) return "https://lh3.googleusercontent.com/d/14F4wPXwU607GmwqphSzlXk7xZ_EhOdWS";
-  if (upperE.includes("SUPERIOR")) return "https://lh3.googleusercontent.com/d/17dIlYwXF3McL0Xr-Hs00COyFH9A0REEh";
   if (upperE.includes("PALETIZADO")) return "https://lh3.googleusercontent.com/d/1Ra4uncQihpKaqQi18fu0pKPt1NkzDNyF";
   if (upperE.includes("BATIDO")) return "https://lh3.googleusercontent.com/d/1L3oKNxekiqIQ_Uy8L9a7q8qZwx772qmH";
 
