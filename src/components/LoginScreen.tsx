@@ -101,7 +101,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         const adminData = {
           email: 'jefferson@3coracoes.com.br',
           name: 'jefferson',
-          role: 'admin'
+          role: 'admin',
+          roleLabel: 'Administrador'
         };
         localStorage.setItem('logged_user', JSON.stringify(adminData));
         localStorage.setItem('user_email', adminData.email);
@@ -121,10 +122,18 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       });
 
       if (user) {
+        const isUserAdmin = user.role === 'Administrador' || String(user.name).trim().toLowerCase() === 'jefferson';
+        const requiresPasswordChange = isUserAdmin && String(user.name).trim().toLowerCase() === 'jefferson'
+          ? false
+          : (user.mustChangePassword === true || String(user.password).trim() === '123');
+
         const userData = {
           email: user.email || `${cleanUser}@3coracoes.com.br`,
           name: user.name,
-          role: user.role === 'Administrador' ? 'admin' : 'funcionario'
+          role: isUserAdmin ? 'admin' : 'agente_de_risco',
+          roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
+          allowedPages: isUserAdmin ? undefined : (user.allowedPages || ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala']),
+          mustChangePassword: requiresPasswordChange
         };
         localStorage.setItem('logged_user', JSON.stringify(userData));
         localStorage.setItem('user_email', userData.email);

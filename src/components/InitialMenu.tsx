@@ -55,7 +55,7 @@ interface InitialMenuProps {
   availablePages?: PageDefinition[];
   showPresenceList?: boolean;
   showRotasPage?: boolean;
-  currentUser?: { email: string; name: string; role: string } | null;
+  currentUser?: { email: string; name: string; role: string; roleLabel?: string; allowedPages?: string[] } | null;
 }
 
 export default function InitialMenu({
@@ -124,15 +124,23 @@ export default function InitialMenu({
   // Sidebar navigation items dynamically generated from shared config
   const sidebarItems = useMemo(() => {
     const base = [{ id: 'menu', label: 'Início', icon: Home }];
+    const isAgenteDeRisco = currentUser?.role === 'agente_de_risco' || currentUser?.role === 'funcionario';
+    const userAllowed = isAgenteDeRisco ? (currentUser?.allowedPages || []) : null;
+
     const pages = (availablePages.length > 0 ? availablePages : getAllAvailablePages())
-      .filter(p => p.id !== 'cadastro' && Boolean((pageVisibility && pageVisibility[p.id]) ?? true))
+      .filter(p => {
+        if (p.id === 'cadastro') return false;
+        if (!Boolean((pageVisibility && pageVisibility[p.id]) ?? true)) return false;
+        if (userAllowed && !userAllowed.includes(p.id)) return false;
+        return true;
+      })
       .map(p => ({
         id: p.id,
         label: p.label,
         icon: ICON_MAP[p.iconName] || Route
       }));
     return [...base, ...pages];
-  }, [availablePages, pageVisibility]);
+  }, [availablePages, pageVisibility, currentUser]);
 
   const handleItemClick = (id: string) => {
     setActiveNav(id);

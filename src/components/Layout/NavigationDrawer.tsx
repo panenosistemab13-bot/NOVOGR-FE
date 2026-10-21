@@ -30,6 +30,7 @@ interface NavigationDrawerProps {
   pageVisibility?: Record<string, boolean>;
   availablePages?: PageDefinition[];
   isDark?: boolean;
+  currentUser?: { email: string; name: string; role: string; roleLabel?: string; allowedPages?: string[] } | null;
 }
 
 export default function NavigationDrawer({
@@ -40,6 +41,7 @@ export default function NavigationDrawer({
   setIsOpen: propSetIsOpen,
   pageVisibility,
   isDark = true,
+  currentUser
 }: NavigationDrawerProps) {
   const [internalIsOpen, setInternalIsOpen] = useState<boolean>(false);
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
@@ -61,11 +63,17 @@ export default function NavigationDrawer({
   const menuItems = React.useMemo(() => {
     const pages = getAllAvailablePages();
     const vis = pageVisibility || loadPageVisibility();
+    const isAgenteDeRisco = currentUser?.role === 'agente_de_risco' || currentUser?.role === 'funcionario';
+    const userAllowed = isAgenteDeRisco ? (currentUser?.allowedPages || []) : null;
+
     const items: Array<{ id: string; label: string; subtitle: string; icon: React.ElementType }> = [
       { id: 'menu', label: 'Início', subtitle: 'Painel Central', icon: Home }
     ];
     pages.forEach(p => {
       if (p.id !== 'cadastro' && vis[p.id] !== false) {
+        if (userAllowed && !userAllowed.includes(p.id)) {
+          return; // Página bloqueada pelo Administrador para este Agente de Risco
+        }
         items.push({
           id: p.id,
           label: p.label,
@@ -75,7 +83,7 @@ export default function NavigationDrawer({
       }
     });
     return items;
-  }, [pageVisibility]);
+  }, [pageVisibility, currentUser]);
 
   const handleSelect = (id: string) => {
     onSelectTab(id);

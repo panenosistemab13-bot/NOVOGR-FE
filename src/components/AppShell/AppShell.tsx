@@ -62,6 +62,7 @@ export default function AppShell({
           pageVisibility={pageVisibility}
           availablePages={availablePages}
           isDark={isDark}
+          currentUser={currentUser}
         />
       }
       footer={<OperationalFooter isDark={isDark} />}

@@ -60,6 +60,7 @@ import LoginScreen from './components/LoginScreen';
 import RestrictedPagesModal from './components/RestrictedPagesModal';
 import CadastroView from './components/CadastroView';
 import ConfiguracoesPaginasView from './components/ConfiguracoesPaginasView';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import UpdateTopBanner from './components/UpdateTopBanner';
 import { 
   PageDefinition, 
@@ -128,7 +129,13 @@ const allTabs = [
 
 export default function App() {
   const principle = useCurrentPrinciple();
-  const [currentUser, setCurrentUser] = useState<{ email: string; name: string; role: string } | null>(() => {
+  const [currentUser, setCurrentUser] = useState<{ 
+    email: string; 
+    name: string; 
+    role: string; 
+    roleLabel?: string; 
+    allowedPages?: string[]; 
+  } | null>(() => {
     try {
       const saved = localStorage.getItem('logged_user');
       return saved ? JSON.parse(saved) : null;
@@ -154,8 +161,15 @@ export default function App() {
   // Dynamic visible tabs calculation - ensuring it's synchronized across the app
   const visibleTabs = useMemo(() => {
     const base = [{ id: 'menu', label: 'Início', icon: LayoutGrid }];
+    const isAgenteDeRisco = currentUser?.role === 'agente_de_risco' || currentUser?.role === 'funcionario';
+    const userAllowed = isAgenteDeRisco ? (currentUser?.allowedPages || []) : null;
+
     const pages = availablePages
-      .filter(p => Boolean(pageVisibility[p.id]))
+      .filter(p => {
+        if (!Boolean(pageVisibility[p.id])) return false;
+        if (userAllowed && !userAllowed.includes(p.id)) return false;
+        return true;
+      })
       .map(p => {
         const found = allTabs.find(t => t.id === p.id);
         const IconComponent = ICON_MAP[p.iconName] || found?.icon || Sliders;
@@ -166,7 +180,7 @@ export default function App() {
         };
       });
     return [...base, ...pages];
-  }, [availablePages, pageVisibility]);
+  }, [availablePages, pageVisibility, currentUser]);
 
   const [activeTab, setActiveTab] = useState<Tab>('menu');
   const [focusedCardIndex, setFocusedCardIndex] = useState<number>(0);
@@ -223,6 +237,41 @@ export default function App() {
       console.error(e);
     }
   }, []);
+
+  // Sincronização em tempo real das permissões do usuário logado via Firebase RTDB (app_users)
+  useEffect(() => {
+    if (!currentUser?.name && !currentUser?.email) return;
+    const usersRef = ref(db, 'app_users');
+    const unsubscribe = onValue(usersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && Array.isArray(data)) {
+        const myName = (currentUser.name || '').trim().toLowerCase();
+        const myEmail = (currentUser.email || '').trim().toLowerCase();
+        const found = data.find((u: any) => 
+          String(u.name || '').trim().toLowerCase() === myName || 
+          String(u.email || '').trim().toLowerCase() === myEmail
+        );
+        if (found) {
+          const isUserAdmin = found.role === 'Administrador' || myName === 'jefferson';
+          const requiresChange = myName === 'jefferson' 
+            ? false 
+            : (found.mustChangePassword === true || String(found.password).trim() === '123');
+
+          const updated = {
+            email: found.email || currentUser.email,
+            name: found.name || currentUser.name,
+            role: isUserAdmin ? 'admin' : 'agente_de_risco',
+            roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
+            allowedPages: isUserAdmin ? undefined : (found.allowedPages || ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala']),
+            mustChangePassword: requiresChange
+          };
+          setCurrentUser(updated);
+          localStorage.setItem('logged_user', JSON.stringify(updated));
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [currentUser?.email, currentUser?.name]);
 
   useEffect(() => {
     const appsRef = ref(db, 'presence_list/appointments');
@@ -420,9 +469,9 @@ export default function App() {
       case 'calendario':
         return <CalendarioView onBack={() => setActiveTab('menu')} />;
       case 'settings':
-        return <ConfiguracoesPaginasView onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} />;
+        return <ConfiguracoesPaginasView initialTab="paginas" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'cadastro':
-        return <CadastroView onBack={() => setActiveTab('menu')} />;
+        return <ConfiguracoesPaginasView initialTab="cadastro" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       default:
         return (
           <div className="flex flex-col items-center justify-center p-20 text-zinc-500">
@@ -495,6 +544,36 @@ export default function App() {
   };
 
   const renderActiveModuleContent = () => {
+    const isAgenteDeRisco = currentUser?.role === 'agente_de_risco' || currentUser?.role === 'funcionario';
+    const isUnauthorized = isAgenteDeRisco && 
+      activeTab !== 'menu' && 
+      activeTab !== 'settings' && 
+      activeTab !== 'cadastro' && 
+      currentUser?.allowedPages && 
+      !currentUser.allowedPages.includes(activeTab);
+
+    if (isUnauthorized) {
+      return (
+        <div className="min-h-full bg-[#F5F0E6] text-[#25231F] p-8 flex items-center justify-center select-none font-sans">
+          <div className="max-w-md w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-8 shadow-sm text-center flex flex-col items-center">
+            <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-300 text-[#8C6D28] flex items-center justify-center mb-4 shadow-xs">
+              <Lock size={32} />
+            </div>
+            <h2 className="text-lg font-black text-[#25231F] uppercase mb-2">Acesso Restrito ao Agente de Risco</h2>
+            <p className="text-xs text-[#77736B] leading-relaxed mb-6 font-mono">
+              O Administrador não autorizou este módulo para visualização no seu perfil de Agente de Risco. Entre em contato com a gestão para solicitar liberação.
+            </p>
+            <button
+              onClick={() => setActiveTab('menu')}
+              className="px-5 py-2.5 rounded-xl bg-[#292820] text-[#FAF7F0] text-xs font-bold uppercase tracking-wider hover:bg-black transition-colors cursor-pointer border border-[#D9C39B]"
+            >
+              Voltar ao Início
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'checklist':
         return (
@@ -522,9 +601,9 @@ export default function App() {
       case 'iscas':
         return <Iscas onBack={() => setActiveTab('menu')} />;
       case 'settings':
-        return <ConfiguracoesPaginasView onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} />;
+        return <ConfiguracoesPaginasView initialTab="paginas" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'cadastro':
-        return <CadastroView onBack={() => setActiveTab('menu')} />;
+        return <ConfiguracoesPaginasView initialTab="cadastro" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       default:
         return null;
     }
@@ -590,6 +669,17 @@ export default function App() {
         <Wallpaper360Viewer
           imageUrl={backgroundImages[activeTab] || backgroundImages.menu}
           onClose={() => setShowWallpaperModal(false)}
+        />
+      )}
+
+      {/* Mandatory First-Login Password Change Modal */}
+      {currentUser && currentUser.mustChangePassword && (
+        <ChangePasswordModal
+          currentUser={currentUser}
+          onPasswordChanged={() => {
+            setCurrentUser(prev => prev ? { ...prev, mustChangePassword: false } : null);
+          }}
+          onLogout={handleLogout}
         />
       )}
 
