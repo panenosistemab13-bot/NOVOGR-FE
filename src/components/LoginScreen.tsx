@@ -102,7 +102,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           email: 'jefferson@3coracoes.com.br',
           name: 'jefferson',
           role: 'admin',
-          roleLabel: 'Administrador'
+          roleLabel: 'Administrador',
+          allowedPages: []
         };
         localStorage.setItem('logged_user', JSON.stringify(adminData));
         localStorage.setItem('user_email', adminData.email);
@@ -132,7 +133,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           name: user.name,
           role: isUserAdmin ? 'admin' : 'agente_de_risco',
           roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-          allowedPages: isUserAdmin ? undefined : (user.allowedPages || ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala']),
+          allowedPages: Array.isArray(user.allowedPages) ? user.allowedPages : [],
           mustChangePassword: requiresPasswordChange
         };
         localStorage.setItem('logged_user', JSON.stringify(userData));

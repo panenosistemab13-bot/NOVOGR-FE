@@ -262,7 +262,7 @@ export default function App() {
             name: found.name || currentUser.name,
             role: isUserAdmin ? 'admin' : 'agente_de_risco',
             roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-            allowedPages: isUserAdmin ? undefined : (found.allowedPages || ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala']),
+            allowedPages: Array.isArray(found.allowedPages) ? found.allowedPages : [],
             mustChangePassword: requiresChange
           };
           setCurrentUser(updated);

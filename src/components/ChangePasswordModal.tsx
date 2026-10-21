@@ -90,7 +90,10 @@ export default function ChangePasswordModal({
         usersList[userIndex] = {
           ...usersList[userIndex],
           password: cleanNew,
-          mustChangePassword: false
+          mustChangePassword: false,
+          allowedPages: Array.isArray(usersList[userIndex].allowedPages) 
+            ? usersList[userIndex].allowedPages 
+            : (Array.isArray(currentUser.allowedPages) ? currentUser.allowedPages : [])
         };
       } else {
         // Se não encontrou por nome/email exato, adiciona ou atualiza pelo nome atual
@@ -101,16 +104,27 @@ export default function ChangePasswordModal({
           role: currentUser.role === 'admin' ? 'Administrador' : 'Agente de Risco',
           password: cleanNew,
           mustChangePassword: false,
-          allowedPages: currentUser.allowedPages
+          allowedPages: Array.isArray(currentUser.allowedPages) ? currentUser.allowedPages : []
         });
       }
 
-      // Salvar no localStorage
-      localStorage.setItem('app_users', JSON.stringify(usersList));
+      // Sanitizar dados para o Firebase RTDB garantindo que não haja campos undefined
+      const sanitizedUsers = usersList.map((u: any) => ({
+        id: Number(u.id) || Date.now(),
+        name: String(u.name || '').trim(),
+        role: u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco',
+        email: String(u.email || '').trim(),
+        password: String(u.password || cleanNew),
+        mustChangePassword: Boolean(u.mustChangePassword),
+        allowedPages: Array.isArray(u.allowedPages) ? u.allowedPages : []
+      }));
 
-      // Salvar no Firebase RTDB
+      // Salvar no localStorage
+      localStorage.setItem('app_users', JSON.stringify(sanitizedUsers));
+
+      // Salvar no Firebase RTDB (sem nenhum undefined)
       try {
-        set(ref(rtdb, 'app_users'), usersList);
+        set(ref(rtdb, 'app_users'), JSON.parse(JSON.stringify(sanitizedUsers)));
       } catch (err) {
         console.error('Erro ao sincronizar nova senha com Firebase:', err);
       }

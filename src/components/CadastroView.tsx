@@ -32,10 +32,10 @@ export interface UserAccount {
   id: number;
   name: string;
   role: 'Administrador' | 'Agente de Risco' | 'Funcionario';
-  allowedPages?: string[];
+  allowedPages: string[];
   email: string;
   password: string;
-  mustChangePassword?: boolean;
+  mustChangePassword: boolean;
 }
 
 export const DEFAULT_AGENT_PAGES = [
@@ -48,6 +48,21 @@ export const DEFAULT_AGENT_PAGES = [
   'escala'
 ];
 
+export const ALL_ADMIN_PAGES = [
+  'checklist', 
+  'averbacao', 
+  'sm_creator', 
+  'iscas', 
+  'controle', 
+  'disponibilidade', 
+  'escala', 
+  'presence', 
+  'rotas',
+  'calendario',
+  'settings',
+  'cadastro'
+];
+
 export const FIXED_ADMIN_USER: UserAccount = {
   id: 1,
   name: 'jefferson',
@@ -55,7 +70,7 @@ export const FIXED_ADMIN_USER: UserAccount = {
   email: 'jefferson@3coracoes.com.br',
   password: '#trescafe2029',
   mustChangePassword: false,
-  allowedPages: ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala', 'presence', 'rotas']
+  allowedPages: [...ALL_ADMIN_PAGES]
 };
 
 const DEFAULT_USERS: UserAccount[] = [
@@ -64,14 +79,14 @@ const DEFAULT_USERS: UserAccount[] = [
     id: 2, 
     name: 'Operador Logístico', 
     role: 'Agente de Risco', 
-    allowedPages: DEFAULT_AGENT_PAGES,
+    allowedPages: [...DEFAULT_AGENT_PAGES],
     email: 'operador@3coracoes.com.br', 
     password: '123',
     mustChangePassword: true
   }
 ];
 
-const sanitizeUsers = (userList: any[]): UserAccount[] => {
+export const sanitizeUsers = (userList: any[]): UserAccount[] => {
   if (!Array.isArray(userList)) return DEFAULT_USERS;
   // Filtrar usuários inválidos e remover login legado "jeff"
   const cleaned: UserAccount[] = userList
@@ -81,20 +96,25 @@ const sanitizeUsers = (userList: any[]): UserAccount[] => {
       const role: 'Administrador' | 'Agente de Risco' = 
         u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco';
       
-      let allowedPages: string[] | undefined = u.allowedPages;
+      let allowedPages: string[] = [];
       if (role === 'Agente de Risco') {
-        if (!allowedPages || !Array.isArray(allowedPages) || allowedPages.length === 0) {
+        if (Array.isArray(u.allowedPages) && u.allowedPages.length > 0) {
+          allowedPages = u.allowedPages.filter((p: any) => typeof p === 'string' && p.trim().length > 0);
+        } else {
           allowedPages = [...DEFAULT_AGENT_PAGES];
         }
       } else {
-        allowedPages = undefined; // Administrador acessa tudo sem restrições
+        // Administrador tem acesso amplo - garantido como array, nunca undefined
+        allowedPages = Array.isArray(u.allowedPages) && u.allowedPages.length > 0
+          ? u.allowedPages
+          : [...ALL_ADMIN_PAGES];
       }
 
       const pass = String(u.password ?? '123');
       const mustChange = u.mustChangePassword !== undefined ? Boolean(u.mustChangePassword) : (pass === '123');
 
       return {
-        id: u.id || Date.now(),
+        id: Number(u.id) || Date.now(),
         name: String(u.name || '').trim(),
         role,
         allowedPages,
@@ -116,11 +136,25 @@ const sanitizeUsers = (userList: any[]): UserAccount[] => {
       role: 'Administrador',
       email: cleaned[idx].email || 'jefferson@3coracoes.com.br',
       password: '#trescafe2029',
-      allowedPages: undefined
+      mustChangePassword: false,
+      allowedPages: [...ALL_ADMIN_PAGES]
     };
   }
 
   return cleaned.length > 0 ? cleaned : DEFAULT_USERS;
+};
+
+export const cleanUsersForFirebase = (userList: any[]): UserAccount[] => {
+  const sanitized = sanitizeUsers(userList);
+  return sanitized.map(u => ({
+    id: Number(u.id) || Date.now(),
+    name: String(u.name || '').trim(),
+    role: u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco',
+    allowedPages: Array.isArray(u.allowedPages) ? u.allowedPages : [],
+    email: String(u.email || '').trim(),
+    password: String(u.password || '123'),
+    mustChangePassword: Boolean(u.mustChangePassword)
+  }));
 };
 
 export interface CadastroViewProps {
@@ -172,8 +206,9 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
         setUsers(cleaned);
         localStorage.setItem('app_users', JSON.stringify(cleaned));
       } else if (!data) {
-        // Inicializar com usuários padrão no Firebase se vazio
-        set(usersRef, users);
+        // Inicializar com usuários padrão no Firebase se vazio (sem undefined)
+        const initialPayload = cleanUsersForFirebase(DEFAULT_USERS);
+        set(usersRef, initialPayload);
       }
     });
 
@@ -185,7 +220,8 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     setUsers(cleaned);
     localStorage.setItem('app_users', JSON.stringify(cleaned));
     try {
-      set(ref(rtdb, 'app_users'), cleaned);
+      const payload = cleanUsersForFirebase(cleaned);
+      set(ref(rtdb, 'app_users'), payload);
     } catch (e) {
       console.error('Erro ao sincronizar com Firebase:', e);
     }
@@ -199,7 +235,8 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
           name: selfUpdated.name,
           role: selfUpdated.role === 'Administrador' ? 'admin' : 'agente_de_risco',
           roleLabel: selfUpdated.role,
-          allowedPages: selfUpdated.allowedPages
+          allowedPages: selfUpdated.allowedPages,
+          mustChangePassword: Boolean(selfUpdated.mustChangePassword)
         };
         localStorage.setItem('logged_user', JSON.stringify(updatedLogged));
       }
@@ -218,7 +255,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
       if (value === 'Agente de Risco' && (!newAllowedPages || newAllowedPages.length === 0)) {
         newAllowedPages = [...DEFAULT_AGENT_PAGES];
       } else if (value === 'Administrador') {
-        newAllowedPages = undefined; // Administrador acessa tudo
+        newAllowedPages = [...ALL_ADMIN_PAGES];
       }
     }
 
@@ -559,8 +596,8 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                           : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
                       )}
                     >
-                      <option value="Administrador">1. Administrador (consegue acessar tudo)</option>
-                      <option value="Agente de Risco">2. Agente de Risco (o administrador escolhe as páginas)</option>
+                      <option value="Administrador">1. Administrador</option>
+                      <option value="Agente de Risco">2. Agente de Risco</option>
                     </select>
                   </div>
 
