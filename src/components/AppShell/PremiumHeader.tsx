@@ -81,15 +81,27 @@ export default function PremiumHeader({
     return days[currentTime.getDay()];
   }, [currentTime]);
 
+  const isDark = activeTab === 'menu';
+
   return (
-    <header className="w-full h-[68px] bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between shadow-xs shrink-0 z-30 select-none font-sans text-slate-800">
+    <header className={cn(
+      "w-full h-[68px] px-4 md:px-6 flex items-center justify-between shrink-0 z-30 select-none font-sans transition-colors duration-200",
+      isDark 
+        ? "bg-[#07080c] border-b border-stone-800 text-white shadow-md" 
+        : "bg-white border-b border-slate-200 text-slate-800 shadow-xs"
+    )}>
       
       {/* Left: Hamburger + Logo 3C + Brand Title + Location Badge */}
       <div className="flex items-center gap-3.5 shrink-0">
         <button 
           type="button"
           onClick={onToggleDrawer}
-          className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 hover:bg-slate-200 text-[#9A7B38] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+          className={cn(
+            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer shadow-2xs",
+            isDark 
+              ? "bg-stone-900 border border-stone-800 hover:bg-stone-800 text-[#E5C27A]" 
+              : "bg-slate-100 border border-slate-300 hover:bg-slate-200 text-[#9A7B38]"
+          )}
           title="Menu Operacional"
         >
           <Menu className="w-5 h-5 stroke-[2.2]" />
@@ -101,15 +113,24 @@ export default function PremiumHeader({
           className="flex items-center gap-3 cursor-pointer group"
           title="Central GR - 3 Corações"
         >
-          <div className="w-11 h-11 rounded-full p-0.5 bg-slate-50 border-2 border-[#D4AF37] shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden">
+          <div className={cn(
+            "w-11 h-11 rounded-full p-0.5 border-2 border-[#D4AF37] shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden",
+            isDark ? "bg-stone-900" : "bg-slate-50"
+          )}>
             <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
           </div>
 
           <div className="flex flex-col text-left leading-none">
-            <span className="text-[17px] font-black text-slate-900 tracking-wider font-heading">
+            <span className={cn(
+              "text-[17px] font-black tracking-wider font-heading",
+              isDark ? "text-white" : "text-slate-900"
+            )}>
               CENTRAL GR
             </span>
-            <span className="text-[8px] font-bold text-[#8C6D28] tracking-[0.2em] uppercase mt-1">
+            <span className={cn(
+              "text-[8px] font-bold tracking-[0.2em] uppercase mt-1",
+              isDark ? "text-[#E5C27A]" : "text-[#8C6D28]"
+            )}>
               LOGÍSTICA QUE APROXIMA
             </span>
           </div>
@@ -119,17 +140,20 @@ export default function PremiumHeader({
       {/* Right: Settings + 360° + User Profile Badge */}
       <div className="flex items-center gap-3 shrink-0">
         
-
-
         {/* 360° button */}
         {onOpenWallpaper && (
           <button
             type="button"
             onClick={onOpenWallpaper}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-50 border border-sky-200 hover:bg-sky-100 text-sky-700 transition-colors cursor-pointer shadow-2xs font-bold text-xs"
+            className={cn(
+              "flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors cursor-pointer shadow-2xs font-bold text-xs border",
+              isDark
+                ? "bg-stone-900 border-stone-800 hover:bg-stone-800 text-sky-400"
+                : "bg-sky-50 border-sky-200 hover:bg-sky-100 text-sky-700"
+            )}
             title="Visualização 360°"
           >
-            <Globe className="w-4 h-4 text-sky-600" />
+            <Globe className={cn("w-4 h-4", isDark ? "text-sky-400" : "text-sky-600")} />
             <span>360°</span>
           </button>
         )}
@@ -139,20 +163,34 @@ export default function PremiumHeader({
           <button
             type="button"
             onClick={() => setShowUserDropdown(!showUserDropdown)}
-            className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all cursor-pointer shadow-2xs text-slate-900"
+            className={cn(
+              "flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-2xs",
+              isDark
+                ? "bg-stone-900 hover:bg-stone-800 border-stone-800 text-white"
+                : "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-900"
+            )}
           >
-            <div className="w-7 h-7 rounded-full border border-[#D4AF37] overflow-hidden flex items-center justify-center bg-amber-100">
-              <User className="w-4 h-4 text-amber-800" />
+            <div className={cn(
+              "w-7 h-7 rounded-full border border-[#D4AF37] overflow-hidden flex items-center justify-center",
+              isDark ? "bg-amber-950/70 text-amber-300" : "bg-amber-100 text-amber-800"
+            )}>
+              <User className="w-4 h-4" />
             </div>
             <div className="hidden sm:flex flex-col text-left leading-tight">
-              <span className="text-[11px] font-black text-slate-900 tracking-wide uppercase">
+              <span className={cn(
+                "text-[11px] font-black tracking-wide uppercase",
+                isDark ? "text-white" : "text-slate-900"
+              )}>
                 {currentUser?.name || loggedUser?.name || 'JEFFERSON'}
               </span>
-              <span className="text-[8.5px] font-semibold text-slate-500">
+              <span className={cn(
+                "text-[8.5px] font-semibold",
+                isDark ? "text-stone-400" : "text-slate-500"
+              )}>
                 {currentUser?.role || loggedUser?.role || 'admin'}
               </span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+            <ChevronDown className={cn("w-3.5 h-3.5", isDark ? "text-stone-400" : "text-slate-500")} />
           </button>
 
           {showUserDropdown && (
@@ -161,10 +199,20 @@ export default function PremiumHeader({
                 className="fixed inset-0 z-40" 
                 onClick={() => setShowUserDropdown(false)} 
               />
-              <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 text-xs">
-                <div className="px-4 py-2 border-b border-slate-100 text-slate-600">
-                  <p className="font-bold text-slate-900 uppercase">{currentUser?.name || loggedUser?.name || 'JEFFERSON'}</p>
-                  <p className="text-[10px] text-[#8C6D28] font-bold">
+              <div className={cn(
+                "absolute right-0 mt-2 w-52 rounded-2xl shadow-xl py-2 z-50 text-xs border",
+                isDark 
+                  ? "bg-[#0e1014] border-stone-800 text-white" 
+                  : "bg-white border-slate-200 text-slate-800"
+              )}>
+                <div className={cn(
+                  "px-4 py-2 border-b",
+                  isDark ? "border-stone-800 text-stone-300" : "border-slate-100 text-slate-600"
+                )}>
+                  <p className={cn("font-bold uppercase", isDark ? "text-white" : "text-slate-900")}>
+                    {currentUser?.name || loggedUser?.name || 'JEFFERSON'}
+                  </p>
+                  <p className={cn("text-[10px] font-bold", isDark ? "text-[#E5C27A]" : "text-[#8C6D28]")}>
                     {currentUser?.role === 'admin' ? 'Acesso Administrador Fixo' : 'Acesso Operacional'}
                   </p>
                 </div>
@@ -174,9 +222,12 @@ export default function PremiumHeader({
                       setShowUserDropdown(false);
                       onOpenSettings();
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-slate-100 flex items-center gap-2 text-slate-700 font-semibold cursor-pointer"
+                    className={cn(
+                      "w-full px-4 py-2 text-left flex items-center gap-2 font-semibold cursor-pointer",
+                      isDark ? "hover:bg-stone-800 text-stone-200" : "hover:bg-slate-100 text-slate-700"
+                    )}
                   >
-                    <Settings className="w-3.5 h-3.5 text-[#9A7B38]" />
+                    <Settings className="w-3.5 h-3.5 text-[#E5C27A]" />
                     <span>{currentUser?.role === 'admin' ? 'Configurações & Páginas' : 'Meu Perfil / Senha'}</span>
                   </button>
                 )}
@@ -186,9 +237,12 @@ export default function PremiumHeader({
                       setShowUserDropdown(false);
                       onLogout();
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-rose-50 text-rose-600 flex items-center gap-2 font-semibold cursor-pointer"
+                    className={cn(
+                      "w-full px-4 py-2 text-left flex items-center gap-2 font-semibold cursor-pointer",
+                      isDark ? "hover:bg-rose-950/40 text-rose-400" : "hover:bg-rose-50 text-rose-600"
+                    )}
                   >
-                    <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                    <LogOut className="w-3.5 h-3.5 text-rose-500" />
                     <span>Sair do Sistema</span>
                   </button>
                 )}

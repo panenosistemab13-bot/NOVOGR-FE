@@ -31,7 +31,10 @@ import {
   ArrowLeft,
   FileSpreadsheet,
   ArrowDownUp,
-  Route
+  Route,
+  Eye,
+  EyeOff,
+  SlidersHorizontal
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
@@ -120,8 +123,94 @@ const invertRoute = (trecho: string) => {
   return trecho.toUpperCase();
 };
 
+export function parsePastedCurrency(raw: string | undefined | null): number {
+  if (!raw) return 0;
+  let str = String(raw).trim();
+  if (!str) return 0;
+
+  // Remove aspas
+  str = str.replace(/^["']|["']$/g, '').trim();
+
+  // Remove prefixos e sufixos de moeda (R$, BRL, RS, $)
+  str = str.replace(/^(R\$|BRL|RS|\$)\s*/i, '').trim();
+  str = str.replace(/\s*(R\$|BRL|RS|\$)$/i, '').trim();
+
+  // Caso tenha sido colado sobre um campo existente "0,00" e concatenado
+  if (str.startsWith('0,00') && str.length > 4) {
+    str = str.slice(4).trim();
+  }
+  if (str.endsWith('0,00') && str.length > 4 && (str.includes(',') || str.includes('.'))) {
+    const commaCount = (str.match(/,/g) || []).length;
+    if (commaCount > 1) {
+      str = str.slice(0, -4).trim();
+    }
+  }
+
+  // Caso 1: Contém ponto E vírgula (ex: 1.234.567,89 ou 1,234,567.89)
+  if (str.includes('.') && str.includes(',')) {
+    const lastDot = str.lastIndexOf('.');
+    const lastComma = str.lastIndexOf(',');
+    if (lastComma > lastDot) {
+      // Padrão brasileiro: 1.234.567,89 -> remove pontos, vírgula vira ponto
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else {
+      // Padrão americano: 1,234,567.89 -> remove vírgulas
+      str = str.replace(/,/g, '');
+    }
+  } else if (str.includes(',')) {
+    // Apenas vírgula: ex "1234,56" ou "50,5"
+    const parts = str.split(',');
+    if (parts.length === 2) {
+      str = str.replace(',', '.');
+    } else {
+      str = str.replace(/,/g, '');
+    }
+  } else if (str.includes('.')) {
+    // Apenas ponto: ex "1234.56" ou "50.000" ou "1.500"
+    const parts = str.split('.');
+    if (parts.length > 2) {
+      // Múltiplos pontos -> separador de milhar brasileiro
+      str = str.replace(/\./g, '');
+    } else if (parts.length === 2) {
+      if (parts[1].length === 3) {
+        // Ex: 50.000 ou 1.500 -> milhar brasileiro
+        str = str.replace(/\./g, '');
+      }
+      // Se não for 3 dígitos (ex: 50.5 ou 1234.56), é ponto decimal
+    }
+  }
+
+  // Remove quaisquer caracteres restantes que não sejam dígitos, sinal ou ponto
+  str = str.replace(/[^\d.-]/g, '');
+  const num = parseFloat(str);
+  return isNaN(num) || num < 0 ? 0 : num;
+}
+
+export function formatCurrencyNumber(num: number): string {
+  if (isNaN(num) || num <= 0) return '0,00';
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(num);
+}
+
 const formatNfValue = (value: string) => {
-  const digits = value.replace(/\D/g, '');
+  if (!value) return '0,00';
+  const trimmed = value.trim();
+
+  // Se o valor contiver símbolos de moeda, concatenação com "0,00" ou múltiplos separadores
+  if (
+    /R?S?\$|BRL/i.test(trimmed) || 
+    (trimmed.startsWith('0,00') && trimmed.length > 4) || 
+    (trimmed.match(/,/g) || []).length > 1 ||
+    (trimmed.includes('.') && trimmed.includes(','))
+  ) {
+    const parsed = parsePastedCurrency(trimmed);
+    return formatCurrencyNumber(parsed);
+  }
+
+  // Máscara tradicional para digitação dígito a dígito
+  const digits = trimmed.replace(/\D/g, '');
   if (!digits) return '0,00';
   const amount = parseFloat(digits) / 100;
   return new Intl.NumberFormat('pt-BR', {
@@ -132,15 +221,13 @@ const formatNfValue = (value: string) => {
 
 export const parseNfNumeric = (val: string | undefined | null): number => {
   if (!val) return 0;
-  const digits = val.replace(/\D/g, '');
-  if (!digits) return 0;
-  return parseFloat(digits) / 100;
+  return parsePastedCurrency(val);
 };
 
 export const isValorNfEmpty = (val: string | undefined | null): boolean => {
   if (!val) return true;
-  const trimmed = val.trim();
-  if (trimmed === '' || trimmed === '-' || trimmed === '--') return true;
+  const trimmed = String(val).trim();
+  if (trimmed === '' || trimmed === '-' || trimmed === '--' || trimmed === '0,00') return true;
   const num = parseNfNumeric(trimmed);
   return num <= 0;
 };
@@ -365,6 +452,40 @@ const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasi
 
 export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps) {
   const [internalView, setInternalView] = useState<'all' | 'ida' | 'volta' | 'vespasiano' | 'nordeste' | 'codes'>('all');
+
+  // Controle de visibilidade das 4 rotas (ocultas por padrão conforme solicitação)
+  const [visibleRoutes, setVisibleRoutes] = useState<Record<'ida' | 'volta' | 'nordeste' | 'vespasiano', boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('sm_visible_routes');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      ida: false,
+      volta: false,
+      nordeste: false,
+      vespasiano: false
+    };
+  });
+  const [isRouteSelectorOpen, setIsRouteSelectorOpen] = useState(false);
+
+  const toggleVisibleRoute = (routeKey: 'ida' | 'volta' | 'nordeste' | 'vespasiano') => {
+    setVisibleRoutes(prev => {
+      const updated = { ...prev, [routeKey]: !prev[routeKey] };
+      try { localStorage.setItem('sm_visible_routes', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
+  const setAllRoutesVisibility = (show: boolean) => {
+    const updated = {
+      ida: show,
+      volta: show,
+      nordeste: show,
+      vespasiano: show
+    };
+    setVisibleRoutes(updated);
+    try { localStorage.setItem('sm_visible_routes', JSON.stringify(updated)); } catch {}
+  };
   const [idaRows, setIdaRows] = useState<SMRow[]>(() => {
     try {
       const saved = localStorage.getItem('sm_creator_ida');
@@ -603,6 +724,66 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   const [nordesteCopied, setNordesteCopied] = useState(false);
   const [subjectIdaCopied, setSubjectIdaCopied] = useState(false);
   const [subjectVoltaCopied, setSubjectVoltaCopied] = useState(false);
+
+  // Estados e funções para cópia dos números de rota
+  const [copiedRouteKey, setCopiedRouteKey] = useState<string | null>(null);
+  const [routeToast, setRouteToast] = useState<{ message: string; submessage?: string } | null>(null);
+
+  const copySingleRouteCode = async (code: string, keyId: string) => {
+    if (!code || code === '---' || code === '-') {
+      setRouteToast({
+        message: 'Nenhum código de rota disponível',
+        submessage: 'Preencha ou selecione um trecho válido'
+      });
+      setTimeout(() => setRouteToast(null), 2500);
+      return;
+    }
+    const success = await safeCopyText(code);
+    if (success) {
+      setCopiedRouteKey(keyId);
+      setRouteToast({
+        message: `Número de rota copiado: ${code}`,
+        submessage: 'Copiado para a área de transferência'
+      });
+      setTimeout(() => {
+        setCopiedRouteKey((curr) => (curr === keyId ? null : curr));
+      }, 2000);
+      setTimeout(() => {
+        setRouteToast(null);
+      }, 2500);
+    }
+  };
+
+  const copyAllSectionRouteCodes = async (rows: SMRow[], section: 'ida' | 'volta', sectionTitle: string, headerKey: string) => {
+    const codes = rows
+      .map(r => findRouteCode(r.trecho, section, routesList))
+      .filter(code => code && code.trim() !== '' && code !== '---' && code !== '-');
+
+    if (codes.length === 0) {
+      setRouteToast({
+        message: `Nenhum número de rota em ${sectionTitle}`,
+        submessage: 'Preencha trechos reconhecidos para copiar os números.'
+      });
+      setTimeout(() => setRouteToast(null), 2500);
+      return;
+    }
+
+    const textToCopy = codes.join('\n');
+    const success = await safeCopyText(textToCopy);
+    if (success) {
+      setCopiedRouteKey(headerKey);
+      setRouteToast({
+        message: `${codes.length} números de rota copiados!`,
+        submessage: `Rotas de ${sectionTitle} copiadas com sucesso.`
+      });
+      setTimeout(() => {
+        setCopiedRouteKey((curr) => (curr === headerKey ? null : curr));
+      }, 2000);
+      setTimeout(() => {
+        setRouteToast(null);
+      }, 2500);
+    }
+  };
 
   // PDF Import Modal State
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
@@ -1224,6 +1405,88 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     }
   };
 
+  const handlePasteValorNf = (
+    pastedText: string,
+    startIndex: number,
+    section: 'ida' | 'volta' | 'vespasiano' | 'nordeste'
+  ) => {
+    if (!pastedText) return;
+
+    // Divide em linhas caso o usuário tenha copiado uma coluna inteira de planilha
+    const lines = pastedText
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    if (lines.length === 0) return;
+
+    const getRows = () => {
+      switch (section) {
+        case 'ida': return [...idaRows];
+        case 'volta': return [...voltaRows];
+        case 'nordeste': return [...nordesteRows];
+        case 'vespasiano': return [...vespasianoRows];
+      }
+    };
+
+    const saveRows = (newRows: SMRow[]) => {
+      switch (section) {
+        case 'ida': saveIda(newRows, true); break;
+        case 'volta': saveVolta(newRows, true); break;
+        case 'nordeste': saveNordeste(newRows, true); break;
+        case 'vespasiano': saveVespasiano(newRows, true); break;
+      }
+    };
+
+    const rows = getRows();
+
+    if (lines.length === 1) {
+      let valStr = lines[0];
+      if (valStr.includes('\t')) {
+        const parts = valStr.split('\t').map(p => p.trim());
+        const numPart = parts.find(p => /^\s*R?\$?\s*[\d.,]+\s*$/.test(p)) || parts[parts.length - 1];
+        valStr = numPart;
+      }
+
+      const num = parsePastedCurrency(valStr);
+      const formatted = formatCurrencyNumber(num);
+
+      if (startIndex >= 0 && startIndex < rows.length) {
+        rows[startIndex] = { ...rows[startIndex], valorNf: formatted };
+        saveRows(rows);
+        setRouteToast({
+          message: `Valor colado: R$ ${formatted}`,
+          submessage: 'Valor da NF atualizado com sucesso.'
+        });
+        setTimeout(() => setRouteToast(null), 2500);
+      }
+    } else {
+      let updatedCount = 0;
+      lines.forEach((line, offset) => {
+        const targetIdx = startIndex + offset;
+        if (targetIdx < rows.length) {
+          let valStr = line;
+          if (valStr.includes('\t')) {
+            const parts = valStr.split('\t').map(p => p.trim());
+            const numPart = parts.find(p => /^\s*R?\$?\s*[\d.,]+\s*$/.test(p)) || parts[parts.length - 1];
+            valStr = numPart;
+          }
+          const num = parsePastedCurrency(valStr);
+          const formatted = formatCurrencyNumber(num);
+          rows[targetIdx] = { ...rows[targetIdx], valorNf: formatted };
+          updatedCount++;
+        }
+      });
+
+      saveRows(rows);
+      setRouteToast({
+        message: `${updatedCount} valores colados com sucesso!`,
+        submessage: 'Valores da NF preenchidos na tabela.'
+      });
+      setTimeout(() => setRouteToast(null), 2500);
+    }
+  };
+
   const moveRow = (index: number, direction: 'up' | 'down', section: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
     const rows = section === 'ida' ? [...idaRows] : section === 'volta' ? [...voltaRows] : section === 'nordeste' ? [...nordesteRows] : [...vespasianoRows];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
@@ -1284,7 +1547,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
   const calculateTotal = () => {
     const sum = calcValues.reduce((acc, curr) => {
-      const val = parseFloat(curr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+      const val = parsePastedCurrency(curr);
       return isNaN(val) ? acc : acc + val;
     }, 0);
     return new Intl.NumberFormat('pt-BR', {
@@ -1315,6 +1578,28 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     const newVals = [...calcValues];
     newVals[index] = val;
     saveCalc(newVals);
+  };
+
+  const handlePasteCalc = (pastedText: string, startIndex: number) => {
+    if (!pastedText) return;
+    const lines = pastedText
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    if (lines.length === 0) return;
+
+    const newVals = [...calcValues];
+    lines.forEach((line, offset) => {
+      const targetIdx = startIndex + offset;
+      const num = parsePastedCurrency(line);
+      const formatted = formatCurrencyNumber(num);
+      if (targetIdx < newVals.length) {
+        newVals[targetIdx] = formatted;
+      } else {
+        newVals.push(formatted);
+      }
+    });
+    saveCalc(newVals, true);
   };
 
   const getGreeting = () => {
@@ -1489,6 +1774,15 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               </div>
               <div className="relative z-10 flex items-center gap-2">
                 <button
+                  type="button"
+                  onClick={() => setIsRouteSelectorOpen(true)}
+                  className="px-3.5 py-1.5 text-xs font-black rounded-xl border bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40 cursor-pointer transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                  title="Escolher quais rotas devem aparecer"
+                >
+                  <SlidersHorizontal size={13} className="text-[#C49A45]" />
+                  <span>Rotas ({Object.values(visibleRoutes).filter(Boolean).length}/4)</span>
+                </button>
+                <button
                   onClick={handleClearAllSM}
                   className="px-3.5 py-1.5 text-xs font-black rounded-xl border bg-red-950/80 hover:bg-red-900 text-red-200 border-red-800/60 cursor-pointer transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
                   title="Limpar todas as informações de teste"
@@ -1565,9 +1859,78 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
             {/* Main Work Area */}
             <div className="xl:col-span-3 space-y-4">
-              
+
+              {/* Barra de Seleção / Controle de Rotas */}
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FFFCF6] border border-[#E6D2A3] p-3.5 rounded-2xl shadow-xs">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsRouteSelectorOpen(true)}
+                    className="w-9 h-9 rounded-xl bg-[#292820] hover:bg-[#38372d] flex items-center justify-center text-[#D6A84F] shadow-xs shrink-0 cursor-pointer transition-transform active:scale-95 border border-[#C49A45]/40"
+                    title="Clique para escolher quais rotas irão aparecer"
+                  >
+                    <SlidersHorizontal size={16} />
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-black text-[#25231F] uppercase tracking-wider">
+                        Controle de Rotas
+                      </span>
+                      <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-md bg-[#F5F0E6] text-[#C49A45] border border-[#E6D2A3]">
+                        {Object.values(visibleRoutes).filter(Boolean).length} de 4 ativas
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-mono text-[#7A756D] mt-0.5">
+                      {Object.values(visibleRoutes).filter(Boolean).length === 0
+                        ? "Todas as rotas estão ocultas. Clique no ícone para escolher qual rota irá aparecer."
+                        : "Exibindo apenas as rotas selecionadas abaixo."}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsRouteSelectorOpen(true)}
+                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                  title="Abrir menu de seleção de rotas"
+                >
+                  <SlidersHorizontal size={13} className="text-[#D6A84F]" />
+                  <span>Qual rota irá aparecer?</span>
+                </button>
+              </div>
+
+              {/* Se todas as rotas estiverem ocultas, exibe o cartão no lugar com o ícone para clicar */}
+              {Object.values(visibleRoutes).every(v => !v) && (
+                <div className="bg-[#FFFCF6] border-2 border-dashed border-[#E6D2A3] rounded-3xl p-10 sm:p-14 text-center flex flex-col items-center justify-center gap-4 shadow-sm animate-fade-in">
+                  <button
+                    type="button"
+                    onClick={() => setIsRouteSelectorOpen(true)}
+                    className="w-16 h-16 rounded-2xl bg-[#292820] border border-[#C49A45]/50 flex items-center justify-center text-[#D6A84F] shadow-md cursor-pointer hover:scale-105 hover:bg-[#38372d] transition-all group"
+                    title="Clique para escolher qual rota irá aparecer"
+                  >
+                    <SlidersHorizontal size={28} className="group-hover:rotate-12 transition-transform" />
+                  </button>
+                  <div className="max-w-md">
+                    <h3 className="text-sm sm:text-base font-mono font-black text-[#25231F] uppercase tracking-wide">
+                      Rotas Ocultas
+                    </h3>
+                    <p className="text-xs text-[#7A756D] font-mono mt-1 leading-relaxed">
+                      As rotas estão ocultas no momento. Clique no ícone acima para escolher qual rota deseja que apareça na tela.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsRouteSelectorOpen(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] transition-all cursor-pointer shadow-md active:scale-95"
+                  >
+                    <Eye size={14} />
+                    <span>Qual dessas rotas irá aparecer?</span>
+                  </button>
+                </div>
+              )}
+
               {/* ROTA IDA (Preto com Dourado) */}
-              {(internalView === 'all' || internalView === 'ida') && (
+              {visibleRoutes.ida && (
               <section className="space-y-3 font-sans">
                 <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-[#E6D2A3]">
                   <div className="flex items-center gap-2.5">
@@ -1663,7 +2026,24 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 1</th>
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                               <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
-                              <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
+                              <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>ROTAS</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => copyAllSectionRouteCodes(idaRows, 'ida', 'Rota Ida', 'header-ida')}
+                                    className={cn(
+                                      "p-1 rounded transition-all cursor-pointer border",
+                                      copiedRouteKey === 'header-ida'
+                                        ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F]"
+                                        : "bg-transparent text-[#7A756D] border-transparent hover:text-[#25231F] hover:bg-[#E6D2A3]/70 hover:border-[#E6D2A3]"
+                                    )}
+                                    title="Copiar todos os números de rotas da Rota Ida"
+                                  >
+                                    {copiedRouteKey === 'header-ida' ? <Check size={11} className="text-[#D6A84F]" /> : <Copy size={11} />}
+                                  </button>
+                                </div>
+                              </th>
                               <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
                                 <div className="flex items-center justify-between gap-1 mb-1">
                                   <span 
@@ -1769,9 +2149,39 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                     />
                                   </td>
                                   <td className="p-1.5 text-center">
-                                    <div className="bg-[#F5F0E6] border border-[#E6D2A3] text-[#25231F] font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center shadow-xs" title="Código da rota obtido da página de Rotas">
-                                      {findRouteCode(row.trecho, 'ida', routesList)}
-                                    </div>
+                                    {(() => {
+                                      const routeCode = findRouteCode(row.trecho, 'ida', routesList);
+                                      const keyId = `ida-${i}`;
+                                      const isCopied = copiedRouteKey === keyId;
+                                      const isValid = routeCode && routeCode.trim() !== '' && routeCode !== '---' && routeCode !== '-';
+                                      return isValid ? (
+                                        <button
+                                          type="button"
+                                          onClick={() => copySingleRouteCode(routeCode, keyId)}
+                                          className={cn(
+                                            "group/route relative inline-flex items-center justify-center gap-1 font-extrabold text-xs rounded-md py-1.5 px-2.5 min-w-[58px] text-center transition-all cursor-pointer shadow-xs border select-all",
+                                            isCopied
+                                              ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F] ring-2 ring-[#D6A84F]/30 scale-105"
+                                              : "bg-[#F5F0E6] border-[#E6D2A3] text-[#25231F] hover:bg-[#E6D2A3] hover:border-[#C49A45] hover:shadow-sm active:scale-95"
+                                          )}
+                                          title={isCopied ? "Número da rota copiado!" : `Clique para copiar a rota: ${routeCode}`}
+                                        >
+                                          <span className="font-mono tracking-wide">{routeCode}</span>
+                                          {isCopied ? (
+                                            <Check size={12} className="text-[#D6A84F] shrink-0" />
+                                          ) : (
+                                            <Copy size={11} className="text-[#7A756D] group-hover/route:text-[#25231F] opacity-60 group-hover/route:opacity-100 transition-opacity shrink-0" />
+                                          )}
+                                        </button>
+                                      ) : (
+                                        <div 
+                                          className="bg-[#F5F0E6]/70 border border-[#E6D2A3]/60 text-[#7A756D] font-mono font-bold text-xs rounded-md py-1.5 px-2 inline-block min-w-[58px] text-center select-none"
+                                          title="Código da rota obtido da página de Rotas"
+                                        >
+                                          ---
+                                        </div>
+                                      );
+                                    })()}
                                   </td>
                                   <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
                                     <div className="flex items-center justify-end gap-1.5">
@@ -1806,6 +2216,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                           type="text"
                                           value={row.valorNf}
                                           onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'ida')}
+                                          onPaste={(e) => {
+                                            e.preventDefault();
+                                            const text = e.clipboardData.getData('text');
+                                            handlePasteValorNf(text, i, 'ida');
+                                          }}
+                                          onFocus={(e) => e.target.select()}
                                           placeholder="0,00"
                                           className={cn(
                                             "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
@@ -1865,7 +2281,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               )}
 
               {/* ROTA VOLTA (Vermelha) */}
-              {(internalView === 'all' || internalView === 'volta') && (
+              {visibleRoutes.volta && (
               <section className="space-y-3 font-sans animate-fade-in">
                 <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-[#C91F2D]/30">
                   <div className="flex items-center gap-2.5">
@@ -1947,7 +2363,24 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 1</th>
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                               <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
-                              <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
+                              <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>ROTAS</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => copyAllSectionRouteCodes(voltaRows, 'volta', 'Rota Volta', 'header-volta')}
+                                    className={cn(
+                                      "p-1 rounded transition-all cursor-pointer border",
+                                      copiedRouteKey === 'header-volta'
+                                        ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F]"
+                                        : "bg-transparent text-[#7A756D] border-transparent hover:text-[#25231F] hover:bg-[#E6D2A3]/70 hover:border-[#E6D2A3]"
+                                    )}
+                                    title="Copiar todos os números de rotas da Rota Volta"
+                                  >
+                                    {copiedRouteKey === 'header-volta' ? <Check size={11} className="text-[#D6A84F]" /> : <Copy size={11} />}
+                                  </button>
+                                </div>
+                              </th>
                               <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
                                 <div className="flex items-center justify-between gap-1 mb-1">
                                   <span 
@@ -2057,9 +2490,39 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   </div>
                                 </td>
                                 <td className="p-1.5 text-center">
-                                  <div className="bg-[#F5F0E6] border border-[#E6D2A3] text-[#25231F] font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center shadow-xs" title="Código da rota obtido da página de Rotas">
-                                    {findRouteCode(row.trecho, 'volta', routesList)}
-                                  </div>
+                                  {(() => {
+                                    const routeCode = findRouteCode(row.trecho, 'volta', routesList);
+                                    const keyId = `volta-${i}`;
+                                    const isCopied = copiedRouteKey === keyId;
+                                    const isValid = routeCode && routeCode.trim() !== '' && routeCode !== '---' && routeCode !== '-';
+                                    return isValid ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => copySingleRouteCode(routeCode, keyId)}
+                                        className={cn(
+                                          "group/route relative inline-flex items-center justify-center gap-1 font-extrabold text-xs rounded-md py-1.5 px-2.5 min-w-[58px] text-center transition-all cursor-pointer shadow-xs border select-all",
+                                          isCopied
+                                            ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F] ring-2 ring-[#D6A84F]/30 scale-105"
+                                            : "bg-[#F5F0E6] border-[#E6D2A3] text-[#25231F] hover:bg-[#E6D2A3] hover:border-[#C49A45] hover:shadow-sm active:scale-95"
+                                        )}
+                                        title={isCopied ? "Número da rota copiado!" : `Clique para copiar a rota: ${routeCode}`}
+                                      >
+                                        <span className="font-mono tracking-wide">{routeCode}</span>
+                                        {isCopied ? (
+                                          <Check size={12} className="text-[#D6A84F] shrink-0" />
+                                        ) : (
+                                          <Copy size={11} className="text-[#7A756D] group-hover/route:text-[#25231F] opacity-60 group-hover/route:opacity-100 transition-opacity shrink-0" />
+                                        )}
+                                      </button>
+                                    ) : (
+                                      <div 
+                                        className="bg-[#F5F0E6]/70 border border-[#E6D2A3]/60 text-[#7A756D] font-mono font-bold text-xs rounded-md py-1.5 px-2 inline-block min-w-[58px] text-center select-none"
+                                        title="Código da rota obtido da página de Rotas"
+                                      >
+                                        ---
+                                      </div>
+                                    );
+                                  })()}
                                 </td>
                                 <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
                                   <div className="flex items-center justify-end gap-1.5">
@@ -2094,6 +2557,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                         type="text"
                                         value={row.valorNf}
                                         onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'volta')}
+                                        onPaste={(e) => {
+                                          e.preventDefault();
+                                          const text = e.clipboardData.getData('text');
+                                          handlePasteValorNf(text, i, 'volta');
+                                        }}
+                                        onFocus={(e) => e.target.select()}
                                         placeholder="0,00"
                                         className={cn(
                                           "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
@@ -2152,7 +2621,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               )}
 
               {/* ROTA SANTA LUZIA X NORDESTE */}
-              {(internalView === 'all' || internalView === 'nordeste') && (
+              {visibleRoutes.nordeste && (
               <section className="space-y-3 font-sans animate-fade-in">
                 <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-slate-800/20">
                   <div className="flex items-center gap-2.5">
@@ -2234,7 +2703,24 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 1</th>
                               <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                               <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
-                              <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
+                              <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>ROTAS</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => copyAllSectionRouteCodes(nordesteRows, 'ida', 'Rota Nordeste', 'header-nordeste')}
+                                    className={cn(
+                                      "p-1 rounded transition-all cursor-pointer border",
+                                      copiedRouteKey === 'header-nordeste'
+                                        ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F]"
+                                        : "bg-transparent text-[#7A756D] border-transparent hover:text-[#25231F] hover:bg-[#E6D2A3]/70 hover:border-[#E6D2A3]"
+                                    )}
+                                    title="Copiar todos os números de rotas da Rota Nordeste"
+                                  >
+                                    {copiedRouteKey === 'header-nordeste' ? <Check size={11} className="text-[#D6A84F]" /> : <Copy size={11} />}
+                                  </button>
+                                </div>
+                              </th>
                               <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
                                 <div className="flex items-center justify-between gap-1 mb-1">
                                   <span 
@@ -2332,9 +2818,39 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                   />
                                 </td>
                                 <td className="p-1.5 text-center">
-                                  <div className="bg-[#F5F0E6] border border-[#E6D2A3] text-[#25231F] font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center shadow-xs" title="Código da rota obtido da página de Rotas">
-                                    {findRouteCode(row.trecho, 'ida', routesList)}
-                                  </div>
+                                  {(() => {
+                                    const routeCode = findRouteCode(row.trecho, 'ida', routesList);
+                                    const keyId = `nordeste-${i}`;
+                                    const isCopied = copiedRouteKey === keyId;
+                                    const isValid = routeCode && routeCode.trim() !== '' && routeCode !== '---' && routeCode !== '-';
+                                    return isValid ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => copySingleRouteCode(routeCode, keyId)}
+                                        className={cn(
+                                          "group/route relative inline-flex items-center justify-center gap-1 font-extrabold text-xs rounded-md py-1.5 px-2.5 min-w-[58px] text-center transition-all cursor-pointer shadow-xs border select-all",
+                                          isCopied
+                                            ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F] ring-2 ring-[#D6A84F]/30 scale-105"
+                                            : "bg-[#F5F0E6] border-[#E6D2A3] text-[#25231F] hover:bg-[#E6D2A3] hover:border-[#C49A45] hover:shadow-sm active:scale-95"
+                                        )}
+                                        title={isCopied ? "Número da rota copiado!" : `Clique para copiar a rota: ${routeCode}`}
+                                      >
+                                        <span className="font-mono tracking-wide">{routeCode}</span>
+                                        {isCopied ? (
+                                          <Check size={12} className="text-[#D6A84F] shrink-0" />
+                                        ) : (
+                                          <Copy size={11} className="text-[#7A756D] group-hover/route:text-[#25231F] opacity-60 group-hover/route:opacity-100 transition-opacity shrink-0" />
+                                        )}
+                                      </button>
+                                    ) : (
+                                      <div 
+                                        className="bg-[#F5F0E6]/70 border border-[#E6D2A3]/60 text-[#7A756D] font-mono font-bold text-xs rounded-md py-1.5 px-2 inline-block min-w-[58px] text-center select-none"
+                                        title="Código da rota obtido da página de Rotas"
+                                      >
+                                        ---
+                                      </div>
+                                    );
+                                  })()}
                                 </td>
                                 <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
                                   <div className="flex items-center justify-end gap-1.5">
@@ -2369,6 +2885,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                         type="text"
                                         value={row.valorNf}
                                         onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'nordeste')}
+                                        onPaste={(e) => {
+                                          e.preventDefault();
+                                          const text = e.clipboardData.getData('text');
+                                          handlePasteValorNf(text, i, 'nordeste');
+                                        }}
+                                        onFocus={(e) => e.target.select()}
                                         placeholder="0,00"
                                         className={cn(
                                           "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
@@ -2427,7 +2949,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               )}
 
               {/* ================= ROTA VESPASIANO ================= */}
-              {(internalView === 'all' || internalView === 'vespasiano') && (
+              {visibleRoutes.vespasiano && (
               <section className="space-y-3 font-sans animate-fade-in">
                 <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-emerald-600/30">
                   <div className="flex items-center gap-2.5">
@@ -2509,7 +3031,24 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                             <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 1</th>
                             <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">BAÚ 2</th>
                             <th className="px-2 py-2.5 text-center text-[#25231F]">TRECHO</th>
-                            <th className="px-2 py-2.5 w-20 text-center text-[#25231F]">ROTAS</th>
+                            <th className="px-2 py-2.5 w-24 text-center text-[#25231F]">
+                              <div className="flex items-center justify-center gap-1">
+                                <span>ROTAS</span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyAllSectionRouteCodes(vespasianoRows, 'ida', 'Rota Vespasiano', 'header-vespasiano')}
+                                  className={cn(
+                                    "p-1 rounded transition-all cursor-pointer border",
+                                    copiedRouteKey === 'header-vespasiano'
+                                      ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F]"
+                                      : "bg-transparent text-[#7A756D] border-transparent hover:text-[#25231F] hover:bg-[#E6D2A3]/70 hover:border-[#E6D2A3]"
+                                  )}
+                                  title="Copiar todos os números de rotas da Rota Vespasiano"
+                                >
+                                  {copiedRouteKey === 'header-vespasiano' ? <Check size={11} className="text-[#D6A84F]" /> : <Copy size={11} />}
+                                </button>
+                              </div>
+                            </th>
                             <th className="px-2.5 py-2 w-48 text-right text-[#25231F] select-none transition-colors border-l border-[#E6D2A3]/50">
                               <div className="flex items-center justify-between gap-1 mb-1">
                                 <span 
@@ -2608,9 +3147,39 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                 </div>
                               </td>
                               <td className="p-1.5 text-center">
-                                <div className="bg-[#F5F0E6] border border-[#E6D2A3] text-[#25231F] font-extrabold text-xs rounded-md py-1.5 px-2 inline-block min-w-[55px] text-center shadow-xs">
-                                  {findRouteCode(row.trecho, 'ida', routesList)}
-                                </div>
+                                {(() => {
+                                  const routeCode = findRouteCode(row.trecho, 'ida', routesList);
+                                  const keyId = `vespasiano-${i}`;
+                                  const isCopied = copiedRouteKey === keyId;
+                                  const isValid = routeCode && routeCode.trim() !== '' && routeCode !== '---' && routeCode !== '-';
+                                  return isValid ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => copySingleRouteCode(routeCode, keyId)}
+                                      className={cn(
+                                        "group/route relative inline-flex items-center justify-center gap-1 font-extrabold text-xs rounded-md py-1.5 px-2.5 min-w-[58px] text-center transition-all cursor-pointer shadow-xs border select-all",
+                                        isCopied
+                                          ? "bg-[#292820] text-[#D6A84F] border-[#D6A84F] ring-2 ring-[#D6A84F]/30 scale-105"
+                                          : "bg-[#F5F0E6] border-[#E6D2A3] text-[#25231F] hover:bg-[#E6D2A3] hover:border-[#C49A45] hover:shadow-sm active:scale-95"
+                                      )}
+                                      title={isCopied ? "Número da rota copiado!" : `Clique para copiar a rota: ${routeCode}`}
+                                    >
+                                      <span className="font-mono tracking-wide">{routeCode}</span>
+                                      {isCopied ? (
+                                        <Check size={12} className="text-[#D6A84F] shrink-0" />
+                                      ) : (
+                                        <Copy size={11} className="text-[#7A756D] group-hover/route:text-[#25231F] opacity-60 group-hover/route:opacity-100 transition-opacity shrink-0" />
+                                      )}
+                                    </button>
+                                  ) : (
+                                    <div 
+                                      className="bg-[#F5F0E6]/70 border border-[#E6D2A3]/60 text-[#7A756D] font-mono font-bold text-xs rounded-md py-1.5 px-2 inline-block min-w-[58px] text-center select-none"
+                                      title="Código da rota obtido da página de Rotas"
+                                    >
+                                      ---
+                                    </div>
+                                  );
+                                })()}
                               </td>
                               <td className="p-1.5 text-right font-extrabold group/cell border-l border-[#E6D2A3]/40">
                                 <div className="flex items-center justify-end gap-1.5">
@@ -2645,6 +3214,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                                       type="text"
                                       value={row.valorNf}
                                       onChange={(e) => updateRowValue(i, 'valorNf', e.target.value, 'vespasiano')}
+                                      onPaste={(e) => {
+                                        e.preventDefault();
+                                        const text = e.clipboardData.getData('text');
+                                        handlePasteValorNf(text, i, 'vespasiano');
+                                      }}
+                                      onFocus={(e) => e.target.select()}
                                       placeholder="0,00"
                                       className={cn(
                                         "w-full rounded-md py-1.5 pl-6 pr-2 text-right outline-none transition-all text-xs font-mono font-extrabold border border-[#E6D2A3]",
@@ -2759,6 +3334,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                           type="text"
                           value={val}
                           onChange={(e) => updateCalcValue(i, e.target.value)}
+                          onPaste={(e) => {
+                            e.preventDefault();
+                            const text = e.clipboardData.getData('text');
+                            handlePasteCalc(text, i);
+                          }}
+                          onFocus={(e) => e.target.select()}
                           placeholder="0,00"
                           className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl pl-9 pr-16 py-2 text-xs text-[#25231F] font-mono font-bold focus:bg-white focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 outline-none transition-all placeholder:text-[#A8A39A]"
                         />
@@ -3183,6 +3764,155 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         </button>
       </div>
 
+      {/* Modal Interativo para Escolher Qual Rota Irá Aparecer */}
+      <AnimatePresence>
+        {isRouteSelectorOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-6 sm:p-7 shadow-2xl max-w-lg w-full text-[#25231F] space-y-5"
+            >
+              {/* Header do Modal */}
+              <div className="flex items-start justify-between border-b border-[#E6D2A3]/60 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#292820] flex items-center justify-center text-[#D6A84F] shadow-sm shrink-0">
+                    <SlidersHorizontal size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-mono font-black text-[#25231F] uppercase tracking-wide">
+                      Qual rota irá aparecer?
+                    </h3>
+                    <p className="text-xs text-[#7A756D] font-mono mt-0.5">
+                      Selecione quais rotas você deseja visualizar no monitoramento:
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRouteSelectorOpen(false)}
+                  className="p-1.5 text-[#7A756D] hover:text-[#25231F] hover:bg-[#F5F0E6] rounded-xl transition-colors cursor-pointer"
+                  title="Fechar"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Lista das 4 opções de rotas */}
+              <div className="space-y-2.5">
+                {[
+                  {
+                    id: 'ida' as const,
+                    title: 'ROTA IDA',
+                    tag: 'PRETO & DOURADO / VIP',
+                    tagClass: 'bg-[#F5F0E6] text-[#C49A45] border-[#E6D2A3]',
+                    icon: TrendingUp,
+                    iconColor: 'text-[#C49A45]'
+                  },
+                  {
+                    id: 'volta' as const,
+                    title: 'ROTA VOLTA',
+                    tag: 'VERMELHA',
+                    tagClass: 'bg-red-50 text-[#C91F2D] border-red-200',
+                    icon: Download,
+                    iconColor: 'text-[#C91F2D]'
+                  },
+                  {
+                    id: 'nordeste' as const,
+                    title: 'ROTA SANTA LUZIA X NORDESTE',
+                    tag: 'PRETA (NORDESTE)',
+                    tagClass: 'bg-slate-900 text-white border-slate-700',
+                    icon: TrendingUp,
+                    iconColor: 'text-slate-900'
+                  },
+                  {
+                    id: 'vespasiano' as const,
+                    title: 'ROTA VESPASIANO',
+                    tag: 'VERDE (VESPASIANO)',
+                    tagClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                    icon: Truck,
+                    iconColor: 'text-emerald-700'
+                  }
+                ].map(opt => {
+                  const isChecked = visibleRoutes[opt.id];
+                  const IconComponent = opt.icon;
+                  return (
+                    <div
+                      key={opt.id}
+                      onClick={() => toggleVisibleRoute(opt.id)}
+                      className={cn(
+                        "flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer shadow-xs select-none",
+                        isChecked
+                          ? "bg-[#F5F0E6] border-[#C49A45] ring-2 ring-[#C49A45]/30 shadow-sm"
+                          : "bg-white border-[#E6D2A3]/70 hover:border-[#C49A45]/60 hover:bg-[#F5F0E6]/40"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-5 h-5 rounded-md flex items-center justify-center border transition-all",
+                          isChecked
+                            ? "bg-[#292820] border-[#292820] text-[#D6A84F]"
+                            : "bg-white border-[#E6D2A3]"
+                        )}>
+                          {isChecked && <Check size={13} className="stroke-[3]" />}
+                        </div>
+                        <IconComponent size={16} className={opt.iconColor} />
+                        <div>
+                          <span className="text-xs font-mono font-black text-[#25231F] block">
+                            {opt.title}
+                          </span>
+                          <span className={cn("text-[9px] font-mono font-bold px-2 py-0.5 rounded border inline-block mt-0.5", opt.tagClass)}>
+                            {opt.tag}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className={cn(
+                        "text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg",
+                        isChecked
+                          ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
+                          : "text-[#7A756D] bg-[#F5F0E6] border border-[#E6D2A3]"
+                      )}>
+                        {isChecked ? 'Visível' : 'Oculto'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Ações rápidas e confirmação */}
+              <div className="pt-2 border-t border-[#E6D2A3]/60 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAllRoutesVisibility(true)}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold text-[#25231F] bg-[#F5F0E6] hover:bg-[#E6D2A3] border border-[#E6D2A3] transition-colors cursor-pointer"
+                  >
+                    Exibir Todas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllRoutesVisibility(false)}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold text-[#C91F2D] bg-red-50 hover:bg-red-100 border border-red-200 transition-colors cursor-pointer"
+                  >
+                    Ocultar Todas
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsRouteSelectorOpen(false)}
+                  className="px-5 py-2 rounded-xl text-xs font-mono font-black uppercase tracking-wider bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] hover:brightness-105 text-[#25231F] transition-all cursor-pointer shadow-sm active:scale-95"
+                >
+                  Concluir
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Toast feedback when Ctrl+Z is activated */}
       <AnimatePresence>
         {showUndoToast && (
@@ -3196,6 +3926,24 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             <div>
               <p className="text-xs font-bold font-sans">Informação restaurada!</p>
               <p className="text-[10px] text-[#E6D2A3] font-sans">Desfazer (Ctrl + Z) aplicado com sucesso.</p>
+            </div>
+          </motion.div>
+        )}
+        {routeToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#292820] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#C49A45]/50 backdrop-blur-md"
+          >
+            <div className="w-7 h-7 rounded-lg bg-[#D6A84F]/20 flex items-center justify-center text-[#D6A84F] shrink-0 border border-[#D6A84F]/40">
+              <Check size={16} />
+            </div>
+            <div>
+              <p className="text-xs font-bold font-sans text-white">{routeToast.message}</p>
+              {routeToast.submessage && (
+                <p className="text-[10px] text-[#E6D2A3] font-mono">{routeToast.submessage}</p>
+              )}
             </div>
           </motion.div>
         )}

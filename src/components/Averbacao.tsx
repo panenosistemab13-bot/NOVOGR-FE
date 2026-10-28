@@ -808,9 +808,9 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               {/* Maquina Field */}
               <div className="flex items-center bg-white border border-[#E6D2A3] rounded px-3 py-1.5 font-bold font-mono text-[#292820] gap-2 shadow-inner">
                 <span className="text-[#77736B]">MÁQUINA:</span>
-                <span className="text-[#C49A45] font-black">00008901</span>
+                <span className="text-[#C49A45] font-black">000000901</span>
                 <button 
-                  onClick={() => copyCodeToClipboard('MÁQUINA', '00008901')}
+                  onClick={() => copyCodeToClipboard('MÁQUINA', '000000901')}
                   className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
                   title="Copiar código Máquina"
                 >

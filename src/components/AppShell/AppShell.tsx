@@ -34,11 +34,11 @@ export default function AppShell({
   children
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const isDark = false;
+  const isDark = activeTab === 'menu';
 
   return (
     <DashboardLayout
-      isDark={false}
+      isDark={isDark}
       header={
         <PremiumHeader 
           activeTab={activeTab}
@@ -65,7 +65,7 @@ export default function AppShell({
           currentUser={currentUser}
         />
       }
-      footer={<OperationalFooter isDark={isDark} />}
+      footer={activeTab === 'menu' ? null : <OperationalFooter isDark={isDark} />}
     >
       {children}
     </DashboardLayout>
