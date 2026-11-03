@@ -186,7 +186,7 @@ export default function NavigationDrawer({
             >
               <div className="flex items-center gap-2">
                 <Settings size={15} className="text-[#C49A45]" />
-                <span>Configurações & Páginas</span>
+                <span>{(currentUser?.role === 'admin' || currentUser?.role === 'Administrador' || currentUser?.name?.toLowerCase() === 'jefferson') ? 'Configurações & Páginas' : 'Meus Dados de Acesso'}</span>
               </div>
               <ChevronRight size={14} className="text-[#8C7B63]" />
             </button>

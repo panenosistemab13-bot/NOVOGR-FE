@@ -54,14 +54,15 @@ export default function ConfiguracoesPaginasView({
   initialTab = 'paginas',
   currentUser 
 }: ConfiguracoesPaginasViewProps) {
-  const [activeTab, setActiveTab] = useState<'paginas' | 'cadastro'>(initialTab);
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'Administrador' || currentUser?.name?.toLowerCase() === 'jefferson';
+  const [activeTab, setActiveTab] = useState<'paginas' | 'cadastro'>(isAdmin ? initialTab : 'cadastro');
   const [pages, setPages] = useState<PageDefinition[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+    setActiveTab(isAdmin ? initialTab : 'cadastro');
+  }, [initialTab, isAdmin]);
 
   useEffect(() => {
     setPages(getAllAvailablePages());
@@ -160,20 +161,22 @@ export default function ConfiguracoesPaginasView({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-[#25231F] tracking-tight font-heading">
-                  CONFIGURAÇÕES & PÁGINAS
+                  {isAdmin ? 'CONFIGURAÇÕES & PÁGINAS' : 'MEUS DADOS DE ACESSO'}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#8C6D28] border border-amber-300 text-[10px] font-mono font-bold uppercase">
-                  Central de Gestão
+                  {isAdmin ? 'Central de Gestão' : 'Meu Perfil'}
                 </span>
               </div>
               <p className="text-xs text-[#77736B] font-mono uppercase tracking-wider mt-0.5">
-                Gerencie as páginas do sistema, visibilidade no menu e cadastro de usuários com suas funções
+                {isAdmin 
+                  ? 'Gerencie as páginas do sistema, visibilidade no menu e cadastro de usuários com suas funções' 
+                  : 'Edite e atualize sua senha de acesso ao sistema com segurança'}
               </p>
             </div>
           </div>
 
-          {/* Quick Actions (only in paginas tab) */}
-          {activeTab === 'paginas' && (
+          {/* Quick Actions (only in paginas tab for admin) */}
+          {isAdmin && activeTab === 'paginas' && (
             <div className="flex flex-wrap items-center gap-2.5">
               <button
                 type="button"
@@ -198,25 +201,27 @@ export default function ConfiguracoesPaginasView({
 
         {/* TOP NAVIGATION TABS: PÁGINAS vs CADASTRO */}
         <div className="flex items-center gap-3 border-b border-[#E6D2A3] pb-3">
-          <button
-            type="button"
-            onClick={() => setActiveTab('paginas')}
-            className={cn(
-              "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-95",
-              activeTab === 'paginas'
-                ? "bg-[#292820] text-[#FAF7F0] border border-[#D9C39B] shadow-md ring-2 ring-[#C5A059]/30"
-                : "bg-white hover:bg-stone-50 text-[#77736B] border border-[#E6D2A3]"
-            )}
-          >
-            <Sliders size={16} className={activeTab === 'paginas' ? "text-[#C5A059]" : "text-stone-400"} />
-            <span>Páginas & Menu</span>
-            <span className={cn(
-              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
-              activeTab === 'paginas' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
-            )}>
-              {visibleCount} ativas
-            </span>
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('paginas')}
+              className={cn(
+                "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-95",
+                activeTab === 'paginas'
+                  ? "bg-[#292820] text-[#FAF7F0] border border-[#D9C39B] shadow-md ring-2 ring-[#C5A059]/30"
+                  : "bg-white hover:bg-stone-50 text-[#77736B] border border-[#E6D2A3]"
+              )}
+            >
+              <Sliders size={16} className={activeTab === 'paginas' ? "text-[#C5A059]" : "text-stone-400"} />
+              <span>Páginas & Menu</span>
+              <span className={cn(
+                "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
+                activeTab === 'paginas' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
+              )}>
+                {visibleCount} ativas
+              </span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -229,12 +234,12 @@ export default function ConfiguracoesPaginasView({
             )}
           >
             <Users size={16} className={activeTab === 'cadastro' ? "text-[#C5A059]" : "text-stone-400"} />
-            <span>Aba Cadastro (Usuários & Funções)</span>
+            <span>{isAdmin ? 'Aba Cadastro (Usuários & Funções)' : 'Meus Dados de Acesso'}</span>
             <span className={cn(
               "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
               activeTab === 'cadastro' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
             )}>
-              Acessos
+              {isAdmin ? 'Acessos' : 'Senha'}
             </span>
           </button>
         </div>
