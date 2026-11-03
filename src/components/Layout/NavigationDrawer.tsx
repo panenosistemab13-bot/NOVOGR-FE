@@ -3,6 +3,7 @@ import {
   Home, 
   Settings, 
   ChevronRight, 
+  ChevronLeft,
   Route
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -13,6 +14,7 @@ interface NavigationDrawerProps {
   onSelectTab: (tabId: string) => void;
   onOpenSettings?: () => void;
   isCollapsed?: boolean;
+  setIsCollapsed?: (collapsed: boolean | ((prev: boolean) => boolean)) => void;
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
   pageVisibility?: Record<string, boolean>;
@@ -24,7 +26,8 @@ export default function NavigationDrawer({
   activeTab,
   onSelectTab,
   onOpenSettings,
-  isCollapsed = false,
+  isCollapsed = true,
+  setIsCollapsed,
   isOpen = false,
   setIsOpen,
   pageVisibility,
@@ -128,12 +131,36 @@ export default function NavigationDrawer({
       {/* ========================================================================= */}
       {/* 1. DESKTOP PERMANENT COLLAPSIBLE SIDEBAR                                  */}
       {/* ========================================================================= */}
+      {false && (
       <aside 
         className={cn(
           "hidden md:flex flex-col h-full bg-white border-r border-[#E8DDCA] shadow-[4px_0_24px_rgba(184,135,50,0.03)] z-20 shrink-0 transition-all duration-300 ease-in-out font-sans",
+          activeTab === 'menu' && "md:hidden",
           isCollapsed ? "w-[72px]" : "w-[240px]"
         )}
       >
+        {/* Top Toggle Button for Desktop Sidebar */}
+        <div className={cn(
+          "px-2 py-2 border-b border-[#E8DDCA]/70 flex items-center shrink-0 bg-[#FAF8F5]",
+          isCollapsed ? "justify-center" : "justify-between px-3"
+        )}>
+          {!isCollapsed && (
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#8C6D28]">
+              Navegação
+            </span>
+          )}
+          {setIsCollapsed && (
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(prev => !prev)}
+              className="p-1 rounded-lg hover:bg-white text-[#8C6D28] hover:text-[#B88732] transition-colors cursor-pointer border border-transparent hover:border-[#E8DDCA]"
+              title={isCollapsed ? "Expandir barra de navegação" : "Minimizar barra de navegação"}
+            >
+              {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+          )}
+        </div>
+
         {renderNavList(isCollapsed)}
 
         {/* Desktop Sidebar Footer */}
@@ -165,13 +192,14 @@ export default function NavigationDrawer({
           )}
         </div>
       </aside>
+      )}
 
       {/* ========================================================================= */}
-      {/* 2. MOBILE SLIDE-OVER DRAWER                                               */}
+      {/* 2. SLIDE-OVER DRAWER (UNIVERSAL)                                         */}
       {/* ========================================================================= */}
       {isOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-40 transition-opacity"
+          className="fixed inset-0 bg-black/45 backdrop-blur-xs z-40 transition-opacity"
           onClick={() => setIsOpen && setIsOpen(false)}
           aria-hidden="true"
         />
@@ -179,7 +207,7 @@ export default function NavigationDrawer({
 
       <aside 
         className={cn(
-          "md:hidden fixed left-0 top-0 bottom-0 z-50 w-[270px] max-w-[85vw] bg-white border-r border-[#E8DDCA] shadow-2xl flex flex-col font-sans transition-transform duration-250 ease-out",
+          "fixed left-0 top-0 bottom-0 z-50 w-[280px] max-w-[85vw] bg-white border-r border-[#E8DDCA] shadow-2xl flex flex-col font-sans transition-transform duration-250 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
       >

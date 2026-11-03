@@ -34,7 +34,12 @@ export default function AppShell({
   children
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const isDark = false;
+
+  const handleToggleDrawer = () => {
+    setDrawerOpen(prev => !prev);
+  };
 
   return (
     <DashboardLayout
@@ -46,7 +51,7 @@ export default function AppShell({
           onOpenWallpaper={onOpenWallpaper}
           onOpenSettings={onOpenSettings}
           onLogout={onLogout}
-          onToggleDrawer={() => setDrawerOpen(prev => !prev)}
+          onToggleDrawer={handleToggleDrawer}
           isWallpaperOpen={isWallpaperOpen}
           isAdmin={currentUser?.role === 'admin'}
           currentUser={currentUser}
@@ -57,6 +62,8 @@ export default function AppShell({
           activeTab={activeTab}
           onSelectTab={onSelectTab}
           onOpenSettings={onOpenSettings}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
           isOpen={drawerOpen}
           setIsOpen={setDrawerOpen}
           pageVisibility={pageVisibility}
