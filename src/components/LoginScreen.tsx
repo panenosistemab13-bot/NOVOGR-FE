@@ -167,7 +167,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       if (user) {
         saveCredentialsIfRemembered();
         const isUserAdmin = user.role === 'Administrador' || String(user.name).trim().toLowerCase() === 'jefferson';
-        const requiresPasswordChange = isUserAdmin && String(user.name).trim().toLowerCase() === 'jefferson'
+        const isRootAdmin = String(user.name).trim().toLowerCase() === 'jefferson';
+        const requiresPasswordChange = isRootAdmin
           ? false
           : (user.mustChangePassword === true || String(user.password).trim() === '123');
 

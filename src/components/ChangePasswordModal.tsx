@@ -57,7 +57,7 @@ export default function ChangePasswordModal({
     }
 
     if (cleanNew === '123') {
-      setError('A nova senha deve ser diferente da senha padrão temporária (123). Crie uma senha segura.');
+      setError('A nova senha deve ser diferente da senha padrão temporária (123). Escolha a senha que preferir.');
       return;
     }
 
@@ -161,11 +161,11 @@ export default function ChangePasswordModal({
           </span>
 
           <h2 className="text-xl font-black uppercase tracking-tight text-[#25231F] mt-1">
-            Cadastrar Nova Senha
+            Escolher Nova Senha
           </h2>
 
           <p className="text-xs text-[#77736B] mt-2 leading-relaxed">
-            Olá, <strong className="text-[#25231F] font-bold">{currentUser.name}</strong>! A sua conta foi criada com a senha temporária padrão <span className="font-mono font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-200">123</span>. Para sua segurança no primeiro login, cadastre a sua nova senha pessoal abaixo:
+            Olá, <strong className="text-[#25231F] font-bold">{currentUser.name}</strong>! Sua conta foi criada com a senha padrão <span className="font-mono font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">123</span>. Para continuar, troque sua senha para a que preferir:
           </p>
         </div>
 

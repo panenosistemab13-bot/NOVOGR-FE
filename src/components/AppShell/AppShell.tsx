@@ -34,7 +34,7 @@ export default function AppShell({
   children
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const isDark = activeTab === 'menu';
+  const isDark = false;
 
   return (
     <DashboardLayout

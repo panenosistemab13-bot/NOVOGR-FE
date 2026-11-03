@@ -135,10 +135,31 @@ export default function App() {
     role: string; 
     roleLabel?: string; 
     allowedPages?: string[]; 
+    mustChangePassword?: boolean;
   } | null>(() => {
     try {
       const saved = localStorage.getItem('logged_user');
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const isRootAdmin = String(parsed?.name || '').trim().toLowerCase() === 'jefferson';
+        if (!isRootAdmin) {
+          try {
+            const raw = localStorage.getItem('app_users');
+            if (raw) {
+              const uList = JSON.parse(raw);
+              const found = uList.find((u: any) => 
+                String(u.name || '').trim().toLowerCase() === String(parsed.name || '').trim().toLowerCase() ||
+                String(u.email || '').trim().toLowerCase() === String(parsed.email || '').trim().toLowerCase()
+              );
+              if (found && (found.mustChangePassword === true || String(found.password).trim() === '123')) {
+                parsed.mustChangePassword = true;
+              }
+            }
+          } catch {}
+        }
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -645,11 +666,11 @@ export default function App() {
       <div 
         className={cn(
           "w-full h-full relative",
-          activeTab === 'menu' ? "overflow-hidden bg-[#07080c]" : "overflow-y-auto"
+          activeTab === 'menu' ? "overflow-hidden bg-white" : "overflow-y-auto"
         )}
         style={
           activeTab === 'menu'
-            ? { backgroundColor: '#07080c' }
+            ? { backgroundColor: '#ffffff' }
             : {
                 backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
                 backgroundSize: 'cover',

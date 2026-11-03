@@ -1,35 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { 
-  Menu, 
-  X, 
   Home, 
-  ClipboardCheck, 
-  FileCheck2, 
-  Radio, 
-  Sliders, 
-  FileSpreadsheet, 
-  Truck, 
-  Calendar, 
-  Route, 
   Settings, 
   ChevronRight, 
-  Package, 
-  Users2,
-  Users
+  Route
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { PageDefinition, getAllAvailablePages, loadPageVisibility, ICON_MAP } from '../../data/pagesConfig';
-import goldMedalLogo from '../../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 
 interface NavigationDrawerProps {
   activeTab: string;
   onSelectTab: (tabId: string) => void;
   onOpenSettings?: () => void;
+  isCollapsed?: boolean;
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
   pageVisibility?: Record<string, boolean>;
   availablePages?: PageDefinition[];
-  isDark?: boolean;
   currentUser?: { email: string; name: string; role: string; roleLabel?: string; allowedPages?: string[] } | null;
 }
 
@@ -37,22 +24,16 @@ export default function NavigationDrawer({
   activeTab,
   onSelectTab,
   onOpenSettings,
-  isOpen: propIsOpen,
-  setIsOpen: propSetIsOpen,
+  isCollapsed = false,
+  isOpen = false,
+  setIsOpen,
   pageVisibility,
-  isDark = true,
   currentUser
 }: NavigationDrawerProps) {
-  const [internalIsOpen, setInternalIsOpen] = useState<boolean>(false);
-  const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
-  const setIsOpen = propSetIsOpen || setInternalIsOpen;
-
-  // Estado para controlar se o menu flutuante em páginas claras está expandido ou minimizado (apenas ícones)
-  const [isMinimized, setIsMinimized] = useState<boolean>(true);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && setIsOpen) {
         setIsOpen(false);
       }
     };
@@ -60,7 +41,7 @@ export default function NavigationDrawer({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, setIsOpen]);
 
-  const menuItems = React.useMemo(() => {
+  const menuItems = useMemo(() => {
     const pages = getAllAvailablePages();
     const vis = pageVisibility || loadPageVisibility();
     const isAgenteDeRisco = currentUser?.role === 'agente_de_risco' || currentUser?.role === 'funcionario';
@@ -72,7 +53,7 @@ export default function NavigationDrawer({
     pages.forEach(p => {
       if (p.id !== 'cadastro' && vis[p.id] !== false) {
         if (userAllowed && !userAllowed.includes(p.id)) {
-          return; // Página bloqueada pelo Administrador para este Agente de Risco
+          return;
         }
         items.push({
           id: p.id,
@@ -87,106 +68,150 @@ export default function NavigationDrawer({
 
   const handleSelect = (id: string) => {
     onSelectTab(id);
-    setIsOpen(false);
+    if (setIsOpen) setIsOpen(false);
   };
+
+  const renderNavList = (collapsed: boolean) => (
+    <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1 scrollbar-thin scrollbar-thumb-amber-200">
+      {!collapsed && (
+        <div className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-[#8C6D28]">
+          NAVEGAÇÃO PRINCIPAL
+        </div>
+      )}
+
+      {menuItems.map((item) => {
+        const isActive = activeTab === item.id;
+        const IconComponent = item.icon;
+
+        return (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => handleSelect(item.id)}
+            title={item.label}
+            className={cn(
+              "w-full flex items-center rounded-xl transition-all duration-200 cursor-pointer select-none border",
+              collapsed ? "justify-center p-3" : "justify-between px-3.5 py-2.5",
+              isActive
+                ? "bg-gradient-to-r from-[#F8EFD9] via-[#FAF3E4] to-[#FFFDF9] text-[#7A5617] border-l-4 border-l-[#B88732] border-t-[#E8DDCA] border-r-[#E8DDCA] border-b-[#E8DDCA] shadow-xs font-black"
+                : "bg-white hover:bg-[#FAF8F5] text-[#2D2A24] border-transparent hover:border-[#E8DDCA] font-medium"
+            )}
+          >
+            <div className={cn("flex items-center gap-3 min-w-0", collapsed && "justify-center")}>
+              <div className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform",
+                isActive 
+                  ? "bg-gradient-to-br from-[#D8B065] to-[#B88732] text-white shadow-xs" 
+                  : "text-[#B88732] hover:scale-105"
+              )}>
+                <IconComponent size={18} className="stroke-[2.2]" />
+              </div>
+
+              {!collapsed && (
+                <span className="text-xs truncate tracking-tight text-left">
+                  {item.label}
+                </span>
+              )}
+            </div>
+
+            {!collapsed && isActive && (
+              <ChevronRight size={16} className="text-[#B88732] shrink-0" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <>
-      {/* ===================================================================== */}
-      {/* 1. FLOATING MINIMIZED SIDEBAR (SEM FUNDO, APENAS ÍCONES) NAS PÁGINAS   */}
-      {/* ===================================================================== */}
-      {/* ===================================================================== */}
-      {/* 2. MOBILE DRAWER OR SLIDE-OVER DRAWER (FOR INÍCIO OR ON PHONES)       */}
-      {/* ===================================================================== */}
+      {/* ========================================================================= */}
+      {/* 1. DESKTOP PERMANENT COLLAPSIBLE SIDEBAR                                  */}
+      {/* ========================================================================= */}
+      <aside 
+        className={cn(
+          "hidden md:flex flex-col h-full bg-white border-r border-[#E8DDCA] shadow-[4px_0_24px_rgba(184,135,50,0.03)] z-20 shrink-0 transition-all duration-300 ease-in-out font-sans",
+          isCollapsed ? "w-[72px]" : "w-[240px]"
+        )}
+      >
+        {renderNavList(isCollapsed)}
+
+        {/* Desktop Sidebar Footer */}
+        <div className="p-2 border-t border-[#E8DDCA] bg-[#FAF8F5] shrink-0">
+          {onOpenSettings ? (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              title={(currentUser?.role === 'admin' || currentUser?.name?.toLowerCase() === 'jefferson') ? 'Configurações & Páginas' : 'Meus Dados de Acesso'}
+              className={cn(
+                "w-full flex items-center rounded-xl bg-white hover:bg-[#FAF8F5] text-[#2D2A24] border border-[#E8DDCA] transition-colors cursor-pointer shadow-2xs",
+                isCollapsed ? "justify-center p-2.5" : "justify-between px-3 py-2 text-xs font-bold"
+              )}
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Settings size={16} className="text-[#B88732] shrink-0" />
+                {!isCollapsed && (
+                  <span className="truncate">
+                    {(currentUser?.role === 'admin' || currentUser?.name?.toLowerCase() === 'jefferson') ? 'Configurações' : 'Meus Dados'}
+                  </span>
+                )}
+              </div>
+              {!isCollapsed && <ChevronRight size={14} className="text-[#8C7B63] shrink-0" />}
+            </button>
+          ) : (
+            <div className={cn("text-[10px] font-bold text-[#8C6D28] text-center", isCollapsed && "hidden")}>
+              CENTRAL GR © 2026
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* ========================================================================= */}
+      {/* 2. MOBILE SLIDE-OVER DRAWER                                               */}
+      {/* ========================================================================= */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 transition-opacity duration-200"
-          onClick={() => setIsOpen(false)}
+          className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-40 transition-opacity"
+          onClick={() => setIsOpen && setIsOpen(false)}
           aria-hidden="true"
         />
       )}
 
       <aside 
-        aria-label="Menu Operacional"
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-50 w-[290px] sm:w-[320px] max-w-[85vw] bg-[#FAF6EE] border-r border-[#E6D9C5] shadow-2xl flex flex-col select-none transition-transform duration-250 ease-out font-sans",
+          "md:hidden fixed left-0 top-0 bottom-0 z-50 w-[270px] max-w-[85vw] bg-white border-r border-[#E8DDCA] shadow-2xl flex flex-col font-sans transition-transform duration-250 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
       >
-        {/* HEADER */}
-        <div className="pt-4 px-4 pb-3 shrink-0 border-b border-[#E6D9C5]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full p-0.5 bg-white border border-[#D8B065] shadow-xs flex items-center justify-center overflow-hidden">
-                <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
-              </div>
-
-              <div className="flex flex-col text-left leading-none">
-                <span className="text-sm font-black text-[#25231F] uppercase font-sans">
-                  CENTRAL GR
-                </span>
-                <span className="text-[8.5px] font-bold text-[#8C6D28] uppercase mt-0.5">
-                  Menu Operacional
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="w-8 h-8 rounded-xl bg-[#FAF5EB] hover:bg-[#F2EAE0] text-[#4A453E] border border-[#E8DDCA] flex items-center justify-center cursor-pointer"
-            >
-              <X size={16} />
-            </button>
+        <div className="p-4 border-b border-[#E8DDCA] bg-[#FAF8F5] flex items-center justify-between">
+          <div className="flex flex-col text-left">
+            <span className="text-sm font-black text-[#211E19]">CENTRAL GR</span>
+            <span className="text-[9px] font-extrabold text-[#B88732] tracking-wider uppercase">Menu Operacional</span>
           </div>
+          <button 
+            type="button" 
+            onClick={() => setIsOpen && setIsOpen(false)} 
+            className="w-8 h-8 rounded-lg bg-white border border-[#E8DDCA] text-[#7A5617] flex items-center justify-center cursor-pointer text-xs font-bold"
+          >
+            ✕
+          </button>
         </div>
 
-        {/* NAVIGATION LIST */}
-        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5">
-          {menuItems.map((item) => {
-            const isActive = activeTab === item.id;
-            const IconComponent = item.icon;
+        {renderNavList(false)}
 
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => handleSelect(item.id)}
-                className={cn(
-                  "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all cursor-pointer text-left border",
-                  isActive
-                    ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white font-black border-[#C59B48] shadow-md"
-                    : "bg-white hover:bg-[#FAF5EB] text-[#25231F] border-[#E8DDCA]"
-                )}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <IconComponent size={17} className={isActive ? "text-white" : "text-[#8C6D28]"} />
-                  <span className="text-xs font-bold truncate">{item.label}</span>
-                </div>
-                {isActive && (
-                  <span className="text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded-full bg-black/20 text-white">
-                    ATIVO
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* FOOTER */}
         {onOpenSettings && (
-          <div className="p-3 border-t border-[#E6D9C5] bg-[#FAF5EB]">
+          <div className="p-3 border-t border-[#E8DDCA] bg-[#FAF8F5]">
             <button
               type="button"
               onClick={() => {
                 onOpenSettings();
-                setIsOpen(false);
+                if (setIsOpen) setIsOpen(false);
               }}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#FAF5EB] text-[#25231F] border border-[#E8DDCA] font-bold text-xs cursor-pointer shadow-xs"
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white hover:bg-[#FAF8F5] text-[#2D2A24] border border-[#E8DDCA] text-xs font-bold shadow-2xs cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <Settings size={15} className="text-[#C49A45]" />
-                <span>{(currentUser?.role === 'admin' || currentUser?.role === 'Administrador' || currentUser?.name?.toLowerCase() === 'jefferson') ? 'Configurações & Páginas' : 'Meus Dados de Acesso'}</span>
+                <Settings size={16} className="text-[#B88732]" />
+                <span>{(currentUser?.role === 'admin' || currentUser?.name?.toLowerCase() === 'jefferson') ? 'Configurações & Páginas' : 'Meus Dados de Acesso'}</span>
               </div>
               <ChevronRight size={14} className="text-[#8C7B63]" />
             </button>
