@@ -61,7 +61,6 @@ export default function AppShell({
           setIsOpen={setDrawerOpen}
           pageVisibility={pageVisibility}
           availablePages={availablePages}
-          isDark={isDark}
           currentUser={currentUser}
         />
       }

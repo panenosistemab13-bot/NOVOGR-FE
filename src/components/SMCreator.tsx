@@ -820,6 +820,22 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       error?: string;
     }> = [];
 
+    const parseMoney = (raw: string): number | null => {
+      if (!raw) return null;
+      const clean = raw.trim().replace(/^R\$\s*/i, '');
+      let val = 0;
+      if (clean.includes(',')) {
+        val = parseFloat(clean.replace(/\./g, '').replace(/\s/g, '').replace(',', '.'));
+      } else if (clean.includes('.')) {
+        val = parseFloat(clean.replace(/,/g, '').replace(/\s/g, ''));
+      } else {
+        val = parseFloat(clean);
+      }
+      return (!isNaN(val) && val > 0) ? val : null;
+    };
+
+    const currencyPattern = /(?:R\$\s*)?(\d{1,3}(?:[\.\s]\d{3})+,\d{2}|\d+,\d{2}|\d{1,3}(?:,\d{3})+\.\d{2}|\d+\.\d{2})\b/g;
+
     for (const arquivo of arquivos) {
       try {
         const arrayBuffer = await arquivo.arrayBuffer();
@@ -830,17 +846,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
           str: string;
           x: number;
           y: number;
+          width: number;
         }
 
-        interface PageExtractionResult {
-          pageNum: number;
-          valorNumerico: number | null;
-          valorTexto: string | null;
-        }
-
-        const pageResults: PageExtractionResult[] = [];
         let numeroNf = '---';
+        let valorNumericoResult: number | null = null;
+        let valorTextoResult: string | null = null;
 
+        // Itera pelas páginas do PDF, priorizando a Página 1 (onde sempre fica o cabeçalho e Cálculo do Imposto)
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           const page = await pdf.getPage(pageNum);
           const content = await page.getTextContent();
@@ -856,105 +869,133 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               pageItems.push({
                 str: item.str,
                 x: transform[4] || 0,
-                y: transform[5] || 0
+                y: transform[5] || 0,
+                width: item.width || 0
               });
             }
           }
 
-          const rawPageText = pageStrs.join(' ');
+          const rawPageText = pageStrs.join(' ').replace(/\s+/g, ' ');
+          // Unifica números com pontuações separadas por espaços em streams de texto do PDF
+          const cleanPageText = rawPageText.replace(/(\d+)\s*([\.,])\s*(\d+)/g, '$1$2$3');
 
-          // Agrupa itens em linhas na página atual (coordenada Y com tolerância de 6pt)
-          const lineGroups: Array<{ y: number; items: SpatialItem[] }> = [];
-          for (const item of pageItems) {
-            let group = lineGroups.find(g => Math.abs(g.y - item.y) <= 6);
-            if (!group) {
-              group = { y: item.y, items: [] };
-              lineGroups.push(group);
-            }
-            group.items.push(item);
-          }
-
-          lineGroups.sort((a, b) => b.y - a.y); // Do topo para o rodapé
-
-          const lines = lineGroups.map(g => {
-            g.items.sort((a, b) => a.x - b.x); // Da esquerda para a direita
-            return {
-              y: g.y,
-              items: g.items,
-              fullText: g.items.map(i => i.str).join(' ')
-            };
-          });
-
-          const fullSpatialText = lines.map(l => l.fullText).join('\n');
-          const combinedPageText = rawPageText + '\n' + fullSpatialText;
-
-          // Extrai o Número da NF se ainda não encontrado
+          // 1. Extração do Número da NF
           if (numeroNf === '---') {
-            const matchNf = combinedPageText.match(/(?:NF-e|NOTA FISCAL|DANFE)[^\d]{0,30}N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{1,9})/i) ||
-                            combinedPageText.match(/N[º°o]?[\s\.:]*(\d[\d\.\-]*\d|\d+)/i) || 
-                            combinedPageText.match(/NF-e[\s\.:]*(\d+)/i) ||
-                            combinedPageText.match(/NOTA\s+FISCAL[\s\S]{0,30}?(\d{3,9})/i);
-            if (matchNf && matchNf[1]) {
-              numeroNf = matchNf[1].replace(/\D/g, '');
+            // A. Pela Chave de Acesso de 44 dígitos (dígitos 26 a 34 identificam a NF)
+            const chaveMatch = rawPageText.match(/\b\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\b/) ||
+                               cleanPageText.match(/\b\d{44}\b/);
+            if (chaveMatch) {
+              const rawChave = chaveMatch[0].replace(/\D/g, '');
+              if (rawChave.length === 44) {
+                const nfFromChave = parseInt(rawChave.substring(25, 34), 10);
+                if (!isNaN(nfFromChave) && nfFromChave > 0) {
+                  numeroNf = String(nfFromChave);
+                }
+              }
+            }
+
+            // B. Pelo cabeçalho padrão DANFE / NF-e
+            if (numeroNf === '---') {
+              const matchNf = cleanPageText.match(/(?:NF-e|NOTA FISCAL|DANFE)[^\d]{0,35}N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{1,9})/i) ||
+                              cleanPageText.match(/N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{4,9})/i) || 
+                              cleanPageText.match(/NF-e[\s\.:]*(\d+)/i) ||
+                              cleanPageText.match(/NOTA\s+FISCAL[\s\S]{0,30}?(\d{3,9})/i);
+              if (matchNf && matchNf[1]) {
+                numeroNf = matchNf[1].replace(/\D/g, '');
+              }
             }
           }
 
-          let pageValTexto: string | null = null;
           let pageValNumerico: number | null = null;
+          let pageValTexto: string | null = null;
 
-          // ESTRATÉGIA 1: Correspondência direta quando a etiqueta e o valor estão adjacentes
-          // Cobre VALOR TOTAL DA NOTA, VALOR TOTAL DA NF, VALOR TOTAL DA NOTA FISCAL, V. TOTAL DA NOTA
-          const matchDirect1 = rawPageText.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO)\s*[:\.]?\s*(?:R\$\s*)?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
-                               fullSpatialText.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO)\s*[:\.]?\s*(?:R\$\s*)?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
-          if (matchDirect1 && matchDirect1[1]) {
-            pageValTexto = matchDirect1[1];
-            pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
+          // ESTRATÉGIA 0: Tags XML ou chave explícita (vNF / vProd)
+          const vNfMatch = cleanPageText.match(/<vNF>\s*([\d\.]+)\s*<\/vNF>/i) || cleanPageText.match(/\bvNF\s*[:=]?\s*([\d\.,]+)/i);
+          if (vNfMatch) {
+            const v = parseMoney(vNfMatch[1]);
+            if (v && v > 0) {
+              pageValNumerico = v;
+              pageValTexto = vNfMatch[1];
+            }
           }
 
-          // ESTRATÉGIA 2: Análise espacial por linhas (procura etiqueta e valor na mesma linha ou abaixo)
+          // ESTRATÉGIA 1: Correspondência direta de etiqueta e valor na mesma frase
           if (pageValNumerico === null) {
+            const directMatches = cleanPageText.matchAll(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO(?:\s+DA\s+NOTA)?)\s*[:\.]?\s*(?:R\$\s*)?(\d{1,3}(?:[\.\s]\d{3})+,\d{2}|\d+,\d{2}|\d{1,3}(?:,\d{3})+\.\d{2}|\d+\.\d{2})\b/gi);
+            for (const m of directMatches) {
+              const val = parseMoney(m[1]);
+              if (val && val > 0) {
+                pageValNumerico = val;
+                pageValTexto = m[1];
+                break;
+              }
+            }
+          }
+
+          // ESTRATÉGIA 2: Análise Espacial 2D por Coordenadas (busca sob a caixa "VALOR TOTAL DA NOTA")
+          if (pageValNumerico === null && pageItems.length > 0) {
+            // Agrupa itens em linhas (tolerância Y de 7pt)
+            const lineGroups: Array<{ y: number; items: SpatialItem[] }> = [];
+            for (const item of pageItems) {
+              let group = lineGroups.find(g => Math.abs(g.y - item.y) <= 7);
+              if (!group) {
+                group = { y: item.y, items: [] };
+                lineGroups.push(group);
+              }
+              group.items.push(item);
+            }
+            lineGroups.sort((a, b) => b.y - a.y); // Do topo para o rodapé da página
+
+            const lines = lineGroups.map(g => {
+              g.items.sort((a, b) => a.x - b.x); // Da esquerda para a direita
+              return {
+                y: g.y,
+                items: g.items,
+                fullText: g.items.map(i => i.str).join(' ').replace(/\s+/g, ' ')
+              };
+            });
+
             for (let idx = 0; idx < lines.length; idx++) {
               const line = lines[idx];
               if (/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)/i.test(line.fullText)) {
                 // Tenta encontrar valor na mesma linha após a etiqueta
-                const labelIdx = line.fullText.search(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)/i);
-                const afterLabel = line.fullText.substring(labelIdx);
-                const afterMatch = afterLabel.match(/([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/);
-                if (afterMatch) {
-                  pageValTexto = afterMatch[1];
-                  pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
+                const afterLabel = line.fullText.substring(line.fullText.search(/(?:VALOR\s+TOTAL|V\.?\s*TOTAL|TOTAL\s+(?:DA\s+)?NOTA)/i));
+                const lineMoneyMatches = Array.from(afterLabel.matchAll(currencyPattern))
+                  .map(m => ({ raw: m[1], val: parseMoney(m[1]) }))
+                  .filter(m => m.val !== null && m.val > 0);
+                if (lineMoneyMatches.length > 0) {
+                  pageValNumerico = lineMoneyMatches[0].val;
+                  pageValTexto = lineMoneyMatches[0].raw;
                   break;
                 }
 
-                // Senão procura nas 3 linhas imediatamente abaixo
+                // Senão, procura nas 1 a 4 linhas diretamente abaixo dentro da mesma coluna X
                 const labelItem = line.items.slice().reverse().find(i => /NOTA|NF|TOTAL|VALOR/i.test(i.str)) || line.items[line.items.length - 1];
                 const labelX = labelItem ? labelItem.x : 400;
 
-                for (let offset = 1; offset <= 3; offset++) {
+                for (let offset = 1; offset <= 4; offset++) {
                   if (idx + offset < lines.length) {
                     const subLine = lines[idx + offset];
-                    const numbersInSubLine: Array<{ numStr: string; val: number; x: number }> = [];
-                    
-                    for (const item of subLine.items) {
-                      const m = item.str.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
-                      if (m) {
-                        for (const numStr of m) {
-                          const val = parseFloat(numStr.replace(/\./g, '').replace(',', '.'));
-                          numbersInSubLine.push({ numStr, val, x: item.x });
-                        }
-                      }
-                    }
+                    const subLineMoney = Array.from(subLine.fullText.matchAll(currencyPattern))
+                      .map(m => ({ raw: m[1], val: parseMoney(m[1]) }))
+                      .filter(m => m.val !== null && m.val > 0);
 
-                    if (numbersInSubLine.length > 0) {
-                      const rightAligned = numbersInSubLine.filter(n => n.x >= labelX - 100);
+                    if (subLineMoney.length > 0) {
+                      // Itens alinhados horizontalmente com o quadro da direita
+                      const subItemsMoney = subLine.items
+                        .map(it => ({ str: it.str, x: it.x, val: parseMoney(it.str) }))
+                        .filter((it): it is { str: string; x: number; val: number } => it.val !== null && it.val > 0);
+
+                      const rightAligned = subItemsMoney.filter(n => n.x >= labelX - 60);
                       if (rightAligned.length > 0) {
                         rightAligned.sort((a, b) => b.x - a.x);
-                        pageValTexto = rightAligned[0].numStr;
                         pageValNumerico = rightAligned[0].val;
+                        pageValTexto = rightAligned[0].str;
                       } else {
-                        const lastNum = numbersInSubLine[numbersInSubLine.length - 1];
-                        pageValTexto = lastNum.numStr;
-                        pageValNumerico = lastNum.val;
+                        // O último valor monetário desta linha de valores de impostos
+                        const chosen = subLineMoney[subLineMoney.length - 1];
+                        pageValNumerico = chosen.val;
+                        pageValTexto = chosen.raw;
                       }
                       break;
                     }
@@ -965,56 +1006,72 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             }
           }
 
-          // ESTRATÉGIA 3: Região do quadro "CÁLCULO DO IMPOSTO"
+          // ESTRATÉGIA 3: Região do quadro "CÁLCULO DO IMPOSTO" (Padrão Oficial DANFE)
           if (pageValNumerico === null) {
-            const regexBlock = /(?:C[ÁA]LCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,800}?(?:DADOS\s+DO\s+TRANSPORTE|TRANSPORTADOR|FRETE\s+POR\s+CONTA|DADOS\s+DOS\s+PRODUTOS|RAZ[AÃ]O\s+SOCIAL)/i;
-            const blockMatch = combinedPageText.match(regexBlock);
+            const regexBlock = /(?:C[ÁA]LCULO\s+DO\s+IMPOSTO|CALCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,1200}?(?:DADOS\s+DO\s+TRANSPORTE|TRANSPORTADOR|FRETE\s+POR\s+CONTA|DADOS\s+DOS\s+PRODUTOS|RAZ[AÃ]O\s+SOCIAL|INFORMAÇÕES\s+COMPLEMENTARES)/i;
+            const blockMatch = cleanPageText.match(regexBlock);
             if (blockMatch) {
               const blockText = blockMatch[0];
-              const allCurrencies = blockText.match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
-              if (allCurrencies && allCurrencies.length > 0) {
-                // O último valor monetário do quadro de impostos é o VALOR TOTAL DA NOTA
-                const lastVal = allCurrencies[allCurrencies.length - 1];
-                pageValTexto = lastVal;
-                pageValNumerico = parseFloat(lastVal.replace(/\./g, '').replace(',', '.'));
+              const currencies = Array.from(blockText.matchAll(currencyPattern))
+                .map(m => ({ raw: m[1], val: parseMoney(m[1]) }))
+                .filter((item): item is { raw: string; val: number } => item.val !== null && item.val > 0);
+
+              if (currencies.length > 0) {
+                // No quadro de impostos da NF-e, o VALOR TOTAL DA NOTA é universalmente o maior valor
+                // (pois Valor Total Nota >= Valor dos Produtos, enquanto ICMS/frete/impostos são parcelas menores)
+                let maxItem = currencies[0];
+                for (const c of currencies) {
+                  if (c.val > maxItem.val) {
+                    maxItem = c;
+                  }
+                }
+                pageValNumerico = maxItem.val;
+                pageValTexto = maxItem.raw;
               }
             }
           }
 
-          // ESTRATÉGIA 4: Fallback por proximidade
+          // ESTRATÉGIA 4: Proximidade imediata após o texto "VALOR TOTAL DA NOTA"
           if (pageValNumerico === null) {
-            const matchFallback = combinedPageText.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+TOTAL\s+DOS\s+PRODUTOS)[\s\S]{0,180}?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
-            if (matchFallback && matchFallback[1]) {
-              pageValTexto = matchFallback[1];
-              pageValNumerico = parseFloat(pageValTexto.replace(/\./g, '').replace(',', '.'));
+            const labelIdx = cleanPageText.search(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)/i);
+            if (labelIdx !== -1) {
+              const afterText = cleanPageText.substring(labelIdx, labelIdx + 300);
+              const currenciesAfter = Array.from(afterText.matchAll(currencyPattern))
+                .map(m => ({ raw: m[1], val: parseMoney(m[1]) }))
+                .filter((m): m is { raw: string; val: number } => m.val !== null && m.val > 0);
+              if (currenciesAfter.length > 0) {
+                pageValNumerico = currenciesAfter[0].val;
+                pageValTexto = currenciesAfter[0].raw;
+              }
             }
           }
 
-          pageResults.push({
-            pageNum,
-            valorNumerico: pageValNumerico,
-            valorTexto: pageValTexto
-          });
-        }
+          // ESTRATÉGIA 5: Fallback para o maior valor com R$ presente na página
+          if (pageValNumerico === null) {
+            const allCurrenciesWithRs = Array.from(cleanPageText.matchAll(/(?:R\$\s*)(\d{1,3}(?:[\.\s]\d{3})+,\d{2}|\d+,\d{2}|\d{1,3}(?:,\d{3})+\.\d{2}|\d+\.\d{2})\b/g))
+              .map(m => ({ raw: m[1], val: parseMoney(m[1]) }))
+              .filter((m): m is { raw: string; val: number } => m.val !== null && m.val > 0);
+            if (allCurrenciesWithRs.length > 0) {
+              let maxItem = allCurrenciesWithRs[0];
+              for (const c of allCurrenciesWithRs) {
+                if (c.val > maxItem.val) {
+                  maxItem = c;
+                }
+              }
+              pageValNumerico = maxItem.val;
+              pageValTexto = maxItem.raw;
+            }
+          }
 
-        // Seleciona o melhor resultado entre todas as folhas do PDF
-        let valorNumericoResult: number | null = null;
-        let valorTextoResult: string | null = null;
-
-        const nonZeroResults = pageResults.filter(p => p.valorNumerico !== null && p.valorNumerico > 0);
-        if (nonZeroResults.length > 0) {
-          const chosen = nonZeroResults[nonZeroResults.length - 1];
-          valorNumericoResult = chosen.valorNumerico;
-          valorTextoResult = chosen.valorTexto;
-        } else {
-          const anyResult = pageResults.find(p => p.valorNumerico !== null);
-          if (anyResult) {
-            valorNumericoResult = anyResult.valorNumerico;
-            valorTextoResult = anyResult.valorTexto;
+          // Se encontrou o valor válido na Página 1 (ou página atual), encerra a busca com sucesso
+          if (pageValNumerico !== null && pageValNumerico > 0) {
+            valorNumericoResult = pageValNumerico;
+            valorTextoResult = pageValTexto;
+            break; // Página 1 é a principal, não sobrescrever com páginas de continuação
           }
         }
 
-        if (valorNumericoResult !== null && valorTextoResult !== null && valorNumericoResult > 0) {
+        if (valorNumericoResult !== null && valorNumericoResult > 0) {
           const valorFormatado = new Intl.NumberFormat('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2

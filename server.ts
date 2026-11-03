@@ -314,7 +314,7 @@ Retorne em formato JSON estrito:
 }`;
 
             const response = await ai.models.generateContent({
-              model: "gemini-2.5-flash",
+              model: "gemini-3.8-flash",
               contents: {
                 parts: [
                   {
@@ -857,7 +857,7 @@ function extractNfValueFromText(text: string): { valor: number; valorFormatado: 
 
   // B. Regex padrão de cabeçalho DANFE
   if (numeroNf === '---') {
-    const nfNumMatch = text.match(/(?:NF-e|NOTA FISCAL|DANFE)[^\d]{0,30}N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{1,9})/i) ||
+    const nfNumMatch = text.match(/(?:NF-e|NOTA FISCAL|DANFE)[^\d]{0,35}N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{1,9})/i) ||
                        text.match(/N[º°o]?[\s\.:]*(\d{1,3}(?:\.\d{3})+|\d{4,9})/i) ||
                        text.match(/(?:SÉRIE|SERIE).*?(?:Nº|Nº\.|NUMERO)\s*(\d+)/i);
     if (nfNumMatch && nfNumMatch[1]) {
@@ -865,58 +865,90 @@ function extractNfValueFromText(text: string): { valor: number; valorFormatado: 
     }
   }
 
-  // 2. Extração do VALOR TOTAL DA NF / VALOR TOTAL DA NOTA
-  // ESTRATÉGIA A: Correspondência direta quando a etiqueta e o valor estão na mesma linha ou imediatamente adjacentes
-  const directMatch = text.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO)\s*[:\.]?\s*(?:R\$\s*)?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
-  if (directMatch) {
-    const strVal = directMatch[1];
-    const numVal = parseFloat(strVal.replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(numVal) && numVal > 0) {
+  const parseMoney = (raw: string): number | null => {
+    if (!raw) return null;
+    const clean = raw.trim().replace(/^R\$\s*/i, '');
+    let val = 0;
+    if (clean.includes(',')) {
+      val = parseFloat(clean.replace(/\./g, '').replace(/\s/g, '').replace(',', '.'));
+    } else if (clean.includes('.')) {
+      val = parseFloat(clean.replace(/,/g, '').replace(/\s/g, ''));
+    } else {
+      val = parseFloat(clean);
+    }
+    return (!isNaN(val) && val > 0) ? val : null;
+  };
+
+  const currencyPattern = /(?:R\$\s*)?(\d{1,3}(?:[\.\s]\d{3})+,\d{2}|\d+,\d{2}|\d{1,3}(?:,\d{3})+\.\d{2}|\d+\.\d{2})\b/g;
+
+  // Unifica números com espaçamento interno ou quebras provenientes de streams PDF
+  const cleanText = text.replace(/(\d+)\s*([\.,])\s*(\d+)/g, '$1$2$3');
+
+  // ESTRATÉGIA 0: Tags XML ou chave explícita (vNF / vProd)
+  const vNfMatch = cleanText.match(/<vNF>\s*([\d\.]+)\s*<\/vNF>/i) || cleanText.match(/\bvNF\s*[:=]?\s*([\d\.,]+)/i);
+  if (vNfMatch) {
+    const v = parseMoney(vNfMatch[1]);
+    if (v && v > 0) {
       return {
-        valor: numVal,
-        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(numVal),
+        valor: v,
+        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v),
         numeroNf
       };
     }
   }
 
-  // ESTRATÉGIA B: Bloco de "CÁLCULO DO IMPOSTO" (Padrão Oficial DANFE da SEFAZ)
-  // O campo "VALOR TOTAL DA NOTA" fica no canto inferior direito do bloco de impostos.
-  const calcBlock = text.match(/(?:C[ÁA]LCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,900}?(?:DADOS\s+DO\s+TRANSPORTE|TRANSPORTADOR|FRETE\s+POR\s+CONTA|DADOS\s+DOS\s+PRODUTOS|RAZ[AÃ]O\s+SOCIAL)/i);
+  // ESTRATÉGIA 1: Correspondência direta quando a etiqueta e o valor estão na mesma linha ou imediatamente adjacentes
+  const directMatches = cleanText.matchAll(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA|VALOR\s+L[ÍI]QUIDO(?:\s+DA\s+NOTA)?)\s*[:\.]?\s*(?:R\$\s*)?(\d{1,3}(?:[\.\s]\d{3})+,\d{2}|\d+,\d{2}|\d{1,3}(?:,\d{3})+\.\d{2}|\d+\.\d{2})\b/gi);
+  for (const m of directMatches) {
+    const val = parseMoney(m[1]);
+    if (val && val > 0) {
+      return {
+        valor: val,
+        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val),
+        numeroNf
+      };
+    }
+  }
+
+  // ESTRATÉGIA 2: Bloco de "CÁLCULO DO IMPOSTO" (Padrão Oficial DANFE da SEFAZ)
+  const calcBlock = cleanText.match(/(?:C[ÁA]LCULO\s+DO\s+IMPOSTO|CALCULO\s+DO\s+IMPOSTO|VALOR\s+TOTAL\s+PRODUTOS)[\s\S]{0,1200}?(?:DADOS\s+DO\s+TRANSPORTE|TRANSPORTADOR|FRETE\s+POR\s+CONTA|DADOS\s+DOS\s+PRODUTOS|RAZ[AÃ]O\s+SOCIAL|INFORMAÇÕES\s+COMPLEMENTARES)/i);
   if (calcBlock) {
-    const allCurrencies = calcBlock[0].match(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g);
-    if (allCurrencies && allCurrencies.length > 0) {
-      // O último valor monetário do bloco de impostos é universalmente o VALOR TOTAL DA NOTA
-      for (let idx = allCurrencies.length - 1; idx >= 0; idx--) {
-        const valStr = allCurrencies[idx];
-        const valNum = parseFloat(valStr.replace(/\./g, '').replace(',', '.'));
-        if (!isNaN(valNum) && valNum > 0) {
-          return {
-            valor: valNum,
-            valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valNum),
-            numeroNf
-          };
-        }
-      }
-    }
-  }
+    const blockText = calcBlock[0];
+    const currencies = Array.from(blockText.matchAll(currencyPattern))
+      .map(m => parseMoney(m[1]))
+      .filter((v): v is number => v !== null && v > 0);
 
-  // ESTRATÉGIA C: Busca por proximidade da palavra-chave "VALOR TOTAL DA NOTA" ou "VALOR TOTAL DA NF"
-  const proximityMatch = text.match(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)[\s\S]{0,180}?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
-  if (proximityMatch) {
-    const strVal = proximityMatch[1];
-    const numVal = parseFloat(strVal.replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(numVal) && numVal > 0) {
+    if (currencies.length > 0) {
+      // No quadro de impostos, o Valor Total da Nota é universalmente o maior valor
+      // (pois Valor Total Nota >= Valor Produtos, e impostos/alíquotas são frações)
+      const maxVal = Math.max(...currencies);
       return {
-        valor: numVal,
-        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(numVal),
+        valor: maxVal,
+        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(maxVal),
         numeroNf
       };
     }
   }
 
-  // ESTRATÉGIA D: Linha a linha com busca nos 3 próximos itens
-  const lines = text.split(/\r?\n/);
+  // ESTRATÉGIA 3: Busca por proximidade imediata da palavra-chave "VALOR TOTAL DA NOTA"
+  const labelIdx = cleanText.search(/(?:VALOR\s+TOTAL\s+(?:DA\s+)?(?:NOTA|NF|NOTA\s+FISCAL|DO\s+DOCUMENTO)|V\.?\s*TOTAL\s+(?:DA\s+)?NOTA|TOTAL\s+(?:DA\s+)?NOTA)/i);
+  if (labelIdx !== -1) {
+    const afterText = cleanText.substring(labelIdx, labelIdx + 300);
+    const currenciesAfter = Array.from(afterText.matchAll(currencyPattern))
+      .map(m => parseMoney(m[1]))
+      .filter((v): v is number => v !== null && v > 0);
+    if (currenciesAfter.length > 0) {
+      const chosenVal = currenciesAfter[0];
+      return {
+        valor: chosenVal,
+        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(chosenVal),
+        numeroNf
+      };
+    }
+  }
+
+  // ESTRATÉGIA 4: Linha a linha com busca nos 4 próximos itens
+  const lines = cleanText.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const lineUpper = lines[i].toUpperCase();
     if (
@@ -928,40 +960,32 @@ function extractNfValueFromText(text: string): { valor: number; valorFormatado: 
       lineUpper.includes('VALOR TOTAL DOS PRODUTOS')
     ) {
       for (let j = i; j <= Math.min(i + 4, lines.length - 1); j++) {
-        const moneyMatches = lines[j].match(/(\d{1,3}(?:\.\d{3})*,\d{2})/g);
-        if (moneyMatches && moneyMatches.length > 0) {
-          const lastValStr = moneyMatches[moneyMatches.length - 1];
-          const numVal = parseFloat(lastValStr.replace(/\./g, '').replace(',', '.'));
-          if (!isNaN(numVal) && numVal > 0) {
-            return {
-              valor: numVal,
-              valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(numVal),
-              numeroNf
-            };
-          }
+        const moneyMatches = Array.from(lines[j].matchAll(currencyPattern))
+          .map(m => parseMoney(m[1]))
+          .filter((v): v is number => v !== null && v > 0);
+        if (moneyMatches.length > 0) {
+          const chosenVal = Math.max(...moneyMatches);
+          return {
+            valor: chosenVal,
+            valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(chosenVal),
+            numeroNf
+          };
         }
       }
     }
   }
 
-  // ESTRATÉGIA E: Fallback geral para maior valor monetário com R$ ou duplicata
-  const allMoney = text.match(/(?:R\$\s*)(\d{1,3}(?:\.\d{3})*,\d{2})/g);
-  if (allMoney && allMoney.length > 0) {
-    let maxVal = 0;
-    for (const m of allMoney) {
-      const clean = m.replace(/R\$\s*/, '');
-      const numVal = parseFloat(clean.replace(/\./g, '').replace(',', '.'));
-      if (!isNaN(numVal) && numVal > maxVal) {
-        maxVal = numVal;
-      }
-    }
-    if (maxVal > 0) {
-      return {
-        valor: maxVal,
-        valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(maxVal),
-        numeroNf
-      };
-    }
+  // ESTRATÉGIA 5: Fallback geral para maior valor monetário com R$ ou valor global
+  const allCurrenciesWithRs = Array.from(cleanText.matchAll(/(?:R\$\s*)(\d{1,3}(?:[\.\s]\d{3})+,\d{2}|\d+,\d{2}|\d{1,3}(?:,\d{3})+\.\d{2}|\d+\.\d{2})\b/g))
+    .map(m => parseMoney(m[1]))
+    .filter((v): v is number => v !== null && v > 0);
+  if (allCurrenciesWithRs.length > 0) {
+    const maxVal = Math.max(...allCurrenciesWithRs);
+    return {
+      valor: maxVal,
+      valorFormatado: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(maxVal),
+      numeroNf
+    };
   }
 
   return null;
@@ -1179,7 +1203,7 @@ Retorne um array JSON com 1 objeto contendo exatamente esses campos.`;
         try {
           const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
           const genResponse = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.8-flash",
             contents: {
               parts: [
                 {
@@ -1189,7 +1213,7 @@ Retorne um array JSON com 1 objeto contendo exatamente esses campos.`;
                   }
                 },
                 {
-                  text: "Analise esta Nota Fiscal / DANFE em PDF. Extraia o Valor Total da Nota Fiscal e o Número da Nota. Responda estritamente em JSON: {\"valorTotalNf\": \"12345.67\", \"valorTotalNfFormatado\": \"12.345,67\", \"numeroNf\": \"12345\"}"
+                  text: "Você é um especialista em documentos fiscais brasileiros (DANFE / NF-e). Analise este PDF de Nota Fiscal. Extraia com precisão absoluta:\n1. O 'VALOR TOTAL DA NOTA' (campo 'VALOR TOTAL DA NOTA' ou 'VALOR TOTAL DO DOCUMENTO' no quadro CÁLCULO DO IMPOSTO). Atenção: NÃO confunda com alíquotas ou impostos parciais como ICMS ou Frete. Extraia o valor total final da nota fiscal.\n2. O 'NÚMERO DA NOTA FISCAL' (número da NF-e).\nResponda estritamente em JSON no formato: {\"valorTotalNf\": \"12345.67\", \"valorTotalNfFormatado\": \"12.345,67\", \"numeroNf\": \"12345\"}"
                 }
               ]
             },
