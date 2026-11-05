@@ -51,6 +51,32 @@ export const RestrictedPagesModal: React.FC<RestrictedPagesModalProps> = ({
   currentVisibility,
   onVisibilityChange
 }) => {
+  const dynamicPages = React.useMemo(() => {
+    let currentNumber = 2;
+    return PAGES.map((page) => {
+      const isVisible = currentVisibility[page.id] ?? true;
+      let shortcut = 'Oculto';
+      if (page.id === 'menu') {
+        shortcut = 'Ctrl + 1';
+      } else if (isVisible) {
+        if (currentNumber <= 9) {
+          shortcut = `Ctrl + ${currentNumber}`;
+          currentNumber++;
+        } else if (currentNumber === 10) {
+          shortcut = 'Ctrl + 0';
+          currentNumber++;
+        } else {
+          shortcut = 'Menu';
+        }
+      }
+      return {
+        ...page,
+        shortcut,
+        isVisible
+      };
+    });
+  }, [currentVisibility]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -76,7 +102,7 @@ export const RestrictedPagesModal: React.FC<RestrictedPagesModalProps> = ({
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800">CONFIGURAÇÃO OPERACIONAL</h2>
-                  <p className="text-sm text-gray-500 uppercase tracking-widest">VISIBILIDADE & ATALHOS</p>
+                  <p className="text-sm text-gray-500 uppercase tracking-widest">VISIBILIDADE & ATALHOS DINÂMICOS</p>
                 </div>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-[#D9C39B]/20 rounded-full transition-colors">
@@ -87,8 +113,8 @@ export const RestrictedPagesModal: React.FC<RestrictedPagesModalProps> = ({
             {/* Content - Horizontal Grid */}
             <div className="p-8">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {PAGES.map((page) => {
-                  const isVisible = currentVisibility[page.id] ?? true;
+                {dynamicPages.map((page) => {
+                  const isVisible = page.isVisible;
                   return (
                     <div 
                       key={page.id}

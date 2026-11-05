@@ -31,6 +31,7 @@ export default function NavigationDrawer({
   isOpen = false,
   setIsOpen,
   pageVisibility,
+  availablePages,
   currentUser
 }: NavigationDrawerProps) {
 
@@ -45,7 +46,7 @@ export default function NavigationDrawer({
   }, [isOpen, setIsOpen]);
 
   const menuItems = useMemo(() => {
-    const pages = getAllAvailablePages();
+    const pages = (availablePages && availablePages.length > 0) ? availablePages : getAllAvailablePages();
     const vis = pageVisibility || loadPageVisibility();
     const isAgenteDeRisco = currentUser?.role === 'agente_de_risco' || currentUser?.role === 'funcionario';
     const userAllowed = isAgenteDeRisco ? (currentUser?.allowedPages || []) : null;
@@ -54,7 +55,7 @@ export default function NavigationDrawer({
       { id: 'menu', label: 'Início', subtitle: 'Painel Central', icon: Home }
     ];
     pages.forEach(p => {
-      if (p.id !== 'cadastro' && vis[p.id] !== false) {
+      if (p.id !== 'cadastro' && p.id !== 'settings' && vis[p.id] !== false) {
         if (userAllowed && !userAllowed.includes(p.id)) {
           return;
         }
@@ -67,7 +68,7 @@ export default function NavigationDrawer({
       }
     });
     return items;
-  }, [pageVisibility, currentUser]);
+  }, [availablePages, pageVisibility, currentUser]);
 
   const handleSelect = (id: string) => {
     onSelectTab(id);
@@ -77,14 +78,15 @@ export default function NavigationDrawer({
   const renderNavList = (collapsed: boolean) => (
     <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1 scrollbar-thin scrollbar-thumb-amber-200">
       {!collapsed && (
-        <div className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-[#8C6D28]">
-          NAVEGAÇÃO PRINCIPAL
+        <div className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-[#8C6D28] flex items-center justify-between">
+          <span>NAVEGAÇÃO PRINCIPAL</span>
         </div>
       )}
 
-      {menuItems.map((item) => {
+      {menuItems.map((item, index) => {
         const isActive = activeTab === item.id;
         const IconComponent = item.icon;
+        const shortcutKey = index < 9 ? `Ctrl + ${index + 1}` : index === 9 ? 'Ctrl + 0' : null;
 
         return (
           <button
@@ -118,7 +120,9 @@ export default function NavigationDrawer({
             </div>
 
             {!collapsed && isActive && (
-              <ChevronRight size={16} className="text-[#B88732] shrink-0" />
+              <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                <ChevronRight size={14} className="text-[#B88732]" />
+              </div>
             )}
           </button>
         );

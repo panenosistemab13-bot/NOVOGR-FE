@@ -307,7 +307,7 @@ const DESTINOS_OPCOES = [
   "SANTA LUZIA/MG x UBERLÂNDIA/MG",
   "SANTA LUZIA/MG x CONTAGEM/MG",
   "SANTA LUZIA/MG x POUSO ALEGRE/MG",
-  "SANTA LUZIA/MG x CONDOR x CURITIBA/PR",
+  "SANTA LUZIA/MG x CONDOR",
   "SANTA LUZIA/MG x MUFFATO x CAMBÉ/PR",
   "SANTA LUZIA/MG x DESTRO x CURITIBA/PR",
   "SANTA LUZIA/MG x CUIABÁ/MT x ARIQUEMES/RO",
@@ -325,6 +325,36 @@ const DESTINOS_OPCOES = [
   "SANTA LUZIA/MG x JOÃO PESSOA/PB",
   "SANTA LUZIA/MG x BELÉM/PA",
 ];
+
+const ROUTE_USAGE_KEY = "pre_alerta_route_usage";
+const TRANSP_USAGE_KEY = "pre_alerta_transp_usage";
+
+const DEFAULT_ROUTE_WEIGHTS: Record<string, number> = {
+  "SANTA LUZIA/MG x GUARULHOS/SP": 100,
+  "SANTA LUZIA/MG x RIO DE JANEIRO/RJ": 95,
+  "SANTA LUZIA/MG x BRASÍLIA/DF": 90,
+  "SANTA LUZIA/MG x PINHAIS/PR": 85,
+  "SANTA LUZIA/MG x LONDRINA/PR": 80,
+  "SANTA LUZIA/MG x MONTES CLAROS/MG": 75,
+  "SANTA LUZIA/MG x CONDOR": 70,
+  "SANTA LUZIA/MG x VIANA/ES": 65,
+  "SANTA LUZIA/MG x RECIFE/PE": 60,
+  "SANTA LUZIA/MG x SALVADOR/BA": 55,
+  "SANTA LUZIA/MG x CUIABÁ/MT": 50,
+};
+
+const DEFAULT_TRANSP_WEIGHTS: Record<string, number> = {
+  "TRANSMAGNA": 100,
+  "GT MINAS": 95,
+  "moedense": 90,
+  "tomasi": 85,
+  "apk": 80,
+  "Frota 3C": 75,
+  "GOBOR": 70,
+  "SRH SARAIVA": 65,
+  "PACTUAL": 60,
+  "JETTA": 55,
+};
 
 const ORIGEM_OPCOES = [
   "SANTA LUZIA/MG",
@@ -1554,12 +1584,71 @@ export default function Controle({ onBack }: ControleProps) {
     });
   };
 
+  const [routeUsage, setRouteUsage] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem(ROUTE_USAGE_KEY);
+      return saved ? JSON.parse(saved) : DEFAULT_ROUTE_WEIGHTS;
+    } catch {
+      return DEFAULT_ROUTE_WEIGHTS;
+    }
+  });
+
+  const [transpUsage, setTranspUsage] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem(TRANSP_USAGE_KEY);
+      return saved ? JSON.parse(saved) : DEFAULT_TRANSP_WEIGHTS;
+    } catch {
+      return DEFAULT_TRANSP_WEIGHTS;
+    }
+  });
+
+  const recordRouteUsage = (route: string) => {
+    if (!route) return;
+    setRouteUsage((prev) => {
+      const updated = { ...prev, [route]: (prev[route] || 0) + 1 };
+      try {
+        localStorage.setItem(ROUTE_USAGE_KEY, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const recordTranspUsage = (transp: string) => {
+    if (!transp) return;
+    setTranspUsage((prev) => {
+      const updated = { ...prev, [transp]: (prev[transp] || 0) + 1 };
+      try {
+        localStorage.setItem(TRANSP_USAGE_KEY, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
   const allTransportadoras = [...TRANSPORTADORAS, ...customTransportadoras];
+
+  const sortedTransportadoras = useMemo(() => {
+    return [...allTransportadoras].sort((a, b) => {
+      const weightA = transpUsage[a] ?? (DEFAULT_TRANSP_WEIGHTS[a] || 0);
+      const weightB = transpUsage[b] ?? (DEFAULT_TRANSP_WEIGHTS[b] || 0);
+      if (weightB !== weightA) return weightB - weightA;
+      return a.localeCompare(b);
+    });
+  }, [allTransportadoras, transpUsage]);
+
+  const sortedDestinos = useMemo(() => {
+    return [...DESTINOS_OPCOES].sort((a, b) => {
+      const weightA = routeUsage[a] ?? (DEFAULT_ROUTE_WEIGHTS[a] || 0);
+      const weightB = routeUsage[b] ?? (DEFAULT_ROUTE_WEIGHTS[b] || 0);
+      if (weightB !== weightA) return weightB - weightA;
+      return a.localeCompare(b);
+    });
+  }, [routeUsage]);
 
   // Sync transportadora and motorista states when either updates, keeping both sections intuitive
   const handleSidebarTranspChange = (val: string) => {
     setSidebarTransportadora(val);
     setTransportadora(val);
+    if (val) recordTranspUsage(val);
   };
 
   const handleSidebarMotoristaChange = (val: string) => {
@@ -1570,6 +1659,7 @@ export default function Controle({ onBack }: ControleProps) {
   const handleTableTranspChange = (val: string) => {
     setTransportadora(val);
     setSidebarTransportadora(val);
+    if (val) recordTranspUsage(val);
   };
 
   const handleTableMotoristaChange = (val: string) => {
@@ -2481,49 +2571,49 @@ export default function Controle({ onBack }: ControleProps) {
         </table>
 
         <!-- TABELA 1: DADOS DA OPERAÇÃO (CABEÇALHOS GRAFITE, BORDAS DOURADAS, LINHAS MARFIM) -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FDFBF7; font-size: 10px; text-align: center; color: #1A1D20; margin-bottom: 20px; border: 1px solid #C5A059; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-          <tr style="background: linear-gradient(180deg, #22262B 0%, #181A1D 100%); color: #FFFFFF; font-weight: 800; text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.5px;">
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">MOTORISTA</td>
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">CAVALO</td>
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">CARRETAS</td>
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">N° ISCA</td>
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">PROD. EMBARCADO</td>
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">CÓD. U.M.A.</td>
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">DESTINO</td>
-            <td style="padding: 10px 6px; border: 1px solid #C5A059; border-top: none;">DATA PARTIDA</td>
+        <table style="width: 100%; border-collapse: collapse; background-color: #FDFBF7; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; text-align: center; color: #0F172A; margin-bottom: 20px; border: 1.5px solid #C5A059; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;">
+          <tr style="background: linear-gradient(180deg, #22262B 0%, #181A1D 100%); color: #FFFFFF; font-weight: 700; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.6px;">
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">MOTORISTA</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">CAVALO</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">CARRETAS</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">N° ISCA</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">PROD. EMBARCADO</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">CÓD. U.M.A.</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">DESTINO</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">DATA PARTIDA</td>
           </tr>
           <tr style="background-color: #FFFFFF; border-bottom: 1px solid #E5D5B5;">
-            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${motorista}</td>
-            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${cavalo}</td>
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${carreta1}</td>
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #C91F2D;">
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12.5px; color: #0F172A; text-transform: uppercase;">${motorista}</td>
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 900; font-size: 13px; color: #0F172A; letter-spacing: 0.8px;">${cavalo}</td>
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${carreta1}</td>
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 900; font-size: 13px; color: #C91F2D; letter-spacing: 0.8px;">
               ${isca1 || 'ISCA 1'}
             </td>
-            <!-- PRODUTO EMBARCADO: TEXTO LIMPO EM NEGRITO -->
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+            <!-- PRODUTO EMBARCADO -->
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 12px; color: #0F172A;">
               ${produto1 || "PROD 1"}
             </td>
-            <!-- CÓDIGO U.M.A.: TEXTO LIMPO EM NEGRITO -->
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+            <!-- CÓDIGO U.M.A. -->
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 11.5px; line-height: 1.3; color: #0F172A;">
               ${uma1 || "CÓDIGO U.M.A."}
             </td>
-            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${destino}</td>
-            <td rowspan="${numCarretas}" style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${dataEnviada}</td>
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${destino}</td>
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${dataEnviada}</td>
           </tr>
           ${
             numCarretas === 2
               ? `
           <tr style="background-color: #FBF8F1; border-bottom: 1px solid #E5D5B5;">
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${carreta2}</td>
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #C91F2D;">
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${carreta2}</td>
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 900; font-size: 13px; color: #C91F2D; letter-spacing: 0.8px;">
               ${isca2 || 'ISCA 2'}
             </td>
-            <!-- PROD 2: TEXTO LIMPO EM NEGRITO -->
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+            <!-- PROD 2 -->
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 12px; color: #0F172A;">
               ${produto2 || "PROD 2"}
             </td>
-            <!-- UMA 2: TEXTO LIMPO EM NEGRITO -->
-            <td style="padding: 8px 6px; border: 1px solid #E5D5B5; text-align: center; font-weight: 800; color: #1A1D20;">
+            <!-- UMA 2 -->
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 11.5px; line-height: 1.3; color: #0F172A;">
               ${uma2 || "CÓDIGO U.M.A."}
             </td>
           </tr>
@@ -2533,15 +2623,15 @@ export default function Controle({ onBack }: ControleProps) {
         </table>
 
         <!-- TABELA 2: PARAMETRIZAÇÃO DAS ISCAS CORPORATIVA DOURADA & GRAFITE -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-size: 10px; text-align: center; color: #1A1D20; margin-bottom: 22px; border: 1px solid #C5A059; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-          <tr style="background: linear-gradient(180deg, #1A1D20 0%, #252A30 100%); color: #FFFFFF; font-size: 11px;">
-            <td colspan="4" style="padding: 10px 14px; border-bottom: 1px solid #C5A059; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; text-align: center; color: #0F172A; margin-bottom: 22px; border: 1.5px solid #C5A059; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;">
+          <tr style="background: linear-gradient(180deg, #1A1D20 0%, #252A30 100%); color: #FFFFFF; font-size: 12.5px;">
+            <td colspan="4" style="padding: 11px 14px; border-bottom: 1.5px solid #C5A059; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">
               <table cellpadding="0" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                 <tr>
                   <td style="width: 28px; vertical-align: middle;">
                     <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #F59E0B 0%, #B8860B 100%); border: 1px solid #D4AF37; border-radius: 50%; text-align: center; line-height: 22px; color: #111111; font-weight: 900; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">⚙</div>
                   </td>
-                  <td style="vertical-align: middle; color: #FFFFFF; font-weight: 900; font-size: 11px; letter-spacing: 1.2px; text-align: center;">
+                  <td style="vertical-align: middle; color: #FFFFFF; font-weight: 900; font-size: 12.5px; letter-spacing: 1.5px; text-align: center;">
                     PARAMETRIZAÇÃO DAS ISCAS
                   </td>
                   <td style="width: 28px; text-align: right;"></td>
@@ -2549,28 +2639,28 @@ export default function Controle({ onBack }: ControleProps) {
               </table>
             </td>
           </tr>
-          <tr style="background-color: #F5EDDA; color: #1A1D20; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; border-bottom: 1px solid #C5A059;">
-            <td style="padding: 8px 6px; border-right: 1px solid #C5A059; width: 25%;">
+          <tr style="background-color: #F5EDDA; color: #2D1B06; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; border-bottom: 1px solid #C5A059;">
+            <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 25%;">
               PLACA / CÓDIGO DE VENDA ⇅
             </td>
-            <td style="padding: 8px 6px; border-right: 1px solid #C5A059; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
-            <td style="padding: 8px 6px; border-right: 1px solid #C5A059; width: 18%;">DATA POSIÇÃO ⇅</td>
-            <td style="padding: 8px 6px; width: 12%;">BATERIA ISCA _ RF ⇅</td>
+            <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
+            <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 18%;">DATA POSIÇÃO ⇅</td>
+            <td style="padding: 9px 8px; width: 12%;">BATERIA ISCA _ RF ⇅</td>
           </tr>
           ${
             numCarretas === 2 && !!isca2DisplayCode
               ? `
           <tr style="background-color: #FFFFFF; border-bottom: 1px solid #E5D5B5;">
-            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 800; color: #C91F2D; text-align: center;">${isca2DisplayCode}</td>
-            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-align: left; padding-left: 12px; font-weight: 800; color: ${!pastePlanilha.trim() && !isca2Endereco ? "#C91F2D" : "#1A1D20"};">${isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
-            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${isca2Data}</td>
-            <td style="padding: 8px 6px;">
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 900; font-size: 12.5px; color: #C91F2D; text-align: center; letter-spacing: 0.8px;">${isca2DisplayCode}</td>
+            <td style="padding: 10px 10px; border-right: 1px solid #E5D5B5; text-align: left; font-weight: 600; font-size: 12px; line-height: 1.4; color: ${!pastePlanilha.trim() && !isca2Endereco ? "#C91F2D" : "#0F172A"};">${isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${isca2Data}</td>
+            <td style="padding: 10px 8px;">
               ${
                 ((isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
                   ? ""
                   : `
               <div style="display: flex; align-items: center; justify-content: center;">
-                <span style="margin-right: 6px; font-weight: 800; color: #16A34A;">${isca2Bateria || "100%"}</span>
+                <span style="margin-right: 6px; font-weight: 800; font-size: 12px; color: #16A34A;">${isca2Bateria || "100%"}</span>
                 <div style="width: 20px; height: 10px; border: 1px solid #16A34A; border-radius: 2px; padding: 1px; display: inline-block; position: relative; vertical-align: middle;">
                   <div style="width: ${Math.min(100, parseInt(isca2Bateria) || 100)}%; height: 100%; background-color: #16A34A; border-radius: 1px;"></div>
                   <div style="position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background-color: #16A34A; border-radius: 0 1px 1px 0;"></div>
@@ -2584,16 +2674,16 @@ export default function Controle({ onBack }: ControleProps) {
               : ""
           }
           <tr style="background-color: #FFFFFF;">
-            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 800; color: #C91F2D; text-align: center;">${isca1DisplayCode}</td>
-            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; text-align: left; padding-left: 12px; font-weight: 800; color: ${!pastePlanilha.trim() && !isca1Endereco ? "#C91F2D" : "#1A1D20"};">${isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
-            <td style="padding: 8px 6px; border-right: 1px solid #E5D5B5; font-weight: 800; color: #1A1D20;">${isca1Data}</td>
-            <td style="padding: 8px 6px;">
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 900; font-size: 12.5px; color: #C91F2D; text-align: center; letter-spacing: 0.8px;">${isca1DisplayCode}</td>
+            <td style="padding: 10px 10px; border-right: 1px solid #E5D5B5; text-align: left; font-weight: 600; font-size: 12px; line-height: 1.4; color: ${!pastePlanilha.trim() && !isca1Endereco ? "#C91F2D" : "#0F172A"};">${isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${isca1Data}</td>
+            <td style="padding: 10px 8px;">
               ${
                 ((isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
                   ? ""
                   : `
               <div style="display: flex; align-items: center; justify-content: center;">
-                <span style="margin-right: 6px; font-weight: 800; color: #16A34A;">${isca1Bateria || "100%"}</span>
+                <span style="margin-right: 6px; font-weight: 800; font-size: 12px; color: #16A34A;">${isca1Bateria || "100%"}</span>
                 <div style="width: 20px; height: 10px; border: 1px solid #16A34A; border-radius: 2px; padding: 1px; display: inline-block; position: relative; vertical-align: middle;">
                   <div style="width: ${Math.min(100, parseInt(isca1Bateria) || 100)}%; height: 100%; background-color: #16A34A; border-radius: 1px;"></div>
                   <div style="position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background-color: #16A34A; border-radius: 0 1px 1px 0;"></div>
@@ -4182,7 +4272,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             <FileText size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
-                        <span className="font-extrabold text-[#C5A059] text-[11px] uppercase tracking-wider select-none font-sans">
+                        <span className="font-bold text-[#E5C27A] text-[11px] sm:text-[12px] uppercase tracking-wider select-none font-sans">
                           NÚMERO DA NF:
                         </span>
                       </div>
@@ -4191,7 +4281,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           type="text"
                           value={nfInicio}
                           onChange={(e) => setNfInicio(e.target.value.replace(/-/g, ""))}
-                          className="w-full text-center font-black bg-transparent border-none outline-none text-xs text-[#FAF7F0] tracking-wide"
+                          spellCheck={false}
+                          autoCorrect="off"
+                          className="w-full text-center font-bold bg-transparent border-none outline-none text-[13px] sm:text-[14px] text-white tracking-wider"
                           placeholder="3004567"
                           title="NF Início"
                         />
@@ -4200,7 +4292,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             type="text"
                             value={nfFim}
                             onChange={(e) => setNfFim(e.target.value.replace(/-/g, ""))}
-                            className="w-full text-center font-black bg-transparent border-none outline-none text-xs text-[#FAF7F0] tracking-wide mt-0.5 border-t border-[#C5A059]"
+                            spellCheck={false}
+                            autoCorrect="off"
+                            className="w-full text-center font-bold bg-transparent border-none outline-none text-[13px] sm:text-[14px] text-white tracking-wider mt-0.5 border-t border-[#C5A059]"
                             placeholder="3004566"
                             title="NF Fim"
                           />
@@ -4216,7 +4310,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             <Truck size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
-                        <span className="font-extrabold text-[#C5A059] text-[11px] uppercase tracking-wider select-none font-sans">
+                        <span className="font-bold text-[#E5C27A] text-[11px] sm:text-[12px] uppercase tracking-wider select-none font-sans">
                           TRANSPORTADORA:
                         </span>
                       </div>
@@ -4224,10 +4318,10 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         <select
                           value={transportadora}
                           onChange={(e) => handleTableTranspChange(e.target.value)}
-                          className="w-full text-center font-black uppercase bg-transparent border-none outline-none text-xs cursor-pointer text-[#FAF7F0] tracking-wide pr-4 appearance-none"
+                          className="w-full text-center font-bold uppercase bg-transparent border-none outline-none text-[12px] sm:text-[13px] cursor-pointer text-white tracking-wider pr-4 appearance-none"
                         >
                           <option value="">GTMINAS</option>
-                          {allTransportadoras.map((t, index) => (
+                          {sortedTransportadoras.map((t, index) => (
                             <option key={`transp-2-${index}-${t}`} value={t} className="text-[#1A1D20] uppercase text-xs font-bold">
                               {t}
                             </option>
@@ -4247,7 +4341,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         </div>
                         {!isValorCargaEmpty(valorCarga) && (
                           <div className="flex flex-col text-left">
-                            <span className="font-extrabold text-[#C5A059] text-[10px] uppercase tracking-wider leading-none">
+                            <span className="font-bold text-[#E5C27A] text-[10px] sm:text-[11px] uppercase tracking-wider leading-none">
                               VALOR DA CARGA
                             </span>
                           </div>
@@ -4258,7 +4352,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           type="text"
                           value={valorCarga}
                           onChange={(e) => setValorCarga(e.target.value)}
-                          className="w-full text-right font-black uppercase text-[#FAF7F0] bg-transparent border-none outline-none text-[12px] sm:text-[13px] tracking-tight hover:bg-black/40 focus:bg-black rounded px-1 transition-all placeholder:text-[#C5A059] placeholder:font-black"
+                          spellCheck={false}
+                          autoCorrect="off"
+                          className="w-full text-right font-black uppercase text-white bg-transparent border-none outline-none text-[12.5px] sm:text-[13.5px] tracking-wide hover:bg-black/40 focus:bg-black rounded px-1 transition-all placeholder:text-[#E5C27A] placeholder:font-black"
                           placeholder="CAFE TRES CORAÇÕES"
                           title="Valor da Carga (NF) - Quando vazia exibe: CAFE TRES CORAÇÕES"
                         />
@@ -4266,234 +4362,201 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </div>
                   </div>
 
-                  {/* TABELA 1 CORPO PRINCIPAL */}
-                  <table className="w-full border-collapse text-xs font-sans text-[#1A1D20] table-fixed">
-                    <thead>
-                      {/* Row: Corporate Graphite Column Headings */}
-                      <tr className="border-b text-[#FAF7F0] text-center font-extrabold uppercase text-[10.5px] tracking-wide h-[42px] shadow-xs" style={{ background: 'linear-gradient(180deg, #22262B 0%, #181A1D 100%)', borderColor: '#C5A059' }}>
-                        {table1ColumnOrder.map((colKey, idx) => {
-                          const col = TABLE1_COLS[colKey];
-                          const widthVal = table1ColumnWidths[colKey] || col.defaultWidth;
-                          return (
-                            <th
-                              key={colKey}
-                              className={cn(
-                                "border-r border-[#C5A059]/60 p-1 align-middle text-center uppercase relative group/col select-none",
-                                idx === table1ColumnOrder.length - 1 && "border-r-0"
-                              )}
-                              style={{ width: `${widthVal}%` }}
-                            >
-                              <div className="flex items-center justify-between px-1">
-                                <button
-                                  type="button"
-                                  onClick={() => moveColumnTable1(idx, 'left')}
-                                  disabled={idx === 0}
-                                  className="opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
-                                  title="Mover Coluna para Esquerda"
-                                >
-                                  ◀
-                                </button>
-                                <span className="truncate flex-1 text-center flex items-center justify-center gap-1 font-bold text-[#211C19]">
-                                  {colKey === 'motorista' && <User size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  {colKey === 'cavalo' && <Truck size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  {colKey === 'carretas' && <Container size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  {colKey === 'isca' && <Barcode size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  {colKey === 'produto' && <Package size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  {colKey === 'uma' && <FileText size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  {colKey === 'destino' && <MapPin size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  {colKey === 'data' && <Calendar size={11} className="text-[#8C6D2B] shrink-0 inline-block" />}
-                                  <span>{col.label}</span>
-                                </span>
-                                <div className="flex items-center gap-0.5 opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity">
+                  {/* TABELA 1 & 2 CONTÊINER COM NITIDEZ E ALTA DEFINIÇÃO */}
+                  <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-[#C5A059]/40">
+                    {/* TABELA 1 CORPO PRINCIPAL */}
+                    <table 
+                      className="w-full border-collapse text-xs font-sans text-[#0F172A] table-fixed min-w-[980px]"
+                      style={{
+                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale',
+                        textRendering: 'optimizeLegibility'
+                      }}
+                    >
+                      <thead>
+                        {/* Row: Corporate Graphite Column Headings */}
+                        <tr className="border-b text-white text-center font-bold uppercase text-[11.5px] sm:text-[12px] tracking-wider h-[42px] shadow-xs" style={{ background: 'linear-gradient(180deg, #22262B 0%, #181A1D 100%)', borderColor: '#C5A059' }}>
+                          {table1ColumnOrder.map((colKey, idx) => {
+                            const col = TABLE1_COLS[colKey];
+                            const widthVal = table1ColumnWidths[colKey] || col.defaultWidth;
+                            return (
+                              <th
+                                key={colKey}
+                                className={cn(
+                                  "border-r border-[#C5A059]/60 p-1.5 align-middle text-center uppercase relative group/col select-none",
+                                  idx === table1ColumnOrder.length - 1 && "border-r-0"
+                                )}
+                                style={{ width: `${widthVal}%` }}
+                              >
+                                <div className="flex items-center justify-between px-1">
                                   <button
                                     type="button"
-                                    onClick={() => resizeColumnTable1(colKey, -2)}
-                                    className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded px-1 text-[8px] font-bold cursor-pointer"
-                                    title="Diminuir Largura (-)"
+                                    onClick={() => moveColumnTable1(idx, 'left')}
+                                    disabled={idx === 0}
+                                    className="opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#E5C27A] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                    title="Mover Coluna para Esquerda"
                                   >
-                                    -
+                                    ◀
                                   </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => resizeColumnTable1(colKey, 2)}
-                                    className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded px-1 text-[8px] font-bold cursor-pointer"
-                                    title="Aumentar Largura (+)"
-                                  >
-                                    +
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => moveColumnTable1(idx, 'right')}
-                                    disabled={idx === table1ColumnOrder.length - 1}
-                                    className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#5B4009] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
-                                    title="Mover Coluna para Direita"
-                                  >
-                                    ▶
-                                  </button>
+                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-bold text-white text-[11px] sm:text-[11.5px] tracking-wider">
+                                    {colKey === 'motorista' && <User size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'cavalo' && <Truck size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'carretas' && <Container size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'isca' && <Barcode size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'produto' && <Package size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'uma' && <FileText size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'destino' && <MapPin size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'data' && <Calendar size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    <span className="font-bold text-white tracking-wider">{col.label}</span>
+                                  </span>
+                                  <div className="flex items-center gap-0.5 opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity">
+                                    <button
+                                      type="button"
+                                      onClick={() => resizeColumnTable1(colKey, -2)}
+                                      className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#E5C27A] rounded px-1 text-[8px] font-bold cursor-pointer"
+                                      title="Diminuir Largura (-)"
+                                    >
+                                      -
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => resizeColumnTable1(colKey, 2)}
+                                      className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#E5C27A] rounded px-1 text-[8px] font-bold cursor-pointer"
+                                      title="Aumentar Largura (+)"
+                                    >
+                                      +
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => moveColumnTable1(idx, 'right')}
+                                      disabled={idx === table1ColumnOrder.length - 1}
+                                      className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#E5C27A] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                      title="Mover Coluna para Direita"
+                                    >
+                                      ▶
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            </th>
-                          );
-                        })}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* Rows of data with reordered columns */}
-                      <tr className="border-b border-[#E5D5B5] text-center text-xs h-[36px] bg-white">
-                        {table1ColumnOrder.map((colKey) => {
-                          switch (colKey) {
-                            case 'motorista':
-                              return (
-                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
-                                  <textarea
-                                    value={motorista}
-                                    onChange={(e) => handleTableMotoristaChange(e.target.value)}
-                                    className="w-full h-full min-h-[40px] text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded resize-none p-1 text-[11px] leading-snug text-[#1A1D20] transition-all duration-150"
-                                    placeholder="NOME MOTORISTA"
-                                  />
-                                </td>
-                              );
-                            case 'cavalo':
-                              return (
-                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1 font-black uppercase text-[11.5px] align-middle">
-                                  <input
-                                    type="text"
-                                    value={cavalo}
-                                    onChange={(e) => setCavalo(e.target.value.replace(/-/g, ""))}
-                                    className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[12.5px] text-[#1A1D20] tracking-wider transition-all duration-150"
-                                    placeholder="PLACA"
-                                    title="Placa"
-                                  />
-                                </td>
-                              );
-                            case 'carretas':
-                              return (
-                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 align-middle">
-                                  <input
-                                    type="text"
-                                    value={carreta1}
-                                    onChange={(e) => setCarreta1(e.target.value)}
-                                    className="w-full text-center bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#1A1D20] transition-all duration-150"
-                                    placeholder="CARRETA 1"
-                                  />
-                                </td>
-                              );
-                            case 'isca':
-                              return (
-                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-black uppercase text-[10.5px] align-middle">
-                                  <input
-                                    type="text"
-                                    value={isca1}
-                                    onChange={(e) => setIsca1(e.target.value)}
-                                    className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#C91F2D] transition-all duration-150"
-                                    placeholder="ISCA 1"
-                                  />
-                                </td>
-                              );
-                            case 'produto':
-                              return (
-                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
-                                  <input
-                                    type="text"
-                                    value={produto1}
-                                    onChange={(e) => setProduto1(e.target.value)}
-                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
-                                    placeholder="PROD 1"
-                                  />
-                                </td>
-                              );
-                            case 'uma':
-                              return (
-                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
-                                  <input
-                                    type="text"
-                                    value={uma1}
-                                    onChange={(e) => setUma1(formatUMA(e.target.value))}
-                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
-                                    placeholder="CÓDIGO 1"
-                                  />
-                                </td>
-                              );
-                            case 'destino':
-                              return (
-                                <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
-                                  <input
-                                    type="text"
-                                    value={destino}
-                                    onChange={(e) => setDestino(e.target.value)}
-                                    className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
-                                    placeholder="DESTINO"
-                                  />
-                                </td>
-                              );
-                            case 'data':
-                              return (
-                                <td key={colKey} rowSpan={numCarretas} className="p-1 font-bold text-[#1A1D20] text-[11px] align-middle">
-                                  <input
-                                    type="text"
-                                    value={dataEnviada}
-                                    onChange={(e) => setDataEnviada(e.target.value)}
-                                    className="w-full text-center font-bold bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
-                                    placeholder="DATA"
-                                  />
-                                </td>
-                              );
-                            default:
-                              return null;
-                          }
-                        })}
-                      </tr>
-
-                      {/* Second row of sub-items (Carreta 2, Isca 2, Prod 2, UMA 2) */}
-                      {numCarretas === 2 && (
-                        <tr className="border-b border-[#E5D5B5] text-center text-xs h-[42px] bg-[#FBF8F1]">
+                              </th>
+                            );
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Rows of data with reordered columns */}
+                        <tr className="border-b border-[#E5D5B5] text-center text-xs h-[42px] bg-white">
                           {table1ColumnOrder.map((colKey) => {
                             switch (colKey) {
-                              case 'carretas':
+                              case 'motorista':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 align-middle">
+                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
+                                    <textarea
+                                      value={motorista}
+                                      onChange={(e) => handleTableMotoristaChange(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full h-full min-h-[44px] text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded resize-none p-1 text-[12px] sm:text-[12.5px] leading-snug text-[#0F172A] transition-all duration-150"
+                                      placeholder="NOME MOTORISTA"
+                                    />
+                                  </td>
+                                );
+                              case 'cavalo':
+                                return (
+                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-black uppercase text-[13px] align-middle">
                                     <input
                                       type="text"
-                                      value={carreta2}
-                                      onChange={(e) => setCarreta2(e.target.value)}
-                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 uppercase font-bold text-[11px] text-[#1A1D20] transition-all duration-150"
-                                      placeholder="CARRETA 2"
+                                      value={cavalo}
+                                      onChange={(e) => setCavalo(e.target.value.replace(/-/g, ""))}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[13px] text-[#0F172A] tracking-wider transition-all duration-150"
+                                      placeholder="PLACA"
+                                      title="Placa"
+                                    />
+                                  </td>
+                                );
+                              case 'carretas':
+                                return (
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 align-middle">
+                                    <input
+                                      type="text"
+                                      value={carreta1}
+                                      onChange={(e) => setCarreta1(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-bold text-[12px] text-[#0F172A] tracking-wide transition-all duration-150"
+                                      placeholder="CARRETA 1"
                                     />
                                   </td>
                                 );
                               case 'isca':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-black uppercase text-[10.5px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-black uppercase text-[12.5px] align-middle">
                                     <input
                                       type="text"
-                                      value={isca2}
-                                      onChange={(e) => setIsca2(e.target.value)}
-                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#C91F2D] transition-all duration-150"
-                                      placeholder="ISCA 2"
+                                      value={isca1}
+                                      onChange={(e) => setIsca1(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#C91F2D] tracking-wide transition-all duration-150"
+                                      placeholder="ISCA 1"
                                     />
                                   </td>
                                 );
                               case 'produto':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
                                     <input
                                       type="text"
-                                      value={produto2}
-                                      onChange={(e) => setProduto2(e.target.value)}
-                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
-                                      placeholder="PROD 2"
+                                      value={produto1}
+                                      onChange={(e) => setProduto1(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] transition-all duration-150"
+                                      placeholder="PROD 1"
                                     />
                                   </td>
                                 );
                               case 'uma':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 font-bold uppercase text-[10.5px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[11.5px] align-middle">
                                     <input
                                       type="text"
-                                      value={uma2}
-                                      onChange={(e) => setUma2(formatUMA(e.target.value))}
-                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-[#1A1D20] transition-all duration-150"
-                                      placeholder="CÓDIGO 2"
+                                      value={uma1}
+                                      onChange={(e) => setUma1(formatUMA(e.target.value))}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[11.5px] sm:text-[12px] leading-tight text-[#0F172A] transition-all duration-150"
+                                      placeholder="CÓDIGO 1"
+                                    />
+                                  </td>
+                                );
+                              case 'destino':
+                                return (
+                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
+                                    <input
+                                      type="text"
+                                      value={destino}
+                                      onChange={(e) => setDestino(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] tracking-wide transition-all duration-150"
+                                      placeholder="DESTINO"
+                                    />
+                                  </td>
+                                );
+                              case 'data':
+                                return (
+                                  <td key={colKey} rowSpan={numCarretas} className="p-1.5 font-bold text-[#0F172A] text-[12px] align-middle">
+                                    <input
+                                      type="text"
+                                      value={dataEnviada}
+                                      onChange={(e) => setDataEnviada(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full text-center font-bold bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] transition-all duration-150"
+                                      placeholder="DATA"
                                     />
                                   </td>
                                 );
@@ -4502,175 +4565,330 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             }
                           })}
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
 
-                  {/* TABLE 2: PARAMETRIZAÇÃO DAS ISCAS CORPORATIVA DOURADA & GRAFITE */}
-                  <table className="w-full border-collapse text-xs font-sans text-[#1A1D20] table-fixed mt-0">
-                    <tbody>
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="text-center font-black text-white p-3 uppercase text-[11px] tracking-widest border-t border-b border-[#C5A059] relative shadow-md"
-                          style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}
-                        >
-                          <div className="flex items-center justify-between px-2">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#8C6D2B] flex items-center justify-center text-[#111111] font-black text-xs shadow-sm">
-                              ⚙
-                            </div>
-                            <span className="select-none tracking-widest text-white font-black text-xs">
-                              PARAMETRIZAÇÃO DAS ISCAS
-                            </span>
-                            <div className="w-6"></div>
-                          </div>
-                        </td>
-                      </tr>
-                      {/* Subheaders Row */}
-                      <tr className="text-[#1A1D20] text-center font-extrabold text-[9.5px] tracking-wider h-[32px] border-b border-[#C5A059]" style={{ background: '#F5EDDA' }}>
-                        {table2ColumnOrder.map((colKey, idx) => {
-                          const col = TABLE2_COLS[colKey];
-                          const widthVal = table2ColumnWidths[colKey] || col.defaultWidth;
-                          return (
-                            <td
-                              key={colKey}
-                              className={cn(
-                                "border-r border-[#C5A059]/60 p-1 uppercase tracking-wide text-[9.5px] align-middle relative group/col2 select-none",
-                                idx === table2ColumnOrder.length - 1 && "border-r-0"
-                              )}
-                              style={{ width: `${widthVal}%` }}
-                            >
-                              <div className="flex items-center justify-between px-1">
-                                <button
-                                  type="button"
-                                  onClick={() => moveColumnTable2(idx, 'left')}
-                                  disabled={idx === 0}
-                                  className="opacity-0 group-hover/col2:opacity-100 hover:opacity-100 transition-opacity bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
-                                  title="Mover Coluna para Esquerda"
-                                >
-                                  ◀
-                                </button>
-                                <span className="truncate flex-1 text-center flex items-center justify-center gap-1 font-bold text-[#1A1D20]">
-                                  {colKey === 'isca' && (
-                                    <>
-                                      <Barcode size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                      <span>PLACA / CÓDIGO DE VENDA ⇅</span>
-                                    </>
-                                  )}
-                                  {colKey === 'endereco' && (
-                                    <>
-                                      <MapPin size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                      <span>ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</span>
-                                    </>
-                                  )}
-                                  {colKey === 'data' && (
-                                    <>
-                                      <Calendar size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                      <span>DATA POSIÇÃO ⇅</span>
-                                    </>
-                                  )}
-                                  {colKey === 'bateria' && (
-                                    <>
-                                      <Battery size={11} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                      <span>BATERIA ISCA _ RF ⇅</span>
-                                    </>
-                                  )}
-                                </span>
-                                <div className="flex items-center gap-0.5 opacity-0 group-hover/col2:opacity-100 hover:opacity-100 transition-opacity">
-                                  <button
-                                    type="button"
-                                    onClick={() => resizeColumnTable2(colKey, -2)}
-                                    className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded px-1 text-[8px] font-bold cursor-pointer"
-                                    title="Diminuir Largura (-)"
-                                  >
-                                    -
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => resizeColumnTable2(colKey, 2)}
-                                    className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded px-1 text-[8px] font-bold cursor-pointer"
-                                    title="Aumentar Largura (+)"
-                                  >
-                                    +
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => moveColumnTable2(idx, 'right')}
-                                    disabled={idx === table2ColumnOrder.length - 1}
-                                    className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
-                                    title="Mover Coluna para Direita"
-                                  >
-                                    ▶
-                                  </button>
-                                </div>
+                        {/* Second row of sub-items (Carreta 2, Isca 2, Prod 2, UMA 2) */}
+                        {numCarretas === 2 && (
+                          <tr className="border-b border-[#E5D5B5] text-center text-xs h-[42px] bg-[#FBF8F1]">
+                            {table1ColumnOrder.map((colKey) => {
+                              switch (colKey) {
+                                case 'carretas':
+                                  return (
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 align-middle">
+                                      <input
+                                        type="text"
+                                        value={carreta2}
+                                        onChange={(e) => setCarreta2(e.target.value)}
+                                        spellCheck={false}
+                                        autoCorrect="off"
+                                        className="w-full text-center bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-bold text-[12px] text-[#0F172A] tracking-wide transition-all duration-150"
+                                        placeholder="CARRETA 2"
+                                      />
+                                    </td>
+                                  );
+                                case 'isca':
+                                  return (
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-black uppercase text-[12.5px] align-middle">
+                                      <input
+                                        type="text"
+                                        value={isca2}
+                                        onChange={(e) => setIsca2(e.target.value)}
+                                        spellCheck={false}
+                                        autoCorrect="off"
+                                        className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#C91F2D] tracking-wide transition-all duration-150"
+                                        placeholder="ISCA 2"
+                                      />
+                                    </td>
+                                  );
+                                case 'produto':
+                                  return (
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
+                                      <input
+                                        type="text"
+                                        value={produto2}
+                                        onChange={(e) => setProduto2(e.target.value)}
+                                        spellCheck={false}
+                                        autoCorrect="off"
+                                        className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] transition-all duration-150"
+                                        placeholder="PROD 2"
+                                      />
+                                    </td>
+                                  );
+                                case 'uma':
+                                  return (
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[11.5px] align-middle">
+                                      <input
+                                        type="text"
+                                        value={uma2}
+                                        onChange={(e) => setUma2(formatUMA(e.target.value))}
+                                        spellCheck={false}
+                                        autoCorrect="off"
+                                        className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[11.5px] sm:text-[12px] leading-tight text-[#0F172A] transition-all duration-150"
+                                        placeholder="CÓDIGO 2"
+                                      />
+                                    </td>
+                                  );
+                                default:
+                                  return null;
+                              }
+                            })}
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+
+                    {/* TABLE 2: PARAMETRIZAÇÃO DAS ISCAS CORPORATIVA DOURADA & GRAFITE */}
+                    <table 
+                      className="w-full border-collapse text-xs font-sans text-[#0F172A] table-fixed min-w-[980px] mt-0"
+                      style={{
+                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale',
+                        textRendering: 'optimizeLegibility'
+                      }}
+                    >
+                      <tbody>
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="text-center font-black text-white p-3 uppercase text-[12.5px] sm:text-[13px] tracking-widest border-t border-b border-[#C5A059] relative shadow-md"
+                            style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}
+                          >
+                            <div className="flex items-center justify-between px-2">
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#8C6D2B] flex items-center justify-center text-[#111111] font-black text-xs shadow-sm">
+                                ⚙
                               </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                      {/* Row 1 (Isca 2) - Only rendered if numCarretas === 2 and isca2 is NOT 'SEM ISCA' */}
-                      {numCarretas === 2 && isca2 !== "SEM ISCA" && (
-                        <tr className="bg-[#FBF8F1] text-center font-medium text-[#1A1D20] h-[36px] border-b border-[#E5D5B5]">
+                              <span className="select-none tracking-widest text-white font-black text-xs sm:text-[13px]">
+                                PARAMETRIZAÇÃO DAS ISCAS
+                              </span>
+                              <div className="w-6"></div>
+                            </div>
+                          </td>
+                        </tr>
+                        {/* Subheaders Row */}
+                        <tr className="text-[#2D1B06] text-center font-bold text-[11px] sm:text-[11.5px] tracking-wider h-[36px] border-b border-[#C5A059]" style={{ background: '#F5EDDA' }}>
+                          {table2ColumnOrder.map((colKey, idx) => {
+                            const col = TABLE2_COLS[colKey];
+                            const widthVal = table2ColumnWidths[colKey] || col.defaultWidth;
+                            return (
+                              <td
+                                key={colKey}
+                                className={cn(
+                                  "border-r border-[#C5A059]/60 p-1.5 uppercase tracking-wider text-[11px] sm:text-[11.5px] align-middle relative group/col2 select-none font-bold text-[#2D1B06]",
+                                  idx === table2ColumnOrder.length - 1 && "border-r-0"
+                                )}
+                                style={{ width: `${widthVal}%` }}
+                              >
+                                <div className="flex items-center justify-between px-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => moveColumnTable2(idx, 'left')}
+                                    disabled={idx === 0}
+                                    className="opacity-0 group-hover/col2:opacity-100 hover:opacity-100 transition-opacity bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                    title="Mover Coluna para Esquerda"
+                                  >
+                                    ◀
+                                  </button>
+                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-bold text-[#2D1B06]">
+                                    {colKey === 'isca' && (
+                                      <>
+                                        <Barcode size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
+                                        <span>PLACA / CÓDIGO DE VENDA ⇅</span>
+                                      </>
+                                    )}
+                                    {colKey === 'endereco' && (
+                                      <>
+                                        <MapPin size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
+                                        <span>ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</span>
+                                      </>
+                                    )}
+                                    {colKey === 'data' && (
+                                      <>
+                                        <Calendar size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
+                                        <span>DATA POSIÇÃO ⇅</span>
+                                      </>
+                                    )}
+                                    {colKey === 'bateria' && (
+                                      <>
+                                        <Battery size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
+                                        <span>BATERIA ISCA _ RF ⇅</span>
+                                      </>
+                                    )}
+                                  </span>
+                                  <div className="flex items-center gap-0.5 opacity-0 group-hover/col2:opacity-100 hover:opacity-100 transition-opacity">
+                                    <button
+                                      type="button"
+                                      onClick={() => resizeColumnTable2(colKey, -2)}
+                                      className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded px-1 text-[8px] font-bold cursor-pointer"
+                                      title="Diminuir Largura (-)"
+                                    >
+                                      -
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => resizeColumnTable2(colKey, 2)}
+                                      className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded px-1 text-[8px] font-bold cursor-pointer"
+                                      title="Aumentar Largura (+)"
+                                    >
+                                      +
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => moveColumnTable2(idx, 'right')}
+                                      disabled={idx === table2ColumnOrder.length - 1}
+                                      className="bg-[#2D333B] hover:bg-[#3E4651] text-[#E6C575] rounded p-0.5 text-[8px] cursor-pointer disabled:opacity-0"
+                                      title="Mover Coluna para Direita"
+                                    >
+                                      ▶
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                        {/* Row 1 (Isca 2) - Only rendered if numCarretas === 2 and isca2 is NOT 'SEM ISCA' */}
+                        {numCarretas === 2 && isca2 !== "SEM ISCA" && (
+                          <tr className="bg-[#FBF8F1] text-center font-medium text-[#0F172A] h-[38px] border-b border-[#E5D5B5]">
+                            {table2ColumnOrder.map((colKey) => {
+                              switch (colKey) {
+                                case 'isca':
+                                  return (
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 font-black uppercase text-[12.5px] text-center align-middle text-[#C91F2D]">
+                                      {isca2DisplayCode ? <span className="font-black text-[12.5px] text-[#C91F2D] uppercase tracking-wider">{isca2DisplayCode}</span> : ""}
+                                    </td>
+                                  );
+                                case 'endereco':
+                                  return (
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-left font-semibold text-[12px] sm:text-[12.5px] align-middle">
+                                      <textarea
+                                        value={isca2 === "SEM ISCA" ? "" : (isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : ""))}
+                                        onChange={(e) => setIsca2Endereco(e.target.value)}
+                                        disabled={isca2 === "SEM ISCA"}
+                                        spellCheck={false}
+                                        autoCorrect="off"
+                                        rows={1}
+                                        className={cn(
+                                          "w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] sm:text-[12.5px] resize-y leading-snug font-semibold transition-all duration-150 disabled:opacity-50",
+                                          !pastePlanilha.trim() && !isca2Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#0F172A]"
+                                        )}
+                                        placeholder={isca2 === "SEM ISCA" ? "" : "Endereço da Isca 2..."}
+                                      />
+                                    </td>
+                                  );
+                                case 'data':
+                                  return (
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-center font-bold text-[12px] align-middle">
+                                      <input
+                                        type="text"
+                                        value={isca2 === "SEM ISCA" ? "" : isca2Data}
+                                        onChange={(e) => setIsca2Data(e.target.value)}
+                                        disabled={isca2 === "SEM ISCA"}
+                                        spellCheck={false}
+                                        autoCorrect="off"
+                                        className="w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-center text-[#0F172A] font-bold tracking-wide transition-all duration-150 disabled:opacity-50"
+                                        placeholder={isca2 === "SEM ISCA" ? "" : "Data/Hora..."}
+                                      />
+                                    </td>
+                                  );
+                                case 'bateria':
+                                  const text2 = isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
+                                  const isOffline2 = text2.includes("temporariamente fora do ar");
+                                  return (
+                                    <td key={colKey} className="p-2 text-center font-bold text-[12px] align-middle">
+                                      {isOffline2 ? null : (
+                                        <div className="flex items-center justify-center gap-1.5 mx-auto w-fit">
+                                          <input
+                                            type="text"
+                                            value={isca2 === "SEM ISCA" ? "" : isca2Bateria}
+                                            onChange={(e) => setIsca2Bateria(e.target.value)}
+                                            disabled={isca2 === "SEM ISCA"}
+                                            spellCheck={false}
+                                            autoCorrect="off"
+                                            className="w-12 bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-1 text-[12px] text-center text-[#16A34A] font-black transition-all duration-150 disabled:opacity-50"
+                                            placeholder={isca2 === "SEM ISCA" ? "" : "100%"}
+                                          />
+                                          <div className="relative flex items-center shrink-0">
+                                            <Battery className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
+                                            <div 
+                                              className="absolute left-[2px] top-[5.5px] h-[5px] bg-emerald-500 rounded-[1px]"
+                                              style={{ width: `${(isca2 === "SEM ISCA" ? 0 : Math.min(100, parseInt(isca2Bateria) || 100)) * 0.09}px` }}
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                    </td>
+                                  );
+                                default:
+                                  return null;
+                              }
+                            })}
+                          </tr>
+                        )}
+                        {/* Row 2 (Isca 1) */}
+                        <tr className="bg-white text-center font-medium text-[#0F172A] h-[38px] border-b border-[#E5D5B5]">
                           {table2ColumnOrder.map((colKey) => {
                             switch (colKey) {
                               case 'isca':
                                 return (
                                   <td key={colKey} className={cn(
-                                    "border-r border-[#E5D5B5] p-1 font-black uppercase text-[11.5px] text-center align-middle",
-                                    "text-[#C91F2D]"
+                                    "border-r border-[#E5D5B5] p-2 font-black uppercase text-[12.5px] text-center bg-white align-middle",
+                                    isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C91F2D]"
                                   )}>
-                                    {isca2DisplayCode ? <span className="font-black text-[11px] text-[#C91F2D] uppercase tracking-wide">{isca2DisplayCode}</span> : ""}
+                                    {isca1DisplayCode ? <span className="font-black text-[12.5px] text-[#C91F2D] uppercase tracking-wider">{isca1DisplayCode}</span> : ""}
                                   </td>
                                 );
                               case 'endereco':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-left font-medium text-[11px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-left font-semibold text-[12px] sm:text-[12.5px] bg-white align-middle">
                                     <textarea
-                                      value={isca2 === "SEM ISCA" ? "" : (isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : ""))}
-                                      onChange={(e) => setIsca2Endereco(e.target.value)}
-                                      disabled={isca2 === "SEM ISCA"}
+                                      value={isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}
+                                      onChange={(e) => setIsca1Endereco(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
                                       rows={1}
                                       className={cn(
-                                        "w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150 disabled:opacity-50",
-                                        !pastePlanilha.trim() && !isca2Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#1A1D20]"
+                                        "w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] sm:text-[12.5px] resize-y leading-snug font-semibold transition-all duration-150",
+                                        !pastePlanilha.trim() && !isca1Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#0F172A]"
                                       )}
-                                      placeholder={isca2 === "SEM ISCA" ? "" : "Endereço da Isca 2..."}
+                                      placeholder="Endereço da Isca 1..."
                                     />
                                   </td>
                                 );
                               case 'data':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-center font-medium text-[11px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-center font-bold text-[12px] bg-white align-middle">
                                     <input
                                       type="text"
-                                      value={isca2 === "SEM ISCA" ? "" : isca2Data}
-                                      onChange={(e) => setIsca2Data(e.target.value)}
-                                      disabled={isca2 === "SEM ISCA"}
-                                      className="w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] text-center text-[#1A1D20] font-medium transition-all duration-150 disabled:opacity-50"
-                                      placeholder={isca2 === "SEM ISCA" ? "" : "Data/Hora..."}
+                                      value={isca1Data}
+                                      onChange={(e) => setIsca1Data(e.target.value)}
+                                      spellCheck={false}
+                                      autoCorrect="off"
+                                      className="w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-center text-[#0F172A] font-bold tracking-wide transition-all duration-150"
+                                      placeholder="Data/Hora..."
                                     />
                                   </td>
                                 );
                               case 'bateria':
-                                const text2 = isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
-                                const isOffline2 = text2.includes("temporariamente fora do ar");
+                                const text1 = isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
+                                const isOffline1 = text1.includes("temporariamente fora do ar");
                                 return (
-                                  <td key={colKey} className="p-1 text-center font-medium text-[11px] align-middle">
-                                    {isOffline2 ? null : (
-                                      <div className="flex items-center justify-center gap-1 mx-auto w-fit">
+                                  <td key={colKey} className="p-2 text-center font-bold text-[12px] bg-white align-middle">
+                                    {isOffline1 ? null : (
+                                      <div className="flex items-center justify-center gap-1.5 mx-auto w-fit">
                                         <input
                                           type="text"
-                                          value={isca2 === "SEM ISCA" ? "" : isca2Bateria}
-                                          onChange={(e) => setIsca2Bateria(e.target.value)}
-                                          disabled={isca2 === "SEM ISCA"}
-                                          className="w-10 bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-center text-[#1A1D20] font-bold transition-all duration-150 disabled:opacity-50"
-                                          placeholder={isca2 === "SEM ISCA" ? "" : "100%"}
+                                          value={isca1Bateria}
+                                          onChange={(e) => setIsca1Bateria(e.target.value)}
+                                          spellCheck={false}
+                                          autoCorrect="off"
+                                          className="w-12 bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-1 text-[12px] text-center text-[#16A34A] font-black transition-all duration-150"
+                                          placeholder="100%"
                                         />
                                         <div className="relative flex items-center shrink-0">
                                           <Battery className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
                                           <div 
                                             className="absolute left-[2px] top-[5.5px] h-[5px] bg-emerald-500 rounded-[1px]"
-                                            style={{ width: `${(isca2 === "SEM ISCA" ? 0 : Math.min(100, parseInt(isca2Bateria) || 100)) * 0.09}px` }}
+                                            style={{ width: `${Math.min(100, parseInt(isca1Bateria) || 100) * 0.09}px` }}
                                           />
                                         </div>
                                       </div>
@@ -4682,79 +4900,9 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             }
                           })}
                         </tr>
-                      )}
-                      {/* Row 2 (Isca 1) */}
-                      <tr className="bg-white text-center font-medium text-[#1A1D20] h-[36px] border-b border-[#E5D5B5]">
-                        {table2ColumnOrder.map((colKey) => {
-                          switch (colKey) {
-                            case 'isca':
-                              return (
-                                <td key={colKey} className={cn(
-                                  "border-r border-[#E5D5B5] p-1 font-black uppercase text-[11.5px] text-center bg-white align-middle",
-                                  isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C91F2D]"
-                                )}>
-                                  {isca1DisplayCode ? <span className="font-black text-[11px] text-[#C91F2D] uppercase tracking-wide">{isca1DisplayCode}</span> : ""}
-                                </td>
-                              );
-                            case 'endereco':
-                              return (
-                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-left font-medium text-[11px] bg-white align-middle">
-                                  <textarea
-                                    value={isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}
-                                    onChange={(e) => setIsca1Endereco(e.target.value)}
-                                    rows={1}
-                                    className={cn(
-                                      "w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] resize-y leading-tight font-medium transition-all duration-150",
-                                      !pastePlanilha.trim() && !isca1Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#1A1D20]"
-                                    )}
-                                    placeholder="Endereço da Isca 1..."
-                                  />
-                                </td>
-                              );
-                            case 'data':
-                              return (
-                                <td key={colKey} className="border-r border-[#E5D5B5] p-1 text-center font-medium text-[11px] bg-white align-middle">
-                                  <input
-                                    type="text"
-                                    value={isca1Data}
-                                    onChange={(e) => setIsca1Data(e.target.value)}
-                                    className="w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-0.5 text-[11px] text-center text-[#1A1D20] font-medium transition-all duration-150"
-                                    placeholder="Data/Hora..."
-                                  />
-                                </td>
-                              );
-                            case 'bateria':
-                              const text1 = isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
-                              const isOffline1 = text1.includes("temporariamente fora do ar");
-                              return (
-                                <td key={colKey} className="p-1 text-center font-medium text-[11px] bg-white align-middle">
-                                  {isOffline1 ? null : (
-                                    <div className="flex items-center justify-center gap-1 mx-auto w-fit">
-                                      <input
-                                        type="text"
-                                        value={isca1Bateria}
-                                        onChange={(e) => setIsca1Bateria(e.target.value)}
-                                        className="w-10 bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-0.5 text-[11px] text-center text-[#1A1D20] font-bold transition-all duration-150"
-                                        placeholder="100%"
-                                      />
-                                      <div className="relative flex items-center shrink-0">
-                                        <Battery className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
-                                        <div 
-                                          className="absolute left-[2px] top-[5.5px] h-[5px] bg-emerald-500 rounded-[1px]"
-                                          style={{ width: `${Math.min(100, parseInt(isca1Bateria) || 100) * 0.09}px` }}
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-                                </td>
-                              );
-                            default:
-                              return null;
-                          }
-                        })}
-                      </tr>
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
                 {/* Column Configuration Modal */}
                 {isColumnConfigOpen && (
@@ -4925,7 +5073,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 {/* 6. INTERACTIVE ESQUEMA DE EMBARQUE (LADDERS) */}
                 {!ocultarNotas && (
                   <div className="mt-6 border-t border-[#EDE2CE] pt-5">
-                    <span className="text-[13px] font-black uppercase block mt-[20px] mb-[15px] text-[#D92332] font-sans border-b border-[#EDE2CE] pb-2">
+                    <span className="text-[13px] sm:text-[14px] font-black uppercase block mt-[20px] mb-[15px] text-[#0F172A] font-sans border-b border-[#EDE2CE] pb-2 tracking-wide">
                       ESQUEMA DE EMBARQUE DAS ISCAS:
                     </span>
                     <p className="text-[10px] text-[#77736B] font-extrabold uppercase tracking-wider mb-4">
@@ -5307,6 +5455,13 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     if (lastPart) {
                       setDestino(lastPart);
                     }
+                    const matchedBase =
+                      DESTINOS_OPCOES.find(
+                        (d) =>
+                          d.replace(/^SANTA LUZIA\/MG/i, origem).toUpperCase() ===
+                          val.toUpperCase()
+                      ) || val;
+                    recordRouteUsage(matchedBase);
                   } else {
                     setRota1("");
                     setDestino("");
@@ -5320,7 +5475,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     : "SELECIONE A ROTA..."}
                 </option>
                 {rota1 &&
-                  !DESTINOS_OPCOES.some(
+                  !sortedDestinos.some(
                     (dest) =>
                       dest.replace(/^SANTA LUZIA\/MG/i, origem).toUpperCase() ===
                       rota1.toUpperCase()
@@ -5332,7 +5487,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       {rota1.toUpperCase()}
                     </option>
                   )}
-                {DESTINOS_OPCOES.filter((dest) =>
+                {sortedDestinos.filter((dest) =>
                   dest.toLowerCase().includes(searchRota.toLowerCase()),
                 ).map((dest) => {
                   const displayDest = dest.replace(/^SANTA LUZIA\/MG/i, origem);
@@ -5360,7 +5515,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-[#292820] focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 hover:border-[#E6D2A3] outline-none transition-all shadow-xs cursor-pointer"
               >
                 <option value="" className="bg-[#FFFFFF] text-[#77736B]">SELECIONE...</option>
-                {allTransportadoras.map((t) => (
+                {sortedTransportadoras.map((t) => (
                   <option
                     key={t}
                     value={t}

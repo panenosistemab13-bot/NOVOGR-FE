@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Settings, 
   Eye, 
@@ -34,20 +34,6 @@ interface ConfiguracoesPaginasViewProps {
   currentUser?: { email: string; name: string; role: string; allowedPages?: string[] } | null;
 }
 
-const SHORTCUT_MAP: Record<string, string> = {
-  menu: 'Ctrl + 1',
-  checklist: 'Ctrl + 2',
-  averbacao: 'Ctrl + 3',
-  sm_creator: 'Ctrl + 4',
-  iscas: 'Ctrl + 5',
-  controle: 'Ctrl + 6',
-  disponibilidade: 'Ctrl + 7',
-  escala: 'Ctrl + 8',
-  presence: 'Ctrl + 9',
-  rotas: 'Ctrl + 0',
-  cadastro: 'Menu'
-};
-
 export default function ConfiguracoesPaginasView({ 
   onBack, 
   onOpenCadastro,
@@ -59,6 +45,36 @@ export default function ConfiguracoesPaginasView({
   const [pages, setPages] = useState<PageDefinition[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Dynamic shortcuts calculation: Início is always 1 (Ctrl + 1),
+  // and subsequent visible pages get consecutive numbers in order of appearance
+  const dynamicShortcutMap = useMemo(() => {
+    const map: Record<string, string> = {
+      menu: 'Ctrl + 1'
+    };
+    let currentNumber = 2;
+    pages.forEach(p => {
+      if (p.id === 'cadastro' || p.id === 'settings') {
+        map[p.id] = 'Acessos';
+        return;
+      }
+      const isVis = visibility[p.id] !== false;
+      if (isVis) {
+        if (currentNumber <= 9) {
+          map[p.id] = `Ctrl + ${currentNumber}`;
+          currentNumber++;
+        } else if (currentNumber === 10) {
+          map[p.id] = 'Ctrl + 0';
+          currentNumber++;
+        } else {
+          map[p.id] = 'Menu';
+        }
+      } else {
+        map[p.id] = 'Oculto';
+      }
+    });
+    return map;
+  }, [pages, visibility]);
 
   useEffect(() => {
     setActiveTab(isAdmin ? initialTab : 'cadastro');
@@ -299,7 +315,7 @@ export default function ConfiguracoesPaginasView({
               {pages.map((page) => {
                 const isVisible = visibility[page.id] !== false;
                 const IconComp = ICON_MAP[page.iconName] || Sliders;
-                const shortcut = SHORTCUT_MAP[page.id] || 'Menu';
+                const shortcut = dynamicShortcutMap[page.id] || (isVisible ? 'Ativo' : 'Oculto');
 
                 return (
                   <div

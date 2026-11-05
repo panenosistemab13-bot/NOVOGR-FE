@@ -351,7 +351,8 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Atalhos globais (Ctrl + Número / Cmd + Número) na ordem exata da imagem do Menu Operacional
+      // Atalhos globais (Ctrl + Número / Cmd + Número)
+      // Seguindo rigorosamente a ordem visível da lista para o usuário atual começando de Ctrl + 1
       if (e.ctrlKey || e.metaKey) {
         let keyChar: string | null = null;
         if (e.key >= '0' && e.key <= '9') {
@@ -363,22 +364,22 @@ export default function App() {
         }
 
         if (keyChar !== null) {
-          const SHORTCUT_MAP: Record<string, Tab> = {
-            '1': 'menu',           // 1. INÍCIO
-            '2': 'checklist',      // 2. CHECKLIST
-            '3': 'averbacao',      // 3. AVERBAÇÃO
-            '4': 'sm_creator',     // 4. SM
-            '5': 'iscas',          // 5. ISCAS
-            '6': 'controle',       // 6. PRÉ-ALERTA
-            '7': 'disponibilidade',// 7. DISPONIBILIDADE
-            '8': 'escala',         // 8. ESCALA 3C
-            '9': 'presence',       // 9. CALENDÁRIO
-            '0': 'rotas',          // 10. ROTAS
-          };
+          // A ordem dos atalhos NUNCA é fixa; segue rigorosamente a ordem visível da lista por usuário:
+          // 1º item visível -> Ctrl + 1
+          // 2º item visível -> Ctrl + 2
+          // ...
+          // 9º item visível -> Ctrl + 9
+          // 10º item visível -> Ctrl + 0
+          let targetIndex = -1;
+          if (keyChar === '0') {
+            targetIndex = 9; // 10ª posição visível
+          } else {
+            targetIndex = parseInt(keyChar, 10) - 1;
+          }
 
-          const targetTab = SHORTCUT_MAP[keyChar];
-          if (targetTab) {
+          if (targetIndex >= 0 && targetIndex < visibleTabs.length) {
             e.preventDefault();
+            const targetTab = visibleTabs[targetIndex].id as Tab;
             setActiveTab(targetTab);
             return;
           }
