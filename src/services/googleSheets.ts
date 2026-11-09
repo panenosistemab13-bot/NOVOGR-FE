@@ -105,6 +105,45 @@ import Papa from 'papaparse';
 
 export const PUBLIC_SANTA_LUZIA_CSV_URL = 'https://docs.google.com/spreadsheets/d/1pYw7zb9YwYzOHQoKMewxRrkj4vCbziD_ZJp0rzlM5X4/export?format=csv';
 
+export const APPS_SCRIPT_API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQ1s4tJsW5PZmCNSzEHA4am-4jNCG6c5WdAZDopLE1LfNtoic6W7NbBR7AVLss9Li26T-vfZYb8VTBBEjVEH1mdiqr5RF8zc5WBIDyCdj9JHbQyZZKIWxhop-CU-NsSjWJCt0XvNKtAmJiWXJY0YAGtI1CZuQJo9heHetho6RW81ySwUnmPdbuUZAqtdwYiqPzU-75oK2HEpPPXTTZ_TefaFDiMVDLPTF1sPHazsVgkyQTfXCCFQUIgi4tHOEKuftp4IbEMOlfkblgQEg5nBP1Ws-xk_Q&lib=MefQYAxr2FtX0PWOYFKJnZsoZVFHiH8ut';
+
+export async function syncPostToAppsScript(items: VehicleRecord[] | any[]): Promise<any> {
+  const cabecalhos = ['CAVALO', 'CARRETAS', 'STATUS', 'REALIZAÇÃO DO TESTE', 'VENCIMENTO', 'DIAS', 'DATA DA MANUTENÇÃO / OS', 'PERIFÉRICO', 'OBSERVAÇÃO', 'UNIDADE', 'RASTREADOR'];
+  const todasAsLinhasAtualizadas = items.map(item => [
+    item.cavalo || '',
+    item.carretas || '',
+    item.statusOverride || item.osStatus || 'EM DIA',
+    item.dataTeste || '',
+    item.dataVencimento || '',
+    '',
+    item.manutencaoOs || '',
+    item.periferico || '',
+    item.observacao || '',
+    item.unidade || 'SANTA LUZIA',
+    ''
+  ]);
+
+  const payload = {
+    action: 'sync_all',
+    rows: [cabecalhos, ...todasAsLinhasAtualizadas]
+  };
+
+  try {
+    const res = await fetch(APPS_SCRIPT_API_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      redirect: 'follow'
+    });
+    const text = await res.text();
+    console.log("Resposta POST Apps Script:", text);
+    return text;
+  } catch (err) {
+    console.warn("POST para Apps Script falhou:", err);
+  }
+}
+
 /**
  * Normaliza chaves de cabeçalho removendo acentos e caracteres especiais para comparação flexível.
  */
@@ -220,22 +259,32 @@ export function parseVehicleCsvText(csvText: string): VehicleRecord[] {
 }
 
 /**
- * Busca texto CSV da planilha pública utilizando fallback de múltiplos endpoints
+ * Busca texto CSV da planilha pública utilizando fallback de múltiplos endpoints e anti-cache (_t=timestamp)
  */
 export async function fetchSantaLuziaCsvString(url: string = PUBLIC_SANTA_LUZIA_CSV_URL): Promise<string> {
+  const timestamp = Date.now();
   const urlsToTry = [
     url,
     'https://docs.google.com/spreadsheets/d/1pYw7zb9YwYzOHQoKMewxRrkj4vCbziD_ZJp0rzlM5X4/export?format=csv',
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTk96JM16EEGET9IhyTWe3LYlZKpDwhR2x9Rvl8dj9FrVkBQK9CdT4O9WNuSQkOdcVpGAG8VUVnq1KQ/pub?gid=330870322&single=true&output=csv',
-    'https://docs.google.com/spreadsheets/d/1vc7O678zWDhLMJZGeXKY04YKNDizPEwzNgOYeyBh_Rg/gviz/tq?tqx=out:csv&gid=330870322'
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTk96JM16EEGET9IhyTWe3LYlZKpDwhR2x9Rvl8dj9FrVkBQK9CdT4O9WNuSQkOdcVpGAG8VUVnq1KQ/pub?gid=330870322&single=true&output=csv'
   ];
 
   for (const targetUrl of urlsToTry) {
+    const separator = targetUrl.includes('?') ? '&' : '?';
+    const fetchUrl = `${targetUrl}${separator}_t=${timestamp}`;
+
     try {
-      const res = await fetch(targetUrl, { cache: 'no-cache' });
+      const res = await fetch(fetchUrl, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
       if (res.ok) {
         const text = await res.text();
         if (text && !text.trim().startsWith('<') && !text.toLowerCase().includes('<!doctype html>')) {
+          console.log("Dados sincronizados da planilha:", text);
           return text;
         }
       }
@@ -244,12 +293,21 @@ export async function fetchSantaLuziaCsvString(url: string = PUBLIC_SANTA_LUZIA_
     }
 
     try {
-      const proxyUrl = `/api/web-app-proxy?url=${encodeURIComponent(targetUrl)}`;
-      const res = await fetch(proxyUrl);
+      const proxyUrl = `/api/web-app-proxy?url=${encodeURIComponent(fetchUrl)}`;
+      const res = await fetch(proxyUrl, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.isCsv && data.csvText) {
-          if (!data.csvText.trim().startsWith('<')) return data.csvText;
+          if (!data.csvText.trim().startsWith('<')) {
+            console.log("Dados sincronizados da planilha:", data.csvText);
+            return data.csvText;
+          }
         }
       }
     } catch (e) {

@@ -47,7 +47,8 @@ import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
 import { googleSignIn, getAccessToken, initAuth, logout } from '../lib/googleAuth';
-import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL } from '../services/googleSheets';
+import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL, APPS_SCRIPT_API_URL, syncPostToAppsScript, parseCsvText } from '../services/googleSheets';
+import Papa from 'papaparse';
 import { User } from 'firebase/auth';
 
 import panoramicTruckHero from '../assets/images/checklist_hero_truck_panoramic_1791986198896.jpg';
@@ -243,63 +244,91 @@ export default function Checklist({
     }
   };
 
-  const syncFromSheets = async () => {
+  const recarregarDados = async () => {
     setIsSyncing(true);
     try {
-      const csvString = await fetchSantaLuziaCsvString(PUBLIC_SANTA_LUZIA_CSV_URL);
-      if (csvString) {
-        const linhasFormatadas = parseVehicleCsvText(csvString);
+      const urlComAntiCache = `${APPS_SCRIPT_API_URL}${APPS_SCRIPT_API_URL.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      let json: any = null;
 
-        if (linhasFormatadas && linhasFormatadas.length > 0) {
-          const updatesMap: Record<string, any> = {};
-          linhasFormatadas.forEach((row, idx) => {
-            const id = row.id || `sheet_${idx}`;
-            updatesMap[id] = row;
-          });
-
-          // Atualiza estado local imediatamente e sincroniza no Firebase RTDB
-          setItems(linhasFormatadas);
-          await set(ref(rtdb, 'checklist_veiculos'), updatesMap);
-          setLastSync(new Date());
-          showToast(`${linhasFormatadas.length} veículo(s) carregado(s) da planilha!`, 'success');
-        } else {
-          showToast('Planilha consultada. Mantendo frota em exibição.', 'info');
+      try {
+        const res = await fetch(urlComAntiCache, { cache: 'no-store' });
+        if (res.ok) {
+          json = await res.json();
         }
-      } else {
-        showToast('Consultando planilha vinculada...', 'info');
+      } catch (directErr) {
+        console.warn('Direct fetch from Apps Script API failed, trying proxy:', directErr);
+      }
+
+      if (!json) {
+        const proxyUrl = `/api/web-app-proxy?url=${encodeURIComponent(urlComAntiCache)}`;
+        try {
+          const res = await fetch(proxyUrl, { cache: 'no-store' });
+          if (res.ok) {
+            json = await res.json();
+          }
+        } catch (e) {
+          console.warn('Proxy fetch failed:', e);
+        }
+      }
+
+      if (!json) {
+        const csvString = await fetchSantaLuziaCsvString();
+        if (csvString) {
+          const novosDados = parseVehicleCsvText(csvString);
+          if (novosDados && novosDados.length > 0) {
+            console.log("Atualizando dados da planilha:", novosDados);
+            setItems(novosDados);
+            setLastSync(new Date());
+            showToast(`${novosDados.length} veículo(s) sincronizado(s)!`, 'success');
+            return;
+          }
+        }
+      }
+
+      if (json) {
+        console.log("Atualizando dados da planilha:", json);
+        let parsedRows: string[][] = [];
+        if (Array.isArray(json)) {
+          if (json.length > 0 && typeof json[0] === 'object' && !Array.isArray(json[0])) {
+            parsedRows = json.map(obj => Object.values(obj).map(v => String(v ?? '')));
+          } else {
+            parsedRows = json;
+          }
+        } else if (json.rows && Array.isArray(json.rows)) {
+          parsedRows = json.rows;
+        } else if (json.isCsv && json.csvText) {
+          parsedRows = parseCsvText(json.csvText);
+        }
+
+        if (parsedRows.length > 0) {
+          const csvText = Papa.unparse(parsedRows);
+          const novosDados = parseVehicleCsvText(csvText);
+          if (novosDados && novosDados.length > 0) {
+            setItems(novosDados);
+            const updatesMap: Record<string, any> = {};
+            novosDados.forEach((row, idx) => {
+              const id = row.id || `sheet_${idx}`;
+              updatesMap[id] = row;
+            });
+            await set(ref(rtdb, 'checklist_veiculos'), updatesMap);
+            setLastSync(new Date());
+            showToast(`${novosDados.length} veículo(s) sincronizado(s) da planilha!`, 'success');
+          }
+        }
       }
     } catch (err) {
-      console.error('Sheets sync error:', err);
-      showToast('Erro ao carregar dados da planilha.', 'delete');
+      console.error('Erro ao recarregar dados da planilha:', err);
+      showToast('Erro ao sincronizar com a planilha.', 'delete');
     } finally {
       setIsSyncing(false);
     }
   };
 
+  const syncFromSheets = recarregarDados;
+
   const syncToSheets = async (currentItems: ChecklistItem[]) => {
-    const token = await getAccessToken();
-    if (!token) return;
-
     try {
-      const values = currentItems.map(item => [
-        item.cavalo,
-        item.carretas,
-        item.dataTeste,
-        item.dataVencimento,
-        item.manutencaoOs,
-        item.periferico || '',
-        item.observacao,
-        item.osStatus || 'PENDENTE'
-      ]);
-
-      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_RANGE}?valueInputOption=RAW`, {
-        method: 'PUT',
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ values })
-      });
+      await syncPostToAppsScript(currentItems);
     } catch (err) {
       console.error('Push to sheets error:', err);
     }
@@ -307,20 +336,20 @@ export default function Checklist({
 
   // Push to sheets whenever items change (debounce for writes)
   useEffect(() => {
-    if (googleUser && items.length > 0) {
+    if (items.length > 0) {
       const timer = setTimeout(() => {
         syncToSheets(items);
       }, 3000); // 3s debounce for writes
       return () => clearTimeout(timer);
     }
-  }, [items, googleUser]);
+  }, [items]);
 
-  // AUTOMATIC POLLING: Auto sync on mount and every 3 minutes
+  // LEITURA COM POLLING CONTÍNUO: Auto recarrega dados a cada 8 segundos em segundo plano (Planilha -> App)
   useEffect(() => {
-    syncFromSheets();
+    recarregarDados();
     const interval = setInterval(() => {
-      syncFromSheets();
-    }, 180000); // 3 minutes
+      recarregarDados();
+    }, 8000); // 8 segundos
 
     return () => clearInterval(interval);
   }, []);
@@ -598,7 +627,7 @@ ${genData.signature}`;
     }
   };
 
-  // Add/Update vehicle
+  // Add/Update vehicle (Escrita Imediata com Atualização Otimista no React)
   const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItem.cavalo.trim()) {
@@ -606,20 +635,32 @@ ${genData.signature}`;
       return;
     }
     const id = editingItem ? editingItem.id : `vh_${Date.now()}`;
-    const payload = sanitizeForFirebase({ id, ...newItem });
-    await set(ref(rtdb, `checklist_veiculos/${id}`), payload);
+    const itemToSave: ChecklistItem = { id, ...newItem };
+
+    // Atualização de estado otimista no React na mesma hora
+    const updatedItems = editingItem
+      ? items.map(it => it.id === id ? itemToSave : it)
+      : [...items, itemToSave];
+
+    setItems(updatedItems);
     setIsAdding(false);
     setEditingItem(null);
     showToast(editingItem ? 'Veículo atualizado com sucesso!' : 'Novo veículo adicionado com sucesso!', 'success');
+
+    // Executa persistência no Firebase RTDB e envio de POST para o Apps Script em segundo plano
+    const payload = sanitizeForFirebase(itemToSave);
+    set(ref(rtdb, `checklist_veiculos/${id}`), payload);
+    syncPostToAppsScript(updatedItems);
   };
 
-  // Delete all records
+  // Delete all records (Escrita Imediata com Atualização Otimista)
   const handleClearAll = async () => {
     if (window.confirm('Tem certeza que deseja apagar todos os veículos da prancheta?')) {
-      await remove(ref(rtdb, 'checklist_veiculos'));
-      localStorage.setItem('checklist_cleared_permanently', 'true');
       setItems([]);
+      remove(ref(rtdb, 'checklist_veiculos'));
+      localStorage.setItem('checklist_cleared_permanently', 'true');
       showToast('Todos os registros foram removidos.', 'delete');
+      syncPostToAppsScript([]);
     }
   };
 
