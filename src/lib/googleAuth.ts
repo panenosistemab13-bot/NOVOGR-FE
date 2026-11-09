@@ -27,6 +27,20 @@ export const initAuth = (
   });
 };
 
+export const signInWithGoogle = async (): Promise<User> => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (credential?.accessToken) {
+      cachedAccessToken = credential.accessToken;
+    }
+    return result.user;
+  } catch (error) {
+    console.error("Erro no login:", error);
+    throw error;
+  }
+};
+
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
   try {
     isSigningIn = true;

@@ -5,17 +5,23 @@ import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 import rawFirebaseConfig from '../firebase-applet-config.json';
 
-const firebaseConfig = {
-  ...rawFirebaseConfig,
-  databaseURL: (rawFirebaseConfig as any).databaseURL || `https://${rawFirebaseConfig.projectId}-default-rtdb.firebaseio.com/`
+export const firebaseConfig = {
+  apiKey: "AIzaSyAojnUMtmKeeTH1lBOW22sodtTCX2ch6t4",
+  authDomain: "ranking-produtividade.firebaseapp.com",
+  databaseURL: "https://ranking-produtividade-default-rtdb.firebaseio.com",
+  projectId: "ranking-produtividade",
+  storageBucket: "ranking-produtividade.firebasestorage.app",
+  messagingSenderId: "181567822869",
+  appId: "1:181567822869:web:fedb3de9873b343337021c",
+  ...rawFirebaseConfig
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export const db = (rawFirebaseConfig as any).firestoreDatabaseId
   ? getFirestore(app, (rawFirebaseConfig as any).firestoreDatabaseId)
   : getFirestore(app);
 export const rtdb = getDatabase(app, firebaseConfig.databaseURL);
-export const auth = getAuth(app);
 export const storage = getStorage(app);
 
 export enum OperationType {
