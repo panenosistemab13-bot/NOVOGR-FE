@@ -225,7 +225,7 @@ export default function InitialMenu({
                     Café Três Corações
                   </strong>
                   <span className="text-[8px] font-bold text-[#8C6D28] uppercase tracking-widest block mt-0.5">
-                    SEGURANÇA • LOGÍSTICA • RESULTADOS
+                    CENTRAL GR • LOGISTICS NETWORK
                   </span>
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function InitialMenu({
                   SISTEMA OPERACIONAL
                 </span>
                 <span className="text-[8px] font-bold uppercase tracking-widest text-[#8C6D28] mt-0.5">
-                  CONTROLE TÁTICO • GESTÃO • RESULTADOS
+                  CENTRAL GR • LOGISTICS NETWORK
                 </span>
               </div>
             </div>

@@ -1628,8 +1628,8 @@ export default function Controle({ onBack }: ControleProps) {
 
   const sortedTransportadoras = useMemo(() => {
     return [...allTransportadoras].sort((a, b) => {
-      const weightA = transpUsage[a] ?? (DEFAULT_TRANSP_WEIGHTS[a] || 0);
-      const weightB = transpUsage[b] ?? (DEFAULT_TRANSP_WEIGHTS[b] || 0);
+      const weightA = (transpUsage[a] || 0) * 1000 + (DEFAULT_TRANSP_WEIGHTS[a] || 0);
+      const weightB = (transpUsage[b] || 0) * 1000 + (DEFAULT_TRANSP_WEIGHTS[b] || 0);
       if (weightB !== weightA) return weightB - weightA;
       return a.localeCompare(b);
     });
@@ -1637,8 +1637,8 @@ export default function Controle({ onBack }: ControleProps) {
 
   const sortedDestinos = useMemo(() => {
     return [...DESTINOS_OPCOES].sort((a, b) => {
-      const weightA = routeUsage[a] ?? (DEFAULT_ROUTE_WEIGHTS[a] || 0);
-      const weightB = routeUsage[b] ?? (DEFAULT_ROUTE_WEIGHTS[b] || 0);
+      const weightA = (routeUsage[a] || 0) * 1000 + (DEFAULT_ROUTE_WEIGHTS[a] || 0);
+      const weightB = (routeUsage[b] || 0) * 1000 + (DEFAULT_ROUTE_WEIGHTS[b] || 0);
       if (weightB !== weightA) return weightB - weightA;
       return a.localeCompare(b);
     });
@@ -2449,8 +2449,8 @@ export default function Controle({ onBack }: ControleProps) {
                     </div>
                   </td>
                   <td style="vertical-align: middle;">
-                    <div style="font-family: 'Segoe UI', Arial, sans-serif; font-weight: 900; font-size: 20px; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.8px; margin: 0; line-height: 1.1;">
-                      SANTA LUZIA <span style="color: #D4AF37;">GR</span>
+                    <div style="font-family: Arial, sans-serif; font-weight: 900; font-size: 20px; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.8px; margin: 0; line-height: 1.1;">
+                      CENTRAL GR <span style="color: #D4AF37;">• LOGISTICS NETWORK</span>
                     </div>
                     <div style="font-size: 10px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px;">
                       CENTRAL DE CONTROLE
@@ -4073,7 +4073,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     src="/images/panoramic_truck_sunset.jpg"
                     alt="Caminhão integrado à rodovia panorâmica ao pôr do sol"
                     referrerPolicy="no-referrer"
-                    className="absolute inset-0 w-full h-full object-cover object-center -z-20"
+                    className="absolute inset-0 w-full h-full object-cover object-center -z-20 transform-gpu"
+                    style={{ imageRendering: 'high-quality' }}
                   />
                   <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,13,14,0.98)_0%,rgba(18,20,23,0.95)_31%,rgba(18,20,23,0.42)_60%,rgba(12,13,14,0.82)_100%)]" />
                   <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#8C6D2B] via-[#F5D27B] to-[#8C6D2B]" />
@@ -4084,7 +4085,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                     </div>
                     <div className="min-w-0">
                       <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-white m-0 leading-tight">
-                        SANTA LUZIA <span className="text-[#E3BB57]">GR</span>
+                        CENTRAL GR <span className="text-[#E3BB57]">• LOGISTICS NETWORK</span>
                       </h2>
                       <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[1.5px] text-[#E3BB57] mt-1 mb-0">
                         CENTRAL DE CONTROLE
@@ -4399,16 +4400,16 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   >
                                     ◀
                                   </button>
-                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-bold text-white text-[11px] sm:text-[11.5px] tracking-wider">
-                                    {colKey === 'motorista' && <User size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    {colKey === 'cavalo' && <Truck size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    {colKey === 'carretas' && <Container size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    {colKey === 'isca' && <Barcode size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    {colKey === 'produto' && <Package size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    {colKey === 'uma' && <FileText size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    {colKey === 'destino' && <MapPin size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    {colKey === 'data' && <Calendar size={12} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    <span className="font-bold text-white tracking-wider">{col.label}</span>
+                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-black text-white text-[12.5px] sm:text-[13px] tracking-widest">
+                                    {colKey === 'motorista' && <User size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'cavalo' && <Truck size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'carretas' && <Container size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'isca' && <Barcode size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'produto' && <Package size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'uma' && <FileText size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'destino' && <MapPin size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    {colKey === 'data' && <Calendar size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
+                                    <span className="font-black text-white tracking-widest">{col.label}</span>
                                   </span>
                                   <div className="flex items-center gap-0.5 opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity">
                                     <button
@@ -4456,7 +4457,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       onChange={(e) => handleTableMotoristaChange(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full h-full min-h-[44px] text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded resize-none p-1 text-[12px] sm:text-[12.5px] leading-snug text-[#0F172A] transition-all duration-150"
+                                      className="w-full h-full min-h-[44px] text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded resize-none p-1 text-[13px] sm:text-[14px] leading-tight text-[#0F172A] transition-all duration-150 tracking-tight"
                                       placeholder="NOME MOTORISTA"
                                     />
                                   </td>
@@ -4470,7 +4471,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       onChange={(e) => setCavalo(e.target.value.replace(/-/g, ""))}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[13px] text-[#0F172A] tracking-wider transition-all duration-150"
+                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[14px] text-[#0F172A] tracking-widest transition-all duration-150"
                                       placeholder="PLACA"
                                       title="Placa"
                                     />
@@ -4499,7 +4500,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       onChange={(e) => setIsca1(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#C91F2D] tracking-wide transition-all duration-150"
+                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[14px] text-[#C91F2D] tracking-widest transition-all duration-150"
                                       placeholder="ISCA 1"
                                     />
                                   </td>
@@ -4580,7 +4581,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                         onChange={(e) => setCarreta2(e.target.value)}
                                         spellCheck={false}
                                         autoCorrect="off"
-                                        className="w-full text-center bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-bold text-[12px] text-[#0F172A] tracking-wide transition-all duration-150"
+                                        className="w-full text-center bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-black text-[13px] text-[#0F172A] tracking-wider transition-all duration-150"
                                         placeholder="CARRETA 2"
                                       />
                                     </td>
@@ -4594,7 +4595,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                         onChange={(e) => setIsca2(e.target.value)}
                                         spellCheck={false}
                                         autoCorrect="off"
-                                        className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#C91F2D] tracking-wide transition-all duration-150"
+                                        className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[14px] text-[#C91F2D] tracking-widest transition-all duration-150"
                                         placeholder="ISCA 2"
                                       />
                                     </td>

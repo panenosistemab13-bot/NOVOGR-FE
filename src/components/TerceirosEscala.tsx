@@ -1138,9 +1138,11 @@ export default function TerceirosEscala({
               <img 
                 src="/images/banner_coffee.jpg"
                 alt="Logistics Banner"
-                className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 contrast-[1.15] brightness-90 relative z-0"
+                className="w-full h-full object-cover object-center transform-gpu group-hover:scale-[1.02] transition-transform duration-700 relative z-0"
+                style={{ imageRendering: 'high-quality' }}
                 referrerPolicy="no-referrer"
               />
+              <div className="absolute inset-0 bg-black/20 backdrop-contrast-[1.05] pointer-events-none z-10" />
               <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/80 pointer-events-none z-10" />
               <div className="absolute inset-0 border border-white/10 pointer-events-none z-10" />
               <div className="absolute bottom-2.5 left-4 z-20 flex items-center gap-2">

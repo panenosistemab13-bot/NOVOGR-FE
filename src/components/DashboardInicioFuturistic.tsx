@@ -28,7 +28,7 @@ import { getAllAvailablePages, loadPageVisibility, ICON_MAP, PageDefinition } fr
 
 // Image assets
 import goldMedalLogo from '../assets/images/gold_logo_medal_3c_1790406432555.jpg';
-import panoramicTruck from '../assets/images/panoramic_truck_sunset_1791630272932.jpg';
+import panoramicTruck from '../assets/images/hero_truck_sunset_4k_1794220942266.jpg';
 import brazilMapGold from '../assets/images/brazil_map_gold_1791473887938.jpg';
 import avatarJefferson from '../assets/images/avatar_jefferson_dias_1790206857666.jpg';
 import goldPodiumImg from '../assets/images/gold_trophy_podium_1791473848875.jpg';
@@ -92,7 +92,7 @@ export default function DashboardInicioFuturistic({
                 CENTRAL GR
               </span>
               <span className="text-[8px] font-bold tracking-[0.25em] text-[#C69A45] uppercase block mt-0.5 font-mono">
-                LOGÍSTICA QUE APROXIMA
+                CENTRAL GR • LOGISTICS NETWORK
               </span>
             </div>
           </div>
@@ -144,13 +144,15 @@ export default function DashboardInicioFuturistic({
           <img
             src={panoramicTruck}
             alt="Hero Convoy Sunset"
-            className="absolute inset-0 w-full h-full object-cover object-center filter brightness-60 saturate-110"
+            className="absolute inset-0 w-full h-full object-cover object-[center_60%] transform-gpu scale-[1.01]"
+            style={{ imageRendering: 'high-quality' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-black/45 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent pointer-events-none" />
 
           <div className="relative z-10 text-left max-w-xl">
-            <span className="text-[10px] font-mono font-bold text-[#C69A45] uppercase tracking-widest block mb-1">
-              CENTRAL GR ➔
+            <span className="text-[10px] font-mono font-bold text-[#C69A45] uppercase tracking-[0.3em] block mb-1 drop-shadow-sm">
+              CENTRAL GR • LOGISTICS NETWORK
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight font-heading leading-none mb-2">
               JUNTOS EM TODAS <br />
@@ -161,7 +163,7 @@ export default function DashboardInicioFuturistic({
             </p>
           </div>
 
-          <div className="relative z-10 hidden sm:flex items-center gap-3 bg-black/60 backdrop-blur-md border border-[#C69A45]/40 px-4 py-3 rounded-2xl shadow-xl">
+          <div className="relative z-10 hidden sm:flex items-center gap-3 bg-black/85 border border-[#C69A45]/40 px-4 py-3 rounded-2xl shadow-xl">
             <div className="w-9 h-9 rounded-xl bg-[#C69A45] text-black font-black flex items-center justify-center text-xs">
               3C
             </div>
@@ -304,7 +306,7 @@ export default function DashboardInicioFuturistic({
       <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
         
         {/* COLUMN 1: RANKING NACIONAL (4 Cols) */}
-        <div className="col-span-12 lg:col-span-4 bg-[#1A1916] border border-[#333026] rounded-3xl p-5 shadow-md flex flex-col justify-between">
+        <div className="col-span-12 lg:col-span-4 bg-[#1A1916] border border-[#333026] rounded-3xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
           <div>
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#333026]">
               <div className="flex items-center gap-2">
@@ -376,9 +378,10 @@ export default function DashboardInicioFuturistic({
           <img
             src={panoramicTruck}
             alt="Truck background"
-            className="absolute inset-0 w-full h-full object-cover object-center opacity-40 filter brightness-75"
+            className="absolute inset-0 w-full h-full object-cover object-[center_60%] opacity-35 transform-gpu"
+            style={{ imageRendering: 'high-quality' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#141412] via-[#141412]/80 to-[#141412]/40 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#141412] via-[#141412]/70 to-transparent pointer-events-none" />
 
           <div className="relative z-10 flex items-center justify-between pb-2 border-b border-white/10">
             <span className="text-[10px] font-mono font-bold text-[#E6C575] bg-black/60 px-3 py-1 rounded-full border border-[#C69A45]/40 flex items-center gap-1.5">
@@ -415,7 +418,7 @@ export default function DashboardInicioFuturistic({
                 <button
                   key={mod.id}
                   onClick={() => onNavigate?.(mod.id)}
-                  className="bg-black/60 hover:bg-black/80 border border-white/10 rounded-xl py-2 px-1 text-stone-200 cursor-pointer flex flex-col items-center transition-colors"
+                  className="bg-black/85 hover:bg-black border border-white/10 rounded-xl py-2 px-1 text-stone-200 cursor-pointer flex flex-col items-center transition-colors"
                 >
                   <Icon size={14} className="text-[#C69A45] mb-1" />
                   <span className="text-[8.5px] font-black uppercase tracking-wider">{mod.label}</span>

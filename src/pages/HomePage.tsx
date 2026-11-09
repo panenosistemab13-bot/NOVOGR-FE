@@ -459,12 +459,12 @@ export default function HomePage() {
       <header className="topbar">
         <div className="brandArea">
           <div className="brandLogo">
-            <span>♥</span>
+            <span>GR</span>
           </div>
 
           <div className="brandText">
-            <strong>Café Três Corações</strong>
-            <span>SEGURANÇA　·　LOGÍSTICA　·　RESULTADOS</span>
+            <strong>CENTRAL GR</strong>
+            <span>LOGÍSTICA QUE APROXIMA</span>
           </div>
 
           <div className="brandDivider" />
@@ -525,16 +525,14 @@ export default function HomePage() {
           <div className="coffeeCard">
             <div className="coffeeOverlay">
               <strong>
-                Café
-                <br />
-                Três Corações
+                CENTRAL GR
               </strong>
 
-              <span>Mais que café,<br />movemos o Brasil.</span>
+              <span>LOGÍSTICA<br />QUE APROXIMA.</span>
             </div>
 
             <div className="coffeeCup">
-              ☕
+              🚚
             </div>
           </div>
         </aside>
@@ -548,12 +546,12 @@ export default function HomePage() {
 
           <section className="hero">
             <div className="heroBackground">
-              <div className="mountain" />
-              <div className="sun" />
-              <div className="warehouse" />
-              <div className="road" />
-              <div className="truck truckOne">▰</div>
-              <div className="truck truckTwo">▰</div>
+              <img 
+                src="/src/assets/images/hero_banner_logistic_1790432361805.jpg" 
+                alt="Banner Logística" 
+                className="heroImage"
+              />
+              <div className="heroOverlay" />
             </div>
 
             <div className="heroContent">
@@ -562,13 +560,13 @@ export default function HomePage() {
               <h1>
                 LOGÍSTICA
                 <br />
-                <b>ONIPRESENTE</b>
+                <b>QUE APROXIMA</b>
               </h1>
 
               <p>
                 Conectando regiões, pessoas e oportunidades com segurança,
-                eficiência e o sabor do Brasil em cada rota operada de norte a
-                sul.
+                eficiência e o padrão CENTRAL GR em cada rota operada de norte a
+                sul do Brasil.
               </p>
 
               <div className="heroButtons">
@@ -588,11 +586,10 @@ export default function HomePage() {
 
             <div className="heroRight">
               <div className="heroBrand">
-                <span>♥</span>
                 <strong>
-                  Café
+                  CENTRAL GR
                   <br />
-                  Três Corações
+                  LOGÍSTICA
                 </strong>
               </div>
 

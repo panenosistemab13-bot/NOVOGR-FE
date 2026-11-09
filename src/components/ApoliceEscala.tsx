@@ -746,9 +746,11 @@ export default function ApoliceEscala({
                 <img 
                   src="/images/banner_coffee.jpg"
                   alt="Aesthetic Banner"
-                  className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 brightness-90 relative z-0"
+                  className="w-full h-full object-cover object-center transform-gpu group-hover:scale-[1.02] transition-transform duration-700 relative z-0"
+                  style={{ imageRendering: 'high-quality' }}
                   referrerPolicy="no-referrer"
                 />
+                <div className="absolute inset-0 bg-black/15 pointer-events-none z-10" />
                 <div className="absolute inset-0 bg-gradient-to-r from-stone-900/45 via-transparent to-stone-900/30 pointer-events-none z-10" />
                 <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2">
                   <span className="bg-[#8a1424] text-white text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded shadow-sm">

@@ -9,13 +9,19 @@ import {
   AlertTriangle,
   ExternalLink,
   HelpCircle,
-  RefreshCw
+  RefreshCw,
+  Copy,
+  Check,
+  Code,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import {
   extractSpreadsheetId,
   getSpreadsheetDetails,
   SpreadsheetMetadata,
-  SheetRowData
+  SheetRowData,
+  GOOGLE_APPS_SCRIPT_CODE
 } from '../services/googleSheets';
 
 interface GoogleSheetsModalProps {
@@ -55,8 +61,15 @@ export default function GoogleSheetsModal({
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Estado para o diálogo de confirmação obrigatório para operações que modificam a planilha
   const [showConfirmExport, setShowConfirmExport] = useState(false);
+  const [showScriptCode, setShowScriptCode] = useState(false);
+  const [copiedScript, setCopiedScript] = useState(false);
+
+  const handleCopyScript = () => {
+    navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_CODE);
+    setCopiedScript(true);
+    setTimeout(() => setCopiedScript(false), 2500);
+  };
 
   useEffect(() => {
     setInputUrlOrId(initialSpreadsheetId || '');
@@ -501,8 +514,9 @@ export default function GoogleSheetsModal({
               )}
             </div>
             <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-              Cole a URL do Web App gerada no Passo 1 (Google Apps Script). O dashboard fará a requisição automática e atualizará a cada 60 segundos.
+              Cole a URL do Web App gerada no Google Apps Script. O aplicativo fará a requisição automática e atualizará a cada 60 segundos.
             </p>
+
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
               <input
                 type="text"
@@ -532,6 +546,86 @@ export default function GoogleSheetsModal({
                 >
                   Limpar URL
                 </button>
+              )}
+            </div>
+
+            {/* Gerador / Copiador do Script Google Apps Script */}
+            <div style={{ marginTop: '6px', borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowScriptCode(!showScriptCode)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#0284c7',
+                    fontWeight: 600,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: 0
+                  }}
+                >
+                  <Code size={14} />
+                  <span>{showScriptCode ? 'Ocultar Código do Apps Script' : 'Obter Código do Script para colocar no Google Sheets'}</span>
+                  {showScriptCode ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyScript}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    background: copiedScript ? '#dcfce7' : '#e0f2fe',
+                    color: copiedScript ? '#15803d' : '#0369a1',
+                    border: `1px solid ${copiedScript ? '#86efac' : '#7dd3fc'}`,
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  {copiedScript ? <Check size={12} /> : <Copy size={12} />}
+                  <span>{copiedScript ? 'Copiado!' : 'Copiar Script'}</span>
+                </button>
+              </div>
+
+              {showScriptCode && (
+                <div style={{ marginTop: '8px' }}>
+                  <div style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', lineHeight: 1.4 }}>
+                    <strong>Instruções de instalação:</strong>
+                    <br />
+                    1. No Google Sheets, vá em <strong>Extensões &gt; Apps Script</strong>.
+                    <br />
+                    2. Cole o código abaixo e salve.
+                    <br />
+                    3. Clique em <strong>Implantar &gt; Nova Implantação &gt; App da Web</strong>.
+                    <br />
+                    4. Defina <em>&quot;Quem pode acessar&quot;</em> para <strong>&quot;Qualquer pessoa&quot;</strong> e clique em Implantar.
+                    <br />
+                    5. Cole a URL gerada no campo acima!
+                  </div>
+                  <pre style={{
+                    background: '#0f172a',
+                    color: '#38bdf8',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    whiteSpace: 'pre-wrap',
+                    margin: 0
+                  }}>
+                    {GOOGLE_APPS_SCRIPT_CODE}
+                  </pre>
+                </div>
               )}
             </div>
           </div>

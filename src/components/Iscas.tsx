@@ -10,12 +10,25 @@ import {
   MapPin, 
   Package, 
   Check, 
+  RefreshCw,
+  Code,
+  Copy,
+  ChevronDown,
+  ChevronUp,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { rtdb as db } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { cn } from '../lib/utils';
 import { extractCityForDistribution } from '../utils/iscasDistribution';
+import { 
+  fetchDataFromWebAppUrl, 
+  parseSheetRowsToIscas, 
+  GOOGLE_APPS_SCRIPT_CODE 
+} from '../services/googleSheets';
 
 export interface IscaItem {
   id: string;
@@ -34,6 +47,16 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
   const [rows, setRows] = useState<IscaItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState<string | null>(null);
+
+  // Web App real-time state
+  const [webAppUrl, setWebAppUrl] = useState<string>(() => {
+    return localStorage.getItem('iscas_web_app_url') || '';
+  });
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [showScriptCode, setShowScriptCode] = useState(false);
+  const [copiedScript, setCopiedScript] = useState(false);
 
   // Load existing data from Firebase RTDB & localStorage
   useEffect(() => {
@@ -54,6 +77,103 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
 
     return () => unsubscribe();
   }, []);
+
+  // Real-time polling from Web App URL every 30 seconds if configured
+  useEffect(() => {
+    if (!webAppUrl.trim()) return;
+
+    const pullData = async () => {
+      try {
+        setIsSyncing(true);
+        setSyncError(null);
+        const rawRows = await fetchDataFromWebAppUrl(webAppUrl);
+        const parsedRecords = parseSheetRowsToIscas(rawRows);
+        if (parsedRecords && parsedRecords.length > 0) {
+          const mappedItems: IscaItem[] = parsedRecords.map((rec, idx) => ({
+            id: rec.idIsca || `ISCA-${idx + 1}`,
+            destino: rec.destino,
+            status: rec.status,
+            obs1: rec.obs1,
+            data: rec.dataStatus,
+            carreta: rec.carreta,
+            cavalo: rec.cavalo,
+            motorista: rec.motorista,
+            unidade: rec.unidade
+          }));
+          setRows(mappedItems);
+          set(ref(db, 'iscas_data'), mappedItems);
+          try { localStorage.setItem('iscas_data', JSON.stringify(mappedItems)); } catch {}
+          setLastSyncTime(new Date());
+        }
+      } catch (err: any) {
+        console.error('Erro ao sincronizar com Web App:', err);
+        setSyncError(err.message || 'Falha ao sincronizar com a planilha');
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    pullData();
+    const interval = setInterval(pullData, 30000);
+    return () => clearInterval(interval);
+  }, [webAppUrl]);
+
+  const handleSaveWebAppUrl = (url: string) => {
+    const trimmed = url.trim();
+    setWebAppUrl(trimmed);
+    try {
+      localStorage.setItem('iscas_web_app_url', trimmed);
+    } catch {}
+    if (trimmed) {
+      showToast('URL do Web App salva! Sincronização em tempo real ativada.');
+    } else {
+      showToast('URL do Web App removida.');
+    }
+  };
+
+  const handleManualSync = async () => {
+    if (!webAppUrl.trim()) {
+      showToast('Informe a URL do Web App para sincronizar.');
+      return;
+    }
+    try {
+      setIsSyncing(true);
+      setSyncError(null);
+      const rawRows = await fetchDataFromWebAppUrl(webAppUrl);
+      const parsedRecords = parseSheetRowsToIscas(rawRows);
+      if (parsedRecords && parsedRecords.length > 0) {
+        const mappedItems: IscaItem[] = parsedRecords.map((rec, idx) => ({
+          id: rec.idIsca || `ISCA-${idx + 1}`,
+          destino: rec.destino,
+          status: rec.status,
+          obs1: rec.obs1,
+          data: rec.dataStatus,
+          carreta: rec.carreta,
+          cavalo: rec.cavalo,
+          motorista: rec.motorista,
+          unidade: rec.unidade
+        }));
+        setRows(mappedItems);
+        set(ref(db, 'iscas_data'), mappedItems);
+        try { localStorage.setItem('iscas_data', JSON.stringify(mappedItems)); } catch {}
+        setLastSyncTime(new Date());
+        showToast(`${mappedItems.length} isca(s) sincronizada(s) da planilha em tempo real!`);
+      } else {
+        showToast('Nenhum registro retornado da planilha.');
+      }
+    } catch (err: any) {
+      setSyncError(err.message || 'Erro ao sincronizar');
+      showToast(err.message || 'Erro ao sincronizar com a planilha.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleCopyScript = () => {
+    navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_CODE);
+    setCopiedScript(true);
+    setTimeout(() => setCopiedScript(false), 2500);
+  };
 
   const showToast = (msg: string) => {
     setNotification(msg);
@@ -275,12 +395,118 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
         </div>
       </div>
 
+      {/* Real-Time Google Sheets Web App Card */}
+      <div className="bg-[#FFF9EF] border border-[#D9C39B] rounded-2xl p-4 sm:p-5 shadow-sm mb-6 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet size={18} className="text-[#15803d]" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#33291B]">
+              CONEXÃO EM TEMPO REAL COM GOOGLE SHEETS (GOOGLE APPS SCRIPT)
+            </h3>
+          </div>
+          {webAppUrl && (
+            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-mono font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              TEMPO REAL ATIVO (SINC. 30S)
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-[#64748b] leading-relaxed">
+          Cole abaixo a URL do Web App (gerada no Google Apps Script da sua planilha) para sincronização automática em tempo real.
+        </p>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            type="text"
+            value={webAppUrl}
+            onChange={(e) => handleSaveWebAppUrl(e.target.value)}
+            placeholder="Cole aqui a URL do Web App (ex: https://script.google.com/macros/s/.../exec)"
+            className="flex-1 min-w-[260px] bg-[#FAF6EE] text-[#33291B] border border-[#D9C39B] rounded-xl px-3.5 py-2 font-mono text-xs outline-none focus:border-[#C69A45] focus:bg-white"
+          />
+
+          {webAppUrl && (
+            <button
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className="px-4 py-2 bg-[#0f4c81] hover:bg-[#0b375e] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
+              <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Agora'}</span>
+            </button>
+          )}
+        </div>
+
+        {lastSyncTime && (
+          <p className="text-[11px] text-emerald-700 font-mono font-semibold">
+            ✓ Última sincronização em tempo real: {lastSyncTime.toLocaleTimeString('pt-BR')}
+          </p>
+        )}
+
+        {syncError && (
+          <p className="text-[11px] text-red-600 font-mono font-semibold flex items-center gap-1">
+            <AlertCircle size={12} /> {syncError}
+          </p>
+        )}
+
+        {/* Script Viewer & Copy Button */}
+        <div className="pt-2 border-t border-[#D9C39B]/60 flex flex-col gap-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setShowScriptCode(!showScriptCode)}
+              className="text-xs font-bold text-[#0284c7] hover:underline flex items-center gap-1.5 cursor-pointer"
+            >
+              <Code size={14} />
+              <span>{showScriptCode ? 'Ocultar Script do Google Apps Script' : '📜 Obter Código do Script para colar na sua Planilha Google'}</span>
+              {showScriptCode ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyScript}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border",
+                copiedScript 
+                  ? "bg-emerald-100 text-emerald-800 border-emerald-300" 
+                  : "bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200"
+              )}
+            >
+              {copiedScript ? <Check size={13} /> : <Copy size={13} />}
+              <span>{copiedScript ? 'Script Copiado!' : 'Copiar Script Google Apps Script'}</span>
+            </button>
+          </div>
+
+          {showScriptCode && (
+            <div className="mt-2 space-y-2">
+              <div className="text-xs text-stone-700 leading-relaxed bg-[#FAF6EE] p-3 rounded-xl border border-[#D9C39B]">
+                <strong>Como adicionar o script à sua planilha:</strong>
+                <ol className="list-decimal list-inside mt-1 space-y-0.5">
+                  <li>Abra sua Planilha no Google Sheets.</li>
+                  <li>No menu superior, clique em <strong>Extensões &gt; Apps Script</strong>.</li>
+                  <li>Apague qualquer código existente, cole o código abaixo e clique em <strong>Salvar (Ctrl+S)</strong>.</li>
+                  <li>Clique no botão azul <strong>Implantar (Deploy) &gt; Nova implantação</strong>.</li>
+                  <li>Em <em>"Tipo"</em>, escolha <strong>App da Web (Web App)</strong>.</li>
+                  <li>Em <em>"Quem pode acessar"</em>, selecione <strong>Qualquer pessoa (Anyone)</strong>.</li>
+                  <li>Clique em <strong>Implantar</strong>, autorize as permissões da conta Google e copie a URL do Web App gerada.</li>
+                  <li>Cole a URL no campo acima!</li>
+                </ol>
+              </div>
+
+              <pre className="bg-[#0f172a] text-[#38bdf8] p-4 rounded-xl text-[11px] font-mono overflow-x-auto max-h-64 leading-relaxed border border-stone-800">
+                {GOOGLE_APPS_SCRIPT_CODE}
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Input & Paste Card */}
       <div className="bg-[#FFF9EF] border border-[#D9C39B] rounded-2xl p-4 sm:p-5 shadow-sm mb-6 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-black uppercase tracking-wider text-[#91651F] flex items-center gap-2">
             <Clipboard size={15} className="text-[#C69A45]" />
-            COLE AS INFORMAÇÕES DAS ISCAS (PLANILHA EXCEL / GOOGLE SHEETS)
+            OU COLE MANUALMENTE AS INFORMAÇÕES DAS ISCAS
           </h3>
           <span className="text-[10px] font-mono text-[#857662]">
             Copie as colunas (ID, Destino, Status) e aperte Ctrl+V

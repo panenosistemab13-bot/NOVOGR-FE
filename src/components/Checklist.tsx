@@ -26,7 +26,7 @@ import {
   MapPin,
   Sun,
   Cloud,
-  User,
+  User as UserIcon,
   ChevronDown,
   Home,
   Sliders,
@@ -46,6 +46,8 @@ import { rtdb } from '../firebase';
 import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
+import { googleSignIn, getAccessToken, initAuth, logout } from '../lib/googleAuth';
+import { User } from 'firebase/auth';
 
 import panoramicTruckHero from '../assets/images/checklist_hero_truck_panoramic_1791986198896.jpg';
 import goldMedalLogo from '../assets/images/gold_logo_medal_3c_1790406432555.jpg';
@@ -93,7 +95,7 @@ export interface ChecklistItem {
   checklistRealizado?: 'sim' | 'não';
 }
 
-export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'; className?: string }> = ({ plate, type, className }) => {
+export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'; className?: string; onClick?: () => void }> = ({ plate, type, className, onClick }) => {
   if (!plate || plate === '-' || plate.trim() === '') return <span className="text-[#857B6C] font-mono font-bold">-</span>;
   const cleanPlate = formatPlateWithHyphen(plate);
   const isCarreta = type === 'carreta';
@@ -101,8 +103,11 @@ export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'
   const headerText = isCavalo ? 'CAVALO' : isCarreta ? 'CARRETA' : 'BRASIL';
   
   return (
-    <div className={cn(
+    <div 
+      onClick={onClick}
+      className={cn(
       "inline-flex flex-col items-center justify-center overflow-hidden select-none font-mono tracking-wider w-[128px] h-[40px] shrink-0 transform transition-transform hover:scale-105 rounded-lg shadow-xs border",
+      onClick && "cursor-pointer hover:border-[#C49A45] hover:shadow-md",
       isCarreta ? "bg-[#FFFBF3] border-[#EADBBF]" : "bg-white border-[#E0D5C1]",
       className
     )}>
@@ -139,8 +144,13 @@ export default function Checklist({
   onOpenSettings,
   pageVisibility 
 }: ChecklistProps = {}) {
-  // Navigation tabs of checklist
-  const [activeView, setActiveView] = useState<'monitoring' | 'os' | 'generator'>('generator');
+  // Navigation tabs of checklist - default always to 'monitoring' (1. PRANCHETA DE CHECKLIST)
+  const [activeView, setActiveView] = useState<'monitoring' | 'os' | 'generator'>('monitoring');
+
+  // Sempre que a página Checklist é montada, garante que abre na aba 1 (PRANCHETA DE CHECKLIST)
+  useEffect(() => {
+    setActiveView('monitoring');
+  }, []);
 
   // Search & filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -158,6 +168,13 @@ export default function Checklist({
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
   const [selectedFilial, setSelectedFilial] = useState('LOGÍSTICA SC');
+  
+  // Google Sheets Sync State
+  const [googleUser, setGoogleUser] = useState<User | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
+  const SPREADSHEET_ID = '1vc7O678zWDhLMJZGeXKY04YKNDizPEwzNgOYeyBh_Rg';
+  const SHEET_RANGE = 'Checklist!A2:H'; // Adjust range based on sheet structure
 
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -204,6 +221,128 @@ export default function Checklist({
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = initAuth((user) => {
+      setGoogleUser(user);
+    }, () => {
+      setGoogleUser(null);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await googleSignIn();
+      if (result) {
+        setGoogleUser(result.user);
+        showToast('Conectado ao Google com sucesso!', 'success');
+      }
+    } catch (err) {
+      console.error('Google login failed', err);
+      showToast('Falha ao conectar ao Google.', 'delete');
+    }
+  };
+
+  const syncFromSheets = async () => {
+    const token = await getAccessToken();
+    if (!token) {
+      handleGoogleLogin();
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_RANGE}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      
+      if (data.values) {
+        const updatesMap: Record<string, any> = {};
+        data.values.forEach((row: any[], idx: number) => {
+          if (!row[0]) return; // Skip empty rows
+          const id = `sheet_${idx}`;
+          updatesMap[id] = {
+            id,
+            cavalo: row[0] || '',
+            carretas: row[1] || '',
+            dataTeste: row[2] || '',
+            dataVencimento: row[3] || '',
+            manutencaoOs: row[4] || '',
+            periferico: row[5] || '',
+            observacao: row[6] || '',
+            osStatus: row[7] || 'PENDENTE'
+          };
+        });
+
+        if (Object.keys(updatesMap).length > 0) {
+          await set(ref(rtdb, 'checklist_veiculos'), updatesMap);
+          setLastSync(new Date());
+          showToast('Dados sincronizados da planilha!', 'success');
+        }
+      }
+    } catch (err) {
+      console.error('Sheets sync error:', err);
+      showToast('Erro ao sincronizar com a planilha.', 'delete');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const syncToSheets = async (currentItems: ChecklistItem[]) => {
+    const token = await getAccessToken();
+    if (!token) return;
+
+    try {
+      const values = currentItems.map(item => [
+        item.cavalo,
+        item.carretas,
+        item.dataTeste,
+        item.dataVencimento,
+        item.manutencaoOs,
+        item.periferico || '',
+        item.observacao,
+        item.osStatus || 'PENDENTE'
+      ]);
+
+      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_RANGE}?valueInputOption=RAW`, {
+        method: 'PUT',
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ values })
+      });
+    } catch (err) {
+      console.error('Push to sheets error:', err);
+    }
+  };
+
+  // Push to sheets whenever items change (debounce or limit could be added here)
+  useEffect(() => {
+    if (googleUser && items.length > 0) {
+      const timer = setTimeout(() => {
+        syncToSheets(items);
+      }, 3000); // 3s debounce for writes
+      return () => clearTimeout(timer);
+    }
+  }, [items, googleUser]);
+
+  // AUTOMATIC POLLING: Sync from sheets every 5 minutes to keep app updated with spreadsheet changes
+  useEffect(() => {
+    if (googleUser) {
+      // Initial sync on mount
+      syncFromSheets();
+
+      const interval = setInterval(() => {
+        console.log('Automated Google Sheets Sync starting...');
+        syncFromSheets();
+      }, 300000); // 5 minutes
+
+      return () => clearInterval(interval);
+    }
+  }, [googleUser]);
 
   const loggedUser = useMemo(() => {
     try {
@@ -490,18 +629,19 @@ ${genData.signature}`;
     }
   };
 
-  // Add new vehicle
-  const handleSaveNewItem = async (e: React.FormEvent) => {
+  // Add/Update vehicle
+  const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItem.cavalo.trim()) {
       showToast('A placa do cavalo é obrigatória.', 'info');
       return;
     }
-    const newId = `vh_${Date.now()}`;
-    const payload = sanitizeForFirebase({ id: newId, ...newItem });
-    await set(ref(rtdb, `checklist_veiculos/${newId}`), payload);
+    const id = editingItem ? editingItem.id : `vh_${Date.now()}`;
+    const payload = sanitizeForFirebase({ id, ...newItem });
+    await set(ref(rtdb, `checklist_veiculos/${id}`), payload);
     setIsAdding(false);
-    showToast('Novo veículo adicionado com sucesso!', 'success');
+    setEditingItem(null);
+    showToast(editingItem ? 'Veículo atualizado com sucesso!' : 'Novo veículo adicionado com sucesso!', 'success');
   };
 
   // Delete all records
@@ -528,7 +668,7 @@ ${genData.signature}`;
 
   const handleNavClick = (tabId: string) => {
     if (tabId === 'checklist') {
-      setActiveView('generator');
+      setActiveView('monitoring');
       return;
     }
     if (onNavigate) {
@@ -582,7 +722,7 @@ ${genData.signature}`;
 
               <div className="flex flex-col text-left leading-tight">
                 <span className="text-[9.5px] font-mono font-bold tracking-widest text-[#8C6D28] uppercase">
-                  MÓDULO INTEGRADO DE VISTORIA • 4K
+                  CENTRAL GR • LOGISTICS NETWORK
                 </span>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#25231F] tracking-tight uppercase font-sans mt-0.5">
                   CHECKLIST DE FROTA
@@ -600,17 +740,38 @@ ${genData.signature}`;
               </div>
             </div>
 
-            {/* Right Button: LOGÍSTICA SC */}
-            <div className="relative z-10 hidden sm:block">
-              <button 
-                type="button"
-                onClick={() => setSelectedFilial(prev => prev === 'LOGÍSTICA SC' ? 'LOGÍSTICA MG' : 'LOGÍSTICA SC')}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 hover:bg-white text-[#25231F] border border-[#D8B065] shadow-sm backdrop-blur-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
-              >
-                <Truck className="w-4 h-4 text-[#C49A45]" />
-                <span>{selectedFilial}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#8C7B63]" />
-              </button>
+            {/* Right Button: Sync & LOGÍSTICA SC */}
+            <div className="relative z-10 flex items-center gap-3">
+              {googleUser ? (
+                <button
+                  type="button"
+                  onClick={syncFromSheets}
+                  disabled={isSyncing}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 hover:bg-white text-[#25231F] border border-emerald-500 shadow-sm backdrop-blur-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
+                    isSyncing && "animate-pulse opacity-70"
+                  )}
+                >
+                  <FileSpreadsheet className={cn("w-4 h-4 text-emerald-600", isSyncing && "animate-spin")} />
+                  <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Planilha'}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 hover:bg-white text-[#25231F] border border-[#D8B065] shadow-sm backdrop-blur-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  <div className="w-4 h-4 shrink-0">
+                    <svg viewBox="0 0 48 48" className="w-full h-full">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    </svg>
+                  </div>
+                  <span>Conectar Planilha</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -815,11 +976,11 @@ ${genData.signature}`;
                     {/* 2. Saudação */}
                     <div>
                       <label className="block text-[10.5px] font-bold text-[#6E6454] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-[#C49A45]" />
+                        <UserIcon className="w-3.5 h-3.5 text-[#C49A45]" />
                         <span>2. Saudação:</span>
                       </label>
                       <div className="relative">
-                        <User className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
+                        <UserIcon className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
                         <input
                           type="text"
                           value={genData.greeting}
@@ -1087,7 +1248,7 @@ ${genData.signature}`;
               {/* Table */}
               <div className="overflow-x-auto rounded-xl border border-[#E8DDCA]">
                 <table className="w-full border-collapse text-xs text-center">
-                  <thead className="bg-[#7A5B1E] text-white text-[10.5px] uppercase font-black tracking-wider">
+                  <thead className="bg-[#7A5B1E] text-white text-[12px] uppercase font-black tracking-widest">
                     <tr>
                       <th className="p-3 border-r border-[#96742D] w-12">#</th>
                       <th className="p-3 border-r border-[#96742D]">CAVALO</th>
@@ -1107,16 +1268,56 @@ ${genData.signature}`;
                           <td className="p-2.5 font-mono text-[#8C7B63] font-bold border-r border-[#E8DDCA]/60">
                             {index + 1}
                           </td>
-                          <td className="p-2.5 border-r border-[#E8DDCA]/60">
-                            <LicensePlate plate={item.cavalo} type="cavalo" />
+                          <td className="p-2.5 border-r border-[#E8DDCA]/60 font-black">
+                            <LicensePlate 
+                              plate={item.cavalo} 
+                              type="cavalo" 
+                              className="w-[136px] h-[44px]" 
+                              onClick={() => {
+                                setEditingItem(item);
+                                setNewItem({
+                                  cavalo: item.cavalo,
+                                  carretas: item.carretas,
+                                  dataTeste: item.dataTeste,
+                                  dataVencimento: item.dataVencimento,
+                                  manutencaoOs: item.manutencaoOs || '',
+                                  periferico: item.periferico || '',
+                                  observacao: item.observacao || '',
+                                  dataAgendamento: item.dataAgendamento || '',
+                                  osStatus: item.osStatus || 'PENDENTE',
+                                  checklistRealizado: item.checklistRealizado || 'não'
+                                });
+                                setIsAdding(true);
+                              }}
+                            />
                           </td>
-                          <td className="p-2.5 border-r border-[#E8DDCA]/60">
-                            <LicensePlate plate={item.carretas} type="carreta" />
+                          <td className="p-2.5 border-r border-[#E8DDCA]/60 font-black">
+                            <LicensePlate 
+                              plate={item.carretas} 
+                              type="carreta" 
+                              className="w-[136px] h-[44px]" 
+                              onClick={() => {
+                                setEditingItem(item);
+                                setNewItem({
+                                  cavalo: item.cavalo,
+                                  carretas: item.carretas,
+                                  dataTeste: item.dataTeste,
+                                  dataVencimento: item.dataVencimento,
+                                  manutencaoOs: item.manutencaoOs || '',
+                                  periferico: item.periferico || '',
+                                  observacao: item.observacao || '',
+                                  dataAgendamento: item.dataAgendamento || '',
+                                  osStatus: item.osStatus || 'PENDENTE',
+                                  checklistRealizado: item.checklistRealizado || 'não'
+                                });
+                                setIsAdding(true);
+                              }}
+                            />
                           </td>
-                          <td className="p-2.5 font-mono font-bold text-[#4A453E] border-r border-[#E8DDCA]/60">
+                          <td className="p-2.5 font-mono font-bold text-[#4A453E] border-r border-[#E8DDCA]/60 text-[13px] tracking-tight">
                             {item.dataTeste || '-'}
                           </td>
-                          <td className="p-2.5 font-mono font-black text-[#25231F] border-r border-[#E8DDCA]/60">
+                          <td className="p-2.5 font-mono font-black text-[#25231F] border-r border-[#E8DDCA]/60 text-[13px] tracking-tight">
                             {item.dataVencimento || '-'}
                           </td>
                           <td className="p-2.5 border-r border-[#E8DDCA]/60">
@@ -1143,6 +1344,28 @@ ${genData.signature}`;
                                 title="Gerar Solicitação para este veículo"
                               >
                                 <Mail className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingItem(item);
+                                  setNewItem({
+                                    cavalo: item.cavalo,
+                                    carretas: item.carretas,
+                                    dataTeste: item.dataTeste,
+                                    dataVencimento: item.dataVencimento,
+                                    manutencaoOs: item.manutencaoOs || '',
+                                    periferico: item.periferico || '',
+                                    observacao: item.observacao || '',
+                                    dataAgendamento: item.dataAgendamento || '',
+                                    osStatus: item.osStatus || 'PENDENTE',
+                                    checklistRealizado: item.checklistRealizado || 'não'
+                                  });
+                                  setIsAdding(true);
+                                }}
+                                className="p-1.5 rounded-lg bg-[#FAF5EB] hover:bg-[#F2E8D5] text-[#C49A45] transition-colors"
+                                title="Editar dados do veículo"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={async () => {
@@ -1318,18 +1541,21 @@ ${genData.signature}`;
               <div className="flex items-center gap-2">
                 <Truck className="w-5 h-5 text-[#C49A45]" />
                 <h3 className="text-sm font-black uppercase text-[#25231F]">
-                  Cadastrar Novo Veículo
+                  {editingItem ? 'Editar Veículo' : 'Cadastrar Novo Veículo'}
                 </h3>
               </div>
               <button 
-                onClick={() => setIsAdding(false)}
+                onClick={() => {
+                  setIsAdding(false);
+                  setEditingItem(null);
+                }}
                 className="w-7 h-7 rounded-lg hover:bg-stone-100 flex items-center justify-center text-stone-500"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveNewItem} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveItem} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#6E6454] mb-1">
                   Placa do Cavalo *
@@ -1398,7 +1624,10 @@ ${genData.signature}`;
               <div className="flex justify-end gap-2 pt-3 border-t border-[#E8DDCA]">
                 <button
                   type="button"
-                  onClick={() => setIsAdding(false)}
+                  onClick={() => {
+                    setIsAdding(false);
+                    setEditingItem(null);
+                  }}
                   className="px-4 py-2 rounded-xl text-xs font-bold text-[#6E6454] hover:bg-stone-100"
                 >
                   Cancelar

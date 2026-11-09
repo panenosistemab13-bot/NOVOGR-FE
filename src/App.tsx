@@ -667,11 +667,11 @@ export default function App() {
       <div 
         className={cn(
           "w-full h-full relative",
-          activeTab === 'menu' ? "overflow-hidden bg-white" : "overflow-y-auto"
+          activeTab === 'menu' ? "bg-[#070c14] overflow-hidden" : "overflow-y-auto"
         )}
         style={
           activeTab === 'menu'
-            ? { backgroundColor: '#ffffff' }
+            ? {}
             : {
                 backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
                 backgroundSize: 'cover',

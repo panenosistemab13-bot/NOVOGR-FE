@@ -11,7 +11,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toAbsoluteUrl } from '../../utils/url';
-import panoramicBg from '../../assets/images/panoramic_truck_sunset_1791630272932.jpg';
+import panoramicBg from '../../assets/images/hero_truck_sunset_4k_1794220942266.jpg';
 import brazilMapGold from '../../assets/images/brazil_map_gold_1791473887938.jpg';
 
 export default function CinematicLogisticPanel() {
@@ -20,12 +20,13 @@ export default function CinematicLogisticPanel() {
       
       {/* 1. CINEMATIC BACKGROUND IMAGE (Caminhão na rodovia ao pôr do sol) */}
       <div 
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out hover:scale-105"
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out hover:scale-[1.03] transform-gpu"
         style={{
           backgroundImage: `url(${toAbsoluteUrl(panoramicBg)})`,
-          filter: 'brightness(0.92) contrast(1.08)'
+          imageRendering: 'high-quality'
         }}
       />
+      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
       {/* 2. GRADIENT OVERLAYS (Golden highlights and cinematic atmospheric light) */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#1C160F]/95 via-[#2E2012]/50 to-[#1C160F]/70 pointer-events-none" />
@@ -34,13 +35,13 @@ export default function CinematicLogisticPanel() {
 
       {/* 3. TOPO: BADGE INSTITUCIONAL E STATUS EM TEMPO REAL */}
       <div className="relative z-10 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1C160F]/80 backdrop-blur-md border border-[#DDB76B]/40 text-[#E7D4AF] text-xs font-black uppercase tracking-wider shadow-lg">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1C160F]/95 border border-[#DDB76B]/40 text-[#E7D4AF] text-xs font-black uppercase tracking-wider shadow-lg">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1" />
           <Radio size={13} className="text-[#DDB76B]" />
           <span>FROTA CONECTADA • TEMPO REAL</span>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C160F]/80 backdrop-blur-md border border-[#D9C39B]/30 text-white text-[11px] font-mono font-bold shadow-md">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C160F]/95 border border-[#D9C39B]/30 text-white text-[11px] font-mono font-bold shadow-md">
           <Compass size={13} className="text-[#DDB76B]" />
           <span>HUB SANTA LUZIA</span>
         </div>
@@ -56,7 +57,7 @@ export default function CinematicLogisticPanel() {
           <div className="absolute inset-16 rounded-full bg-gradient-to-tr from-[#C69A45]/10 to-transparent blur-md" />
 
           {/* Golden Brazil map container */}
-          <div className="relative w-64 h-64 rounded-2xl overflow-hidden border border-[#DDB76B]/40 shadow-[0_12px_36px_rgba(0,0,0,0.6)] backdrop-blur-sm bg-black/35 group">
+          <div className="relative w-64 h-64 rounded-2xl overflow-hidden border border-[#DDB76B]/40 shadow-[0_12px_36px_rgba(0,0,0,0.6)] bg-black/85 group">
             <img 
               src={toAbsoluteUrl(brazilMapGold)} 
               alt="Mapa Logístico Brasil"
@@ -99,7 +100,7 @@ export default function CinematicLogisticPanel() {
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] font-heading">
-            LOGÍSTICA QUE APROXIMA
+            CENTRAL GR • LOGISTICS NETWORK
           </h2>
           <p className="text-xs text-[#E7D4AF]/90 font-medium max-w-sm mx-auto mt-1">
             Conectando nossas origens aos destinos com excelência operacional e rastreabilidade total.
@@ -111,7 +112,7 @@ export default function CinematicLogisticPanel() {
       <div className="relative z-10 grid grid-cols-3 gap-2.5 sm:gap-3 pt-3 border-t border-[#DDB76B]/30">
         
         {/* Indicador 1: SEGURANÇA */}
-        <div className="bg-[#1C160F]/85 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-[#DDB76B]/40 shadow-lg text-center flex flex-col items-center justify-center">
+        <div className="bg-[#1C160F]/95 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-[#DDB76B]/40 shadow-lg text-center flex flex-col items-center justify-center">
           <div className="w-8 h-8 rounded-lg bg-[#C69A45]/20 border border-[#DDB76B]/50 flex items-center justify-center text-[#DDB76B] mb-1.5">
             <ShieldCheck size={18} />
           </div>
@@ -124,7 +125,7 @@ export default function CinematicLogisticPanel() {
         </div>
 
         {/* Indicador 2: EFICIÊNCIA */}
-        <div className="bg-[#1C160F]/85 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-[#DDB76B]/40 shadow-lg text-center flex flex-col items-center justify-center">
+        <div className="bg-[#1C160F]/95 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-[#DDB76B]/40 shadow-lg text-center flex flex-col items-center justify-center">
           <div className="w-8 h-8 rounded-lg bg-[#C69A45]/20 border border-[#DDB76B]/50 flex items-center justify-center text-[#DDB76B] mb-1.5">
             <Zap size={18} />
           </div>
@@ -137,7 +138,7 @@ export default function CinematicLogisticPanel() {
         </div>
 
         {/* Indicador 3: PESSOAS */}
-        <div className="bg-[#1C160F]/85 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-[#DDB76B]/40 shadow-lg text-center flex flex-col items-center justify-center">
+        <div className="bg-[#1C160F]/95 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-[#DDB76B]/40 shadow-lg text-center flex flex-col items-center justify-center">
           <div className="w-8 h-8 rounded-lg bg-[#C69A45]/20 border border-[#DDB76B]/50 flex items-center justify-center text-[#DDB76B] mb-1.5">
             <Users size={18} />
           </div>

@@ -62,8 +62,8 @@ export default function PremiumHeader({
 
   return (
     <header className="w-full relative bg-white select-none font-sans z-30 shadow-xs">
-      {/* Barra Principal Branca */}
-      <div className="w-full h-[64px] px-4 md:px-6 flex items-center justify-between">
+      {/* Barra Principal Branca - 76px de Altura */}
+      <div className="w-full h-[76px] px-4 md:px-6 flex items-center justify-between">
         
         {/* Esquerda: Botão Menu Hambúrguer + Medalhão 3C + CENTRAL GR LOGÍSTICA QUE APROXIMA */}
         <div className="flex items-center gap-3.5 shrink-0">
@@ -83,29 +83,23 @@ export default function PremiumHeader({
             title="Central GR - 3 Corações"
           >
             <div className="w-11 h-11 rounded-full p-0.5 border-2 border-[#D4AF37] shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden bg-white">
-              <img src={goldMedalLogo} alt="3 Corações" className="w-full h-full object-contain" />
+              <img src={goldMedalLogo} alt="CENTRAL GR" className="w-full h-full object-contain" />
             </div>
 
             <div className="flex flex-col text-left leading-none">
-              <span className="text-[17px] font-black tracking-wider text-slate-900 font-heading">
+              <span className="text-[17px] font-black tracking-wider text-[#10243D] font-heading">
                 CENTRAL GR
               </span>
-              <span className="text-[8px] font-bold tracking-[0.2em] uppercase mt-1 text-[#8C6D28]">
+              <span className="text-[8px] font-bold tracking-[0.2em] uppercase mt-1 text-[#D99A19]">
                 LOGÍSTICA QUE APROXIMA
               </span>
             </div>
           </div>
         </div>
 
-        {/* Direita: Badge Clima 36° + Badge Perfil do Usuário JEFFERSON admin */}
+        {/* Direita: Badge Perfil do Usuário JEFFERSON admin */}
         <div className="flex items-center gap-3 shrink-0">
           
-          {/* Badge Clima Solar 36° - Idêntico ao Mockup */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-2xs text-xs font-bold text-slate-800">
-            <Sun className="w-4 h-4 text-amber-500 fill-amber-500" />
-            <span className="font-extrabold tracking-tight">36°</span>
-          </div>
-
           {/* Badge Perfil de Usuário */}
           <div className="relative">
             <button

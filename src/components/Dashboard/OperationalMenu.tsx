@@ -148,7 +148,7 @@ export default function OperationalMenu({
                 </span>
               </div>
               <p className="text-[9px] sm:text-[10px] font-bold text-[#857662] tracking-widest uppercase">
-                LOGÍSTICA QUE APROXIMA
+                CENTRAL GR • LOGISTICS NETWORK
               </p>
             </div>
           </div>

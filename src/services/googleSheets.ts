@@ -948,3 +948,103 @@ export async function updateSpreadsheetData(
     throw new Error(err?.error?.message || 'Falha ao sincronizar dados com o Google Sheets.');
   }
 }
+
+/**
+ * Código em Google Apps Script para a planilha responder requisições em tempo real via Web App (doGet / doPost).
+ */
+export const GOOGLE_APPS_SCRIPT_CODE = `/**
+ * GOOGLE APPS SCRIPT - CONEXÃO EM TEMPO REAL COM O APP
+ * -------------------------------------------------------------
+ * 1. Na sua Planilha Google, vá no menu: Extensões > Apps Script
+ * 2. Cole este código abaixo e clique no ícone de Salvar (Ctrl + S)
+ * 3. Clique em "Implantar" (Deploy) > "Nova implantação"
+ * 4. Tipo: "App da Web" (Web App)
+ * 5. Executar como: "Eu" (Me)
+ * 6. Quem pode acessar: "Qualquer pessoa" (Anyone)
+ * 7. Clique em "Implantar" e conceda a permissão no Google
+ * 8. Copie a URL do Web App gerada (termina em /exec) e cole no seu aplicativo!
+ */
+
+function doGet(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getActiveSheet();
+    var data = sheet.getDataRange().getValues();
+    
+    var response = {
+      status: "success",
+      title: ss.getName(),
+      sheetName: sheet.getName(),
+      rows: data,
+      totalRows: data.length,
+      updatedAt: new Date().toISOString()
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getActiveSheet();
+    var payload = JSON.parse(e.postData.contents);
+    
+    if (payload.rows && Array.isArray(payload.rows)) {
+      sheet.clearContents();
+      sheet.getRange(1, 1, payload.rows.length, payload.rows[0].length).setValues(payload.rows);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      message: "Planilha atualizada com sucesso!"
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+/**
+ * Consulta a URL do Web App (Google Apps Script) através do proxy do app.
+ */
+export async function fetchDataFromWebAppUrl(webAppUrl: string): Promise<string[][]> {
+  const proxyUrl = `/api/web-app-proxy?url=${encodeURIComponent(webAppUrl.trim())}`;
+  const res = await fetch(proxyUrl);
+  
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Erro HTTP ${res.status} ao consultar o Web App.`);
+  }
+
+  const data = await res.json();
+  
+  if (data.isCsv && data.csvText) {
+    return data.csvText.split(/\r?\n/).map((line: string) => 
+      line.split(',').map(cell => cell.trim().replace(/^"|"$/g, ''))
+    );
+  }
+
+  if (data.rows && Array.isArray(data.rows)) {
+    return data.rows;
+  }
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (data.data && Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  throw new Error('O endpoint respondeu com sucesso, mas a resposta não continha uma lista válida de linhas.');
+}
+
