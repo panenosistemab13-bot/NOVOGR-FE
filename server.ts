@@ -36,32 +36,29 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // Armazenamento em memória para sincronização com a planilha corporativa (/api/frota)
-  let globalFrotaRecords: any[] = [];
+  // Armazenamento em memória globalThis.frotaData para /api/frota
+  (globalThis as any).frotaData = (globalThis as any).frotaData || [];
 
   app.get("/api/frota", (req, res) => {
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json(globalFrotaRecords);
+    return res.status(200).json({ data: (globalThis as any).frotaData });
   });
 
   app.post("/api/frota", (req, res) => {
     try {
       const { secret, action, data } = req.body || {};
-      if (secret && secret !== 'CHAVE_SEGURA_123') {
+      if (secret !== 'CHAVE_SEGURA_123') {
         return res.status(401).json({ status: 'error', error: 'Unauthorized secret' });
       }
       
-      const incomingData = data || req.body.rows || req.body;
-      if (Array.isArray(incomingData)) {
-        globalFrotaRecords = incomingData.map((item: any, idx: number) => ({
-          ...item,
-          pendingSync: action === 'sync_from_app' ? true : false,
-          id: item.id || `frota_${idx}`
-        }));
+      if (Array.isArray(data)) {
+        (globalThis as any).frotaData = data;
+      } else if (req.body && Array.isArray(req.body.rows)) {
+        (globalThis as any).frotaData = req.body.rows;
       }
       
-      console.log("[API Frota] Dados atualizados:", globalFrotaRecords.length, "registros");
-      return res.status(200).json({ status: 'success', total: globalFrotaRecords.length });
+      console.log("[API Frota] Dados sincronizados:", (globalThis as any).frotaData.length, "registros");
+      return res.status(200).json({ status: 'success' });
     } catch (err: any) {
       console.error("[API Frota] Erro no POST:", err);
       return res.status(500).json({ status: 'error', error: err.message });

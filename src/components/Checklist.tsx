@@ -249,24 +249,25 @@ export default function Checklist({
     try {
       const res = await fetch(`/api/frota?t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const data = await res.json();
-      console.log("Dados recebidos de /api/frota:", data);
+      const json = await res.json();
+      console.log("Dados recebidos de /api/frota:", json);
       
-      if (Array.isArray(data) && data.length === 0) {
+      const records = json.data || json;
+      if (Array.isArray(records) && records.length === 0) {
         setItems([]);
         return;
       }
 
-      let rawRows = data;
-      if (data && data.rows && Array.isArray(data.rows)) {
-        rawRows = data.rows;
+      let rawRows = records;
+      if (records && records.rows && Array.isArray(records.rows)) {
+        rawRows = records.rows;
       }
 
       if (Array.isArray(rawRows) && rawRows.length > 0 && typeof rawRows[0] === 'object' && !Array.isArray(rawRows[0])) {
         const mapped = parseVehicleObjects(rawRows);
         setItems(mapped.length > 0 ? (mapped as unknown as ChecklistItem[]) : (rawRows as unknown as ChecklistItem[]));
       } else {
-        setItems(Array.isArray(data) ? (data as unknown as ChecklistItem[]) : []);
+        setItems(Array.isArray(records) ? (records as unknown as ChecklistItem[]) : []);
       }
     } catch (err) {
       console.error("Erro ao consultar /api/frota:", err);
@@ -312,12 +313,12 @@ export default function Checklist({
     }
   }, [items]);
 
-  // LEITURA COM POLLING CONTÍNUO: Auto recarrega dados a cada 8 segundos em segundo plano (Planilha -> App)
+  // LEITURA COM POLLING CONTÍNUO: Auto recarrega dados a cada 5 segundos em segundo plano
   useEffect(() => {
     recarregarDados();
     const interval = setInterval(() => {
       recarregarDados();
-    }, 8000); // 8 segundos
+    }, 5000); // 5 segundos
 
     return () => clearInterval(interval);
   }, []);
