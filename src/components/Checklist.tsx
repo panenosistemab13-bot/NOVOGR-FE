@@ -47,7 +47,7 @@ import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
 import { googleSignIn, getAccessToken, initAuth, logout } from '../lib/googleAuth';
-import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL, APPS_SCRIPT_API_URL, syncPostToAppsScript, parseCsvText } from '../services/googleSheets';
+import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL, APPS_SCRIPT_API_URL, syncPostToAppsScript, parseCsvText, parseVehicleObjects } from '../services/googleSheets';
 import Papa from 'papaparse';
 import { User } from 'firebase/auth';
 
@@ -246,28 +246,46 @@ export default function Checklist({
 
   const recarregarDados = async () => {
     setIsSyncing(true);
+    console.log("[Sync] Buscando dados da planilha...");
     try {
-      const urlComAntiCache = `${APPS_SCRIPT_API_URL}${APPS_SCRIPT_API_URL.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      const timestamp = Date.now();
+      const urlComAntiCache = `${APPS_SCRIPT_API_URL}${APPS_SCRIPT_API_URL.includes('?') ? '&' : '?'}t=${timestamp}`;
       let json: any = null;
 
       try {
-        const res = await fetch(urlComAntiCache, { cache: 'no-store' });
+        const res = await fetch(urlComAntiCache, {
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          }
+        });
         if (res.ok) {
           json = await res.json();
+        } else {
+          console.error("[Sync] Falha na requisição: Status HTTP", res.status);
         }
       } catch (directErr) {
-        console.warn('Direct fetch from Apps Script API failed, trying proxy:', directErr);
+        console.error("[Sync] Falha na requisição:", directErr);
       }
 
       if (!json) {
         const proxyUrl = `/api/web-app-proxy?url=${encodeURIComponent(urlComAntiCache)}`;
         try {
-          const res = await fetch(proxyUrl, { cache: 'no-store' });
+          const res = await fetch(proxyUrl, {
+            cache: 'no-store',
+            headers: {
+              'Pragma': 'no-cache',
+              'Cache-Control': 'no-cache, no-store, must-revalidate'
+            }
+          });
           if (res.ok) {
             json = await res.json();
+          } else {
+            console.error("[Sync] Falha na requisição Proxy: Status HTTP", res.status);
           }
         } catch (e) {
-          console.warn('Proxy fetch failed:', e);
+          console.error("[Sync] Falha na requisição Proxy:", e);
         }
       }
 
@@ -275,49 +293,74 @@ export default function Checklist({
         const csvString = await fetchSantaLuziaCsvString();
         if (csvString) {
           const novosDados = parseVehicleCsvText(csvString);
-          if (novosDados && novosDados.length > 0) {
-            console.log("Atualizando dados da planilha:", novosDados);
+          console.log("[Sync] Resposta bruta recebida (CSV):", csvString);
+          if (novosDados.length === 0) {
+            setItems([]);
+            await remove(ref(rtdb, 'checklist_veiculos'));
+          } else {
             setItems(novosDados);
-            setLastSync(new Date());
-            showToast(`${novosDados.length} veículo(s) sincronizado(s)!`, 'success');
-            return;
           }
+          setLastSync(new Date());
+          return;
         }
       }
 
-      if (json) {
-        console.log("Atualizando dados da planilha:", json);
-        let parsedRows: string[][] = [];
-        if (Array.isArray(json)) {
-          if (json.length > 0 && typeof json[0] === 'object' && !Array.isArray(json[0])) {
-            parsedRows = json.map(obj => Object.values(obj).map(v => String(v ?? '')));
-          } else {
-            parsedRows = json;
-          }
-        } else if (json.rows && Array.isArray(json.rows)) {
-          parsedRows = json.rows;
-        } else if (json.isCsv && json.csvText) {
-          parsedRows = parseCsvText(json.csvText);
+      console.log("[Sync] Resposta bruta recebida:", json);
+
+      if (json !== null && json !== undefined) {
+        // Se json for array vazio ([]), limpa a tabela na tela imediatamente
+        if (Array.isArray(json) && json.length === 0) {
+          setItems([]);
+          await remove(ref(rtdb, 'checklist_veiculos'));
+          setLastSync(new Date());
+          return;
         }
 
-        if (parsedRows.length > 0) {
-          const csvText = Papa.unparse(parsedRows);
-          const novosDados = parseVehicleCsvText(csvText);
-          if (novosDados && novosDados.length > 0) {
-            setItems(novosDados);
-            const updatesMap: Record<string, any> = {};
-            novosDados.forEach((row, idx) => {
-              const id = row.id || `sheet_${idx}`;
-              updatesMap[id] = row;
-            });
-            await set(ref(rtdb, 'checklist_veiculos'), updatesMap);
-            setLastSync(new Date());
-            showToast(`${novosDados.length} veículo(s) sincronizado(s) da planilha!`, 'success');
+        let novosDados: ChecklistItem[] = [];
+
+        if (Array.isArray(json)) {
+          if (typeof json[0] === 'object' && !Array.isArray(json[0])) {
+            novosDados = parseVehicleObjects(json) as unknown as ChecklistItem[];
+          } else if (Array.isArray(json[0])) {
+            const csvText = Papa.unparse(json);
+            novosDados = parseVehicleCsvText(csvText) as unknown as ChecklistItem[];
           }
+        } else if (json.rows && Array.isArray(json.rows)) {
+          if (json.rows.length === 0) {
+            setItems([]);
+            await remove(ref(rtdb, 'checklist_veiculos'));
+            setLastSync(new Date());
+            return;
+          }
+          if (typeof json.rows[0] === 'object' && !Array.isArray(json.rows[0])) {
+            novosDados = parseVehicleObjects(json.rows) as unknown as ChecklistItem[];
+          } else {
+            const csvText = Papa.unparse(json.rows);
+            novosDados = parseVehicleCsvText(csvText) as unknown as ChecklistItem[];
+          }
+        } else if (json.isCsv && json.csvText) {
+          novosDados = parseVehicleCsvText(json.csvText) as unknown as ChecklistItem[];
+        }
+
+        console.log("[Sync] Dados formatados:", novosDados);
+
+        if (novosDados.length === 0) {
+          setItems([]);
+          await remove(ref(rtdb, 'checklist_veiculos'));
+        } else {
+          setItems(novosDados);
+          const updatesMap: Record<string, any> = {};
+          novosDados.forEach((row, idx) => {
+            const id = row.id || `sheet_${idx}`;
+            updatesMap[id] = row;
+          });
+          await set(ref(rtdb, 'checklist_veiculos'), updatesMap);
+          setLastSync(new Date());
+          showToast(`${novosDados.length} veículo(s) sincronizado(s) da planilha!`, 'success');
         }
       }
     } catch (err) {
-      console.error('Erro ao recarregar dados da planilha:', err);
+      console.error("[Sync] Falha na requisição:", err);
       showToast('Erro ao sincronizar com a planilha.', 'delete');
     } finally {
       setIsSyncing(false);

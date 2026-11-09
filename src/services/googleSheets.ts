@@ -105,7 +105,7 @@ import Papa from 'papaparse';
 
 export const PUBLIC_SANTA_LUZIA_CSV_URL = 'https://docs.google.com/spreadsheets/d/1pYw7zb9YwYzOHQoKMewxRrkj4vCbziD_ZJp0rzlM5X4/export?format=csv';
 
-export const APPS_SCRIPT_API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQ1s4tJsW5PZmCNSzEHA4am-4jNCG6c5WdAZDopLE1LfNtoic6W7NbBR7AVLss9Li26T-vfZYb8VTBBEjVEH1mdiqr5RF8zc5WBIDyCdj9JHbQyZZKIWxhop-CU-NsSjWJCt0XvNKtAmJiWXJY0YAGtI1CZuQJo9heHetho6RW81ySwUnmPdbuUZAqtdwYiqPzU-75oK2HEpPPXTTZ_TefaFDiMVDLPTF1sPHazsVgkyQTfXCCFQUIgi4tHOEKuftp4IbEMOlfkblgQEg5nBP1Ws-xk_Q&lib=MefQYAxr2FtX0PWOYFKJnZsoZVFHiH8ut';
+export const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbwTZlpQzmEQ-rzHOOPd8idmgpoc_QgVLGpcobN4lXCcmTnoCGUtxdbRjjRGX8hiIVYRKA/exec';
 
 export async function syncPostToAppsScript(items: VehicleRecord[] | any[]): Promise<any> {
   const cabecalhos = ['CAVALO', 'CARRETAS', 'STATUS', 'REALIZAÇÃO DO TESTE', 'VENCIMENTO', 'DIAS', 'DATA DA MANUTENÇÃO / OS', 'PERIFÉRICO', 'OBSERVAÇÃO', 'UNIDADE', 'RASTREADOR'];
@@ -166,8 +166,72 @@ export interface VehicleRecord {
   manutencaoOs: string;
   periferico: string;
   observacao: string;
-  osStatus: string;
+  osStatus?: 'PENDENTE' | 'AGENDADO' | 'EM ANDAMENTO' | 'CONCLUÍDO' | 'CANCELADO';
   statusOverride?: 'APROVADO' | 'VENCIDO' | 'NEGATIVADO' | 'REPROVADO';
+}
+
+/**
+ * Mapeia um array de objetos retornados da API do Apps Script de forma case-insensitive e com fallbacks flexíveis:
+ * - Placa/Cavalo: item['CAVALO'] || item['Cavalo'] || item['SANTA LUZIA'] || ''
+ * - Carreta/Rastreador: item['RASTREADOR'] || item['CARRETAS'] || item['Carretas'] || ''
+ * - Status: item['STATUS'] || item['Status'] || 'OK'
+ * - Data: item['DATA'] || item['Data'] || item['REALIZAÇÃO'] || ''
+ * - Vencimento: item['VENCIMENTO'] || item['Vencimento'] || ''
+ */
+export function parseVehicleObjects(rawObjects: any[]): VehicleRecord[] {
+  if (!Array.isArray(rawObjects) || rawObjects.length === 0) return [];
+
+  const result: VehicleRecord[] = [];
+
+  rawObjects.forEach((item, idx) => {
+    if (!item || typeof item !== 'object') return;
+
+    const getValue = (keys: string[]): string => {
+      // 1. Direct match (exact)
+      for (const k of keys) {
+        if (item[k] !== undefined && item[k] !== null && String(item[k]).trim() !== '') {
+          return String(item[k]).trim();
+        }
+      }
+      // 2. Case-insensitive / normalized match
+      const itemKeys = Object.keys(item);
+      for (const targetKey of keys) {
+        const normTarget = normalizeHeaderKey(targetKey);
+        const matchedKey = itemKeys.find(k => normalizeHeaderKey(k) === normTarget);
+        if (matchedKey && item[matchedKey] !== undefined && item[matchedKey] !== null && String(item[matchedKey]).trim() !== '') {
+          return String(item[matchedKey]).trim();
+        }
+      }
+      return '';
+    };
+
+    // Mapeamento com fallback exigido pelo usuário:
+    const cavalo = getValue(['CAVALO', 'Cavalo', 'SANTA LUZIA', 'Santa Luzia', 'PLACA', 'Placa']).toUpperCase();
+    if (!cavalo || cavalo.length < 5 || cavalo.includes('SANTA LUZIA CAVALO')) return;
+
+    const carretas = getValue(['RASTREADOR', 'CARRETAS', 'Carretas', 'Rastreador', 'CARRETA', 'Carreta']).toUpperCase();
+    const statusRaw = getValue(['STATUS', 'Status', 'SITUAÇÃO', 'Situacao']);
+    const osStatus = statusRaw || 'OK';
+    const dataTeste = getValue(['DATA', 'Data', 'REALIZAÇÃO', 'REALIZACAO', 'Realização', 'Realizacao', 'REALIZAÇÃO DO TESTE', 'DATA TESTE', 'Data Teste']);
+    const dataVencimento = getValue(['VENCIMENTO', 'Vencimento', 'DATA VENCIMENTO', 'Data Vencimento']);
+    const manutencaoOs = getValue(['MANUTENÇÃO / OS', 'MANUTENCAO / OS', 'MANUTENCAO', 'OS', 'DATA DA MANUTENÇÃO / OS']);
+    const periferico = getValue(['PERIFÉRICO', 'PERIFERICO', 'Periférico', 'Periferico']);
+    const observacao = getValue(['OBSERVAÇÃO', 'OBSERVACAO', 'Observação', 'Observacao', 'OBS']);
+
+    result.push({
+      id: item._row ? `sheet_${item._row}` : `sheet_${idx}_${cavalo}`,
+      cavalo,
+      carretas,
+      dataTeste: dataTeste || new Date().toISOString().split('T')[0],
+      dataVencimento: dataVencimento || new Date().toISOString().split('T')[0],
+      manutencaoOs,
+      periferico,
+      observacao,
+      osStatus: (['PENDENTE', 'AGENDADO', 'EM ANDAMENTO', 'CONCLUÍDO', 'CANCELADO'].includes(osStatus) ? osStatus : 'PENDENTE') as any
+    });
+  });
+
+  return result;
 }
 
 /**
@@ -250,7 +314,7 @@ export function parseVehicleCsvText(csvText: string): VehicleRecord[] {
       manutencaoOs,
       periferico,
       observacao,
-      osStatus: osStatus || 'PENDENTE'
+      osStatus: (['PENDENTE', 'AGENDADO', 'EM ANDAMENTO', 'CONCLUÍDO', 'CANCELADO'].includes(osStatus) ? osStatus : 'PENDENTE') as any
     });
   }
 
