@@ -98,7 +98,9 @@ export interface ChecklistItem {
 }
 
 export const LicensePlate: React.FC<{ plate: string; type?: 'cavalo' | 'carreta'; className?: string; onClick?: () => void }> = ({ plate, type, className, onClick }) => {
-  if (!plate || plate === '-' || plate.trim() === '') return <span className="text-[#857B6C] font-mono font-bold">-</span>;
+  if (!plate || plate === '-' || plate.trim() === '' || plate.toUpperCase() === 'SASCAR' || plate.toUpperCase() === 'SEM CARRETA') {
+    return <span className="text-[#857B6C] font-mono font-bold text-xs px-2">SEM CARRETA</span>;
+  }
   const cleanPlate = formatPlateWithHyphen(plate);
   const isCarreta = type === 'carreta';
   const isCavalo = type === 'cavalo';
@@ -357,6 +359,15 @@ export default function Checklist({
   };
 
   const getStatus = (item: ChecklistItem) => {
+    const statusText = (item.statusOverride || item.osStatus || (item as any).status || '').toUpperCase();
+
+    if (statusText.includes('VENCIDO') || statusText.includes('REPROVADO') || statusText.includes('NEGATIVADO')) {
+      return { label: statusText, color: 'text-rose-700', bg: 'bg-[#FFF2F2]', border: 'border-[#F8C6C6]' };
+    }
+    if (statusText.includes('APROVADO') || statusText.includes('OK') || statusText.includes('EM DIA')) {
+      return { label: statusText || 'APROVADO', color: 'text-emerald-700', bg: 'bg-[#EDF9F1]', border: 'border-[#A3E2B7]' };
+    }
+
     const today = startOfDay(new Date());
     const expiry = safeParseDate(item.dataVencimento);
 
@@ -368,17 +379,8 @@ export default function Checklist({
       }
     }
 
-    if (item.statusOverride) {
-      if (item.statusOverride === 'VENCIDO' || item.statusOverride === 'REPROVADO' || item.statusOverride === 'NEGATIVADO') {
-        return { label: item.statusOverride, color: 'text-rose-700', bg: 'bg-[#FFF2F2]', border: 'border-[#F8C6C6]' };
-      }
-      if (item.statusOverride === 'APROVADO') {
-        return { label: 'APROVADO', color: 'text-emerald-700', bg: 'bg-[#EDF9F1]', border: 'border-[#A3E2B7]' };
-      }
-    }
-
     if (!expiry) {
-      return { label: 'PENDENTE', color: 'text-amber-800', bg: 'bg-[#FEF8E8]', border: 'border-[#F6DC9B]' };
+      return { label: statusText || 'PENDENTE', color: 'text-amber-800', bg: 'bg-[#FEF8E8]', border: 'border-[#F6DC9B]' };
     }
 
     const expStart = startOfDay(expiry);
@@ -388,7 +390,7 @@ export default function Checklist({
       return { label: 'A VENCER', color: 'text-amber-800', bg: 'bg-[#FEF8E8]', border: 'border-[#F6DC9B]' };
     }
 
-    return { label: 'APROVADO', color: 'text-emerald-700', bg: 'bg-[#EDF9F1]', border: 'border-[#A3E2B7]' };
+    return { label: statusText || 'APROVADO', color: 'text-emerald-700', bg: 'bg-[#EDF9F1]', border: 'border-[#A3E2B7]' };
   };
 
   // Sync Firebase RTDB

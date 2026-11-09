@@ -209,7 +209,8 @@ export function parseVehicleObjects(rawObjects: any[]): VehicleRecord[] {
     const cavalo = getValue(['CAVALO', 'Cavalo', 'SANTA LUZIA', 'Santa Luzia', 'PLACA', 'Placa']).toUpperCase();
     if (!cavalo || cavalo.length < 5 || cavalo.includes('SANTA LUZIA CAVALO')) return;
 
-    const carretas = getValue(['RASTREADOR', 'CARRETAS', 'Carretas', 'Rastreador', 'CARRETA', 'Carreta']).toUpperCase();
+    const carretasRaw = getValue(['CARRETAS', 'Carretas', 'CARRETA', 'Carreta']);
+    const carretas = (carretasRaw && carretasRaw.toUpperCase() !== 'SASCAR') ? carretasRaw.toUpperCase() : 'SEM CARRETA';
     const statusRaw = getValue(['STATUS', 'Status', 'SITUAÇÃO', 'Situacao']);
     const osStatus = statusRaw || 'OK';
     const dataTeste = getValue(['DATA', 'Data', 'REALIZAÇÃO', 'REALIZACAO', 'Realização', 'Realizacao', 'REALIZAÇÃO DO TESTE', 'DATA TESTE', 'Data Teste']);
@@ -222,12 +223,12 @@ export function parseVehicleObjects(rawObjects: any[]): VehicleRecord[] {
       id: item._row ? `sheet_${item._row}` : `sheet_${idx}_${cavalo}`,
       cavalo,
       carretas,
-      dataTeste: dataTeste || new Date().toISOString().split('T')[0],
-      dataVencimento: dataVencimento || new Date().toISOString().split('T')[0],
+      dataTeste: dataTeste || '',
+      dataVencimento: dataVencimento || '',
       manutencaoOs,
       periferico,
       observacao,
-      osStatus: (['PENDENTE', 'AGENDADO', 'EM ANDAMENTO', 'CONCLUÍDO', 'CANCELADO'].includes(osStatus) ? osStatus : 'PENDENTE') as any
+      osStatus: osStatus as any
     });
   });
 
