@@ -331,18 +331,16 @@ export default function Checklist({
 
   const sendPessoalAppUpdate = async (item: ChecklistItem) => {
     try {
-      await fetch(PESSOAL_WEB_APP_URL, {
+      await fetch('/api/frota', {
         method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: "update_vehicle",
-          vehicle: { CAVALO: item.cavalo, STATUS: item.osStatus || item.statusOverride || 'APROVADO' }
-        }),
-        redirect: 'follow'
+          action: 'app_update',
+          vehicle: item
+        })
       });
     } catch (err) {
-      console.error("Erro ao enviar POST para Web App pessoal:", err);
+      console.error("Erro ao enviar POST para /api/frota:", err);
     }
   };
 
