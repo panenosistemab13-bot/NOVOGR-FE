@@ -47,6 +47,7 @@ import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
 import { googleSignIn, getAccessToken, initAuth, logout } from '../lib/googleAuth';
+import { getSpreadsheetDetails } from '../services/googleSheets';
 import { User } from 'firebase/auth';
 
 import panoramicTruckHero from '../assets/images/checklist_hero_truck_panoramic_1791986198896.jpg';
@@ -251,7 +252,19 @@ export default function Checklist({
 
     setIsSyncing(true);
     try {
-      const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_RANGE}`, {
+      let targetSheetTitle = 'Checklist';
+      try {
+        const details = await getSpreadsheetDetails(SPREADSHEET_ID, token);
+        if (details.sheets && details.sheets.length > 0) {
+          const match = details.sheets.find(s => s.title.toLowerCase().includes('checklist') || s.title.toLowerCase().includes('iscas')) || details.sheets[0];
+          targetSheetTitle = match.title;
+        }
+      } catch (e) {
+        console.warn('Metadata lookup info:', e);
+      }
+
+      const fetchRange = `'${targetSheetTitle}'!A2:H`;
+      const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(fetchRange)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
@@ -279,6 +292,8 @@ export default function Checklist({
           setLastSync(new Date());
           showToast('Dados sincronizados da planilha!', 'success');
         }
+      } else {
+        showToast('Nenhum dado encontrado na planilha.', 'info');
       }
     } catch (err) {
       console.error('Sheets sync error:', err);

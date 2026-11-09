@@ -19,6 +19,8 @@ import {
 import {
   extractSpreadsheetId,
   getSpreadsheetDetails,
+  listUserSpreadsheets,
+  DriveFileItem,
   SpreadsheetMetadata,
   SheetRowData,
   GOOGLE_APPS_SCRIPT_CODE
@@ -65,6 +67,9 @@ export default function GoogleSheetsModal({
   const [showScriptCode, setShowScriptCode] = useState(false);
   const [copiedScript, setCopiedScript] = useState(false);
 
+  const [driveFiles, setDriveFiles] = useState<DriveFileItem[]>([]);
+  const [loadingDriveFiles, setLoadingDriveFiles] = useState(false);
+
   const handleCopyScript = () => {
     navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_CODE);
     setCopiedScript(true);
@@ -76,7 +81,15 @@ export default function GoogleSheetsModal({
     setSelectedSheet(initialSheetName || 'Dados_UF');
     setInputWebAppUrl(webAppUrl || '');
     setFeedback(null);
-  }, [initialSpreadsheetId, initialSheetName, webAppUrl, isOpen]);
+
+    if (isOpen && token) {
+      setLoadingDriveFiles(true);
+      listUserSpreadsheets(token)
+        .then(files => setDriveFiles(files))
+        .catch(err => console.warn('Falha ao listar planilhas do Drive:', err))
+        .finally(() => setLoadingDriveFiles(false));
+    }
+  }, [initialSpreadsheetId, initialSheetName, webAppUrl, isOpen, token]);
 
   if (!isOpen) return null;
 
@@ -646,6 +659,34 @@ export default function GoogleSheetsModal({
               <span>Criar Modelo</span>
             </button>
           </div>
+
+          {/* Selecionar Planilha do Google Drive se logado */}
+          {token && (
+            <div className="field-group">
+              <label className="field-label">
+                <span>📁 Selecionar de suas planilhas do Google Drive</span>
+                {loadingDriveFiles && <span style={{ fontSize: '11px', color: '#64748b' }}>Buscando...</span>}
+              </label>
+              <select
+                className="field-select"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setInputUrlOrId(e.target.value);
+                  }
+                }}
+                value={driveFiles.some(f => f.id === currentId) ? currentId : ""}
+              >
+                <option value="" disabled>
+                  {driveFiles.length > 0 ? '-- Selecione uma planilha da sua conta --' : 'Buscando planilhas no Drive...'}
+                </option>
+                {driveFiles.map((file) => (
+                  <option key={file.id} value={file.id}>
+                    {file.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Campo URL ou ID da Planilha */}
           <div className="field-group">

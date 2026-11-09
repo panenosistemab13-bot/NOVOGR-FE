@@ -13,7 +13,10 @@ import firebaseConfig from '../../firebase-applet-config.json';
    SCOPES & CONFIGURAÇÃO OAUTH GOOGLE WORKSPACE
 ================================================================ */
 
-export const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+export const SCOPES = [
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/drive.readonly'
+];
 
 // Inicializa a instância dedicada do Firebase para Google Workspace OAuth
 const app = getApps().find(a => a.name === 'workspace_oauth') 
@@ -105,6 +108,32 @@ export function extractSpreadsheetId(input: string): string {
     return match[1];
   }
   return trimmed;
+}
+
+export interface DriveFileItem {
+  id: string;
+  name: string;
+  modifiedTime?: string;
+  webViewLink?: string;
+}
+
+export async function listUserSpreadsheets(token: string): Promise<DriveFileItem[]> {
+  const url = `https://www.googleapis.com/drive/v3/files?q=mimeType='application/vnd.google-apps.spreadsheet'&fields=files(id,name,modifiedTime,webViewLink)&orderBy=modifiedTime desc&pageSize=25`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(
+      errorBody?.error?.message || `Erro ao listar planilhas do Google Drive (${res.status})`
+    );
+  }
+
+  const data = await res.json();
+  return data.files || [];
 }
 
 export async function getSpreadsheetDetails(
