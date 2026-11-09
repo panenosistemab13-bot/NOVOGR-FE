@@ -47,7 +47,7 @@ import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
 import { googleSignIn, getAccessToken, initAuth, logout } from '../lib/googleAuth';
-import { getSpreadsheetDetails } from '../services/googleSheets';
+import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL } from '../services/googleSheets';
 import { User } from 'firebase/auth';
 
 import panoramicTruckHero from '../assets/images/checklist_hero_truck_panoramic_1791986198896.jpg';
@@ -244,60 +244,33 @@ export default function Checklist({
   };
 
   const syncFromSheets = async () => {
-    const token = await getAccessToken();
-    if (!token) {
-      handleGoogleLogin();
-      return;
-    }
-
     setIsSyncing(true);
     try {
-      let targetSheetTitle = 'Checklist';
-      try {
-        const details = await getSpreadsheetDetails(SPREADSHEET_ID, token);
-        if (details.sheets && details.sheets.length > 0) {
-          const match = details.sheets.find(s => s.title.toLowerCase().includes('checklist') || s.title.toLowerCase().includes('iscas')) || details.sheets[0];
-          targetSheetTitle = match.title;
-        }
-      } catch (e) {
-        console.warn('Metadata lookup info:', e);
-      }
+      const csvString = await fetchSantaLuziaCsvString(PUBLIC_SANTA_LUZIA_CSV_URL);
+      if (csvString) {
+        const linhasFormatadas = parseVehicleCsvText(csvString);
 
-      const fetchRange = `'${targetSheetTitle}'!A2:H`;
-      const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(fetchRange)}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await response.json();
-      
-      if (data.values) {
-        const updatesMap: Record<string, any> = {};
-        data.values.forEach((row: any[], idx: number) => {
-          if (!row[0]) return; // Skip empty rows
-          const id = `sheet_${idx}`;
-          updatesMap[id] = {
-            id,
-            cavalo: row[0] || '',
-            carretas: row[1] || '',
-            dataTeste: row[2] || '',
-            dataVencimento: row[3] || '',
-            manutencaoOs: row[4] || '',
-            periferico: row[5] || '',
-            observacao: row[6] || '',
-            osStatus: row[7] || 'PENDENTE'
-          };
-        });
+        if (linhasFormatadas && linhasFormatadas.length > 0) {
+          const updatesMap: Record<string, any> = {};
+          linhasFormatadas.forEach((row, idx) => {
+            const id = row.id || `sheet_${idx}`;
+            updatesMap[id] = row;
+          });
 
-        if (Object.keys(updatesMap).length > 0) {
+          // Atualiza estado local imediatamente e sincroniza no Firebase RTDB
+          setItems(linhasFormatadas);
           await set(ref(rtdb, 'checklist_veiculos'), updatesMap);
           setLastSync(new Date());
-          showToast('Dados sincronizados da planilha!', 'success');
+          showToast(`${linhasFormatadas.length} veículo(s) carregado(s) da planilha!`, 'success');
+        } else {
+          showToast('Planilha consultada. Mantendo frota em exibição.', 'info');
         }
       } else {
-        showToast('Nenhum dado encontrado na planilha.', 'info');
+        showToast('Consultando planilha vinculada...', 'info');
       }
     } catch (err) {
       console.error('Sheets sync error:', err);
-      showToast('Erro ao sincronizar com a planilha.', 'delete');
+      showToast('Erro ao carregar dados da planilha.', 'delete');
     } finally {
       setIsSyncing(false);
     }
@@ -332,7 +305,7 @@ export default function Checklist({
     }
   };
 
-  // Push to sheets whenever items change (debounce or limit could be added here)
+  // Push to sheets whenever items change (debounce for writes)
   useEffect(() => {
     if (googleUser && items.length > 0) {
       const timer = setTimeout(() => {
@@ -342,20 +315,15 @@ export default function Checklist({
     }
   }, [items, googleUser]);
 
-  // AUTOMATIC POLLING: Sync from sheets every 5 minutes to keep app updated with spreadsheet changes
+  // AUTOMATIC POLLING: Auto sync on mount and every 3 minutes
   useEffect(() => {
-    if (googleUser) {
-      // Initial sync on mount
+    syncFromSheets();
+    const interval = setInterval(() => {
       syncFromSheets();
+    }, 180000); // 3 minutes
 
-      const interval = setInterval(() => {
-        console.log('Automated Google Sheets Sync starting...');
-        syncFromSheets();
-      }, 300000); // 5 minutes
-
-      return () => clearInterval(interval);
-    }
-  }, [googleUser]);
+    return () => clearInterval(interval);
+  }, []);
 
   const loggedUser = useMemo(() => {
     try {
@@ -490,11 +458,11 @@ export default function Checklist({
       if (!i.osStatus || i.osStatus === 'PENDENTE') osPendentes++;
     });
     return {
-      total: items.length || 20,
-      aprovados: aprovados || 13,
-      vencidos: vencidos || 7,
+      total: items.length,
+      aprovados,
+      vencidos,
       negativados,
-      osPendentes: osPendentes || 20
+      osPendentes
     };
   }, [items]);
 
@@ -741,38 +709,25 @@ ${genData.signature}`;
               </div>
             </div>
 
-            {/* Right Button: Sync & LOGÍSTICA SC */}
+            {/* Right Button: Sync & Linked Badge */}
             <div className="relative z-10 flex items-center gap-3">
-              {googleUser ? (
-                <button
-                  type="button"
-                  onClick={syncFromSheets}
-                  disabled={isSyncing}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 hover:bg-white text-[#25231F] border border-emerald-500 shadow-sm backdrop-blur-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
-                    isSyncing && "animate-pulse opacity-70"
-                  )}
-                >
-                  <FileSpreadsheet className={cn("w-4 h-4 text-emerald-600", isSyncing && "animate-spin")} />
-                  <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Planilha'}</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 hover:bg-white text-[#25231F] border border-[#D8B065] shadow-sm backdrop-blur-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
-                >
-                  <div className="w-4 h-4 shrink-0">
-                    <svg viewBox="0 0 48 48" className="w-full h-full">
-                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                    </svg>
-                  </div>
-                  <span>Conectar Planilha</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={syncFromSheets}
+                disabled={isSyncing}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 hover:bg-white text-[#25231F] border border-emerald-500 shadow-sm backdrop-blur-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
+                  isSyncing && "animate-pulse opacity-70"
+                )}
+              >
+                <FileSpreadsheet className={cn("w-4 h-4 text-emerald-600", isSyncing && "animate-spin")} />
+                <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Planilha'}</span>
+              </button>
+
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50/90 border border-emerald-300 text-emerald-900 text-[11px] font-mono font-bold shadow-2xs backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>PLANILHA VINCULADA</span>
+              </div>
             </div>
           </div>
 

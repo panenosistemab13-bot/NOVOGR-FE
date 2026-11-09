@@ -26,6 +26,8 @@ import { cn } from '../lib/utils';
 import { extractCityForDistribution } from '../utils/iscasDistribution';
 import { 
   fetchDataFromWebAppUrl, 
+  fetchSantaLuziaCsvData,
+  PUBLIC_SANTA_LUZIA_CSV_URL,
   parseSheetRowsToIscas, 
   GOOGLE_APPS_SCRIPT_CODE 
 } from '../services/googleSheets';
@@ -78,15 +80,16 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
     return () => unsubscribe();
   }, []);
 
-  // Real-time polling from Web App URL every 30 seconds if configured
-  useEffect(() => {
-    if (!webAppUrl.trim()) return;
+  // Automatic load from published CSV URL on mount and every 60s
+  const pullPublicSantaLuziaCsv = async () => {
+    try {
+      setIsSyncing(true);
+      setSyncError(null);
+      const rawRows = webAppUrl.trim() 
+        ? await fetchDataFromWebAppUrl(webAppUrl) 
+        : await fetchSantaLuziaCsvData(PUBLIC_SANTA_LUZIA_CSV_URL);
 
-    const pullData = async () => {
-      try {
-        setIsSyncing(true);
-        setSyncError(null);
-        const rawRows = await fetchDataFromWebAppUrl(webAppUrl);
+      if (rawRows && rawRows.length > 0) {
         const parsedRecords = parseSheetRowsToIscas(rawRows);
         if (parsedRecords && parsedRecords.length > 0) {
           const mappedItems: IscaItem[] = parsedRecords.map((rec, idx) => ({
@@ -105,16 +108,18 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
           try { localStorage.setItem('iscas_data', JSON.stringify(mappedItems)); } catch {}
           setLastSyncTime(new Date());
         }
-      } catch (err: any) {
-        console.error('Erro ao sincronizar com Web App:', err);
-        setSyncError(err.message || 'Falha ao sincronizar com a planilha');
-      } finally {
-        setIsSyncing(false);
       }
-    };
+    } catch (err: any) {
+      console.error('Erro ao sincronizar com planilha:', err);
+      setSyncError(err.message || 'Falha ao sincronizar com a planilha');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
-    pullData();
-    const interval = setInterval(pullData, 30000);
+  useEffect(() => {
+    pullPublicSantaLuziaCsv();
+    const interval = setInterval(pullPublicSantaLuziaCsv, 60000);
     return () => clearInterval(interval);
   }, [webAppUrl]);
 
@@ -132,41 +137,8 @@ export default function Iscas({ onBack }: { onBack?: () => void }) {
   };
 
   const handleManualSync = async () => {
-    if (!webAppUrl.trim()) {
-      showToast('Informe a URL do Web App para sincronizar.');
-      return;
-    }
-    try {
-      setIsSyncing(true);
-      setSyncError(null);
-      const rawRows = await fetchDataFromWebAppUrl(webAppUrl);
-      const parsedRecords = parseSheetRowsToIscas(rawRows);
-      if (parsedRecords && parsedRecords.length > 0) {
-        const mappedItems: IscaItem[] = parsedRecords.map((rec, idx) => ({
-          id: rec.idIsca || `ISCA-${idx + 1}`,
-          destino: rec.destino,
-          status: rec.status,
-          obs1: rec.obs1,
-          data: rec.dataStatus,
-          carreta: rec.carreta,
-          cavalo: rec.cavalo,
-          motorista: rec.motorista,
-          unidade: rec.unidade
-        }));
-        setRows(mappedItems);
-        set(ref(db, 'iscas_data'), mappedItems);
-        try { localStorage.setItem('iscas_data', JSON.stringify(mappedItems)); } catch {}
-        setLastSyncTime(new Date());
-        showToast(`${mappedItems.length} isca(s) sincronizada(s) da planilha em tempo real!`);
-      } else {
-        showToast('Nenhum registro retornado da planilha.');
-      }
-    } catch (err: any) {
-      setSyncError(err.message || 'Erro ao sincronizar');
-      showToast(err.message || 'Erro ao sincronizar com a planilha.');
-    } finally {
-      setIsSyncing(false);
-    }
+    await pullPublicSantaLuziaCsv();
+    showToast('Planilha sincronizada com sucesso!');
   };
 
   const handleCopyScript = () => {

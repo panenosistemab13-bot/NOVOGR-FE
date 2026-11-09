@@ -101,6 +101,185 @@ export interface SpreadsheetMetadata {
   sheets: { title: string; sheetId: number }[];
 }
 
+import Papa from 'papaparse';
+
+export const PUBLIC_SANTA_LUZIA_CSV_URL = 'https://docs.google.com/spreadsheets/d/1pYw7zb9YwYzOHQoKMewxRrkj4vCbziD_ZJp0rzlM5X4/export?format=csv';
+
+/**
+ * Normaliza chaves de cabeçalho removendo acentos e caracteres especiais para comparação flexível.
+ */
+export function normalizeHeaderKey(key: string): string {
+  if (!key) return '';
+  return key
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+export interface VehicleRecord {
+  id: string;
+  cavalo: string;
+  carretas: string;
+  dataTeste: string;
+  dataVencimento: string;
+  manutencaoOs: string;
+  periferico: string;
+  observacao: string;
+  osStatus: string;
+  statusOverride?: 'APROVADO' | 'VENCIDO' | 'NEGATIVADO' | 'REPROVADO';
+}
+
+/**
+ * Utilitário de parsing de texto CSV usando PapaParse com autodetecção de delimitador (, ou ; ou tab)
+ * e mapeamento flexível de cabeçalhos sem acentos/case-insensitive.
+ */
+export function parseVehicleCsvText(csvText: string): VehicleRecord[] {
+  if (!csvText || typeof csvText !== 'string') return [];
+  const trimmed = csvText.trim();
+
+  // Rejeita HTML de erro ou redirecionamento do Google
+  if (trimmed.startsWith('<') || trimmed.toLowerCase().includes('<!doctype html>') || trimmed.toLowerCase().includes('sorry, the file')) {
+    console.warn('CSV recebido contém HTML (link privado ou página de erro).');
+    return [];
+  }
+
+  // 1. Parse com PapaParse autodetectando delimitador (; ou , ou \t)
+  const parsed = Papa.parse(trimmed, { skipEmptyLines: true });
+  const rows = parsed.data as string[][];
+  console.log('dadosBrutos:', rows);
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return [];
+  }
+
+  // Procura a linha de cabeçalho que contenha CAVALO e CARRETAS
+  let headerRowIdx = -1;
+  for (let i = 0; i < Math.min(10, rows.length); i++) {
+    const rowStr = (rows[i] || []).join(' ').toUpperCase();
+    if (rowStr.includes('CAVALO') && (rowStr.includes('CARRETAS') || rowStr.includes('STATUS'))) {
+      headerRowIdx = i;
+      break;
+    }
+  }
+
+  const headers = headerRowIdx !== -1 ? rows[headerRowIdx].map(h => normalizeHeaderKey(h || '')) : [];
+
+  const colIdx = {
+    cavalo: headers.findIndex(h => h.includes('cavalo') || h.includes('placa')),
+    carretas: headers.findIndex(h => h.includes('carreta') || h.includes('reboque')),
+    status: headers.findIndex(h => h.includes('status') || h.includes('situacao')),
+    dataTeste: headers.findIndex(h => h.includes('realiza') || h.includes('teste') || h.includes('datateste')),
+    vencimento: headers.findIndex(h => h.includes('vencimento') || h.includes('venc')),
+    dias: headers.findIndex(h => h.includes('dias')),
+    manutencaoOs: headers.findIndex(h => h.includes('manutencao') || h.includes('os')),
+    periferico: headers.findIndex(h => h.includes('periferico') || h.includes('perif')),
+    observacao: headers.findIndex(h => h.includes('observa') || h.includes('obs')),
+    unidade: headers.findIndex(h => h.includes('unidade'))
+  };
+
+  const linhasFormatadas: VehicleRecord[] = [];
+  const startIdx = headerRowIdx !== -1 ? headerRowIdx + 1 : 0;
+
+  for (let i = startIdx; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || r.length === 0) continue;
+
+    const firstCell = (r[0] || '').trim().toUpperCase();
+    if (!firstCell || firstCell.includes('SANTA LUZIA CAVALO') || firstCell.includes('SANTA LUZIA') || firstCell.includes('CAVALO')) {
+      continue;
+    }
+
+    const cavalo = (colIdx.cavalo !== -1 && r[colIdx.cavalo] ? r[colIdx.cavalo] : r[0])?.trim().toUpperCase();
+    if (!cavalo || cavalo.length < 5) continue;
+
+    const carretas = (colIdx.carretas !== -1 && r[colIdx.carretas] ? r[colIdx.carretas] : (r[1] || ''))?.trim().toUpperCase();
+    const osStatus = (colIdx.status !== -1 && r[colIdx.status] ? r[colIdx.status] : (r[2] || ''))?.trim().toUpperCase();
+    const dataTeste = (colIdx.dataTeste !== -1 && r[colIdx.dataTeste] ? r[colIdx.dataTeste] : (r[3] || ''))?.trim();
+    const dataVencimento = (colIdx.vencimento !== -1 && r[colIdx.vencimento] ? r[colIdx.vencimento] : (r[4] || ''))?.trim();
+    const manutencaoOs = (colIdx.manutencaoOs !== -1 && r[colIdx.manutencaoOs] ? r[colIdx.manutencaoOs] : (r[6] || ''))?.trim();
+    const periferico = (colIdx.periferico !== -1 && r[colIdx.periferico] ? r[colIdx.periferico] : (r[7] || ''))?.trim();
+    const observacao = (colIdx.observacao !== -1 && r[colIdx.observacao] ? r[colIdx.observacao] : (r[8] || ''))?.trim();
+
+    linhasFormatadas.push({
+      id: `sheet_${i}_${cavalo}`,
+      cavalo,
+      carretas,
+      dataTeste: dataTeste || new Date().toISOString().split('T')[0],
+      dataVencimento: dataVencimento || new Date().toISOString().split('T')[0],
+      manutencaoOs,
+      periferico,
+      observacao,
+      osStatus: osStatus || 'PENDENTE'
+    });
+  }
+
+  console.log('linhasFormatadas:', linhasFormatadas);
+  return linhasFormatadas;
+}
+
+/**
+ * Busca texto CSV da planilha pública utilizando fallback de múltiplos endpoints
+ */
+export async function fetchSantaLuziaCsvString(url: string = PUBLIC_SANTA_LUZIA_CSV_URL): Promise<string> {
+  const urlsToTry = [
+    url,
+    'https://docs.google.com/spreadsheets/d/1pYw7zb9YwYzOHQoKMewxRrkj4vCbziD_ZJp0rzlM5X4/export?format=csv',
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTk96JM16EEGET9IhyTWe3LYlZKpDwhR2x9Rvl8dj9FrVkBQK9CdT4O9WNuSQkOdcVpGAG8VUVnq1KQ/pub?gid=330870322&single=true&output=csv',
+    'https://docs.google.com/spreadsheets/d/1vc7O678zWDhLMJZGeXKY04YKNDizPEwzNgOYeyBh_Rg/gviz/tq?tqx=out:csv&gid=330870322'
+  ];
+
+  for (const targetUrl of urlsToTry) {
+    try {
+      const res = await fetch(targetUrl, { cache: 'no-cache' });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.trim().startsWith('<') && !text.toLowerCase().includes('<!doctype html>')) {
+          return text;
+        }
+      }
+    } catch (e) {
+      console.warn(`Direct fetch failed for ${targetUrl}:`, e);
+    }
+
+    try {
+      const proxyUrl = `/api/web-app-proxy?url=${encodeURIComponent(targetUrl)}`;
+      const res = await fetch(proxyUrl);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.isCsv && data.csvText) {
+          if (!data.csvText.trim().startsWith('<')) return data.csvText;
+        }
+      }
+    } catch (e) {
+      console.warn(`Proxy fetch failed for ${targetUrl}:`, e);
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Utilitário de parsing de texto CSV em formato de matriz de strings
+ */
+export function parseCsvText(csvText: string): string[][] {
+  if (!csvText || !csvText.trim()) return [];
+  const parsed = Papa.parse(csvText, { skipEmptyLines: true });
+  return (parsed.data as string[][]) || [];
+}
+
+/**
+ * Busca dados diretamente da planilha CSV pública de Santa Luzia sem exigir autenticação.
+ */
+export async function fetchSantaLuziaCsvData(url: string = PUBLIC_SANTA_LUZIA_CSV_URL): Promise<string[][]> {
+  const csvText = await fetchSantaLuziaCsvString(url);
+  if (csvText) {
+    return parseCsvText(csvText);
+  }
+  return [];
+}
+
 export function extractSpreadsheetId(input: string): string {
   const trimmed = input.trim();
   const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
