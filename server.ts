@@ -5,6 +5,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import * as pdfParse from "pdf-parse";
 import mammoth from "mammoth";
+import frotaHandler from "./api/frota.ts";
 
 const pdf = (pdfParse as any).default || pdfParse;
 
@@ -36,33 +37,9 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // Armazenamento em memória globalThis.frotaData para /api/frota
-  (globalThis as any).frotaData = (globalThis as any).frotaData || [];
-
-  app.get("/api/frota", (req, res) => {
-    res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ data: (globalThis as any).frotaData });
-  });
-
-  app.post("/api/frota", (req, res) => {
-    try {
-      const { secret, action, data } = req.body || {};
-      if (secret !== 'CHAVE_SEGURA_123') {
-        return res.status(401).json({ status: 'error', error: 'Unauthorized secret' });
-      }
-      
-      if (Array.isArray(data)) {
-        (globalThis as any).frotaData = data;
-      } else if (req.body && Array.isArray(req.body.rows)) {
-        (globalThis as any).frotaData = req.body.rows;
-      }
-      
-      console.log("[API Frota] Dados sincronizados:", (globalThis as any).frotaData.length, "registros");
-      return res.status(200).json({ status: 'success' });
-    } catch (err: any) {
-      console.error("[API Frota] Erro no POST:", err);
-      return res.status(500).json({ status: 'error', error: err.message });
-    }
+  // Rota /api/frota delegada para a serverless function api/frota.ts
+  app.all("/api/frota", (req, res) => {
+    return frotaHandler(req, res);
   });
 
   // Proxy seguro para chamadas de Web App do Google Apps Script
