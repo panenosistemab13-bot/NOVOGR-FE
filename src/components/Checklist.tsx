@@ -314,12 +314,28 @@ export default function Checklist({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           secret: 'CHAVE_SEGURA_123',
-          action: 'sync_from_app',
+          action: 'sync_from_sheets',
           data: currentItems
         })
       });
     } catch (err) {
       console.error('Erro ao enviar POST para /api/frota:', err);
+    }
+  };
+
+  const sendAppUpdateToApi = async (vehicle: ChecklistItem) => {
+    try {
+      await fetch('/api/frota', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: 'CHAVE_SEGURA_123',
+          action: 'app_update',
+          vehicle
+        })
+      });
+    } catch (err) {
+      console.error('Erro ao enviar app_update para /api/frota:', err);
     }
   };
 
@@ -648,6 +664,7 @@ ${genData.signature}`;
     const payload = sanitizeForFirebase(itemToSave);
     set(ref(rtdb, `checklist_veiculos/${id}`), payload);
     syncToApiFrota(updatedItems);
+    sendAppUpdateToApi(itemToSave);
   };
 
   // Delete all records (Escrita Imediata com Atualização Otimista)
