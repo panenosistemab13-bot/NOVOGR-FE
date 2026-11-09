@@ -1,4 +1,6 @@
-export default function handler(req: any, res: any) {
+const PESSOAL_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwTZlpQzmEQ-rzHOOPd8idmgpoc_QgVLGpcobN4lXCcmTnoCGUtxdbRjjRGX8hiIVYRKA/exec";
+
+export default async function handler(req: any, res: any) {
   (globalThis as any).frotaData = (globalThis as any).frotaData || [];
   (globalThis as any).pendingUpdates = (globalThis as any).pendingUpdates || [];
 
@@ -22,6 +24,15 @@ export default function handler(req: any, res: any) {
     }
 
     if (action === 'sync_from_sheets') {
+      try {
+        await fetch(PESSOAL_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sync_from_corp', rows: data })
+        });
+      } catch (err) {
+        console.error("Erro ao encaminhar para PESSOAL_WEB_APP_URL:", err);
+      }
       (globalThis as any).frotaData = data || [];
       return res.status(200).json({ status: 'success' });
     }

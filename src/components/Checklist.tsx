@@ -273,15 +273,21 @@ export default function Checklist({
     }
   };
 
+  const PESSOAL_WEB_APP_URL = APPS_SCRIPT_API_URL;
+
   const recarregarDados = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch(`/api/frota?t=${Date.now()}`, { cache: 'no-store' });
+      const res = await fetch(`${PESSOAL_WEB_APP_URL}?t=${Date.now()}`, {
+        method: 'GET',
+        mode: 'cors',
+        redirect: 'follow'
+      });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const json = await res.json();
-      console.log("Dados recebidos de /api/frota:", json);
-      
-      const records = json.data || json;
+      console.log("Dados recebidos do Web App pessoal:", json);
+
+      const records = json.data || json.rows || json;
       if (Array.isArray(records) && records.length === 0) {
         setItems([]);
         return;
@@ -299,7 +305,7 @@ export default function Checklist({
         setItems(Array.isArray(records) ? (records as unknown as ChecklistItem[]) : []);
       }
     } catch (err) {
-      console.error("Erro ao consultar /api/frota:", err);
+      console.error("Erro ao consultar Web App pessoal:", err);
     } finally {
       setIsSyncing(false);
     }
@@ -323,19 +329,20 @@ export default function Checklist({
     }
   };
 
-  const sendAppUpdateToApi = async (vehicle: ChecklistItem) => {
+  const sendPessoalAppUpdate = async (item: ChecklistItem) => {
     try {
-      await fetch('/api/frota', {
+      await fetch(PESSOAL_WEB_APP_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-          secret: 'CHAVE_SEGURA_123',
-          action: 'app_update',
-          vehicle
-        })
+          action: "update_vehicle",
+          vehicle: { CAVALO: item.cavalo, STATUS: item.osStatus || item.statusOverride || 'APROVADO' }
+        }),
+        redirect: 'follow'
       });
     } catch (err) {
-      console.error('Erro ao enviar app_update para /api/frota:', err);
+      console.error("Erro ao enviar POST para Web App pessoal:", err);
     }
   };
 
@@ -660,11 +667,11 @@ ${genData.signature}`;
     setEditingItem(null);
     showToast(editingItem ? 'Veículo atualizado com sucesso!' : 'Novo veículo adicionado com sucesso!', 'success');
 
-    // Executa persistência no Firebase RTDB e envio de POST para a API local em segundo plano
+    // Executa persistência no Firebase RTDB e envio de POST para o Web App pessoal em segundo plano
     const payload = sanitizeForFirebase(itemToSave);
     set(ref(rtdb, `checklist_veiculos/${id}`), payload);
     syncToApiFrota(updatedItems);
-    sendAppUpdateToApi(itemToSave);
+    sendPessoalAppUpdate(itemToSave);
   };
 
   // Delete all records (Escrita Imediata com Atualização Otimista)
