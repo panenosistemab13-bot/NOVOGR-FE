@@ -36,6 +36,38 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Armazenamento em memória para sincronização com a planilha corporativa (/api/frota)
+  let globalFrotaRecords: any[] = [];
+
+  app.get("/api/frota", (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(200).json(globalFrotaRecords);
+  });
+
+  app.post("/api/frota", (req, res) => {
+    try {
+      const { secret, action, data } = req.body || {};
+      if (secret && secret !== 'CHAVE_SEGURA_123') {
+        return res.status(401).json({ status: 'error', error: 'Unauthorized secret' });
+      }
+      
+      const incomingData = data || req.body.rows || req.body;
+      if (Array.isArray(incomingData)) {
+        globalFrotaRecords = incomingData.map((item: any, idx: number) => ({
+          ...item,
+          pendingSync: action === 'sync_from_app' ? true : false,
+          id: item.id || `frota_${idx}`
+        }));
+      }
+      
+      console.log("[API Frota] Dados atualizados:", globalFrotaRecords.length, "registros");
+      return res.status(200).json({ status: 'success', total: globalFrotaRecords.length });
+    } catch (err: any) {
+      console.error("[API Frota] Erro no POST:", err);
+      return res.status(500).json({ status: 'error', error: err.message });
+    }
+  });
+
   // Proxy seguro para chamadas de Web App do Google Apps Script
   app.get("/api/web-app-proxy", async (req, res) => {
     try {

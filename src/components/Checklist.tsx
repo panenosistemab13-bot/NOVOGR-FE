@@ -247,10 +247,10 @@ export default function Checklist({
   const recarregarDados = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch(`https://script.google.com/macros/s/AKfycbwTZlpQzmEQ-rzHOOPd8idmgpoc_QgVLGpcobN4lXCcmTnoCGUtxdbRjjRGX8hiIVYRKA/exec?t=${Date.now()}`);
+      const res = await fetch(`/api/frota?t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
-      console.log("Dados recebidos da planilha:", data);
+      console.log("Dados recebidos de /api/frota:", data);
       
       if (Array.isArray(data) && data.length === 0) {
         setItems([]);
@@ -269,7 +269,7 @@ export default function Checklist({
         setItems(Array.isArray(data) ? (data as unknown as ChecklistItem[]) : []);
       }
     } catch (err) {
-      console.error("Erro fetch direto:", err);
+      console.error("Erro ao consultar /api/frota:", err);
     } finally {
       setIsSyncing(false);
     }
@@ -277,9 +277,26 @@ export default function Checklist({
 
   const syncFromSheets = recarregarDados;
 
+  const syncToApiFrota = async (currentItems: ChecklistItem[]) => {
+    try {
+      await fetch('/api/frota', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: 'CHAVE_SEGURA_123',
+          action: 'sync_from_app',
+          data: currentItems
+        })
+      });
+    } catch (err) {
+      console.error('Erro ao enviar POST para /api/frota:', err);
+    }
+  };
+
   const syncToSheets = async (currentItems: ChecklistItem[]) => {
     try {
       await syncPostToAppsScript(currentItems);
+      await syncToApiFrota(currentItems);
     } catch (err) {
       console.error('Push to sheets error:', err);
     }
@@ -598,10 +615,11 @@ ${genData.signature}`;
     setEditingItem(null);
     showToast(editingItem ? 'Veículo atualizado com sucesso!' : 'Novo veículo adicionado com sucesso!', 'success');
 
-    // Executa persistência no Firebase RTDB e envio de POST para o Apps Script em segundo plano
+    // Executa persistência no Firebase RTDB e envio de POST para o Apps Script e API local em segundo plano
     const payload = sanitizeForFirebase(itemToSave);
     set(ref(rtdb, `checklist_veiculos/${id}`), payload);
     syncPostToAppsScript(updatedItems);
+    syncToApiFrota(updatedItems);
   };
 
   // Delete all records (Escrita Imediata com Atualização Otimista)
@@ -612,6 +630,7 @@ ${genData.signature}`;
       localStorage.setItem('checklist_cleared_permanently', 'true');
       showToast('Todos os registros foram removidos.', 'delete');
       syncPostToAppsScript([]);
+      syncToApiFrota([]);
     }
   };
 
