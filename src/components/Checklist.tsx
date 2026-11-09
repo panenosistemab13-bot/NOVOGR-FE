@@ -47,7 +47,7 @@ import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
 import { googleSignIn, getAccessToken, initAuth, logout } from '../lib/googleAuth';
-import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL, APPS_SCRIPT_API_URL, syncPostToAppsScript, parseCsvText, parseVehicleObjects } from '../services/googleSheets';
+import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL, APPS_SCRIPT_API_URL, parseCsvText, parseVehicleObjects } from '../services/googleSheets';
 import Papa from 'papaparse';
 import { User } from 'firebase/auth';
 
@@ -58,6 +58,33 @@ export const formatPlateWithHyphen = (plateStr?: string): string => {
   if (!plateStr) return '';
   const clean = plateStr.trim().toUpperCase();
   return clean.replace(/\b([A-Z]{3})([0-9][A-Z0-9]{3})\b/g, '$1-$2');
+};
+
+export const formatDisplayDate = (dateVal?: string): string => {
+  if (!dateVal) return '-';
+  const trimmed = dateVal.trim();
+  const upper = trimmed.toUpperCase();
+  if (['REPROVADO', 'PENDENTE', 'VENCIDO', 'NEGATIVADO', 'APROVADO', 'OK'].includes(upper) || (!trimmed.includes('T') && !trimmed.includes('/') && !trimmed.includes('-'))) {
+    return trimmed;
+  }
+  if (trimmed.includes('T')) {
+    try {
+      const d = new Date(trimmed);
+      if (!isNaN(d.getTime())) {
+        return format(d, 'dd/MM/yyyy');
+      }
+    } catch {}
+  }
+  if (trimmed.includes('-') && trimmed.length >= 10) {
+    const parts = trimmed.split('T')[0].split('-');
+    if (parts.length === 3) {
+      const [yyyy, mm, dd] = parts;
+      if (yyyy && mm && dd) {
+        return `${dd}/${mm}/${yyyy}`;
+      }
+    }
+  }
+  return trimmed;
 };
 
 export const sanitizeForFirebase = <T extends Record<string, any>>(obj: T): T => {
@@ -298,7 +325,6 @@ export default function Checklist({
 
   const syncToSheets = async (currentItems: ChecklistItem[]) => {
     try {
-      await syncPostToAppsScript(currentItems);
       await syncToApiFrota(currentItems);
     } catch (err) {
       console.error('Push to sheets error:', err);
@@ -618,10 +644,9 @@ ${genData.signature}`;
     setEditingItem(null);
     showToast(editingItem ? 'Veículo atualizado com sucesso!' : 'Novo veículo adicionado com sucesso!', 'success');
 
-    // Executa persistência no Firebase RTDB e envio de POST para o Apps Script e API local em segundo plano
+    // Executa persistência no Firebase RTDB e envio de POST para a API local em segundo plano
     const payload = sanitizeForFirebase(itemToSave);
     set(ref(rtdb, `checklist_veiculos/${id}`), payload);
-    syncPostToAppsScript(updatedItems);
     syncToApiFrota(updatedItems);
   };
 
@@ -632,7 +657,6 @@ ${genData.signature}`;
       remove(ref(rtdb, 'checklist_veiculos'));
       localStorage.setItem('checklist_cleared_permanently', 'true');
       showToast('Todos os registros foram removidos.', 'delete');
-      syncPostToAppsScript([]);
       syncToApiFrota([]);
     }
   };
@@ -1261,10 +1285,10 @@ ${genData.signature}`;
                             />
                           </td>
                           <td className="p-2.5 font-mono font-bold text-[#4A453E] border-r border-[#E8DDCA]/60 text-[13px] tracking-tight">
-                            {item.dataTeste || '-'}
+                            {formatDisplayDate(item.dataTeste)}
                           </td>
                           <td className="p-2.5 font-mono font-black text-[#25231F] border-r border-[#E8DDCA]/60 text-[13px] tracking-tight">
-                            {item.dataVencimento || '-'}
+                            {formatDisplayDate(item.dataVencimento)}
                           </td>
                           <td className="p-2.5 border-r border-[#E8DDCA]/60">
                             <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-mono font-black border uppercase tracking-wider inline-block", st.bg, st.color, st.border)}>
