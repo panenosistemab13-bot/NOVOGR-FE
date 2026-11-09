@@ -1,23 +1,20 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
+import rawFirebaseConfig from '../firebase-applet-config.json';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBC3hReyxk-CkVmbGzHgBM-LY66abk5p6Q",
-  authDomain: "central-de-comandos-gr.firebaseapp.com",
-  databaseURL: "https://central-de-comandos-gr-default-rtdb.firebaseio.com/",
-  projectId: "central-de-comandos-gr",
-  storageBucket: "central-de-comandos-gr.firebasestorage.app",
-  messagingSenderId: "483229462429",
-  appId: "1:483229462429:web:f484720e545c9c28d28974",
-  measurementId: "G-THEK03CK0N"
+  ...rawFirebaseConfig,
+  databaseURL: (rawFirebaseConfig as any).databaseURL || `https://${rawFirebaseConfig.projectId}-default-rtdb.firebaseio.com/`
 };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const rtdb = getDatabase(app, "https://central-de-comandos-gr-default-rtdb.firebaseio.com/");
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const db = (rawFirebaseConfig as any).firestoreDatabaseId
+  ? getFirestore(app, (rawFirebaseConfig as any).firestoreDatabaseId)
+  : getFirestore(app);
+export const rtdb = getDatabase(app, firebaseConfig.databaseURL);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 

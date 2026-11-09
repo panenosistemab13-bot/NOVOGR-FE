@@ -145,7 +145,7 @@ export default function Checklist({
   pageVisibility 
 }: ChecklistProps = {}) {
   // Navigation tabs of checklist - default always to 'monitoring' (1. PRANCHETA DE CHECKLIST)
-  const [activeView, setActiveView] = useState<'monitoring' | 'os' | 'generator'>('monitoring');
+  const [activeView, setActiveView] = useState<'monitoring' | 'generator'>('monitoring');
 
   // Sempre que a página Checklist é montada, garante que abre na aba 1 (PRANCHETA DE CHECKLIST)
   useEffect(() => {
@@ -154,8 +154,6 @@ export default function Checklist({
 
   // Search & filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [osSearchTerm, setOsSearchTerm] = useState('');
-  const [osStatusFilter, setOsStatusFilter] = useState<'TODOS' | 'PENDENTE' | 'AGENDADO' | 'EM ANDAMENTO' | 'CONCLUÍDO' | 'CANCELADO'>('TODOS');
   const [filter, setFilter] = useState<'TODOS' | 'EM DIA' | 'VENCIDO' | 'NEGATIVADOS'>('TODOS');
 
   // Vehicle items list
@@ -504,19 +502,7 @@ export default function Checklist({
     });
   }, [items, searchTerm, filter]);
 
-  // Filtered items for OS View
-  const filteredOsItems = useMemo(() => {
-    return items.filter(item => {
-      const matchesSearch = 
-        (item.cavalo && item.cavalo.toLowerCase().includes(osSearchTerm.toLowerCase())) ||
-        (item.carretas && item.carretas.toLowerCase().includes(osSearchTerm.toLowerCase())) ||
-        (item.manutencaoOs && item.manutencaoOs.toLowerCase().includes(osSearchTerm.toLowerCase()));
 
-      if (!matchesSearch) return false;
-      if (osStatusFilter === 'TODOS') return true;
-      return (item.osStatus || 'PENDENTE') === osStatusFilter;
-    });
-  }, [items, osSearchTerm, osStatusFilter]);
 
   const generateEmailHTML = (data: typeof genData) => {
     const requestTextWithRedChecklist = data.requestText.replace(/checklist/gi, '<span style="color: #E53945; font-weight: bold;">checklist</span>');
@@ -804,26 +790,6 @@ ${genData.signature}`;
 
               <button
                 type="button"
-                onClick={() => setActiveView('os')}
-                className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-2xs cursor-pointer",
-                  activeView === 'os'
-                    ? "bg-gradient-to-r from-[#D8B065] via-[#C59B48] to-[#AA7E2F] text-white shadow-[0_4px_14px_rgba(196,154,69,0.3)]"
-                    : "bg-[#FFFEFC] hover:bg-[#FAF5EB] text-[#4A453E] border border-[#E8DDCA]"
-                )}
-              >
-                <Wrench className="w-3.5 h-3.5" />
-                <span>2. ORDENS DE SERVIÇO (OS)</span>
-                <span className={cn(
-                  "px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold leading-none",
-                  activeView === 'os' ? "bg-black/30 text-white" : "bg-[#25231F] text-white"
-                )}>
-                  {stats.osPendentes}
-                </span>
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setActiveView('generator')}
                 className={cn(
                   "px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-2xs cursor-pointer",
@@ -833,7 +799,7 @@ ${genData.signature}`;
                 )}
               >
                 <Mail className="w-3.5 h-3.5" />
-                <span>3. SOLICITAÇÃO DE CHECKLIST</span>
+                <span>2. SOLICITAÇÃO DE CHECKLIST</span>
               </button>
             </div>
 
@@ -849,10 +815,6 @@ ${genData.signature}`;
 
               <div className="px-3 py-1.5 rounded-xl bg-[#FDF0F0] border border-[#F5C2C2] text-rose-800 shadow-2xs">
                 VENCIDOS: <strong className="font-black">{stats.vencidos}</strong>
-              </div>
-
-              <div className="px-3 py-1.5 rounded-xl bg-[#FEF7E8] border border-[#F4DC9E] text-amber-900 shadow-2xs">
-                OS PENDENTES: <strong className="font-black">{stats.osPendentes}</strong>
               </div>
 
               {/* + MAIS Menu */}
@@ -1390,66 +1352,7 @@ ${genData.signature}`;
             </div>
           )}
 
-          {/* ===================================================================== */}
-          {/* TAB 2: "2. ORDENS DE SERVIÇO (OS)"                                    */}
-          {/* ===================================================================== */}
-          {activeView === 'os' && (
-            <div className="bg-[#FFFEFC] border border-[#E8DDCA] rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E8DDCA]">
-                <div className="flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-[#C49A45]" />
-                  <h3 className="text-xs font-black uppercase text-[#25231F]">
-                    Gestão de Ordens de Serviço (OS)
-                  </h3>
-                </div>
 
-                <div className="relative w-full sm:w-64">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7B63]" />
-                  <input
-                    type="text"
-                    value={osSearchTerm}
-                    onChange={(e) => setOsSearchTerm(e.target.value)}
-                    placeholder="Buscar OS ou placa..."
-                    className="w-full bg-[#FAF7F0] focus:bg-white text-[#25231F] border border-[#E8DDCA] rounded-xl pl-9 pr-3 py-1.5 text-xs font-bold outline-none focus:border-[#C49A45]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
-                {filteredOsItems.map(item => (
-                  <div key={item.id} className="p-4 rounded-xl bg-[#FFFDF9] border border-[#E8DDCA] shadow-2xs space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono font-black text-[#7A5B1E]">
-                        {item.manutencaoOs ? `OS #${item.manutencaoOs}` : 'OS NÃO INFORMADA'}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#FAF5EB] text-[#8C6D28] border border-[#E8DDCA]">
-                        {item.osStatus || 'PENDENTE'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E8DDCA]/50">
-                      <span className="font-bold text-[#4A453E]">Cavalo: {item.cavalo}</span>
-                      <span className="font-mono text-[#8C7B63]">{item.carretas || 'Sem carreta'}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] pt-1">
-                      <span className="text-[#8C7B63]">Vencimento: {item.dataVencimento}</span>
-                      <button
-                        onClick={async () => {
-                          const newStatus = (item.osStatus === 'CONCLUÍDO') ? 'PENDENTE' : 'CONCLUÍDO';
-                          await update(ref(rtdb, `checklist_veiculos/${item.id}`), { osStatus: newStatus });
-                          showToast(`OS atualizada para ${newStatus}`, 'info');
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-[#FAF5EB] hover:bg-[#F2E8D5] text-[#7A5B1E] font-bold text-[10px] transition-colors"
-                      >
-                        Alternar Status
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* ===================================================================== */}
           {/* 5. FOOTER (Branded, Clean & Sophisticated)                             */}
