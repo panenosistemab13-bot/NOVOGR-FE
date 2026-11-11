@@ -34,7 +34,8 @@ import {
   Truck
 } from 'lucide-react';
 import { cn } from './lib/utils';
-import { rtdb as db } from './firebase';
+import { auth, rtdb as db } from './firebase';
+import { signOut } from 'firebase/auth';
 import { ref, onValue } from 'firebase/database';
 
 interface Appointment {
@@ -138,35 +139,19 @@ export default function App() {
     mustChangePassword?: boolean;
   } | null>(() => {
     try {
-      const saved = localStorage.getItem('logged_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const isRootAdmin = String(parsed?.name || '').trim().toLowerCase() === 'jefferson';
-        if (!isRootAdmin) {
-          try {
-            const raw = localStorage.getItem('app_users');
-            if (raw) {
-              const uList = JSON.parse(raw);
-              const found = uList.find((u: any) => 
-                String(u.name || '').trim().toLowerCase() === String(parsed.name || '').trim().toLowerCase() ||
-                String(u.email || '').trim().toLowerCase() === String(parsed.email || '').trim().toLowerCase()
-              );
-              if (found && (found.mustChangePassword === true || String(found.password).trim() === '123')) {
-                parsed.mustChangePassword = true;
-              }
-            }
-          } catch {}
-        }
-        return parsed;
-      }
-      return null;
-    } catch {
-      return null;
-    }
+      localStorage.removeItem('logged_user');
+      localStorage.removeItem('user_email');
+      signOut(auth).catch(() => {});
+    } catch {}
+    return null;
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return Boolean(localStorage.getItem('logged_user'));
+    try {
+      localStorage.removeItem('logged_user');
+      localStorage.removeItem('user_email');
+    } catch {}
+    return false;
   });
 
   const [availablePages, setAvailablePages] = useState<PageDefinition[]>(() => getAllAvailablePages());
@@ -259,7 +244,7 @@ export default function App() {
     }
   }, []);
 
-  // Sincronização em tempo real das permissões do usuário logado via Firebase RTDB (app_users)
+  // Sincronização em tempo real e logout imediato se o usuário for removido ou tiver permissões alteradas
   useEffect(() => {
     if (!currentUser?.name && !currentUser?.email) return;
     const usersRef = ref(db, 'app_users');
@@ -272,27 +257,27 @@ export default function App() {
           String(u.name || '').trim().toLowerCase() === myName || 
           String(u.email || '').trim().toLowerCase() === myEmail
         );
-        if (found) {
-          const isUserAdmin = found.role === 'Administrador' || myName === 'jefferson';
-          const requiresChange = myName === 'jefferson' 
-            ? false 
-            : (found.mustChangePassword === true || String(found.password).trim() === '123');
+        
+        if (!found) {
+          // Usuário foi removido do sistema
+          alert('Seu usuário foi removido do sistema pelo Administrador.');
+          handleLogout();
+          return;
+        }
 
-          const updated = {
-            email: found.email || currentUser.email,
-            name: found.name || currentUser.name,
-            role: isUserAdmin ? 'admin' : 'agente_de_risco',
-            roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-            allowedPages: Array.isArray(found.allowedPages) ? found.allowedPages : [],
-            mustChangePassword: requiresChange
-          };
-          setCurrentUser(updated);
-          localStorage.setItem('logged_user', JSON.stringify(updated));
+        const foundRole = found.role === 'Administrador' ? 'admin' : 'agente_de_risco';
+        const currentAllowed = [...(currentUser.allowedPages || [])].sort().join(',');
+        const newAllowed = [...(found.allowedPages || [])].sort().join(',');
+
+        if (currentUser.role !== foundRole || currentAllowed !== newAllowed) {
+          // Permissões ou função alteradas - deslogar imediatamente para aplicar a atualização
+          alert('Suas permissões ou função foram atualizadas pelo Administrador. Faça login novamente para aplicar.');
+          handleLogout();
         }
       }
     });
     return () => unsubscribe();
-  }, [currentUser?.email, currentUser?.name]);
+  }, [currentUser?.email, currentUser?.name, currentUser?.role, currentUser?.allowedPages]);
 
   useEffect(() => {
     const appsRef = ref(db, 'presence_list/appointments');

@@ -15,8 +15,8 @@ import luxuryLounge360 from '../assets/images/tres_coracoes_luxury_lounge_360_17
 import Wallpaper360Viewer from './common/Wallpaper360Viewer';
 
 import { auth, rtdb } from '../firebase';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { ref, onValue, set } from 'firebase/database';
+import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { ref, onValue } from 'firebase/database';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: { email: string; name: string; role: string }) => void;
@@ -67,6 +67,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const googleName = googleUser.displayName || googleEmail.split('@')[0] || 'Usuário';
 
       if (!googleEmail) {
+        await signOut(auth);
         setError('Não foi possível obter o e-mail da sua conta Google.');
         setLoading(false);
         return;
@@ -76,31 +77,19 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         ? registeredUsers 
         : JSON.parse(localStorage.getItem('app_users') || '[]');
 
-      let matchedUser = currentList.find((u: any) => {
+      const matchedUser = currentList.find((u: any) => {
         const uEmail = String(u.email || '').trim().toLowerCase();
         return uEmail === googleEmail;
       });
 
-      // Se o usuário não estiver na lista, auto-registramos como Administrador se for panenosistemab13 ou jefferson, ou como Agente de Risco / Administrador
       const isRootAdmin = googleEmail === 'panenosistemab13@gmail.com' || googleEmail === 'jefferson@3coracoes.com.br';
 
-      if (!matchedUser) {
-        const newUser = {
-          id: Date.now(),
-          name: googleName,
-          role: isRootAdmin ? 'Administrador' : 'Agente de Risco',
-          email: googleEmail,
-          allowedPages: isRootAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala']
-        };
-        const updatedList = [...currentList, newUser];
-        setRegisteredUsers(updatedList);
-        localStorage.setItem('app_users', JSON.stringify(updatedList));
-        try {
-          set(ref(rtdb, 'app_users'), updatedList);
-        } catch (e) {
-          console.error(e);
-        }
-        matchedUser = newUser;
+      // REQUISITO DE SEGURANÇA: Bloquear rigorosamente usuários não cadastrados
+      if (!matchedUser && !isRootAdmin) {
+        await signOut(auth);
+        setError(`Acesso negado: O e-mail "${googleEmail}" não está cadastrado na aba Cadastro do sistema. Usuários não cadastrados não possuem autorização para acessar o aplicativo.`);
+        setLoading(false);
+        return;
       }
 
       const roleStr = matchedUser?.role || (isRootAdmin ? 'Administrador' : 'Agente de Risco');
@@ -111,7 +100,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         name: matchedUser?.name || googleName,
         role: isUserAdmin ? 'admin' : 'agente_de_risco',
         roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : []
+        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : (isUserAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala'])
       };
 
       localStorage.setItem('logged_user', JSON.stringify(userData));
@@ -165,7 +154,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             </div>
           </div>
           <p className="text-xs text-stone-400 font-mono mt-1">
-            Autenticação Segura via Conta Google
+            Segurança Avançada • Acesso Restrito
           </p>
         </div>
 
@@ -182,10 +171,10 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <div className="p-4 rounded-2xl bg-[#172231]/60 border border-[#D6A84F]/30 text-xs text-stone-300 font-mono text-left space-y-2">
             <div className="flex items-center gap-2 text-[#D6A84F] font-bold">
               <ShieldCheck size={16} />
-              <span>Acesso Verificado por E-mail</span>
+              <span>Controle de Acesso Restrito</span>
             </div>
             <p className="text-[11px] text-stone-400 leading-relaxed">
-              O sistema identifica automaticamente o seu acesso utilizando a mesma conta Google. Se o e-mail não estiver cadastrado, ele será registrado automaticamente.
+              Apenas usuários devidamente cadastrados na aba <strong className="text-[#D6A84F]">Cadastro</strong> possuem autorização para acessar o sistema. Contas não cadastradas são bloqueadas automaticamente.
             </p>
           </div>
 
@@ -197,7 +186,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             {loading ? (
               <span className="flex items-center gap-2 font-mono">
                 <span className="w-4 h-4 border-2 border-[#090a0c] border-t-transparent rounded-full animate-spin" />
-                Autenticando com Google...
+                Verificando credenciais...
               </span>
             ) : (
               <>
