@@ -5,28 +5,19 @@ import {
   Save, 
   Trash2, 
   Shield, 
-  Eye, 
-  EyeOff, 
-  Plus, 
   Lock, 
   Mail, 
   UserCheck, 
   Check, 
   AlertCircle,
   ArrowLeft,
-  KeyRound,
-  Sparkles,
   Sliders,
-  ShieldCheck,
-  ShieldAlert,
-  Layers,
-  CheckCircle2,
-  XCircle
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
-import { getAllAvailablePages, PageDefinition, ICON_MAP } from '../data/pagesConfig';
+import { getAllAvailablePages, ICON_MAP } from '../data/pagesConfig';
 
 export interface UserAccount {
   id: number;
@@ -34,8 +25,6 @@ export interface UserAccount {
   role: 'Administrador' | 'Agente de Risco' | 'Funcionario';
   allowedPages: string[];
   email: string;
-  password: string;
-  mustChangePassword: boolean;
 }
 
 export const DEFAULT_AGENT_PAGES = [
@@ -65,34 +54,35 @@ export const ALL_ADMIN_PAGES = [
 
 export const FIXED_ADMIN_USER: UserAccount = {
   id: 1,
-  name: 'jefferson',
+  name: 'Administrador Principal',
   role: 'Administrador',
-  email: 'jefferson@3coracoes.com.br',
-  password: '#trescafe2029',
-  mustChangePassword: false,
+  email: 'panenosistemab13@gmail.com',
   allowedPages: [...ALL_ADMIN_PAGES]
 };
 
 const DEFAULT_USERS: UserAccount[] = [
   FIXED_ADMIN_USER,
+  {
+    id: 2,
+    name: 'jefferson',
+    role: 'Administrador',
+    email: 'jefferson@3coracoes.com.br',
+    allowedPages: [...ALL_ADMIN_PAGES]
+  },
   { 
-    id: 2, 
+    id: 3, 
     name: 'Operador Logístico', 
     role: 'Agente de Risco', 
     allowedPages: [...DEFAULT_AGENT_PAGES],
-    email: 'operador@3coracoes.com.br', 
-    password: '123',
-    mustChangePassword: true
+    email: 'operador@3coracoes.com.br'
   }
 ];
 
 export const sanitizeUsers = (userList: any[]): UserAccount[] => {
   if (!Array.isArray(userList)) return DEFAULT_USERS;
-  // Filtrar usuários inválidos e remover login legado "jeff"
   const cleaned: UserAccount[] = userList
     .filter((u: any) => u && u.name && String(u.name).trim().toLowerCase() !== 'jeff')
     .map((u: any) => {
-      // Normalizar 'Funcionario' para 'Agente de Risco'
       const role: 'Administrador' | 'Agente de Risco' = 
         u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco';
       
@@ -104,39 +94,29 @@ export const sanitizeUsers = (userList: any[]): UserAccount[] => {
           allowedPages = [...DEFAULT_AGENT_PAGES];
         }
       } else {
-        // Administrador tem acesso amplo - garantido como array, nunca undefined
         allowedPages = Array.isArray(u.allowedPages) && u.allowedPages.length > 0
           ? u.allowedPages
           : [...ALL_ADMIN_PAGES];
       }
-
-      const pass = String(u.password ?? '123');
-      const mustChange = u.mustChangePassword !== undefined ? Boolean(u.mustChangePassword) : (pass === '123');
 
       return {
         id: Number(u.id) || Date.now(),
         name: String(u.name || '').trim(),
         role,
         allowedPages,
-        email: u.email || `${String(u.name || 'usuario').toLowerCase().replace(/\s+/g, '')}@3coracoes.com.br`,
-        password: pass,
-        mustChangePassword: mustChange
+        email: u.email || `${String(u.name || 'usuario').toLowerCase().replace(/\s+/g, '')}@3coracoes.com.br`
       };
     });
   
-  // Garantir que o usuário administrativo fixo jefferson sempre exista com os dados definidos
   const idx = cleaned.findIndex(u => String(u.name).trim().toLowerCase() === 'jefferson');
   if (idx === -1) {
     cleaned.unshift(FIXED_ADMIN_USER);
   } else {
-    // Garantir que a senha (#trescafe2029) e perfil do admin fixo estejam sempre corretos
     cleaned[idx] = {
       ...cleaned[idx],
       name: 'jefferson',
       role: 'Administrador',
       email: cleaned[idx].email || 'jefferson@3coracoes.com.br',
-      password: '#trescafe2029',
-      mustChangePassword: false,
       allowedPages: [...ALL_ADMIN_PAGES]
     };
   }
@@ -151,9 +131,7 @@ export const cleanUsersForFirebase = (userList: any[]): UserAccount[] => {
     name: String(u.name || '').trim(),
     role: u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco',
     allowedPages: Array.isArray(u.allowedPages) ? u.allowedPages : [],
-    email: String(u.email || '').trim(),
-    password: String(u.password || '123'),
-    mustChangePassword: Boolean(u.mustChangePassword)
+    email: String(u.email || '').trim()
   }));
 };
 
@@ -189,7 +167,6 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     });
   };
 
-  // If not admin, the "selected user" is always themselves
   const [selectedUserId, setSelectedUserId] = useState<number>(() => {
     if (!isAdmin && currentUser) {
       const self = findSelfUser(users);
@@ -207,16 +184,13 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     }
   }, [users, currentUser, isAdmin, selectedUserId]);
 
-  const [showPassword, setShowPassword] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Lista de páginas disponíveis para seleção de permissões
   const availablePagesList = useMemo(() => {
     return getAllAvailablePages().filter(p => p.id !== 'cadastro');
   }, []);
 
-  // Sincronização em tempo real com Firebase RTDB (app_users)
   useEffect(() => {
     const usersRef = ref(rtdb, 'app_users');
     const unsubscribe = onValue(usersRef, (snapshot) => {
@@ -226,7 +200,6 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
         setUsers(cleaned);
         localStorage.setItem('app_users', JSON.stringify(cleaned));
       } else if (!data) {
-        // Inicializar com usuários padrão no Firebase se vazio (sem undefined)
         const initialPayload = cleanUsersForFirebase(DEFAULT_USERS);
         set(usersRef, initialPayload);
       }
@@ -246,7 +219,6 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
       console.error('Erro ao sincronizar com Firebase:', e);
     }
 
-    // Se o usuário atual foi editado, sincroniza também seu logged_user no localStorage
     if (currentUser) {
       const selfUpdated = cleaned.find(u => u.email === currentUser.email || u.name === currentUser.name);
       if (selfUpdated) {
@@ -255,8 +227,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
           name: selfUpdated.name,
           role: selfUpdated.role === 'Administrador' ? 'admin' : 'agente_de_risco',
           roleLabel: selfUpdated.role,
-          allowedPages: selfUpdated.allowedPages,
-          mustChangePassword: Boolean(selfUpdated.mustChangePassword)
+          allowedPages: selfUpdated.allowedPages
         };
         localStorage.setItem('logged_user', JSON.stringify(updatedLogged));
       }
@@ -269,7 +240,6 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
   const updateUserField = (field: keyof UserAccount, value: any) => {
     if (!selectedUser) return;
     
-    // Se mudou de Administrador para Agente de Risco, garante páginas padrão
     let newAllowedPages = selectedUser.allowedPages;
     if (field === 'role') {
       if (value === 'Agente de Risco' && (!newAllowedPages || newAllowedPages.length === 0)) {
@@ -332,22 +302,12 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
       name: `Novo Usuário ${users.length + 1}`,
       role: 'Agente de Risco',
       allowedPages: [...DEFAULT_AGENT_PAGES],
-      email: `usuario${users.length + 1}@3coracoes.com.br`,
-      password: '123',
-      mustChangePassword: true
+      email: `usuario${users.length + 1}@3coracoes.com.br`
     };
     const updated = [...users, newUser];
     saveToStorageAndFirebase(updated);
     setSelectedUserId(newUser.id);
-    setFeedbackMsg({ text: 'Novo usuário criado com senha padrão "123". Será solicitada a alteração no primeiro login.', type: 'success' });
-    setTimeout(() => setFeedbackMsg(null), 3500);
-  };
-
-  const handleResetPasswordTo123 = () => {
-    if (!selectedUser || isSelectedUserFixedAdmin) return;
-    const updated = users.map(u => u.id === selectedUserId ? { ...u, password: '123', mustChangePassword: true } : u);
-    saveToStorageAndFirebase(updated);
-    setFeedbackMsg({ text: `Senha de ${selectedUser.name} redefinida para "123". Será exigida a alteração no próximo login.`, type: 'success' });
+    setFeedbackMsg({ text: 'Novo usuário criado com sucesso.', type: 'success' });
     setTimeout(() => setFeedbackMsg(null), 3500);
   };
 
@@ -397,11 +357,11 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                   {isAdmin ? 'CADASTRO DE USUÁRIOS' : 'MEUS DADOS DE ACESSO'}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#8C6D28] border border-amber-300 text-[10px] font-mono font-bold uppercase">
-                  {isAdmin ? 'Controle de Acessos & Funções' : '2. Agente de Risco'}
+                  {isAdmin ? 'Google Auth & Acessos' : 'Agente de Risco'}
                 </span>
               </div>
               <p className="text-xs text-[#77736B] font-mono uppercase tracking-wider mt-0.5">
-                {isAdmin ? 'Gerencie credenciais, função de acesso (Administrador ou Agente de Risco) e permissões de páginas' : 'Altere sua senha pessoal de acesso ao sistema'}
+                {isAdmin ? 'Gerencie nome, e-mail Google e função (Administrador ou Agente de Risco)' : 'Visualize seus dados de acesso cadastrados'}
               </p>
             </div>
           </div>
@@ -433,7 +393,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                 Cadastro de Usuários & Níveis de Acesso
               </h2>
               <p className="text-[11px] text-[#77736B] font-mono">
-                Defina a função de cada usuário: Administrador (acesso total) ou Agente de Risco (acesso customizado por páginas)
+                Defina o nome, e-mail Google e a função de cada usuário
               </p>
             </div>
           </div>
@@ -475,7 +435,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                 </h2>
               </div>
               <span className="text-[10px] font-mono text-[#77736B] font-bold">
-                Controle de Acessos
+                Google Auth
               </span>
             </div>
 
@@ -516,7 +476,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                               ? 'bg-amber-100 text-[#8C6D28] border border-amber-300'
                               : 'bg-blue-50 text-blue-800 border border-blue-200'
                           }`}>
-                            {u.role === 'Administrador' ? '1. Administrador' : '2. Agente de Risco'}
+                            {u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco'}
                           </span>
                           {!isUserAdmin && (
                             <span className="text-[9px] font-mono text-[#8C7B63] bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200">
@@ -546,7 +506,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
             <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 text-[11px] text-[#8C6D28] font-mono flex items-start gap-2 mt-auto">
               <Lock size={14} className="shrink-0 mt-0.5 text-amber-600" />
               <span>
-                Administrador gerencia o acesso total ou por páginas de cada Agente de Risco.
+                O acesso ao aplicativo é feito inteiramente via Conta Google correspondente ao e-mail cadastrado.
               </span>
             </div>
           </div>
@@ -560,7 +520,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                 <div className="flex items-center gap-2.5">
                   <UserCheck size={18} className="text-[#C49A45]" />
                   <h2 className="text-sm font-black uppercase tracking-wider text-[#25231F]">
-                    {isAdmin ? `Editar Cadastro: ${selectedUser.name}` : 'Meus Dados de Acesso'}
+                    {isAdmin ? `Editar Cadastro: ${selectedUser.name}` : 'Meus Dados de Acesso (Google)'}
                   </h2>
                 </div>
                 {saveSuccess && (
@@ -570,354 +530,200 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                 )}
               </div>
 
-              {!isAdmin ? (
-                /* ========================================================================= */
-                /* AGENTE DE RISCO: SOMENTE A OPÇÃO DE EDITAR SUA SENHA APENAS               */
-                /* ========================================================================= */
-                <div className="space-y-5">
-                  {/* Informação básica do usuário */}
-                  <div className="p-4 rounded-2xl bg-[#F5F0E6] border border-[#E6D2A3] flex items-center justify-between gap-3 shadow-2xs">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#292820] text-[#C49A45] border border-[#C49A45] flex items-center justify-center font-bold">
-                        <KeyRound size={18} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black uppercase text-[#25231F] leading-tight">
-                          {selectedUser.name || currentUser?.name || 'Agente de Risco'}
-                        </p>
-                        <p className="text-[11px] text-[#77736B] font-mono mt-0.5">
-                          {selectedUser.email || currentUser?.email}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-[10px] font-mono font-bold uppercase">
-                      2. Agente de Risco
-                    </span>
-                  </div>
-
-                  {/* Campo exclusivo: Editar Senha de Acesso */}
-                  <div className="space-y-2 bg-white border border-[#E6D2A3] rounded-2xl p-4 shadow-xs">
-                    <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-[#25231F]">
-                      Nova Senha de Acesso
-                    </label>
-                    <div className="relative">
-                      <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={selectedUser.password}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const mustChange = val === '123';
-                          const updated = users.map(u => u.id === selectedUser.id ? { ...u, password: val, mustChangePassword: mustChange } : u);
-                          saveToStorageAndFirebase(updated);
-                          setSaveSuccess(true);
-                          setTimeout(() => setSaveSuccess(false), 2000);
-                        }}
-                        placeholder="Digite sua nova senha"
-                        className="w-full bg-stone-50/50 border border-[#E6D2A3] rounded-xl pl-10 pr-10 py-3 text-sm font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45] focus:bg-white focus:ring-2 focus:ring-[#C49A45]/20 transition-all shadow-inner"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-[#25231F] cursor-pointer"
-                        title={showPassword ? "Ocultar senha" : "Ver senha"}
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-[#77736B] font-mono mt-1">
-                      Digite sua nova senha para atualizar seu acesso ao sistema. A alteração é salva imediatamente.
-                    </p>
-                  </div>
-
-                  {/* Botão Salvar Senha */}
-                  <div className="pt-3 border-t border-[#E6D2A3] flex items-center justify-between">
-                    <span className="text-[10.5px] font-mono text-[#77736B]">
-                      {selectedUser.password && selectedUser.password !== '123' ? 'Senha personalizada cadastrada' : 'Senha padrão 123'}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        saveToStorageAndFirebase(users);
-                        setFeedbackMsg({ text: 'Sua senha foi alterada com sucesso!', type: 'success' });
-                        setTimeout(() => setFeedbackMsg(null), 3000);
-                      }}
-                      className="px-6 py-2.5 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
-                    >
-                      <Save size={15} className="text-[#C49A45]" />
-                      <span>Salvar Nova Senha</span>
-                    </button>
+              <div className="space-y-4">
+                {/* 1. NOME DO USUÁRIO */}
+                <div>
+                  <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
+                    1. Nome do Usuário
+                  </label>
+                  <div className="relative">
+                    <Users size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                    <input
+                      type="text"
+                      disabled={!isAdmin || isSelectedUserFixedAdmin}
+                      value={selectedUser.name}
+                      onChange={(e) => updateUserField('name', e.target.value)}
+                      placeholder="Ex: João Silva"
+                      className={cn(
+                        "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold focus:outline-none",
+                        !isAdmin || isSelectedUserFixedAdmin ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                      )}
+                    />
                   </div>
                 </div>
-              ) : (
-                /* ========================================================================= */
-                /* ADMINISTRADOR: GERENCIAMENTO COMPLETO DE DADOS, FUNÇÃO E PÁGINAS          */
-                /* ========================================================================= */
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* NOME / LOGIN */}
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
-                        Nome Completo
-                      </label>
-                      <div className="relative">
-                        <Users size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                        <input
-                          type="text"
-                          disabled={!isAdmin || isSelectedUserFixedAdmin}
-                          value={selectedUser.name}
-                          onChange={(e) => updateUserField('name', e.target.value)}
-                          placeholder="Ex: João Silva"
-                          className={cn(
-                            "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold focus:outline-none",
-                            !isAdmin || isSelectedUserFixedAdmin ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
-                          )}
-                        />
-                      </div>
-                    </div>
 
-                    {/* FUNÇÃO - MENU SUSPENSO (1. Administrador / 2. Agente de Risco) */}
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5">
-                          <Shield size={14} className="text-[#C49A45]" />
-                          <span>Função</span>
-                        </span>
-                        <span className="text-[9.5px] text-[#8C6D28] font-bold">
-                          {selectedUser.role === 'Administrador' ? 'Acesso Total' : 'Acesso Restrito a Páginas'}
-                        </span>
-                      </label>
-                      <div className="relative">
-                        <Shield size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                        <select
-                          disabled={!isAdmin || isSelectedUserFixedAdmin}
-                          value={selectedUser.role}
-                          onChange={(e) => updateUserField('role', (e.target.value as 'Administrador' | 'Agente de Risco'))}
-                          className={cn(
-                            "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold focus:outline-none cursor-pointer",
-                            !isAdmin || isSelectedUserFixedAdmin 
-                              ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" 
-                              : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
-                          )}
-                        >
-                          <option value="Administrador">1. Administrador</option>
-                          <option value="Agente de Risco">2. Agente de Risco</option>
-                        </select>
-                      </div>
+                {/* 2. EMAIL GOOGLE */}
+                <div>
+                  <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
+                    2. E-mail Google
+                  </label>
+                  <div className="relative">
+                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                    <input
+                      type="email"
+                      disabled={!isAdmin && !embedded}
+                      value={selectedUser.email}
+                      onChange={(e) => updateUserField('email', e.target.value)}
+                      placeholder="usuario@gmail.com ou corporativo"
+                      className={cn(
+                        "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-mono font-bold focus:outline-none",
+                        !isAdmin ? "bg-stone-50 border-stone-200 text-stone-600 cursor-not-allowed" : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                      )}
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#77736B] font-mono mt-1">
+                    Este deve ser o e-mail exato da Conta Google utilizada no login.
+                  </p>
+                </div>
 
-                      {/* Descrição contextual da Função selecionada */}
-                      <div className="mt-2.5">
-                        {selectedUser.role === 'Administrador' ? (
-                          <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 flex items-start gap-2.5 text-xs">
-                            <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
-                            <div className="leading-relaxed">
-                              <strong className="font-black uppercase text-emerald-800">1. Administrador:</strong> Consegue acessar, utilizar e visualizar todas as páginas operacionais, telas de configuração, cadastro e gerenciamento geral sem nenhuma restrição.
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 flex items-start gap-2.5 text-xs">
-                            <Sliders size={18} className="text-amber-700 shrink-0 mt-0.5" />
-                            <div className="leading-relaxed">
-                              <strong className="font-black uppercase text-amber-800">2. Agente de Risco:</strong> O administrador irá mostrar e marcar abaixo exatamente quais páginas este usuário poderá usar e visualizar no sistema.
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                {/* 3. FUNÇÃO (ADMINISTRADOR, AGENTE DE RISCO) */}
+                <div>
+                  <label className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Shield size={14} className="text-[#C49A45]" />
+                      <span>3. Função</span>
+                    </span>
+                    <span className="text-[9.5px] text-[#8C6D28] font-bold">
+                      {selectedUser.role === 'Administrador' ? 'Acesso Total' : 'Acesso Restrito a Páginas'}
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Shield size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                    <select
+                      disabled={!isAdmin || isSelectedUserFixedAdmin}
+                      value={selectedUser.role}
+                      onChange={(e) => updateUserField('role', (e.target.value as 'Administrador' | 'Agente de Risco'))}
+                      className={cn(
+                        "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold focus:outline-none cursor-pointer",
+                        !isAdmin || isSelectedUserFixedAdmin 
+                          ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" 
+                          : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                      )}
+                    >
+                      <option value="Administrador">Administrador</option>
+                      <option value="Agente de Risco">Agente de Risco</option>
+                    </select>
+                  </div>
 
-                    {/* ========================================================================= */}
-                    {/* PÁGINAS PERMITIDAS PARA O AGENTE DE RISCO                                 */}
-                    {/* ========================================================================= */}
-                    {selectedUser.role === 'Agente de Risco' && (
-                      <div className="sm:col-span-2 space-y-3 pt-2 border-t border-[#E6D2A3]/70">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div>
-                            <h3 className="text-xs font-black uppercase tracking-wider text-[#25231F] flex items-center gap-1.5">
-                              <Sliders size={14} className="text-[#C49A45]" />
-                              <span>Páginas Autorizadas para este Agente de Risco</span>
-                            </h3>
-                            <p className="text-[10px] text-[#77736B] font-mono mt-0.5">
-                              Marque as páginas que este usuário poderá visualizar e utilizar:
-                            </p>
-                          </div>
-
-                          {isAdmin && (
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={handleSelectAllPages}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold transition-all cursor-pointer"
-                              >
-                                Marcar Todas
-                              </button>
-                              <button
-                                type="button"
-                                onClick={handleClearAllPages}
-                                className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 text-[10px] font-bold transition-all cursor-pointer"
-                              >
-                                Desmarcar Todas
-                              </button>
-                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-[#8C6D28] border border-amber-300 text-[10px] font-mono font-bold">
-                                {(selectedUser.allowedPages || []).length} de {availablePagesList.length}
-                              </span>
-                            </div>
-                          )}
+                  <div className="mt-2.5">
+                    {selectedUser.role === 'Administrador' ? (
+                      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 flex items-start gap-2.5 text-xs">
+                        <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
+                        <div className="leading-relaxed">
+                          <strong className="font-black uppercase text-emerald-800">Administrador:</strong> Acesso total a todas as páginas e configurações do sistema.
                         </div>
-
-                        {/* Grade de Páginas Disponíveis */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-                          {availablePagesList.map((page) => {
-                            const isAllowed = (selectedUser.allowedPages || []).includes(page.id);
-                            const IconComp = ICON_MAP[page.iconName] || Sliders;
-
-                            return (
-                              <div
-                                key={page.id}
-                                onClick={() => {
-                                  if (isAdmin && !isSelectedUserFixedAdmin) {
-                                    togglePagePermission(page.id);
-                                  }
-                                }}
-                                className={cn(
-                                  "p-3 rounded-2xl border transition-all flex items-center justify-between gap-2 select-none",
-                                  isAdmin && !isSelectedUserFixedAdmin ? "cursor-pointer" : "cursor-default",
-                                  isAllowed
-                                    ? "bg-white border-emerald-400 shadow-xs ring-1 ring-emerald-400/30"
-                                    : "bg-stone-50 border-stone-200 opacity-60 hover:opacity-100 hover:border-stone-300"
-                                )}
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className={cn(
-                                    "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border",
-                                    isAllowed
-                                      ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                                      : "bg-stone-100 text-stone-400 border-stone-200"
-                                  )}>
-                                    <IconComp size={15} />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className={cn("text-xs font-black truncate leading-tight", isAllowed ? "text-[#25231F]" : "text-stone-500")}>
-                                      {page.label}
-                                    </p>
-                                    <p className="text-[9px] text-[#77736B] font-mono truncate">
-                                      {page.category}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="shrink-0 flex items-center">
-                                  {isAllowed ? (
-                                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[8.5px] font-mono font-bold border border-emerald-300">
-                                      <Check size={10} />
-                                      <span>AUTORIZADA</span>
-                                    </span>
-                                  ) : (
-                                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-stone-200 text-stone-600 text-[8.5px] font-mono font-bold border border-stone-300">
-                                      <Lock size={10} />
-                                      <span>BLOQUEADA</span>
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 flex items-start gap-2.5 text-xs">
+                        <Sliders size={18} className="text-amber-700 shrink-0 mt-0.5" />
+                        <div className="leading-relaxed">
+                          <strong className="font-black uppercase text-amber-800">Agente de Risco:</strong> Acesso customizado estritamente às páginas marcadas abaixo.
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
 
-                    {/* E-MAIL */}
-                    <div>
-                      <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
-                        E-mail Institucional
-                      </label>
-                      <div className="relative">
-                        <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                        <input
-                          type="email"
-                          value={selectedUser.email}
-                          onChange={(e) => updateUserField('email', e.target.value)}
-                          placeholder="usuario@3coracoes.com.br"
-                          className="w-full bg-white border border-[#E6D2A3] rounded-xl pl-10 pr-3 py-2.5 text-xs font-mono text-[#25231F] focus:outline-none focus:border-[#C49A45]"
-                        />
+                {/* PÁGINAS PERMITIDAS PARA O AGENTE DE RISCO */}
+                {selectedUser.role === 'Agente de Risco' && (
+                  <div className="space-y-3 pt-3 border-t border-[#E6D2A3]/70">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[#25231F] flex items-center gap-1.5">
+                          <Sliders size={14} className="text-[#C49A45]" />
+                          <span>Páginas Autorizadas para este Agente de Risco</span>
+                        </h3>
+                        <p className="text-[10px] text-[#77736B] font-mono mt-0.5">
+                          Marque as páginas que este usuário poderá visualizar e utilizar:
+                        </p>
                       </div>
-                    </div>
 
-                    {/* SENHA */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B]">
-                          Senha de Acesso
-                        </label>
-                        {(selectedUser.mustChangePassword || selectedUser.password === '123') && (
-                          <span className="text-[9px] font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
-                            Senha padrão 123 (obriga troca no 1º login)
-                          </span>
-                        )}
-                      </div>
-                      <div className="relative">
-                        <KeyRound size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={selectedUser.password}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            const mustChange = val === '123';
-                            const updated = users.map(u => u.id === selectedUserId ? { ...u, password: val, mustChangePassword: mustChange } : u);
-                            saveToStorageAndFirebase(updated);
-                            setSaveSuccess(true);
-                            setTimeout(() => setSaveSuccess(false), 2000);
-                          }}
-                          placeholder="Digite a senha"
-                          className="w-full bg-white border border-[#E6D2A3] rounded-xl pl-10 pr-10 py-2.5 text-xs font-mono font-bold text-[#25231F] focus:outline-none focus:border-[#C49A45]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-[#25231F] cursor-pointer"
-                        >
-                          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                        </button>
-                      </div>
-                      {isAdmin && !isSelectedUserFixedAdmin && (
-                        <div className="mt-1.5 flex items-center justify-between text-[10px]">
-                          <span className="text-[#77736B]">
-                            {selectedUser.mustChangePassword || selectedUser.password === '123' 
-                              ? 'O usuário precisará criar uma nova senha pessoal após o 1º login.' 
-                              : 'Senha já alterada pelo usuário.'}
-                          </span>
+                      {isAdmin && (
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={handleResetPasswordTo123}
-                            className="text-[#8C6D28] hover:text-[#25231F] font-bold underline cursor-pointer"
+                            onClick={handleSelectAllPages}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold transition-all cursor-pointer"
                           >
-                            Redefinir para 123
+                            Marcar Todas
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleClearAllPages}
+                            className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 text-[10px] font-bold transition-all cursor-pointer"
+                          >
+                            Desmarcar Todas
                           </button>
                         </div>
                       )}
                     </div>
-                  </div>
 
-                  <div className="pt-4 border-t border-[#E6D2A3] flex items-center justify-between">
-                    <div className="text-[11px] font-mono text-[#77736B]">
-                      ID Cadastral: #{selectedUser.id}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          saveToStorageAndFirebase(users);
-                          setFeedbackMsg({ text: 'Alterações gravadas com sucesso no sistema e Firebase!', type: 'success' });
-                          setTimeout(() => setFeedbackMsg(null), 3000);
-                        }}
-                        className="px-5 py-2.5 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
-                      >
-                        <Save size={15} className="text-[#C49A45]" />
-                        <span>Salvar Alterações</span>
-                      </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
+                      {availablePagesList.map((page) => {
+                        const isAllowed = (selectedUser.allowedPages || []).includes(page.id);
+                        const IconComp = ICON_MAP[page.iconName] || Sliders;
+
+                        return (
+                          <div
+                            key={page.id}
+                            onClick={() => {
+                              if (isAdmin && !isSelectedUserFixedAdmin) {
+                                togglePagePermission(page.id);
+                              }
+                            }}
+                            className={cn(
+                              "p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 select-none",
+                              isAdmin && !isSelectedUserFixedAdmin ? "cursor-pointer" : "cursor-default",
+                              isAllowed
+                                ? "bg-white border-emerald-400 shadow-xs ring-1 ring-emerald-400/30"
+                                : "bg-stone-50 border-stone-200 opacity-60 hover:opacity-100 hover:border-stone-300"
+                            )}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className={cn(
+                                "w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border",
+                                isAllowed
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                  : "bg-stone-100 text-stone-400 border-stone-200"
+                              )}>
+                                <IconComp size={14} />
+                              </div>
+                              <p className={cn("text-xs font-black truncate leading-tight", isAllowed ? "text-[#25231F]" : "text-stone-500")}>
+                                {page.label}
+                              </p>
+                            </div>
+
+                            <span className={cn(
+                              "px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold border",
+                              isAllowed ? "bg-emerald-100 text-emerald-800 border-emerald-300" : "bg-stone-200 text-stone-600 border-stone-300"
+                            )}>
+                              {isAllowed ? 'AUTORIZADA' : 'BLOQUEADA'}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                </>
-              )}
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-[#E6D2A3] flex items-center justify-between">
+                <div className="text-[11px] font-mono text-[#77736B]">
+                  ID Cadastral: #{selectedUser.id}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    saveToStorageAndFirebase(users);
+                    setFeedbackMsg({ text: 'Alterações salvas com sucesso!', type: 'success' });
+                    setTimeout(() => setFeedbackMsg(null), 3000);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                >
+                  <Save size={15} className="text-[#C49A45]" />
+                  <span>Salvar Alterações</span>
+                </button>
+              </div>
             </>
           ) : (
             <div className="text-center py-12 text-[#77736B]">

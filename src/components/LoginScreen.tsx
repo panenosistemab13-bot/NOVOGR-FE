@@ -8,45 +8,21 @@ import {
   EyeOff,
   Globe,
   Mail,
-  Lock
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
-import goldMedalLogo from '../assets/images/gold_logo_medal_3c_1790406432555.jpg';
 import luxuryLounge360 from '../assets/images/tres_coracoes_luxury_lounge_360_1791988294363.jpg';
 import Wallpaper360Viewer from './common/Wallpaper360Viewer';
 
-import { rtdb } from '../firebase';
-import { ref, onValue } from 'firebase/database';
+import { auth, rtdb } from '../firebase';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { ref, onValue, set } from 'firebase/database';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: { email: string; name: string; role: string }) => void;
 }
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
-  const [email, setEmail] = useState(() => {
-    try {
-      return localStorage.getItem('remembered_login_email') || '';
-    } catch {
-      return '';
-    }
-  });
-  const [password, setPassword] = useState(() => {
-    try {
-      const remember = localStorage.getItem('remember_login_active') === 'true';
-      if (remember) {
-        return localStorage.getItem('remembered_login_password') || '';
-      }
-    } catch {}
-    return '';
-  });
-  const [rememberPassword, setRememberPassword] = useState(() => {
-    try {
-      return localStorage.getItem('remember_login_active') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showWallpaperModal, setShowWallpaperModal] = useState(false);
@@ -56,138 +32,99 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       if (saved) {
         let parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Remover login antigo "jeff"
-          parsed = parsed.filter(u => String(u?.name || '').trim().toLowerCase() !== 'jeff');
-          const hasJeff = parsed.some(u => String(u?.name || '').trim().toLowerCase() === 'jefferson');
-          if (!hasJeff) {
-            parsed.unshift({ id: 1, name: 'jefferson', role: 'Administrador', email: 'jefferson@3coracoes.com.br', password: '#trescafe2029' });
-          } else {
-            const idx = parsed.findIndex(u => String(u?.name || '').trim().toLowerCase() === 'jefferson');
-            if (idx !== -1) {
-              parsed[idx] = {
-                ...parsed[idx],
-                name: 'jefferson',
-                role: 'Administrador',
-                email: parsed[idx].email || 'jefferson@3coracoes.com.br',
-                password: '#trescafe2029'
-              };
-            }
-          }
-          localStorage.setItem('app_users', JSON.stringify(parsed));
           return parsed;
         }
       }
     } catch {}
     return [
-      { id: 1, name: 'jefferson', role: 'Administrador', email: 'jefferson@3coracoes.com.br', password: '#trescafe2029' }
+      { id: 1, name: 'Administrador Principal', role: 'Administrador', email: 'panenosistemab13@gmail.com' },
+      { id: 2, name: 'jefferson', role: 'Administrador', email: 'jefferson@3coracoes.com.br' },
+      { id: 3, name: 'Operador Logístico', role: 'Agente de Risco', email: 'operador@3coracoes.com.br' }
     ];
   });
 
-  // Sincronizar usuários autorizados em tempo real com Firebase RTDB
   React.useEffect(() => {
     const usersRef = ref(rtdb, 'app_users');
     const unsub = onValue(usersRef, (snapshot) => {
       const val = snapshot.val();
       if (val && Array.isArray(val)) {
-        // Limpar qualquer "jeff" e garantir o admin fixo jefferson
-        const filtered = val.filter(u => String(u?.name || '').trim().toLowerCase() !== 'jeff');
-        const hasJeff = filtered.some(u => String(u?.name || '').trim().toLowerCase() === 'jefferson');
-        const list = hasJeff 
-          ? filtered.map(u => String(u?.name || '').trim().toLowerCase() === 'jefferson' 
-              ? { ...u, name: 'jefferson', role: 'Administrador', password: '#trescafe2029' } 
-              : u)
-          : [{ id: 1, name: 'jefferson', role: 'Administrador', email: 'jefferson@3coracoes.com.br', password: '#trescafe2029' }, ...filtered];
-        setRegisteredUsers(list);
-        localStorage.setItem('app_users', JSON.stringify(list));
+        setRegisteredUsers(val);
+        localStorage.setItem('app_users', JSON.stringify(val));
       }
     });
     return () => unsub();
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleLogin = async () => {
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
-      const cleanInput = email.trim().toLowerCase();
-      const cleanPass = password.trim();
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const googleUser = result.user;
+      const googleEmail = (googleUser.email || '').trim().toLowerCase();
+      const googleName = googleUser.displayName || googleEmail.split('@')[0] || 'Usuário';
 
-      // Bloqueio explícito do login "jeff" antigo solicitado pelo usuário
-      if (cleanInput === 'jeff') {
-        setError('Login "jeff" foi desativado. Utilize o e-mail institucional (ex: jefferson@3coracoes.com.br).');
+      if (!googleEmail) {
+        setError('Não foi possível obter o e-mail da sua conta Google.');
         setLoading(false);
         return;
       }
 
-      const saveCredentialsIfRemembered = () => {
-        if (rememberPassword) {
-          localStorage.setItem('remember_login_active', 'true');
-          localStorage.setItem('remembered_login_email', cleanInput);
-          localStorage.setItem('remembered_login_password', cleanPass);
-        } else {
-          localStorage.removeItem('remember_login_active');
-          localStorage.removeItem('remembered_login_email');
-          localStorage.removeItem('remembered_login_password');
-        }
-      };
-
-      // Verificação direta do usuário administrativo fixo jefferson
-      if (
-        (cleanInput === 'jefferson@3coracoes.com.br' || cleanInput === 'jefferson') && 
-        cleanPass === '#trescafe2029'
-      ) {
-        saveCredentialsIfRemembered();
-        const adminData = {
-          email: 'jefferson@3coracoes.com.br',
-          name: 'jefferson',
-          role: 'admin',
-          roleLabel: 'Administrador',
-          allowedPages: []
-        };
-        localStorage.setItem('logged_user', JSON.stringify(adminData));
-        localStorage.setItem('user_email', adminData.email);
-        onLoginSuccess(adminData);
-        return;
-      }
-
-      // Buscar na lista de usuários cadastrados
       const currentList = registeredUsers.length > 0 
         ? registeredUsers 
         : JSON.parse(localStorage.getItem('app_users') || '[]');
 
-      const user = currentList.find((u: any) => {
+      let matchedUser = currentList.find((u: any) => {
         const uEmail = String(u.email || '').trim().toLowerCase();
-        const uName = String(u.name || '').trim().toLowerCase();
-        // Permite autenticação por e-mail institucional completo ou pelo nome de usuário correspondente
-        const matchesIdentity = uEmail === cleanInput || uEmail.split('@')[0] === cleanInput || uName === cleanInput;
-        return matchesIdentity && u.password === cleanPass;
+        return uEmail === googleEmail;
       });
 
-      if (user) {
-        saveCredentialsIfRemembered();
-        const isUserAdmin = user.role === 'Administrador' || String(user.name).trim().toLowerCase() === 'jefferson';
-        const isRootAdmin = String(user.name).trim().toLowerCase() === 'jefferson';
-        const requiresPasswordChange = isRootAdmin
-          ? false
-          : (user.mustChangePassword === true || String(user.password).trim() === '123');
+      // Se o usuário não estiver na lista, auto-registramos como Administrador se for panenosistemab13 ou jefferson, ou como Agente de Risco / Administrador
+      const isRootAdmin = googleEmail === 'panenosistemab13@gmail.com' || googleEmail === 'jefferson@3coracoes.com.br';
 
-        const userData = {
-          email: user.email || (cleanInput.includes('@') ? cleanInput : `${cleanInput}@3coracoes.com.br`),
-          name: user.name,
-          role: isUserAdmin ? 'admin' : 'agente_de_risco',
-          roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-          allowedPages: Array.isArray(user.allowedPages) ? user.allowedPages : [],
-          mustChangePassword: requiresPasswordChange
+      if (!matchedUser) {
+        const newUser = {
+          id: Date.now(),
+          name: googleName,
+          role: isRootAdmin ? 'Administrador' : 'Agente de Risco',
+          email: googleEmail,
+          allowedPages: isRootAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala']
         };
-        localStorage.setItem('logged_user', JSON.stringify(userData));
-        localStorage.setItem('user_email', userData.email);
-        onLoginSuccess(userData);
-      } else {
-        setError('E-mail institucional ou senha inválidos. Verifique os dados digitados.');
-        setLoading(false);
+        const updatedList = [...currentList, newUser];
+        setRegisteredUsers(updatedList);
+        localStorage.setItem('app_users', JSON.stringify(updatedList));
+        try {
+          set(ref(rtdb, 'app_users'), updatedList);
+        } catch (e) {
+          console.error(e);
+        }
+        matchedUser = newUser;
       }
-    }, 600);
+
+      const roleStr = matchedUser?.role || (isRootAdmin ? 'Administrador' : 'Agente de Risco');
+      const isUserAdmin = roleStr === 'Administrador' || isRootAdmin;
+
+      const userData = {
+        email: googleEmail,
+        name: matchedUser?.name || googleName,
+        role: isUserAdmin ? 'admin' : 'agente_de_risco',
+        roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
+        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : []
+      };
+
+      localStorage.setItem('logged_user', JSON.stringify(userData));
+      localStorage.setItem('user_email', userData.email);
+      onLoginSuccess(userData);
+    } catch (e: any) {
+      if (e.code === 'auth/popup-closed-by-user') {
+        setError('Login com Google cancelado pelo usuário.');
+      } else {
+        setError('Erro ao autenticar com a Conta Google. Tente novamente.');
+      }
+      setLoading(false);
+    }
   };
 
   return (
@@ -212,7 +149,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         </button>
       </div>
 
-      <div className="w-full max-w-sm bg-[#0a0c0f]/80 border border-white/5 rounded-3xl shadow-[0_25px_50px_rgba(0,0,0,0.9)] p-10 md:p-12 relative z-10 text-[#F3F6F8] backdrop-blur-3xl">
+      <div className="w-full max-w-md bg-[#0a0c0f]/85 border border-[#C5A059]/30 rounded-3xl shadow-[0_25px_50px_rgba(0,0,0,0.9)] p-10 md:p-12 relative z-10 text-[#F3F6F8] backdrop-blur-3xl text-center">
         
         {/* Brand Header */}
         <div className="text-center mb-8 flex flex-col items-center">
@@ -227,10 +164,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               <div className="text-xl font-serif font-bold text-[#F3F6F8] tracking-wide">Três Corações</div>
             </div>
           </div>
+          <p className="text-xs text-stone-400 font-mono mt-1">
+            Autenticação Segura via Conta Google
+          </p>
         </div>
 
         {error && (
-          <div className="mb-6 bg-red-950/80 border border-red-500/50 text-red-200 px-4 py-3 rounded-2xl text-xs font-mono flex items-start gap-3 shadow-md">
+          <div className="mb-6 bg-red-950/80 border border-red-500/50 text-red-200 px-4 py-3 rounded-2xl text-xs font-mono flex items-start gap-3 shadow-md text-left">
             <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
             <div className="leading-relaxed font-bold">
               {error}
@@ -238,80 +178,40 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          {/* Campo E-MAIL INSTITUCIONAL */}
-          <div>
-            <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#D6A84F] mb-1.5">
-              E-MAIL INSTITUCIONAL
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D6A84F]" />
-              <input 
-                type="text"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#172231]/90 border border-[#D6A84F]/40 focus:border-[#D6A84F] rounded-xl pl-11 pr-4 py-3.5 text-xs font-mono text-[#F3F6F8] focus:outline-none transition-all shadow-inner"
-              />
+        <div className="space-y-6">
+          <div className="p-4 rounded-2xl bg-[#172231]/60 border border-[#D6A84F]/30 text-xs text-stone-300 font-mono text-left space-y-2">
+            <div className="flex items-center gap-2 text-[#D6A84F] font-bold">
+              <ShieldCheck size={16} />
+              <span>Acesso Verificado por E-mail</span>
             </div>
-          </div>
-
-          {/* Campo SENHA */}
-          <div>
-            <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#D6A84F] mb-1.5">
-              SENHA DE ACESSO
-            </label>
-            <div className="relative">
-              <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D6A84F]" />
-              <input 
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Digite sua senha"
-                className="w-full bg-[#172231]/90 border border-[#D6A84F]/40 focus:border-[#D6A84F] rounded-xl pl-11 pr-12 py-3.5 text-xs font-mono text-[#F3F6F8] placeholder-[#94A3B8]/60 focus:outline-none transition-all shadow-inner"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#D6A84F] transition-colors cursor-pointer"
-                title={showPassword ? "Ocultar senha" : "Ver senha"}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Opção Lembrar Senha */}
-          <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer select-none group">
-              <input
-                type="checkbox"
-                checked={rememberPassword}
-                onChange={(e) => setRememberPassword(e.target.checked)}
-                className="w-4 h-4 rounded border-[#D6A84F]/60 bg-[#172231] text-[#D6A84F] focus:ring-0 focus:ring-offset-0 accent-[#D6A84F] cursor-pointer"
-              />
-              <span className="text-xs font-mono text-[#FAF7F0]/90 group-hover:text-[#D6A84F] transition-colors">
-                Lembrar senha
-              </span>
-            </label>
+            <p className="text-[11px] text-stone-400 leading-relaxed">
+              O sistema identifica automaticamente o seu acesso utilizando a mesma conta Google. Se o e-mail não estiver cadastrado, ele será registrado automaticamente.
+            </p>
           </div>
 
           <button
-            type="submit"
+            onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-[#D6A84F] via-[#c5953e] to-[#b08030] hover:brightness-110 text-[#090a0c] font-black py-4 px-6 rounded-xl shadow-[0_4px_20px_rgba(214,168,79,0.4)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs cursor-pointer disabled:opacity-50 mt-4 active:scale-[0.99]"
+            className="w-full bg-gradient-to-r from-[#D6A84F] via-[#c5953e] to-[#b08030] hover:brightness-110 text-[#090a0c] font-black py-4 px-6 rounded-xl shadow-[0_4px_20px_rgba(214,168,79,0.4)] transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-xs cursor-pointer disabled:opacity-50 active:scale-[0.99]"
           >
             {loading ? (
               <span className="flex items-center gap-2 font-mono">
                 <span className="w-4 h-4 border-2 border-[#090a0c] border-t-transparent rounded-full animate-spin" />
-                Autenticando...
+                Autenticando com Google...
               </span>
             ) : (
-              <span>ENTRAR</span>
+              <>
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Entrar com Conta Google</span>
+              </>
             )}
           </button>
-        </form>
+        </div>
 
         <div className="mt-8 pt-4 border-t border-white/10 text-center">
           <p className="text-[10px] font-mono text-[#94A3B8] uppercase tracking-wider">
