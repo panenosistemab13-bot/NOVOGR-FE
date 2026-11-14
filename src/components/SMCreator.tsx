@@ -34,7 +34,9 @@ import {
   Route,
   Eye,
   EyeOff,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Zap,
+  ArrowDown
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
@@ -409,9 +411,9 @@ const findRouteCode = (trechoStr: string, section: 'ida' | 'volta', routes: Rout
 
 const generateStyledTableHtml = (rows: SMRow[], type: 'ida' | 'volta' | 'vespasiano' | 'nordeste') => {
   if (rows.length === 0) return '';
-  const headerBg = type === 'ida' ? '#080A0C' : type === 'volta' ? '#801414' : type === 'nordeste' ? '#000000' : '#166534';
-  const headerBorder = type === 'ida' ? '#D9AD5A' : headerBg;
-  const headerColor = type === 'ida' ? '#E5C27A' : '#ffffff';
+  const headerBg = type === 'ida' ? '#0A0D10' : type === 'volta' ? '#801414' : type === 'nordeste' ? '#F2B729' : '#166534';
+  const headerBorder = type === 'ida' ? '#D9AD5A' : type === 'nordeste' ? '#C98A0C' : headerBg;
+  const headerColor = type === 'ida' ? '#E5C27A' : type === 'nordeste' ? '#141311' : '#ffffff';
   
   let rowsHtml = '';
   rows.forEach((r, idx) => {
@@ -724,6 +726,8 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   const [nordesteCopied, setNordesteCopied] = useState(false);
   const [subjectIdaCopied, setSubjectIdaCopied] = useState(false);
   const [subjectVoltaCopied, setSubjectVoltaCopied] = useState(false);
+  const [subjectNordesteCopied, setSubjectNordesteCopied] = useState(false);
+  const [subjectVespasianoCopied, setSubjectVespasianoCopied] = useState(false);
 
   // Estados e funções para cópia dos números de rota
   const [copiedRouteKey, setCopiedRouteKey] = useState<string | null>(null);
@@ -1630,11 +1634,38 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setTimeout(() => setTotalRawCopied(false), 2000);
   };
 
-  const addCalcLine = () => saveCalc([...calcValues, ''], true);
+  const displayCalcValues = Array.from(
+    { length: Math.max(calcValues.length, 5) },
+    (_, i) => calcValues[i] ?? ''
+  );
+
+  const addCalcLine = () => {
+    const base = Array.from(
+      { length: Math.max(calcValues.length, 5) },
+      (_, i) => calcValues[i] ?? ''
+    );
+    saveCalc([...base, ''], true);
+  };
+
   const updateCalcValue = (index: number, val: string) => {
-    const newVals = [...calcValues];
+    const newVals = Array.from(
+      { length: Math.max(calcValues.length, 5, index + 1) },
+      (_, i) => calcValues[i] ?? ''
+    );
     newVals[index] = val;
     saveCalc(newVals);
+  };
+
+  const removeCalcLine = (index: number) => {
+    const base = Array.from(
+      { length: Math.max(calcValues.length, 5) },
+      (_, i) => calcValues[i] ?? ''
+    );
+    const filtered = base.filter((_, idx) => idx !== index);
+    while (filtered.length < 5) {
+      filtered.push('');
+    }
+    saveCalc(filtered, true);
   };
 
   const handlePasteCalc = (pastedText: string, startIndex: number) => {
@@ -1645,7 +1676,10 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       .filter(line => line.length > 0);
     if (lines.length === 0) return;
 
-    const newVals = [...calcValues];
+    const newVals = Array.from(
+      { length: Math.max(calcValues.length, 5) },
+      (_, i) => calcValues[i] ?? ''
+    );
     lines.forEach((line, offset) => {
       const targetIdx = startIndex + offset;
       const num = parsePastedCurrency(line);
@@ -1689,6 +1723,8 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
   const getSubjectIda = () => `SM IDA - DEDICADOS ${getSubjectDate(idaRows)} - SANTA LUZIA!`;
   const getSubjectVolta = () => `SM VOLTA - DEDICADOS ${getSubjectDate(voltaRows)} - SANTA LUZIA!`;
+  const getSubjectNordeste = () => `SM NORDESTE - DEDICADOS ${getSubjectDate(nordesteRows)} - SANTA LUZIA X NORDESTE!`;
+  const getSubjectVespasiano = () => `SM VESPASIANO - DEDICADOS ${getSubjectDate(vespasianoRows)} - VESPASIANO!`;
 
   const copySubjectIda = async () => {
     const subject = getSubjectIda();
@@ -1702,6 +1738,20 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     await safeCopyText(subject);
     setSubjectVoltaCopied(true);
     setTimeout(() => setSubjectVoltaCopied(false), 2000);
+  };
+
+  const copySubjectNordeste = async () => {
+    const subject = getSubjectNordeste();
+    await safeCopyText(subject);
+    setSubjectNordesteCopied(true);
+    setTimeout(() => setSubjectNordesteCopied(false), 2000);
+  };
+
+  const copySubjectVespasiano = async () => {
+    const subject = getSubjectVespasiano();
+    await safeCopyText(subject);
+    setSubjectVespasianoCopied(true);
+    setTimeout(() => setSubjectVespasianoCopied(false), 2000);
   };
 
   const copyToEmail = async () => {
@@ -1737,7 +1787,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         </div>
 
         <div style="margin-top: 30px;">
-          <h3 style="color: #000000; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA SANTA LUZIA X NORDESTE ---</h3>
+          <h3 style="color: #B47800; margin-bottom: 5px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">--- ROTA SANTA LUZIA X NORDESTE ---</h3>
           <p style="font-size: 13px;">${greeting},</p>
           <p style="font-size: 13px;">Seguem em anexo as solicitações de monitoramento rota Santa Luzia x Nordeste para as escalas de viagem para o dia: <strong>${getJourneyDate(nordesteRows)}</strong>!</p>
           ${generateStyledTableHtml(nordesteRows, 'nordeste')}
@@ -1768,7 +1818,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     if (rows.length === 0) return;
     
     const isNordeste = title.toUpperCase().includes('NORDESTE');
-    const color = isNordeste ? '#000000' : title.includes('IDA') ? '#14325c' : title.includes('VOLTA') ? '#7f1d1d' : '#166534';
+    const color = isNordeste ? '#B47800' : title.includes('IDA') ? '#0A0D10' : title.includes('VOLTA') ? '#7f1d1d' : '#166534';
     const type = isNordeste ? 'nordeste' : title.includes('IDA') ? 'ida' : title.includes('VOLTA') ? 'volta' : 'vespasiano';
     const greeting = getGreeting();
     const date = getJourneyDate(rows);
@@ -1803,158 +1853,264 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   };
 
   return (
-    <div className="w-full relative pb-10 space-y-4 font-sans text-[#25231F] text-left bg-[#F5F0E6] p-4 sm:p-6 rounded-3xl border border-[#E6D2A3] shadow-lg">
+    <div className="w-full relative pb-10 space-y-5 font-sans text-[#1A1917] text-left bg-[#FDF8EE] p-4 sm:p-7 rounded-3xl border border-[#EFE2C6] shadow-lg">
       
       {internalView === 'codes' || view === 'codes' ? (
-        <div className="relative z-10 bg-[#FFFCF6] p-6 rounded-3xl border border-[#E6D2A3] shadow-md text-[#25231F]">{renderCodesTable()}</div>
+        <div className="relative z-10 bg-[#FFFDF9] p-6 rounded-3xl border border-[#EFE2C6] shadow-md text-[#1A1917]">{renderCodesTable()}</div>
       ) : (
-        <div className="relative z-10 space-y-4 animate-fade-in text-left">
+        <div className="relative z-10 space-y-5 animate-fade-in text-left">
           
           {/* ========================================================================= */}
           {/* EXECUTIVE DASHBOARD GRAPHIC (CENTRAL DE ESCALA & ASSUNTOS PADRONIZADOS)    */}
           {/* ========================================================================= */}
-          <div className="w-full shrink-0 space-y-3.5">
-            {/* Header: ROTA DE TRANSPORTE - BRASIL / CENTRAL DE ESCALA */}
-            <div className="relative w-full h-[68px] bg-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
-              <div className="relative z-10 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E6D2A3] to-[#C49A45] flex items-center justify-center text-[#25231F] shadow-sm shrink-0">
-                  <Route size={22} className="stroke-[2.5]" />
+          <div className="w-full shrink-0 space-y-5">
+            {/* Header: ROTA DE TRANSPORTE - BRASIL / Central de Escala */}
+            <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1 pt-1">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-[#FBD24D] via-[#F2B529] to-[#E39B12] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(234,168,25,0.32)] shrink-0">
+                  <Route size={28} className="stroke-[2.2] text-white" />
                 </div>
-                <div className="flex flex-col text-left leading-none">
-                  <span className="text-[11px] font-black tracking-widest text-[#C49A45] uppercase">
+                <div className="flex flex-col text-left">
+                  <span className="text-[11px] sm:text-xs font-extrabold tracking-[0.06em] text-[#DE9A14] uppercase leading-tight">
                     ROTA DE TRANSPORTE - BRASIL
                   </span>
-                  <span className="text-[22px] font-black tracking-tight text-[#FFFCF6] uppercase mt-0.5 font-heading">
-                    CENTRAL DE ESCALA
-                  </span>
+                  <h1 className="text-2xl sm:text-[31px] font-black tracking-tight text-[#1A1917] leading-none mt-1">
+                    Central de Escala
+                  </h1>
                 </div>
               </div>
-              <div className="relative z-10 flex items-center gap-2">
+
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsRouteSelectorOpen(true)}
-                  className="px-3.5 py-1.5 text-xs font-black rounded-xl border bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40 cursor-pointer transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                  className="px-5 py-2.5 text-xs font-bold rounded-full bg-[#FFFDF9] hover:bg-[#FAF1DF] text-[#1A1917] border border-[#EDE0C8] cursor-pointer transition-all flex items-center gap-2 shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-95"
                   title="Escolher quais rotas devem aparecer"
                 >
-                  <SlidersHorizontal size={13} className="text-[#C49A45]" />
+                  <SlidersHorizontal size={15} className="text-[#1A1917] stroke-[2.2]" />
                   <span>Rotas ({Object.values(visibleRoutes).filter(Boolean).length}/4)</span>
+                  <ArrowDown size={13} className="text-[#785A28] stroke-[2.3]" />
                 </button>
+
                 <button
+                  type="button"
                   onClick={handleClearAllSM}
-                  className="px-3.5 py-1.5 text-xs font-black rounded-xl border bg-red-950/80 hover:bg-red-900 text-red-200 border-red-800/60 cursor-pointer transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-                  title="Limpar todas as informações de teste"
+                  className="px-5 py-2.5 text-xs font-bold rounded-full bg-[#C90A14] hover:bg-[#AD0710] text-white cursor-pointer transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(201,10,20,0.25)] active:scale-95"
+                  title="Limpar todas as informações"
                 >
-                  <Trash2 size={13} /> Limpar Dados
+                  <Trash2 size={15} className="stroke-[2.2]" />
+                  <span>Limpar Dados</span>
                 </button>
+
                 {onBack && (
                   <button
+                    type="button"
                     onClick={onBack}
-                    className="px-3.5 py-1.5 text-xs font-black rounded-xl border bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40 cursor-pointer transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                    className="px-5 py-2.5 text-xs font-bold rounded-full bg-[#1C1B1A] hover:bg-[#2F2E2C] text-white cursor-pointer transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.18)] active:scale-95"
                     title="Voltar ao menu"
                   >
-                    <ArrowLeft size={13} /> Voltar
+                    <ArrowLeft size={15} className="stroke-[2.2]" />
+                    <span>Voltar</span>
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Assuntos de E-mail Padronizados (2 Cards em destaque) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 w-full">
-              {/* Card 1: Rota Ida Subject */}
-              <div className="bg-[#292820] border border-[#C49A45]/40 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-md">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Mail size={14} className="text-[#E6D2A3]" />
-                    <span className="text-[11px] font-black text-[#FFFCF6] uppercase tracking-wider">
-                      ASSUNTOS DE E-MAIL PADRONIZADOS
-                    </span>
-                    <span className="text-[8px] font-mono font-black uppercase tracking-widest px-1.5 py-0.2 rounded-full bg-[#C49A45]/20 text-[#E6D2A3] border border-[#C49A45]/40">
-                      AUTO
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-wider text-[#C49A45] block mb-0.5">SM ROTA IDA</span>
-                  <span className="text-[11px] font-mono font-bold text-[#FFFCF6] truncate block">{getSubjectIda()}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={copySubjectIda}
-                  className={cn(
-                    "px-3.5 py-2 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shrink-0 border",
-                    subjectIdaCopied
-                      ? "bg-emerald-600 text-white border-emerald-500"
-                      : "bg-[#1a1917] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/50 shadow-xs active:scale-95"
-                  )}
-                >
-                  {subjectIdaCopied ? <Check size={12} /> : <Copy size={12} />}
-                  <span>{subjectIdaCopied ? "OK" : "COPIAR"}</span>
-                </button>
-              </div>
+            {/* Assuntos de E-mail Padronizados (Exibidos apenas para as rotas visíveis) */}
+            {Object.values(visibleRoutes).some(Boolean) && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                {/* Card 1: Rota Ida Subject */}
+                {visibleRoutes.ida && (
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FFFDF9] via-[#FFF9ED] to-[#FDF1D6]/85 border border-[#F2E2C4] px-5 py-4 flex items-center justify-between gap-4 shadow-[0_4px_14px_rgba(218,165,32,0.06)] animate-fade-in">
+                    {/* Barra vertical dourada na esquerda */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-[#F7C948] to-[#E5A31A]" />
+                    {/* Detalhe suave de onda dourada no fundo direito */}
+                    <div className="pointer-events-none absolute -right-8 -bottom-10 w-52 h-52 rounded-full bg-gradient-to-tl from-[#FBE5B8]/55 to-transparent blur-md" />
 
-              {/* Card 2: Rota Volta Subject */}
-              <div className="bg-[#292820] border border-[#C91F2D]/50 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-md">
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#C91F2D] block mb-1">SM ROTA VOLTA</span>
-                  <span className="text-[11px] font-mono font-bold text-[#FFFCF6] truncate block">{getSubjectVolta()}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={copySubjectVolta}
-                  className={cn(
-                    "px-3.5 py-2 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shrink-0 border",
-                    subjectVoltaCopied
-                      ? "bg-emerald-600 text-white border-emerald-500"
-                      : "bg-[#C91F2D] hover:bg-[#a61723] text-white border-[#C91F2D]/60 shadow-xs active:scale-95"
-                  )}
-                >
-                  {subjectVoltaCopied ? <Check size={12} /> : <Copy size={12} />}
-                  <span>{subjectVoltaCopied ? "OK" : "COPIAR"}</span>
-                </button>
+                    <div className="relative z-10 flex items-center gap-4 min-w-0 flex-1 pl-1">
+                      <div className="w-12 h-12 rounded-full bg-[#FDF0D2] border border-[#F7DFA8] flex items-center justify-center text-[#D89412] shrink-0">
+                        <Mail size={20} className="stroke-[2]" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="text-[15px] font-extrabold text-[#1A1917] tracking-tight">
+                            Assuntos de E-mail Padronizados
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#F2B729] text-white text-[10px] font-extrabold uppercase tracking-wider shadow-2xs">
+                            AUTO
+                          </span>
+                        </div>
+                        <span className="block text-xs font-extrabold uppercase tracking-wide text-[#DC9814]">
+                          SM ROTA IDA
+                        </span>
+                        <span className="block text-xs sm:text-[13px] font-extrabold text-[#1A1917] uppercase tracking-tight truncate">
+                          {getSubjectIda()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={copySubjectIda}
+                      className={cn(
+                        "relative z-10 px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0",
+                        subjectIdaCopied
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "bg-[#FCEAC6] hover:bg-[#F9DDA6] text-[#1A1917] border border-[#F3D499]/70 shadow-2xs active:scale-95"
+                      )}
+                    >
+                      {subjectIdaCopied ? (
+                        <Check size={14} className="stroke-[2.5]" />
+                      ) : (
+                        <Copy size={14} className="text-[#78530D] stroke-[2.2]" />
+                      )}
+                      <span>{subjectIdaCopied ? "Copiado!" : "Copiar"}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Card 2: Rota Volta Subject */}
+                {visibleRoutes.volta && (
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FFFDF9] via-[#FFF6F5] to-[#FDE8E8]/80 border border-[#F3D6D4] px-5 py-4 flex items-center justify-between gap-4 shadow-[0_4px_14px_rgba(229,9,20,0.06)] animate-fade-in">
+                    {/* Barra vertical vermelha na esquerda */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E50914]" />
+                    {/* Detalhes suaves de onda vermelha/rosada no fundo */}
+                    <div className="pointer-events-none absolute -left-6 -bottom-8 w-36 h-36 rounded-full bg-[#FCD5D7]/45 blur-md" />
+                    <div className="pointer-events-none absolute -right-8 -bottom-10 w-52 h-52 rounded-full bg-gradient-to-tl from-[#FCD5D7]/45 to-transparent blur-md" />
+
+                    <div className="relative z-10 flex items-center gap-4 min-w-0 flex-1 pl-1">
+                      <div className="w-12 h-12 rounded-full bg-[#E50914] flex items-center justify-center text-white shadow-[0_4px_12px_rgba(229,9,20,0.3)] shrink-0">
+                        <Zap size={20} className="fill-white text-white stroke-[2]" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <span className="block text-[13px] font-extrabold uppercase tracking-wide text-[#C90812]">
+                          SM ROTA VOLTA
+                        </span>
+                        <span className="block text-xs sm:text-[13px] font-extrabold text-[#1A1917] uppercase tracking-tight truncate">
+                          {getSubjectVolta()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={copySubjectVolta}
+                      className={cn(
+                        "relative z-10 px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0",
+                        subjectVoltaCopied
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "bg-[#E50914] hover:bg-[#C40710] text-white shadow-[0_4px_12px_rgba(229,9,20,0.28)] active:scale-95"
+                      )}
+                    >
+                      {subjectVoltaCopied ? (
+                        <Check size={14} className="stroke-[2.5]" />
+                      ) : (
+                        <Copy size={14} className="text-white stroke-[2.2]" />
+                      )}
+                      <span>{subjectVoltaCopied ? "Copiado!" : "Copiar"}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Card 3: Rota Santa Luzia x Nordeste Subject */}
+                {visibleRoutes.nordeste && (
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FFFDF9] via-[#FFFBEB] to-[#FEF08A]/75 border border-[#FDE047] px-5 py-4 flex items-center justify-between gap-4 shadow-[0_4px_14px_rgba(234,179,8,0.08)] animate-fade-in">
+                    {/* Barra vertical amarela na esquerda */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#EAB308]" />
+                    {/* Detalhe suave de onda amarela no fundo direito */}
+                    <div className="pointer-events-none absolute -right-8 -bottom-10 w-52 h-52 rounded-full bg-gradient-to-tl from-[#FDE047]/45 to-transparent blur-md" />
+
+                    <div className="relative z-10 flex items-center gap-4 min-w-0 flex-1 pl-1">
+                      <div className="w-12 h-12 rounded-full bg-[#F2B729] border border-[#DF9610]/40 flex items-center justify-center text-[#141311] shadow-[0_4px_12px_rgba(242,183,41,0.3)] shrink-0">
+                        <TrendingUp size={20} className="stroke-[2.3]" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="text-[15px] font-extrabold text-[#1A1917] tracking-tight">
+                            Assuntos de E-mail Padronizados
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#141311] text-[#F2B729] text-[10px] font-extrabold uppercase tracking-wider shadow-2xs">
+                            AUTO
+                          </span>
+                        </div>
+                        <span className="block text-xs font-extrabold uppercase tracking-wide text-[#B47800]">
+                          SM ROTA SANTA LUZIA X NORDESTE
+                        </span>
+                        <span className="block text-xs sm:text-[13px] font-extrabold text-[#1A1917] uppercase tracking-tight truncate">
+                          {getSubjectNordeste()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={copySubjectNordeste}
+                      className={cn(
+                        "relative z-10 px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0",
+                        subjectNordesteCopied
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "bg-[#F2B729] hover:bg-[#DF9E14] text-[#141311] border border-[#C98A0C]/40 shadow-2xs active:scale-95"
+                      )}
+                    >
+                      {subjectNordesteCopied ? (
+                        <Check size={14} className="stroke-[2.5]" />
+                      ) : (
+                        <Copy size={14} className="text-[#141311] stroke-[2.2]" />
+                      )}
+                      <span>{subjectNordesteCopied ? "Copiado!" : "Copiar"}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Card 4: Rota Vespasiano Subject */}
+                {visibleRoutes.vespasiano && (
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FFFDF9] via-[#F2FDF6] to-[#DCFCE7]/80 border border-[#BBF7D0] px-5 py-4 flex items-center justify-between gap-4 shadow-[0_4px_14px_rgba(22,101,52,0.07)] animate-fade-in">
+                    {/* Barra vertical verde na esquerda */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#166534]" />
+                    {/* Detalhes suaves de onda verde no fundo */}
+                    <div className="pointer-events-none absolute -left-6 -bottom-8 w-36 h-36 rounded-full bg-[#BBF7D0]/45 blur-md" />
+                    <div className="pointer-events-none absolute -right-8 -bottom-10 w-52 h-52 rounded-full bg-gradient-to-tl from-[#BBF7D0]/50 to-transparent blur-md" />
+
+                    <div className="relative z-10 flex items-center gap-4 min-w-0 flex-1 pl-1">
+                      <div className="w-12 h-12 rounded-full bg-[#166534] flex items-center justify-center text-white shadow-[0_4px_12px_rgba(22,101,52,0.3)] shrink-0">
+                        <Truck size={20} className="text-white stroke-[2]" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <span className="block text-[13px] font-extrabold uppercase tracking-wide text-[#166534]">
+                          SM ROTA VESPASIANO
+                        </span>
+                        <span className="block text-xs sm:text-[13px] font-extrabold text-[#1A1917] uppercase tracking-tight truncate">
+                          {getSubjectVespasiano()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={copySubjectVespasiano}
+                      className={cn(
+                        "relative z-10 px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0",
+                        subjectVespasianoCopied
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "bg-[#166534] hover:bg-[#14532D] text-white shadow-[0_4px_12px_rgba(22,101,52,0.25)] active:scale-95"
+                      )}
+                    >
+                      {subjectVespasianoCopied ? (
+                        <Check size={14} className="stroke-[2.5]" />
+                      ) : (
+                        <Copy size={14} className="text-white stroke-[2.2]" />
+                      )}
+                      <span>{subjectVespasianoCopied ? "Copiado!" : "Copiar"}</span>
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
             {/* Main Work Area */}
             <div className="xl:col-span-3 space-y-4">
-
-              {/* Barra de Seleção / Controle de Rotas */}
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FFFCF6] border border-[#E6D2A3] p-3.5 rounded-2xl shadow-xs">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsRouteSelectorOpen(true)}
-                    className="w-9 h-9 rounded-xl bg-[#292820] hover:bg-[#38372d] flex items-center justify-center text-[#D6A84F] shadow-xs shrink-0 cursor-pointer transition-transform active:scale-95 border border-[#C49A45]/40"
-                    title="Clique para escolher quais rotas irão aparecer"
-                  >
-                    <SlidersHorizontal size={16} />
-                  </button>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-black text-[#25231F] uppercase tracking-wider">
-                        Controle de Rotas
-                      </span>
-                      <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-md bg-[#F5F0E6] text-[#C49A45] border border-[#E6D2A3]">
-                        {Object.values(visibleRoutes).filter(Boolean).length} de 4 ativas
-                      </span>
-                    </div>
-                    <p className="text-[10px] font-mono text-[#7A756D] mt-0.5">
-                      {Object.values(visibleRoutes).filter(Boolean).length === 0
-                        ? "Todas as rotas estão ocultas. Clique no ícone para escolher qual rota irá aparecer."
-                        : "Exibindo apenas as rotas selecionadas abaixo."}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsRouteSelectorOpen(true)}
-                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border border-[#C49A45]/40 transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
-                  title="Abrir menu de seleção de rotas"
-                >
-                  <SlidersHorizontal size={13} className="text-[#D6A84F]" />
-                  <span>Qual rota irá aparecer?</span>
-                </button>
-              </div>
 
               {/* Se todas as rotas estiverem ocultas, exibe o cartão no lugar com o ícone para clicar */}
               {Object.values(visibleRoutes).every(v => !v) && (
@@ -1986,63 +2142,74 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                 </div>
               )}
 
-              {/* ROTA IDA (Preto com Dourado) */}
+              {/* ROTA IDA (Cor Preta) */}
               {visibleRoutes.ida && (
               <section className="space-y-3 font-sans">
-                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-[#E6D2A3]">
+                <div className="flex items-center justify-between bg-[#0A0D10] text-white p-3.5 rounded-2xl shadow-md border border-[#C49A45]/40">
                   <div className="flex items-center gap-2.5">
-                    <TrendingUp size={18} className="text-[#C49A45]" /> 
-                    <h3 className="text-sm font-mono font-bold text-[#25231F] uppercase tracking-wider">
+                    <TrendingUp size={18} className="text-[#E5B84B]" /> 
+                    <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider">
                       Rota Ida
                     </h3>
-                    <span className="text-[10px] font-mono font-black bg-[#F5F0E6] text-[#C49A45] border border-[#E6D2A3] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                    <span className="text-[10px] font-mono font-black bg-[#1A1E24] text-[#E5B84B] border border-[#C49A45]/50 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
                       PRETO & DOURADO / VIP
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => setIsIdaMaximized(!isIdaMaximized)}
-                      className="px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-[#1C2026] hover:bg-[#2A303A] text-[#E6D2A3] transition-all shadow-xs cursor-pointer border border-[#C49A45]/40 active:scale-95"
+                      title={isIdaMaximized ? 'Minimizar' : 'Maximizar'}
                     >
-                      {isIdaMaximized ? 'Minimizar' : 'Maximizar'}
+                      {isIdaMaximized ? <ChevronUp size={16} className="stroke-[2.5]" /> : <ChevronDown size={16} className="stroke-[2.5]" />}
                     </button>
 
-
-
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => addNewRow('ida')}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[10px] bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-mono font-black uppercase tracking-wider transition-all shadow-sm cursor-pointer hover:brightness-105 active:scale-95"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-gradient-to-br from-[#E6D2A3] to-[#C49A45] text-[#0A0D10] transition-all shadow-sm cursor-pointer hover:brightness-110 active:scale-95"
+                      title="Adicionar Linha"
                     >
-                      <Plus size={13} className="stroke-[2.5]" /> Add Linha
+                      <Plus size={16} className="stroke-[2.8]" />
                     </button>
 
                     {idaRows.length > 0 && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={copyIdaToVolta}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
-                        title="Enviar dados da Ida para Volta (Invertendo Trecho)"
+                        className="w-9 h-9 rounded-full flex items-center justify-center bg-[#1C2026] hover:bg-[#2A303A] text-[#E6D2A3] transition-all shadow-xs cursor-pointer border border-[#C49A45]/40 active:scale-95"
+                        title="Enviar para Volta (Invertendo Trecho)"
                       >
-                        <ArrowRightLeft size={12} className="text-[#C49A45]" /> Enviar para Volta
+                        <ArrowRightLeft size={15} className="text-[#E5B84B] stroke-[2.3]" />
                       </button>
                     )}
 
                     {idaRows.length > 0 && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => copySection(idaRows, 'ROTA IDA', setIdaCopied)}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
-                          idaCopied 
-                            ? "bg-emerald-600 text-white border-emerald-500" 
-                            : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40"
+                          "w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs border active:scale-95",
+                          idaCopied
+                            ? "bg-emerald-600 text-white border-emerald-500"
+                            : "bg-[#1C2026] hover:bg-[#2A303A] text-[#E6D2A3] border-[#C49A45]/40"
                         )}
+                        title={idaCopied ? 'Copiado!' : 'Copiar Ida'}
                       >
-                        {idaCopied ? <Check size={12} /> : <Copy size={12} />}
-                        {idaCopied ? 'Copiado!' : 'Copiar Ida'}
+                        {idaCopied ? <Check size={15} className="stroke-[2.5]" /> : <Copy size={15} className="stroke-[2.2]" />}
                       </button>
                     )}
 
-                    <button onClick={() => saveIda([], true)} className="px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold bg-[#C91F2D] hover:bg-[#a61723] text-white uppercase tracking-tight cursor-pointer shadow-xs transition-colors">Limpar</button>
+                    <button
+                      type="button"
+                      onClick={() => saveIda([], true)}
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-[#C91F2D] hover:bg-[#a61723] text-white cursor-pointer shadow-xs transition-all active:scale-95"
+                      title="Limpar Rota Ida"
+                    >
+                      <Trash2 size={15} className="stroke-[2.2]" />
+                    </button>
                   </div>
                 </div>
 
@@ -2337,49 +2504,63 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               </section>
               )}
 
-              {/* ROTA VOLTA (Vermelha) */}
+              {/* ROTA VOLTA (Cor Vermelha) */}
               {visibleRoutes.volta && (
               <section className="space-y-3 font-sans animate-fade-in">
-                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-[#C91F2D]/30">
+                <div className="flex items-center justify-between bg-[#A80C14] text-white p-3.5 rounded-2xl shadow-md border border-[#7F090F]">
                   <div className="flex items-center gap-2.5">
-                    <Download size={18} className="rotate-180 text-[#C91F2D]" /> 
-                    <h3 className="text-sm font-mono font-bold text-[#25231F] uppercase tracking-wider">
+                    <Download size={18} className="rotate-180 text-white" /> 
+                    <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider">
                       Rota Volta
                     </h3>
-                    <span className="text-[10px] font-mono font-black bg-[#C91F2D]/10 text-[#C91F2D] border border-[#C91F2D]/30 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                    <span className="text-[10px] font-mono font-black bg-black/25 text-white border border-white/25 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
                       VERMELHA
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => setIsVoltaMaximized(!isVoltaMaximized)}
-                      className="px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-black/30 hover:bg-black/45 text-white transition-all shadow-xs cursor-pointer border border-white/25 active:scale-95"
+                      title={isVoltaMaximized ? 'Minimizar' : 'Maximizar'}
                     >
-                      {isVoltaMaximized ? 'Minimizar' : 'Maximizar'}
+                      {isVoltaMaximized ? <ChevronUp size={16} className="stroke-[2.5]" /> : <ChevronDown size={16} className="stroke-[2.5]" />}
                     </button>
 
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => addNewRow('volta')}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[10px] bg-gradient-to-r from-[#C91F2D] to-[#990c11] text-white font-mono font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer hover:brightness-110 active:scale-95"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-white hover:bg-red-50 text-[#A80C14] transition-all shadow-sm cursor-pointer active:scale-95"
+                      title="Adicionar Linha"
                     >
-                      <Plus size={13} className="stroke-[2.5]" /> Add Linha
+                      <Plus size={16} className="stroke-[2.8]" />
                     </button>
+
                     {voltaRows.length > 0 && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => copySection(voltaRows, 'ROTA VOLTA', setVoltaCopied)}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
-                          voltaCopied 
-                            ? "bg-emerald-600 text-white border-emerald-500" 
-                            : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40"
+                          "w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs border active:scale-95",
+                          voltaCopied
+                            ? "bg-emerald-600 text-white border-emerald-400"
+                            : "bg-black/30 hover:bg-black/45 text-white border-white/25"
                         )}
+                        title={voltaCopied ? 'Copiado!' : 'Copiar Volta'}
                       >
-                        {voltaCopied ? <Check size={12} /> : <Copy size={12} />}
-                        {voltaCopied ? 'Copiado!' : 'Copiar Volta'}
+                        {voltaCopied ? <Check size={15} className="stroke-[2.5]" /> : <Copy size={15} className="stroke-[2.2]" />}
                       </button>
                     )}
-                    <button onClick={() => saveVolta([], true)} className="px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold bg-[#C91F2D] hover:bg-[#a61723] text-white uppercase tracking-tight cursor-pointer shadow-xs transition-colors">Limpar</button>
+
+                    <button
+                      type="button"
+                      onClick={() => saveVolta([], true)}
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-[#0A0D10] hover:bg-[#1C2026] text-white border border-white/20 cursor-pointer shadow-xs transition-all active:scale-95"
+                      title="Limpar Rota Volta"
+                    >
+                      <Trash2 size={15} className="stroke-[2.2]" />
+                    </button>
                   </div>
                 </div>
 
@@ -2677,49 +2858,63 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               </section>
               )}
 
-              {/* ROTA SANTA LUZIA X NORDESTE */}
+              {/* ROTA SANTA LUZIA X NORDESTE (Cor Amarela) */}
               {visibleRoutes.nordeste && (
               <section className="space-y-3 font-sans animate-fade-in">
-                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-slate-800/20">
+                <div className="flex items-center justify-between bg-[#F2B729] text-[#141311] p-3.5 rounded-2xl shadow-md border border-[#C98A0C]">
                   <div className="flex items-center gap-2.5">
-                    <TrendingUp size={18} className="text-slate-900" /> 
-                    <h3 className="text-sm font-mono font-bold text-[#25231F] uppercase tracking-wider">
+                    <TrendingUp size={18} className="text-[#141311]" /> 
+                    <h3 className="text-sm font-mono font-bold text-[#141311] uppercase tracking-wider">
                       Rota Santa Luzia x Nordeste
                     </h3>
-                    <span className="text-[10px] font-mono font-black bg-slate-900 text-slate-100 border border-slate-700 px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
-                      PRETA (NORDESTE)
+                    <span className="text-[10px] font-mono font-black bg-[#141311]/12 text-[#141311] border border-[#141311]/25 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                      AMARELA (NORDESTE)
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => setIsNordesteMaximized(!isNordesteMaximized)}
-                      className="px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-[#141311] hover:bg-[#292820] text-[#F2B729] transition-all shadow-xs cursor-pointer border border-[#141311]/30 active:scale-95"
+                      title={isNordesteMaximized ? 'Minimizar' : 'Maximizar'}
                     >
-                      {isNordesteMaximized ? 'Minimizar' : 'Maximizar'}
+                      {isNordesteMaximized ? <ChevronUp size={16} className="stroke-[2.5]" /> : <ChevronDown size={16} className="stroke-[2.5]" />}
                     </button>
 
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => addNewRow('nordeste')}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[10px] bg-gradient-to-r from-[#E6D2A3] to-[#C49A45] text-[#25231F] font-mono font-black uppercase tracking-wider transition-all shadow-sm cursor-pointer hover:brightness-105 active:scale-95"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-white hover:bg-amber-50 text-[#141311] border border-[#141311]/20 transition-all shadow-sm cursor-pointer active:scale-95"
+                      title="Adicionar Linha"
                     >
-                      <Plus size={13} className="stroke-[2.5]" /> Add Linha
+                      <Plus size={16} className="stroke-[2.8]" />
                     </button>
+
                     {nordesteRows.length > 0 && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => copySection(nordesteRows, 'ROTA SANTA LUZIA X NORDESTE', setNordesteCopied)}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
-                          nordesteCopied 
-                            ? "bg-emerald-600 text-white border-emerald-500" 
-                            : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40"
+                          "w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs border active:scale-95",
+                          nordesteCopied
+                            ? "bg-emerald-600 text-white border-emerald-500"
+                            : "bg-[#141311] hover:bg-[#292820] text-[#F2B729] border-[#141311]/30"
                         )}
+                        title={nordesteCopied ? 'Copiado!' : 'Copiar Rota'}
                       >
-                        {nordesteCopied ? <Check size={12} /> : <Copy size={12} />}
-                        {nordesteCopied ? 'Copiado!' : 'Copiar Rota'}
+                        {nordesteCopied ? <Check size={15} className="stroke-[2.5]" /> : <Copy size={15} className="stroke-[2.2]" />}
                       </button>
                     )}
-                    <button onClick={() => saveNordeste([], true)} className="px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold bg-[#C91F2D] hover:bg-[#a61723] text-white uppercase tracking-tight cursor-pointer shadow-xs transition-colors">Limpar</button>
+
+                    <button
+                      type="button"
+                      onClick={() => saveNordeste([], true)}
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-[#C91F2D] hover:bg-[#a61723] text-white cursor-pointer shadow-xs transition-all active:scale-95"
+                      title="Limpar Rota Nordeste"
+                    >
+                      <Trash2 size={15} className="stroke-[2.2]" />
+                    </button>
                   </div>
                 </div>
 
@@ -3005,40 +3200,62 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
               </section>
               )}
 
-              {/* ================= ROTA VESPASIANO ================= */}
+              {/* ================= ROTA VESPASIANO (Cor Verde) ================= */}
               {visibleRoutes.vespasiano && (
               <section className="space-y-3 font-sans animate-fade-in">
-                <div className="flex items-center justify-between bg-[#FFFCF6] text-[#25231F] p-3.5 rounded-2xl shadow-sm border border-emerald-600/30">
+                <div className="flex items-center justify-between bg-[#166534] text-white p-3.5 rounded-2xl shadow-md border border-[#14532D]">
                   <div className="flex items-center gap-2.5">
-                    <Truck size={18} className="text-emerald-700" />
-                    <h3 className="text-sm font-mono font-bold text-[#25231F] uppercase tracking-wider">
+                    <Truck size={18} className="text-[#A7F3D0]" />
+                    <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider">
                       Rota Vespasiano
                     </h3>
-                    <span className="text-[10px] font-mono font-black bg-emerald-800/10 text-emerald-800 border border-emerald-600/30 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                    <span className="text-[10px] font-mono font-black bg-black/25 text-[#D1FAE5] border border-white/25 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
                       VERDE (VESPASIANO)
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => setIsVespasianoMaximized(!isVespasianoMaximized)}
-                      className="px-3 py-1.5 rounded-xl text-[10px] bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] font-mono font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-[#C49A45]/40"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-black/30 hover:bg-black/45 text-white transition-all shadow-xs cursor-pointer border border-white/25 active:scale-95"
+                      title={isVespasianoMaximized ? 'Minimizar' : 'Maximizar'}
                     >
-                      {isVespasianoMaximized ? 'Minimizar' : 'Maximizar'}
+                      {isVespasianoMaximized ? <ChevronUp size={16} className="stroke-[2.5]" /> : <ChevronDown size={16} className="stroke-[2.5]" />}
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => addNewRow('vespasiano')}
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-white hover:bg-emerald-50 text-[#166534] transition-all shadow-sm cursor-pointer active:scale-95"
+                      title="Adicionar Linha"
+                    >
+                      <Plus size={16} className="stroke-[2.8]" />
+                    </button>
+
                     {vespasianoRows.length > 0 && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => copySection(vespasianoRows, 'ROTA VESPASIANO', setVoltaCopied)}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs border",
-                          voltaCopied 
-                            ? "bg-emerald-600 text-white border-emerald-500" 
-                            : "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/40"
+                          "w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs border active:scale-95",
+                          voltaCopied
+                            ? "bg-emerald-500 text-white border-emerald-300"
+                            : "bg-black/30 hover:bg-black/45 text-white border-white/25"
                         )}
+                        title={voltaCopied ? 'Copiado!' : 'Copiar Rota'}
                       >
-                        {voltaCopied ? <Check size={12} /> : <Copy size={12} />}
-                        {voltaCopied ? 'Copiado!' : 'Copiar Rota'}
+                        {voltaCopied ? <Check size={15} className="stroke-[2.5]" /> : <Copy size={15} className="stroke-[2.2]" />}
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => saveVespasiano([], true)}
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-[#C91F2D] hover:bg-[#a61723] text-white cursor-pointer shadow-xs transition-all active:scale-95"
+                      title="Limpar Rota Vespasiano"
+                    >
+                      <Trash2 size={15} className="stroke-[2.2]" />
+                    </button>
                   </div>
                 </div>
 
@@ -3337,124 +3554,220 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             {/* Calculator Sidebar (Sticky - Acompanha a rolagem da tela para cima e para baixo) */}
             <div className="xl:col-span-1">
               <div className="sticky top-4 space-y-4 font-sans z-20">
-                <div className="bg-[#FFFCF6] border border-[#E6D2A3] p-5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col font-sans max-h-[calc(100vh-2rem)] overflow-y-auto">
+                <div className="bg-[#FFFBF2] border border-[#F0E1C6] p-5 rounded-[28px] shadow-[0_10px_30px_rgba(180,140,60,0.08)] relative overflow-hidden flex flex-col font-sans max-h-[calc(100vh-2rem)] overflow-y-auto">
+                  {/* Top Header Row: Soma de Valores + PDF + Trash */}
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-black text-[#25231F] flex items-center gap-2 uppercase tracking-wide">
-                      <Calculator size={16} className="text-[#C49A45]" />
-                      Soma de Valores
+                    <h3 className="text-[18px] font-extrabold text-[#181715] flex items-center gap-2.5 tracking-tight">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="w-7 h-7 text-[#E59E14] shrink-0"
+                         stroke="currentColor"
+                        strokeWidth="2.1"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 3v18h18" />
+                        <path d="M7 16v-4" />
+                        <path d="M12 16v-6" />
+                        <path d="M17 16V9" />
+                        <path d="M7 9l5-3 5-2" />
+                        <circle cx="17" cy="4" r="1.5" fill="currentColor" />
+                        <circle cx="19" cy="21" r="1.5" fill="currentColor" />
+                      </svg>
+                      <span>Soma de Valores</span>
                     </h3>
-                    <div className="flex items-center gap-1.5">
-                      <button 
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
                         onClick={() => openPdfModal('calc')}
-                        className="px-2.5 py-1 bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] rounded-xl text-[10px] font-mono font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer border border-[#C49A45]/40"
+                        className="px-3.5 py-1.5 bg-[#1C1B1A] hover:bg-[#2F2E2C] text-white rounded-full text-xs font-extrabold uppercase tracking-wide transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                         title="Importar PDFs de NFs para somar na calculadora"
                       >
-                        <FileText size={11} className="text-[#C49A45]" /> PDF
+                        <FileText size={13} className="text-[#F5B82E] stroke-[2.3]" />
+                        <span>PDF</span>
                       </button>
-                      <button 
-                        onClick={() => saveCalc(calcValues.map(() => ''), true)}
-                        className="p-1 text-[#7A756D] hover:text-[#C91F2D] transition-colors cursor-pointer"
+
+                      <button
+                        type="button"
+                        onClick={() => saveCalc(['', '', '', '', ''], true)}
+                        className="w-8 h-8 rounded-full bg-[#FFFDF9] hover:bg-red-50 text-[#4A4640] hover:text-[#D30C15] border border-[#EDE0C8] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                         title="Resetar calculadora"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={14} className="stroke-[2]" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl p-4 mb-4 text-center relative group/total text-[#25231F] shadow-xs">
-                    <p className="text-[10px] font-mono font-bold text-[#7A756D] uppercase tracking-widest mb-1">Total Consolidado</p>
-                    <h4 className="text-2xl font-mono font-black tracking-tight text-[#25231F]">
-                      <span className="text-[#C49A45] mr-1 text-sm font-bold">R$</span>
-                      {calculateTotal()}
-                    </h4>
-                    <div className="absolute top-2.5 right-2.5">
-                      <button 
-                        onClick={copyTotalRaw}
+                  {/* Golden Total Consolidado Banner */}
+                  <div
+                    onClick={copyTotalRaw}
+                    className="relative rounded-2xl px-5 py-5 mb-4 overflow-hidden cursor-pointer group/total border border-[#E5B548]/60 border-l-[3px] border-l-[#9E7014] bg-gradient-to-br from-[#FFFDF7] via-[#FCE6A6] to-[#E8A320] shadow-[0_6px_18px_rgba(229,163,32,0.2)] transition-all active:scale-[0.99]"
+                    title="Clique para copiar o Total Consolidado"
+                  >
+                    {/* Barras decorativas douradas crecendo à direita */}
+                    <div className="pointer-events-none absolute right-2.5 bottom-0 flex items-end gap-1.5">
+                      <div className="w-3.5 h-3 bg-[#D48808]/40 rounded-t-xs" />
+                      <div className="w-3.5 h-6 bg-[#D48808]/50 rounded-t-xs" />
+                      <div className="w-3.5 h-8 bg-[#C87D04]/55 rounded-t-xs" />
+                      <div className="w-4 h-12 bg-[#C87D04]/60 rounded-t-xs" />
+                      <div className="w-4 h-16 bg-[#B87000]/65 rounded-t-xs" />
+                    </div>
+
+                    <div className="relative z-10 flex flex-col items-center justify-center pr-6">
+                      <p className="text-[11px] font-extrabold text-[#593A04] uppercase tracking-[0.04em] mb-1">
+                        TOTAL CONSOLIDADO
+                      </p>
+                      <h4 className="text-[26px] sm:text-[28px] font-black tracking-tight text-[#141311] leading-none tabular-nums flex items-baseline justify-center">
+                        <span className="text-[#B87A08] mr-1.5 text-[22px] sm:text-[25px] font-extrabold">R$</span>
+                        <span>{calculateTotal()}</span>
+                      </h4>
+                    </div>
+
+                    <div className="absolute top-2.5 right-2.5 z-20">
+                      <span
                         className={cn(
-                          "p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer border",
-                          totalRawCopied 
-                            ? "bg-emerald-600 border-emerald-500 text-white" 
-                            : "bg-[#FFFCF6] border-[#E6D2A3] text-[#25231F] hover:bg-white shadow-xs"
+                          "px-2 py-1 rounded-full text-[10px] font-bold transition-all flex items-center gap-1",
+                          totalRawCopied
+                            ? "bg-emerald-600 text-white shadow-xs opacity-100"
+                            : "bg-white/70 text-[#593A04] opacity-0 group-hover/total:opacity-100"
                         )}
-                        title="Copiar Valor"
                       >
-                        {totalRawCopied ? <Check size={14} /> : <Copy size={14} />}
-                      </button>
+                        {totalRawCopied ? <Check size={11} className="stroke-[2.5]" /> : <Copy size={11} />}
+                        {totalRawCopied && <span>Copiado</span>}
+                      </span>
                     </div>
                   </div>
 
+                  {/* Lista de Valores */}
                   <div className="space-y-2.5 flex-1 max-h-[380px] overflow-y-auto pr-0.5">
-                    {calcValues.map((val, i) => (
-                      <div key={i} className="group relative flex items-center">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C49A45] font-bold text-xs">R$</div>
-                        <input
-                          type="text"
-                          value={val}
-                          onChange={(e) => updateCalcValue(i, e.target.value)}
-                          onPaste={(e) => {
-                            e.preventDefault();
-                            const text = e.clipboardData.getData('text');
-                            handlePasteCalc(text, i);
-                          }}
-                          onFocus={(e) => e.target.select()}
-                          placeholder="0,00"
-                          className="w-full bg-[#F5F0E6] border border-[#E6D2A3] rounded-xl pl-9 pr-16 py-2 text-xs text-[#25231F] font-mono font-bold focus:bg-white focus:border-[#C49A45] focus:ring-1 focus:ring-[#C49A45]/30 outline-none transition-all placeholder:text-[#A8A39A]"
-                        />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                          {val && (
-                            <button 
-                              onClick={() => updateCalcValue(i, '')}
-                              className="text-[#7A756D] hover:text-[#25231F] p-1 transition-all cursor-pointer"
-                              title="Limpar Campo"
-                            >
-                              <X size={12} />
-                            </button>
-                          )}
-                          {calcValues.length > 1 && (
-                            <button 
-                              onClick={() => saveCalc(calcValues.filter((_, idx) => idx !== i), true)}
-                              className="text-[#A8A39A] hover:text-[#C91F2D] p-1 transition-all cursor-pointer"
+                    {displayCalcValues.map((val, i) => {
+                      const hasVal = Boolean(val && val.trim() !== '' && val.trim() !== '0,00');
+                      return (
+                        <div
+                          key={i}
+                          className="group relative flex items-center bg-[#FFF9ED] hover:bg-[#FFFDF8] focus-within:bg-white border border-[#F3E5CA] focus-within:border-[#E5A91B] rounded-2xl px-3.5 py-2.5 transition-all shadow-[0_2px_6px_rgba(0,0,0,0.015)]"
+                        >
+                          <button
+                            type="button"
+                            onClick={addCalcLine}
+                            className="shrink-0 mr-2.5 cursor-pointer"
+                            title="Clique para adicionar nova linha"
+                          >
+                            <FileText
+                              size={18}
+                              className={cn(
+                                "transition-opacity",
+                                hasVal
+                                  ? "text-[#F0A818] opacity-100 stroke-[2.2]"
+                                  : "text-[#F0A818] opacity-55 stroke-[2]"
+                              )}
+                            />
+                          </button>
+
+                          <span
+                            className={cn(
+                              "text-sm select-none mr-1 shrink-0",
+                              hasVal ? "font-bold text-[#6E4F1D]" : "font-medium text-[#7A746B]"
+                            )}
+                          >
+                            R$
+                          </span>
+
+                          <input
+                            type="text"
+                            value={val}
+                            onChange={(e) => updateCalcValue(i, e.target.value)}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const text = e.clipboardData.getData('text');
+                              handlePasteCalc(text, i);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addCalcLine();
+                              }
+                            }}
+                            onFocus={(e) => e.target.select()}
+                            placeholder="0,00"
+                            className={cn(
+                              "w-full bg-transparent pr-14 text-sm outline-none transition-all tabular-nums",
+                              hasVal
+                                ? "text-[#181715] font-extrabold"
+                                : "text-[#7A746B] font-medium placeholder:text-[#7A746B]"
+                            )}
+                          />
+
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2.5">
+                            {hasVal && (
+                              <button
+                                type="button"
+                                onClick={() => updateCalcValue(i, '')}
+                                className="text-[#4A4640] hover:text-[#181715] p-0.5 transition-colors cursor-pointer"
+                                title="Limpar Campo"
+                              >
+                                <X size={15} className="stroke-[2.3]" />
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => removeCalcLine(i)}
+                              className={cn(
+                                "p-0.5 transition-colors cursor-pointer",
+                                hasVal
+                                  ? "text-[#D30C15] hover:text-[#A3060E]"
+                                  : "text-[#6E6A63] hover:text-[#D30C15]"
+                              )}
                               title="Remover Linha"
                             >
-                              <Trash2 size={12} />
+                              <Trash2 size={15} className="stroke-[2.1]" />
                             </button>
-                          )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      <button 
-                        onClick={addCalcLine}
-                        className="py-2.5 border border-dashed border-[#E6D2A3] hover:border-[#C49A45] rounded-xl text-[#25231F] hover:bg-[#F5F0E6] flex items-center justify-center gap-1.5 transition-all text-[10px] font-mono font-bold uppercase tracking-wider bg-[#FFFCF6] cursor-pointer shadow-2xs"
-                      >
-                        <Plus size={14} className="text-[#C49A45]" /> Nova Linha
-                      </button>
-
-                      <button 
-                        onClick={() => saveCalc(calcValues.map(() => ''))}
-                        className="py-2.5 border border-dashed border-[#C91F2D]/30 hover:border-[#C91F2D] text-[#C91F2D] rounded-xl flex items-center justify-center gap-1.5 transition-all text-[10px] font-mono font-bold uppercase tracking-wider bg-[#C91F2D]/5 hover:bg-[#C91F2D]/10 cursor-pointer shadow-2xs"
-                        title="Limpar todos os valores adicionados"
-                      >
-                        <Trash2 size={14} /> Limpar
-                      </button>
-                    </div>
+                      );
+                    })}
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-[#E6D2A3]/40 bg-[#F5F0E6] p-3 rounded-xl text-[10px] text-[#7A756D] font-medium">
-                    A soma aceita vírgulas e pontos. Atualizada em tempo real.
-                  </div>
-                </div>
+                  {/* Botões de Ação: + NOVA LINHA e LIMPAR */}
+                  <div className="grid grid-cols-2 gap-2.5 mt-3.5">
+                    <button
+                      type="button"
+                      onClick={addCalcLine}
+                      className="py-2.5 px-3 rounded-2xl border border-dashed border-[#D6B87C] bg-[#FFFDF8] hover:bg-[#FAF0D8] hover:border-[#C49A45] text-[#25231F] font-extrabold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+                      title="Adicionar nova linha de valor"
+                    >
+                      <Plus size={14} className="text-[#B8862D] stroke-[2.5]" />
+                      <span>NOVA LINHA</span>
+                    </button>
 
-                <div className="bg-[#FFFCF6] border border-[#E6D2A3] p-3.5 flex items-center justify-between group cursor-pointer hover:border-[#C49A45] transition-all rounded-xl shadow-xs">
-                  <div className="flex items-center gap-2.5">
-                    <CalendarIcon size={16} className="text-[#C49A45] group-hover:scale-110 transition-transform" />
-                    <div>
-                      <p className="text-[10px] font-mono font-bold text-[#7A756D] uppercase tracking-wider">Última Atualização</p>
-                      <p className="text-xs font-bold text-[#25231F]">Agora mesmo</p>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => saveCalc(['', '', '', '', ''], true)}
+                      className="py-2.5 px-3 rounded-2xl border border-dashed border-[#E8A5A8] bg-[#FDF2F2] hover:bg-[#FCE4E4] hover:border-[#D30C15] text-[#C91F2D] font-extrabold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+                      title="Limpar todos os valores da calculadora"
+                    >
+                      <Trash2 size={14} className="text-[#C91F2D] stroke-[2.2]" />
+                      <span>LIMPAR</span>
+                    </button>
                   </div>
-                  <ChevronRight size={16} className="text-[#7A756D] group-hover:text-[#25231F] transition-colors" />
+
+                  {/* Botão Desfazer (Ctrl+Z) integrado na base do card */}
+                  <button
+                    type="button"
+                    onClick={handleUndo}
+                    disabled={historyCount === 0}
+                    className={cn(
+                      "w-full mt-2.5 py-2.5 px-4 rounded-full border border-[#E5B85B] bg-[#FFFDF8] hover:bg-[#FAF0D8] text-[#181715] font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-[0.99]",
+                      historyCount === 0 && "opacity-75 hover:bg-[#FFFDF8]"
+                    )}
+                    title="Restaurar informação modificada (Ctrl + Z)"
+                  >
+                    <RefreshCw size={15} className="text-[#F0A818] stroke-[2.4]" />
+                    <span>Desfazer (Ctrl+Z)</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -3803,24 +4116,6 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         )}
       </AnimatePresence>
 
-      {/* Floating Action Bar - Undo Action */}
-      <div className="fixed bottom-4 right-6 z-40">
-        <button 
-          onClick={handleUndo}
-          disabled={historyCount === 0}
-          className={cn(
-            "flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-lg border cursor-pointer",
-            historyCount > 0 
-              ? "bg-[#292820] hover:bg-[#38372d] text-[#E6D2A3] border-[#C49A45]/60 shadow-xl active:scale-95" 
-              : "bg-[#292820]/80 text-[#7A756D] border-[#C49A45]/20 backdrop-blur-md opacity-70 cursor-not-allowed"
-          )}
-          title="Restaurar informação modificada (Ctrl + Z)"
-        >
-          <RotateCcw size={13} className={historyCount > 0 ? "text-[#C49A45]" : "text-[#7A756D]"} />
-          <span>Desfazer (Ctrl+Z)</span>
-        </button>
-      </div>
-
       {/* Modal Interativo para Escolher Qual Rota Irá Aparecer */}
       <AnimatePresence>
         {isRouteSelectorOpen && (
@@ -3863,33 +4158,33 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                     id: 'ida' as const,
                     title: 'ROTA IDA',
                     tag: 'PRETO & DOURADO / VIP',
-                    tagClass: 'bg-[#F5F0E6] text-[#C49A45] border-[#E6D2A3]',
+                    tagClass: 'bg-[#0A0D10] text-[#E5B84B] border-[#C49A45]/50',
                     icon: TrendingUp,
-                    iconColor: 'text-[#C49A45]'
+                    iconColor: 'text-[#0A0D10]'
                   },
                   {
                     id: 'volta' as const,
                     title: 'ROTA VOLTA',
                     tag: 'VERMELHA',
-                    tagClass: 'bg-red-50 text-[#C91F2D] border-red-200',
+                    tagClass: 'bg-[#A80C14] text-white border-[#7F090F]',
                     icon: Download,
-                    iconColor: 'text-[#C91F2D]'
+                    iconColor: 'text-[#A80C14]'
                   },
                   {
                     id: 'nordeste' as const,
                     title: 'ROTA SANTA LUZIA X NORDESTE',
-                    tag: 'PRETA (NORDESTE)',
-                    tagClass: 'bg-slate-900 text-white border-slate-700',
+                    tag: 'AMARELA (NORDESTE)',
+                    tagClass: 'bg-[#F2B729] text-[#141311] border-[#C98A0C]',
                     icon: TrendingUp,
-                    iconColor: 'text-slate-900'
+                    iconColor: 'text-[#C98A0C]'
                   },
                   {
                     id: 'vespasiano' as const,
                     title: 'ROTA VESPASIANO',
                     tag: 'VERDE (VESPASIANO)',
-                    tagClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                    tagClass: 'bg-[#166534] text-white border-[#14532D]',
                     icon: Truck,
-                    iconColor: 'text-emerald-700'
+                    iconColor: 'text-[#166534]'
                   }
                 ].map(opt => {
                   const isChecked = visibleRoutes[opt.id];

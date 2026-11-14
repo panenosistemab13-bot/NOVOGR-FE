@@ -31,9 +31,9 @@ import SMCreator from './SMCreator';
 import Controle from './Controle';
 import Escala from './Escala';
 import Disponibilidade from './Disponibilidade';
-import Iscas from './Iscas';
 import PresenceList from './PresenceList';
 import Rotas from './Rotas';
+import Lancamento from './Lancamento';
 import MainDashboard from './Dashboard/MainDashboard';
 
 // High-fidelity image assets
@@ -155,8 +155,6 @@ export default function InitialMenu({
         return <Averbacao view={averbacaoView} onBack={() => handleItemClick('menu')} />;
       case 'sm_creator':
         return <SMCreator view={smCreatorView} onBack={() => handleItemClick('menu')} />;
-      case 'iscas':
-        return <Iscas onBack={() => handleItemClick('menu')} />;
       case 'controle':
         return <Controle onBack={() => handleItemClick('menu')} />;
       case 'disponibilidade':
@@ -167,6 +165,8 @@ export default function InitialMenu({
         return <PresenceList onBack={() => handleItemClick('menu')} />;
       case 'rotas':
         return <Rotas onBack={() => handleItemClick('menu')} />;
+      case 'lancamento':
+        return <Lancamento onBack={() => handleItemClick('menu')} />;
       default:
         return null;
     }

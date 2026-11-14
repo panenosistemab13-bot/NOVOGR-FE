@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { 
   AlertCircle,
-  ArrowRight,
-  Lock
+  Lock,
+  RotateCw,
+  ShieldCheck
 } from 'lucide-react';
-import brazilIntelligenceBg from '../assets/images/brazil_intelligence_bg_1794359792078.jpg';
-
 import { auth, rtdb } from '../firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { ref, onValue } from 'firebase/database';
@@ -21,7 +20,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     try {
       const saved = localStorage.getItem('app_users');
       if (saved) {
-        let parsed = JSON.parse(saved);
+        const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           return parsed;
         }
@@ -91,7 +90,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         name: matchedUser?.name || googleName,
         role: isUserAdmin ? 'admin' : 'agente_de_risco',
         roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : (isUserAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'iscas', 'controle', 'disponibilidade', 'escala'])
+        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : (isUserAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'lancamento', 'controle', 'disponibilidade', 'escala'])
       };
 
       localStorage.setItem('logged_user', JSON.stringify(userData));
@@ -109,126 +108,166 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   return (
     <div 
-      className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden font-sans select-none"
+      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative overflow-hidden font-sans select-none bg-[#FAF8F4]"
       style={{
-        background: '#05080C',
-        backgroundImage: `radial-gradient(circle at 50% 50%, rgba(16, 25, 35, 0.4) 0%, rgba(5, 8, 12, 0.88) 100%), url(${brazilIntelligenceBg})`,
-        backgroundSize: 'cover',
+        backgroundImage: `url('/assets/aistudio/Login_corporativo_de_log_stica_global_3da2ca9d.png')`,
+        backgroundSize: '100% 100%',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
+        backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Tactical HUD Glows & Overlay Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,194,71,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,194,71,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-b from-[#FFC247]/15 via-transparent to-transparent blur-[140px] pointer-events-none" />
+      {/* Máscara central sólida para cobrir 100% o card estático da imagem de fundo sem criar borda dupla */}
+      <div
+        className="pointer-events-none absolute"
+        style={{
+          left: '26%',
+          right: '26%',
+          top: '11%',
+          bottom: '10%',
+          background: 'radial-gradient(ellipse 85% 85% at 50% 50%, #FAF8F4 78%, rgba(250,248,244,0) 100%)',
+          filter: 'blur(12px)'
+        }}
+      />
 
-      {/* Central Glassmorphism Intelligence Card */}
-      <div className="relative z-10 w-full max-w-[460px] p-[44px_42px] bg-[#05080C]/90 border border-[#FFC247]/35 rounded-[26px] shadow-[0_30px_90px_rgba(0,0,0,0.9)] text-[#F5F5F5] backdrop-blur-2xl ring-1 ring-[#C8102E]/30">
-        
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="flex items-center justify-center gap-4 mb-3 w-full">
-            {/* Official Logo Emblem with SVG precision */}
-            <div className="w-[88px] h-[88px] rounded-full bg-gradient-to-br from-[#C8102E] via-[#aa0c24] to-[#7f091c] border-2 border-[#FFC247] flex items-center justify-center shadow-[0_0_35px_rgba(255,194,71,0.5)] shrink-0 ring-2 ring-[#FFC247]/30 relative overflow-hidden p-1.5">
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                <defs>
-                  <path id="textPath" d="M 15 72 A 38 38 0 0 0 85 72" />
-                </defs>
-                {/* 3 Golden Hearts / Circles */}
-                <circle cx="38" cy="35" r="13" fill="#FFC247" />
-                <text x="38" y="39" fontSize="10" textAnchor="middle" fill="#05080C" fontWeight="bold">♥</text>
-                
-                <circle cx="62" cy="35" r="13" fill="#FFC247" />
-                <text x="62" y="39" fontSize="10" textAnchor="middle" fill="#05080C" fontWeight="bold">♥</text>
-                
-                <circle cx="50" cy="55" r="13" fill="#FFC247" />
-                <text x="50" y="59" fontSize="10" textAnchor="middle" fill="#05080C" fontWeight="bold">♥</text>
+      {/* Cartão Central Corporativo com Zoom Reduzido e Proporcional */}
+      <div className="relative z-10 w-full max-w-[385px] rounded-[26px] p-[1.5px] bg-gradient-to-b from-[#DFBD69] via-[#EED68A] to-[#B38228] shadow-[0_20px_55px_rgba(166,124,30,0.22)]">
+        <div className="w-full h-full rounded-[24.5px] bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FCF9F2] px-6 sm:px-7 py-6 sm:py-7 text-[#181818]">
+          
+          {/* Cabeçalho da Marca: Logo 3 Corações + Café Três Corações */}
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center gap-4 sm:gap-5 w-full">
+              {/* Emblema Circular Vermelho e Dourado 3 Corações */}
+              <div className="w-[74px] h-[74px] sm:w-[82px] sm:h-[82px] rounded-full bg-gradient-to-b from-[#E31837] via-[#C8102E] to-[#9E0B22] p-1 shadow-[0_6px_16px_rgba(200,16,46,0.28)] shrink-0 flex items-center justify-center relative">
+                <div className="w-full h-full rounded-full border-[1.2px] border-white/85 flex items-center justify-center p-0.5">
+                  <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+                    <defs>
+                      <path id="loginLogoArc" d="M 14 66 A 38 38 0 0 0 86 66" />
+                      <linearGradient id="goldHeartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FFE066" />
+                        <stop offset="50%" stopColor="#F5B82E" />
+                        <stop offset="100%" stopColor="#C98A14" />
+                      </linearGradient>
+                    </defs>
 
-                {/* Curved Text 3 CORAÇÕES */}
-                <text fontSize="11.5" fontWeight="bold" fill="#FFFFFF" letterSpacing="1.5">
-                  <textPath href="#textPath" startOffset="50%" textAnchor="middle">
-                    3 CORAÇÕES
-                  </textPath>
-                </text>
-              </svg>
-            </div>
+                    {/* 3 Corações Estilizados Dourados no Centro */}
+                    <circle cx="38" cy="34" r="11.5" fill="url(#goldHeartGrad)" />
+                    <path
+                      d="M38 38.2 C38 38.2 33.2 35 33.2 32.3 C33.2 30.8 34.4 29.8 35.7 29.8 C36.7 29.8 37.5 30.4 38 31.2 C38.5 30.4 39.3 29.8 40.3 29.8 C41.6 29.8 42.8 30.8 42.8 32.3 C42.8 35 38 38.2 38 38.2 Z"
+                      fill="#9E0B22"
+                    />
 
-            <div className="h-12 w-px bg-gradient-to-b from-transparent via-[#FFC247]/60 to-transparent mx-1" />
+                    <circle cx="62" cy="34" r="11.5" fill="url(#goldHeartGrad)" />
+                    <path
+                      d="M62 38.2 C62 38.2 57.2 35 57.2 32.3 C57.2 30.8 58.4 29.8 59.7 29.8 C60.7 29.8 61.5 30.4 62 31.2 C62.5 30.4 63.3 29.8 64.3 29.8 C65.6 29.8 66.8 30.8 66.8 32.3 C66.8 35 62 38.2 62 38.2 Z"
+                      fill="#9E0B22"
+                    />
 
-            <div className="text-left flex flex-col justify-center">
-              <div className="text-[13px] font-serif italic text-[#FFC247] font-medium">Café</div>
-              <div className="text-2xl font-serif font-extrabold text-[#F5F5F5] tracking-wide leading-tight">Três Corações</div>
-            </div>
-          </div>
+                    <circle cx="50" cy="52" r="11.5" fill="url(#goldHeartGrad)" />
+                    <path
+                      d="M50 56.2 C50 56.2 45.2 53 45.2 50.3 C45.2 48.8 46.4 47.8 47.7 47.8 C48.7 47.8 49.5 48.4 50 49.2 C50.5 48.4 51.3 47.8 52.3 47.8 C53.6 47.8 54.8 48.8 54.8 50.3 C54.8 53 50 56.2 50 56.2 Z"
+                      fill="#9E0B22"
+                    />
 
-          <p className="text-[#8994A3] text-[11px] uppercase font-mono tracking-[1.5px] mt-2 border-b border-[#C8102E]/30 pb-2.5 w-full">
-            SEGURANÇA AVANÇADA • ACESSO RESTRITO
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-6 bg-red-950/80 border border-red-500/50 text-red-200 px-4 py-3 rounded-2xl text-xs font-mono flex items-start gap-3 shadow-md text-left">
-            <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
-            <div className="leading-relaxed font-bold">
-              {error}
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-6">
-          {/* Security Notice Panel */}
-          <div className="p-[22px_20px] border border-[#FFC247]/35 rounded-[18px] bg-[#101923]/95 space-y-3 relative overflow-hidden shadow-inner ring-1 ring-[#C8102E]/20">
-            <div className="absolute top-0 right-0 w-28 h-28 bg-[#C8102E]/10 rounded-bl-full pointer-events-none" />
-            
-            <div className="flex items-center gap-2.5 text-[#FFC247]">
-              <div className="w-9 h-9 rounded-xl bg-[#FFC247]/10 border border-[#FFC247]/30 flex items-center justify-center text-[#FFC247] shadow-xs">
-                <Lock size={17} />
+                    <text
+                      fontSize="13.5"
+                      fontWeight="800"
+                      fill="#FFFFFF"
+                      letterSpacing="0.6"
+                      style={{ fontFamily: 'system-ui, sans-serif' }}
+                    >
+                      <textPath href="#loginLogoArc" startOffset="50%" textAnchor="middle">
+                        3 Corações
+                      </textPath>
+                    </text>
+                  </svg>
+                </div>
               </div>
-              <h3 className="text-sm font-bold text-[#FFC247] tracking-wide m-0 font-heading">
-                Controle de Acesso Restrito
-              </h3>
+
+              {/* Divisória Vertical Dourada */}
+              <div className="w-[2px] h-14 sm:h-16 bg-gradient-to-b from-transparent via-[#B8861B] to-transparent rounded-full shrink-0" />
+
+              {/* Tipografia Café Três Corações */}
+              <div className="text-left flex flex-col justify-center">
+                <span className="text-base sm:text-[17px] italic font-bold text-[#B8861B] leading-tight">
+                  Café
+                </span>
+                <h1 className="text-xl sm:text-[24px] font-extrabold text-[#181818] tracking-tight leading-none mt-0.5">
+                  Três Corações
+                </h1>
+              </div>
             </div>
 
-            <p className="text-[#8994A3] text-[13px] leading-[1.7] m-0">
-              Apenas <strong className="text-[#FFC247] font-semibold">usuários cadastrados</strong> possuem autorização para acessar o sistema.
-            </p>
+            {/* Subtítulo de Segurança */}
+            <div className="w-full mt-4 mb-3.5">
+              <p className="text-center text-[#5A5A5A] text-[9.5px] sm:text-[10px] font-semibold uppercase tracking-[0.2em]">
+                SEGURANÇA AVANÇADA <span className="text-[#C8962E] mx-1">•</span> ACESSO RESTRITO
+              </p>
+              <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#DFC278] to-transparent mt-2.5" />
+            </div>
           </div>
 
-          {/* Luminous Gold Google Login Button */}
+          {/* Alerta de Erro caso ocorra */}
+          {error && (
+            <div className="mb-3.5 bg-[#FFF5F5] border border-red-300 text-[#C91F2D] px-3.5 py-2.5 rounded-xl text-[11px] font-medium flex items-start gap-2 shadow-xs text-left">
+              <AlertCircle size={14} className="text-[#C91F2D] shrink-0 mt-0.5" />
+              <div className="leading-snug font-semibold">
+                {error}
+              </div>
+            </div>
+          )}
+
+          {/* Bloco Escuro: Controle de Acesso Restrito */}
+          <div className="relative overflow-hidden rounded-[18px] bg-gradient-to-br from-[#26282B] via-[#1B1D20] to-[#121417] px-4 py-4 shadow-[0_8px_20px_rgba(0,0,0,0.2)] border border-[#3E3829] mb-3.5">
+            {/* Detalhe de Arco Dourado Luminoso no Canto Direito */}
+            <div
+              className="pointer-events-none absolute -top-8 -right-8 w-32 h-32 rounded-full border-[1.5px] border-[#F5B82E]/50"
+              style={{
+                background: 'radial-gradient(circle, rgba(245,184,46,0.22) 0%, rgba(184,134,27,0.05) 60%, transparent 75%)'
+              }}
+            />
+
+            <div className="relative z-10 flex items-center gap-3.5 text-left">
+              {/* Ícone de Cadeado Dourado Circular */}
+              <div className="w-10 h-10 rounded-full border border-[#D4A537]/80 bg-[#D4A537]/10 flex items-center justify-center text-[#F5C242] shrink-0 shadow-[0_0_12px_rgba(245,194,66,0.16)]">
+                <Lock size={17} className="stroke-[2]" />
+              </div>
+
+              <div className="space-y-1">
+                <h2 className="text-xs sm:text-[13.5px] font-extrabold text-white tracking-tight leading-snug">
+                  Controle de Acesso Restrito
+                </h2>
+                <p className="text-[#D0D3D8] text-[11px] sm:text-[11.5px] leading-relaxed">
+                  Apenas <strong className="text-[#F5B82E] font-bold">usuários cadastrados</strong> possuem autorização para acessar o sistema.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Botão Principal Dourado: Autenticando com Google */}
           <button
+            type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full min-h-[56px] border border-[#FFC247]/50 rounded-xl bg-gradient-to-r from-[#FFC247] via-[#D99A25] to-[#B87C17] hover:brightness-110 text-[#05080C] font-extrabold text-[13px] tracking-[0.9px] uppercase cursor-pointer shadow-[0_8px_30px_rgba(255,194,71,0.3)] hover:shadow-[0_12px_38px_rgba(255,194,71,0.5)] transition-all flex items-center justify-between px-5 active:scale-[0.99] disabled:opacity-50"
+            className="w-full min-h-[46px] rounded-[14px] border border-[#D9B150] bg-gradient-to-r from-[#FAE7A2] via-[#E0B44D] to-[#B07D1A] hover:brightness-105 text-[#1A160D] font-extrabold text-[11px] sm:text-xs tracking-[0.07em] uppercase cursor-pointer shadow-[0_6px_18px_rgba(184,134,27,0.28)] hover:shadow-[0_8px_22px_rgba(184,134,27,0.4)] transition-all flex items-center justify-center gap-2.5 px-4 active:scale-[0.99] disabled:opacity-60"
           >
-            {loading ? (
-              <span className="w-full flex items-center justify-center gap-2 font-mono text-xs">
-                <span className="w-4 h-4 border-2 border-[#05080C] border-t-transparent rounded-full animate-spin" />
-                Autenticando com Google...
-              </span>
-            ) : (
-              <>
-                <div className="flex items-center gap-3.5">
-                  <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
-                  </div>
-                  <span>ENTRAR COM CONTA GOOGLE</span>
-                </div>
-                <ArrowRight size={18} className="text-[#05080C]" />
-              </>
-            )}
+            <RotateCw
+              size={15}
+              className={`text-[#2B2108] stroke-[2.3] ${loading ? 'animate-spin' : ''}`}
+            />
+            <span>
+              {loading ? 'AUTENTICANDO COM GOOGLE...' : 'AUTENTICANDO COM GOOGLE...'}
+            </span>
           </button>
-        </div>
 
-        {/* Footer inside card */}
-        <div className="border-t border-[#FFC247]/20 mt-[31px] pt-[20px] text-center text-[#8994A3] text-[10px] tracking-[1.6px] uppercase font-mono">
-          SISTEMA DE LOGÍSTICA E TELEMETRIA
-        </div>
+          {/* Rodapé do Cartão */}
+          <div className="mt-4 pt-3 border-t border-[#DFC278]/60 flex items-center justify-center gap-2 text-[#5A5A5A]">
+            <ShieldCheck size={14} className="text-[#B8861B] stroke-[2.2] shrink-0" />
+            <span className="text-[9.5px] sm:text-[10px] font-semibold tracking-[0.16em] uppercase">
+              SISTEMA DE LOGÍSTICA E TELEMETRIA
+            </span>
+          </div>
 
+        </div>
       </div>
     </div>
   );

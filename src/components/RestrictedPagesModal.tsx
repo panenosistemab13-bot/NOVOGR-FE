@@ -30,7 +30,7 @@ const PAGES: PageItem[] = [
   { id: 'checklist', label: 'CHECKLIST', subtitle: 'DIVERGÊNCIAS', icon: ClipboardCheck, shortcut: 'Ctrl + 2' },
   { id: 'averbacao', label: 'AVERBAÇÃO', subtitle: 'SEGUROS DE CARGA', icon: FileCheck2, shortcut: 'Ctrl + 3' },
   { id: 'sm_creator', label: 'SM', subtitle: 'MONITORAMENTO', icon: Radio, shortcut: 'Ctrl + 4' },
-  { id: 'iscas', label: 'ISCAS', subtitle: 'RASTREAMENTO & DESTINOS', icon: Package, shortcut: 'Ctrl + 5' },
+  { id: 'lancamento', label: 'LANÇAMENTO', subtitle: 'PLANILHA & POSITRON', icon: FileSpreadsheet, shortcut: 'Ctrl + 5' },
   { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'ISCAS & CONTROLE PGR', icon: Sliders, shortcut: 'Ctrl + 6' },
   { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'VEÍCULOS PÁTIO', icon: Truck, shortcut: 'Ctrl + 7' },
   { id: 'escala', label: 'ESCALA 3C', subtitle: 'PLANTÃO LOGÍSTICO', icon: FileSpreadsheet, shortcut: 'Ctrl + 8' },

@@ -25,7 +25,7 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
   { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
   { id: 'averbacao', label: 'Averbação', icon: FileCheck2 },
   { id: 'sm_creator', label: 'SM', icon: Share2 },
-  { id: 'iscas', label: 'Iscas', icon: Package },
+  { id: 'lancamento', label: 'Lançamento', icon: Package },
   { id: 'controle', label: 'Controle', icon: BarChart3 },
   { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
   { id: 'escala', label: 'Escala', icon: Calendar },

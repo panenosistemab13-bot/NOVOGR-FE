@@ -51,7 +51,7 @@ import Dashboard from './components/Dashboard';
 import Averbacao from './components/Averbacao';
 import SMCreator from './components/SMCreator';
 import Rotas from './components/Rotas';
-import Iscas from './components/Iscas';
+import Lancamento from './components/Lancamento';
 import Checklist from './components/Checklist';
 import Controle from './components/Controle';
 import Escala from './components/Escala';
@@ -93,7 +93,7 @@ import factoryRotasBg from './assets/images/factory_wallpaper_rotas_179132871941
 import tresCoracoes8kBg from './assets/images/tres_coracoes_wallpaper_1791938048589.jpg';
 import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'iscas' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'calendario' | 'settings' | 'cadastro';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'lancamento' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'calendario' | 'settings' | 'cadastro';
 
 const backgroundImages: Record<Tab, string> = {
   menu: tresCoracoes8kBg,
@@ -102,12 +102,12 @@ const backgroundImages: Record<Tab, string> = {
   averbacao: tresCoracoes8kBg,
   sm_creator: tresCoracoes8kBg,
   rotas: tresCoracoes8kBg,
+  lancamento: tresCoracoes8kBg,
   checklist: tresCoracoes8kBg,
   controle: tresCoracoes8kBg,
   escala: tresCoracoes8kBg,
   disponibilidade: tresCoracoes8kBg,
   calendario: tresCoracoes8kBg,
-  iscas: tresCoracoes8kBg,
   settings: tresCoracoes8kBg,
   cadastro: tresCoracoes8kBg
 };
@@ -117,6 +117,7 @@ const allTabs = [
   { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
   { id: 'averbacao', label: 'Averbação', icon: FileCheck2 },
   { id: 'sm_creator', label: 'monitoramento', icon: CalendarDays },
+  { id: 'lancamento', label: 'Lançamento', icon: FileSpreadsheet },
   { id: 'controle', label: 'Controle', icon: Sliders },
   { id: 'cadastro', label: 'Cadastro', icon: Users2 },
   { id: 'settings', label: 'Configurações & Páginas', icon: Sliders },
@@ -125,7 +126,6 @@ const allTabs = [
   { id: 'calendario', label: 'Calendário', icon: CalendarDays },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: Route },
-  { id: 'iscas', label: 'Iscas', icon: Package },
 ];
 
 export default function App() {
@@ -605,8 +605,8 @@ export default function App() {
         return <PresenceList onBack={() => setActiveTab('menu')} />;
       case 'rotas':
         return <Rotas onBack={() => setActiveTab('menu')} />;
-      case 'iscas':
-        return <Iscas onBack={() => setActiveTab('menu')} />;
+      case 'lancamento':
+        return <Lancamento onBack={() => setActiveTab('menu')} />;
       case 'settings':
         return <ConfiguracoesPaginasView initialTab="paginas" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'cadastro':

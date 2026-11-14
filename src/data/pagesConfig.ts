@@ -92,15 +92,15 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     badge: 'Monitoramento'
   },
   { 
-    id: 'iscas', 
-    label: 'Iscas', 
-    buttonLabel: 'Iscas', 
+    id: 'lancamento', 
+    label: 'Lançamento', 
+    buttonLabel: 'Lançamento', 
     category: 'Logística',
-    iconName: 'Package',
-    description: 'Gestão de iscas de monitoramento.',
+    iconName: 'FileSpreadsheet',
+    description: 'Identificação automática de iscas (R100 / 30D100) e geração de texto para planilha.',
     isDefaultVisible: true,
     isRestrictedByDefault: false,
-    badge: 'Iscas'
+    badge: 'Lançamento'
   },
   { 
     id: 'controle', 
@@ -266,11 +266,12 @@ export function loadPageVisibility(): Record<string, boolean> {
         Object.keys(parsed).forEach(k => {
           visibility[k] = Boolean(parsed[k]);
         });
-        if (parsed.iscas === undefined) {
-          visibility.iscas = true;
+        if (parsed.lancamento === undefined) {
+          visibility.lancamento = true;
         }
         delete visibility['blitz'];
         delete visibility['parceiros'];
+        delete visibility['iscas'];
         return visibility;
       }
     }
@@ -289,12 +290,13 @@ export function loadPageVisibility(): Record<string, boolean> {
     // Ignore
   }
 
-  // Garante que páginas antigas de teste removidas não reapareçam, mas mantém iscas ativa
+  // Garante que páginas antigas de teste removidas não reapareçam
   delete visibility['blitz'];
   delete visibility['parceiros'];
+  delete visibility['iscas'];
 
-  if (visibility['iscas'] === undefined) {
-    visibility['iscas'] = true;
+  if (visibility['lancamento'] === undefined) {
+    visibility['lancamento'] = true;
   }
 
   return visibility;

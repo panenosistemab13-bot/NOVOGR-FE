@@ -103,6 +103,13 @@ export interface SpreadsheetMetadata {
 
 import Papa from 'papaparse';
 
+// Planilha de Iscas indicada pelo usuário
+export const USER_ISCAS_SHEET_ID = '1OgJu3dfpsjKOc2WcQdD3V0eq1SSt8QKqiR9CvLqebQE';
+export const USER_ISCAS_GID = '1338328934';
+export const PUBLIC_ISCAS_CSV_URL = `https://docs.google.com/spreadsheets/d/${USER_ISCAS_SHEET_ID}/export?format=csv&gid=${USER_ISCAS_GID}`;
+export const PUBLIC_ISCAS_GVIZ_URL = `https://docs.google.com/spreadsheets/d/${USER_ISCAS_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${USER_ISCAS_GID}`;
+export const USER_ISCAS_SHEET_VIEW_URL = `https://docs.google.com/spreadsheets/d/${USER_ISCAS_SHEET_ID}/edit?gid=${USER_ISCAS_GID}#gid=${USER_ISCAS_GID}`;
+
 export const PUBLIC_SANTA_LUZIA_CSV_URL = 'https://docs.google.com/spreadsheets/d/1pYw7zb9YwYzOHQoKMewxRrkj4vCbziD_ZJp0rzlM5X4/export?format=csv';
 
 export const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbwTZlpQzmEQ-rzHOOPd8idmgpoc_QgVLGpcobN4lXCcmTnoCGUtxdbRjjRGX8hiIVYRKA/exec';
@@ -403,6 +410,83 @@ export async function fetchSantaLuziaCsvData(url: string = PUBLIC_SANTA_LUZIA_CS
   return [];
 }
 
+/**
+ * Busca texto CSV da planilha de Iscas da Café Três Corações em tempo real.
+ * Utiliza proxy com fallback direto e parâmetros anti-cache (_t).
+ */
+export async function fetchIscasCsvString(customUrl?: string): Promise<string> {
+  const timestamp = Date.now();
+  const primaryUrl = customUrl?.trim() || PUBLIC_ISCAS_CSV_URL;
+  const urlsToTry = [
+    primaryUrl,
+    PUBLIC_ISCAS_GVIZ_URL,
+    PUBLIC_ISCAS_CSV_URL
+  ];
+
+  const uniqueUrls = Array.from(new Set(urlsToTry));
+
+  for (const targetUrl of uniqueUrls) {
+    const separator = targetUrl.includes('?') ? '&' : '?';
+    const fetchUrl = `${targetUrl}${separator}_t=${timestamp}`;
+
+    // 1. Tentar primeiro via proxy do applet (/api/web-app-proxy) para evitar bloqueio de CORS no navegador
+    try {
+      const proxyUrl = `/api/web-app-proxy?url=${encodeURIComponent(fetchUrl)}`;
+      const res = await fetch(proxyUrl, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.isCsv && data.csvText) {
+          if (!data.csvText.trim().startsWith('<') && !data.csvText.toLowerCase().includes('<!doctype html>')) {
+            return data.csvText;
+          }
+        } else if (typeof data === 'string' && !data.trim().startsWith('<')) {
+          return data;
+        }
+      }
+    } catch (e) {
+      console.warn(`Proxy fetch failed for ${fetchUrl}:`, e);
+    }
+
+    // 2. Tentar busca direta no navegador caso o proxy falhe
+    try {
+      const res = await fetch(fetchUrl, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.trim().startsWith('<') && !text.toLowerCase().includes('<!doctype html>')) {
+          return text;
+        }
+      }
+    } catch (e) {
+      console.warn(`Direct fetch failed for ${targetUrl}:`, e);
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Busca e faz parse em matriz das linhas de iscas da planilha oficial.
+ */
+export async function fetchIscasCsvData(customUrl?: string): Promise<string[][]> {
+  const csvText = await fetchIscasCsvString(customUrl);
+  if (csvText) {
+    return parseCsvText(csvText);
+  }
+  return [];
+}
+
 export function extractSpreadsheetId(input: string): string {
   const trimmed = input.trim();
   const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
@@ -495,13 +579,22 @@ export interface IscaRecord {
   idIsca: string;
   destino: string;
   uf: string;
-  status: 'EM ROTA(IDA)' | 'ROTA VOLTA' | 'PREPARAÇÃO' | 'NO DESTINO' | 'EXTRAVIADA' | 'DISPONIVEL';
+  status: 'EM ROTA(IDA)' | 'ROTA VOLTA' | 'PREPARAÇÃO' | 'NO DESTINO' | 'EXTRAVIADA' | 'DISPONIVEL' | 'ENVIAR PARA GARANTIA' | 'POSSIVEL EXTRAVIO' | string;
   obs1: string;
   dataStatus: string;
   carreta: string;
   cavalo: string;
   motorista: string;
   unidade: string;
+  diasAguard?: string;
+  historicoExtravio?: string;
+  bateria?: string;
+  diasSemSinal?: string;
+  horaSemSinal?: string;
+  ultimaPosicao?: string;
+  endereco?: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 export const CITY_TO_UF: Record<string, string> = {
@@ -546,9 +639,11 @@ export const CITY_TO_UF: Record<string, string> = {
   'DUQUE DE CAXIAS': 'RJ',
   'JABOATAO': 'PE',
   'JABOATÃO': 'PE',
+  'LONDRINA': 'PR',
+  'MONTES CLAROS': 'MG',
 };
 
-export function normalizeIscaStatus(raw: string): IscaRecord['status'] {
+export function normalizeIscaStatus(raw: string): string {
   const s = (raw || '').toUpperCase().trim();
   if (s.includes('IDA') || s === 'ROTA IDA' || s === 'EM ROTA(IDA)' || s === 'EM ROTA IDA') {
     return 'EM ROTA(IDA)';
@@ -562,13 +657,19 @@ export function normalizeIscaStatus(raw: string): IscaRecord['status'] {
   if (s.includes('DESTINO')) {
     return 'NO DESTINO';
   }
+  if (s.includes('GARANTIA')) {
+    return 'ENVIAR PARA GARANTIA';
+  }
+  if (s.includes('POSSIVEL') || s.includes('POSSÍVEL')) {
+    return 'POSSIVEL EXTRAVIO';
+  }
   if (s.includes('EXTRAV')) {
     return 'EXTRAVIADA';
   }
   if (s.includes('DISP')) {
     return 'DISPONIVEL';
   }
-  return 'DISPONIVEL';
+  return s || 'DISPONIVEL';
 }
 
 /**
@@ -830,11 +931,20 @@ export function parseSheetRowsToIscas(rows: string[][]): IscaRecord[] {
     destino: headers.findIndex(h => h.includes('destino') || h.includes('cidade')),
     status: headers.findIndex(h => h.includes('status') || h.includes('situa')),
     obs1: headers.findIndex(h => h.includes('obs 1') || h.includes('obs1') || h === 'obs' || h.includes('observação') || h.includes('resgate')),
-    dataStatus: headers.findIndex(h => h.includes('data')),
+    dataStatus: headers.findIndex(h => h.includes('data status') || h.includes('data')),
     carreta: headers.findIndex(h => h.includes('carreta')),
     cavalo: headers.findIndex(h => h.includes('cavalo')),
-    motorista: headers.findIndex(h => h.includes('motorista')),
+    motorista: headers.findIndex(h => h.includes('motorista') || h.includes('condutor')),
     unidade: headers.findIndex(h => h.includes('unidade') || h.includes('base')),
+    diasAguard: headers.findIndex(h => h.includes('dias aguard')),
+    historicoExtravio: headers.findIndex(h => h.includes('extravio') || h.includes('devolu')),
+    bateria: headers.findIndex(h => h.includes('bateria')),
+    diasSemSinal: headers.findIndex(h => h.includes('dias sem sinal')),
+    horaSemSinal: headers.findIndex(h => h.includes('hora sem sinal')),
+    ultimaPosicao: headers.findIndex(h => h.includes('posi') || h.includes('atualizada')),
+    endereco: headers.findIndex(h => h.includes('endere') || h.includes('local')),
+    latitude: headers.findIndex(h => h.includes('lat')),
+    longitude: headers.findIndex(h => h.includes('lon') || h.includes('lng')),
   };
 
   const records: IscaRecord[] = [];
@@ -844,7 +954,7 @@ export function parseSheetRowsToIscas(rows: string[][]): IscaRecord[] {
     if (!row || row.length === 0) continue;
 
     const idIsca = (colIndex.idIsca !== -1 ? row[colIndex.idIsca] : row[0])?.toString().trim();
-    if (!idIsca) continue;
+    if (!idIsca || idIsca.toUpperCase() === 'ID ISCA' || idIsca.toUpperCase() === 'ID') continue;
 
     const destino = (colIndex.destino !== -1 && row[colIndex.destino] ? row[colIndex.destino] : '').toString().trim().toUpperCase();
     const statusRaw = (colIndex.status !== -1 && row[colIndex.status] ? row[colIndex.status] : '').toString().trim();
@@ -856,6 +966,16 @@ export function parseSheetRowsToIscas(rows: string[][]): IscaRecord[] {
     const cavalo = (colIndex.cavalo !== -1 && row[colIndex.cavalo] ? row[colIndex.cavalo] : '-').toString().trim();
     const motorista = (colIndex.motorista !== -1 && row[colIndex.motorista] ? row[colIndex.motorista] : '-').toString().trim();
     const unidade = (colIndex.unidade !== -1 && row[colIndex.unidade] ? row[colIndex.unidade] : 'SANTA LUZIA').toString().trim().toUpperCase();
+    
+    const diasAguard = colIndex.diasAguard !== -1 && row[colIndex.diasAguard] ? row[colIndex.diasAguard].toString().trim() : '';
+    const historicoExtravio = colIndex.historicoExtravio !== -1 && row[colIndex.historicoExtravio] ? row[colIndex.historicoExtravio].toString().trim() : '';
+    const bateria = colIndex.bateria !== -1 && row[colIndex.bateria] ? row[colIndex.bateria].toString().trim() : '';
+    const diasSemSinal = colIndex.diasSemSinal !== -1 && row[colIndex.diasSemSinal] ? row[colIndex.diasSemSinal].toString().trim() : '';
+    const horaSemSinal = colIndex.horaSemSinal !== -1 && row[colIndex.horaSemSinal] ? row[colIndex.horaSemSinal].toString().trim() : '';
+    const ultimaPosicao = colIndex.ultimaPosicao !== -1 && row[colIndex.ultimaPosicao] ? row[colIndex.ultimaPosicao].toString().trim() : '';
+    const endereco = colIndex.endereco !== -1 && row[colIndex.endereco] ? row[colIndex.endereco].toString().trim() : '';
+    const latitude = colIndex.latitude !== -1 && row[colIndex.latitude] ? row[colIndex.latitude].toString().trim() : '';
+    const longitude = colIndex.longitude !== -1 && row[colIndex.longitude] ? row[colIndex.longitude].toString().trim() : '';
 
     // Determina a UF correspondente
     let uf = 'MG';
@@ -878,6 +998,15 @@ export function parseSheetRowsToIscas(rows: string[][]): IscaRecord[] {
       cavalo,
       motorista,
       unidade,
+      diasAguard,
+      historicoExtravio,
+      bateria,
+      diasSemSinal,
+      horaSemSinal,
+      ultimaPosicao,
+      endereco,
+      latitude,
+      longitude
     });
   }
 

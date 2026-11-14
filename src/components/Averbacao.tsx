@@ -15,18 +15,19 @@ import {
   Search,
   Copy,
   Plus,
-  Sliders,
   Mail,
-  FileCheck2,
   ChevronDown,
-  Trash,
+  ChevronUp,
   Image as ImageIcon,
   FileSpreadsheet,
-  Edit3,
   Layers,
   AlertCircle,
   MapPin,
-  Truck
+  Truck,
+  Palette,
+  BarChart3,
+  Cpu,
+  Car
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { safeCopyText, safeCopyHtmlAndText, safeCopyImage } from '../utils/clipboard';
@@ -64,39 +65,39 @@ const DEFAULT_TECNOLOGIAS = [
 const COLOR_THEMES = {
   amarelo: {
     name: 'AMARELO',
-    highlightClass: 'bg-[#FFFF00] text-black border border-yellow-400',
-    tableCellClass: 'bg-[#FFFF00] text-black border border-black',
-    borderClass: 'border-l-4 border-l-[#FFFF00]',
+    highlightClass: 'bg-[#FFEE4A] text-black border border-[#E5C820]',
+    tableCellClass: 'bg-[#FFFF00] text-black border border-[#24231E]',
+    borderClass: 'border-[#F2C94C]',
     accentColor: '#FFFF00',
     textColor: '#000000',
-    circleBg: 'bg-[#FFFF00]'
+    circleBg: 'bg-[#F5C518]'
   },
   vermelho: {
     name: 'VERMELHO',
-    highlightClass: 'bg-red-600 text-white border border-red-700',
-    tableCellClass: 'bg-red-600 text-white border border-red-800',
-    borderClass: 'border-l-4 border-l-red-600',
+    highlightClass: 'bg-[#AD0C14] text-white border border-[#8A080E]',
+    tableCellClass: 'bg-[#AD0C14] text-white border border-[#24231E]',
+    borderClass: 'border-[#AD0C14]',
     accentColor: '#E11D48',
     textColor: '#FFFFFF',
-    circleBg: 'bg-red-600'
+    circleBg: 'bg-[#AD0C14]'
   },
   azul: {
     name: 'AZUL',
-    highlightClass: 'bg-blue-600 text-white border border-blue-700',
-    tableCellClass: 'bg-blue-600 text-white border border-blue-800',
-    borderClass: 'border-l-4 border-l-blue-600',
+    highlightClass: 'bg-[#0B3B8C] text-white border border-[#082B66]',
+    tableCellClass: 'bg-[#0B3B8C] text-white border border-[#24231E]',
+    borderClass: 'border-[#0B3B8C]',
     accentColor: '#2563EB',
     textColor: '#FFFFFF',
-    circleBg: 'bg-blue-600'
+    circleBg: 'bg-[#0B3B8C]'
   },
   verde: {
     name: 'VERDE',
-    highlightClass: 'bg-emerald-600 text-white border border-emerald-700',
-    tableCellClass: 'bg-emerald-600 text-white border border-emerald-800',
-    borderClass: 'border-l-4 border-l-emerald-600',
+    highlightClass: 'bg-[#096B36] text-white border border-[#064E27]',
+    tableCellClass: 'bg-[#096B36] text-white border border-[#24231E]',
+    borderClass: 'border-[#096B36]',
     accentColor: '#10B981',
     textColor: '#FFFFFF',
-    circleBg: 'bg-emerald-600'
+    circleBg: 'bg-[#096B36]'
   }
 };
 
@@ -114,9 +115,11 @@ export function Averbacao({ onBack }: AverbacaoProps) {
   const [rawInputText, setRawInputText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [copied, setCopied] = useState(false);
+  const [copiedSubject, setCopiedSubject] = useState(false);
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'delete' } | null>(null);
+  const [isOperationalOpen, setIsOperationalOpen] = useState(true);
 
   const [hideAnexos, setHideAnexos] = useState(true);
   const [customTransportadoras, setCustomTransportadoras] = useState<string[]>(DEFAULT_TRANSPORTADORAS);
@@ -133,7 +136,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     return {
       origem: 'SANTA LUZIA',
       destino: 'LONDRINA',
-      transportadora: 'MODECENSE',
+      transportadora: 'FROTA 3C',
       placaCav: 'QWA6A22',
       placaCarr: 'DLV7307',
       tecnologia: 'SIGHRA',
@@ -165,7 +168,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         valorNf: 'R$ 1.849.200,00',
         somaVl: 'R$ 1.849.200,00',
         protocolo: 'AVB-984210',
-        transportadora: 'MODECENSE',
+        transportadora: 'FROTA 3C',
         tecnologia: 'SIGHRA',
         nomeMotorista: 'ROBSON LUIS VIEIRA',
         cpf: '051.248.966-09',
@@ -491,6 +494,58 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     return `ROTA: ${origem || '-'} X MÚLTIPLOS DESTINOS (${uniqueDestinos.join(', ')})`;
   };
 
+  const isTransportadora3C = (rows?: AverbacaoRow[]) => {
+    const activeRows = rows && rows.length > 0 ? rows : (filteredRows.length > 0 ? filteredRows : parsedRows);
+    const transp = (
+      activeRows.find(r => r.transportadora && r.transportadora.trim() !== '' && r.transportadora !== '-')?.transportadora ||
+      extraData.transportadora ||
+      ''
+    ).trim().toUpperCase();
+
+    return (
+      transp === '3C' ||
+      transp === 'FROTA 3C' ||
+      transp === 'FOTA 3C' ||
+      transp.includes('FROTA 3C') ||
+      transp.includes('FOTA 3C') ||
+      transp.startsWith('3C ') ||
+      transp.endsWith(' 3C') ||
+      transp.includes('3C LOG')
+    );
+  };
+
+  const getEmailSubject = (rows?: AverbacaoRow[]) => {
+    const activeRows = rows && rows.length > 0 ? rows : (filteredRows.length > 0 ? filteredRows : parsedRows);
+    const origemRaw = activeRows.find(r => r.origem && r.origem.trim() !== '' && r.origem !== '-')?.origem || extraData.origem || '';
+    const origem = (origemRaw.trim() || 'ORIGEM').toUpperCase();
+
+    const uniqueDestinos = Array.from(
+      new Set(activeRows.map(r => r.destino?.trim()).filter(d => d && d !== '-'))
+    );
+    if (extraData.destino && extraData.destino.trim() !== '' && extraData.destino !== '-' && uniqueDestinos.length === 0) {
+      uniqueDestinos.push(extraData.destino.trim());
+    }
+    const destino = (uniqueDestinos.length > 0 ? uniqueDestinos.join(' / ') : 'DESTINO').toUpperCase();
+
+    const placaRaw = activeRows.find(r => r.placaCav && r.placaCav.trim() !== '' && r.placaCav !== '-')?.placaCav || extraData.placaCav || '';
+    const placaLimpa = placaRaw.replace(/-/g, '').trim().toUpperCase();
+    const placa = placaLimpa || 'PLACA';
+
+    const prefix = isTransportadora3C(activeRows)
+      ? 'AVERBAÇÃO & SM 3 CORAÇÕES'
+      : 'AVERBAÇÃO 3 CORAÇÕES';
+
+    return `${prefix} - ${origem} x ${destino} - ${placa}`;
+  };
+
+  const handleCopySubject = async () => {
+    const subjectText = getEmailSubject();
+    await safeCopyText(subjectText);
+    setCopiedSubject(true);
+    showNotificationMsg(`Assunto copiado: ${subjectText}`);
+    setTimeout(() => setCopiedSubject(false), 2500);
+  };
+
   const getUniqueProtocols = (rows: AverbacaoRow[]): string[] => {
     const activeRows = rows.length > 0 ? rows : parsedRows;
     if (activeRows.length === 0) return [];
@@ -638,7 +693,6 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
     const uniqueTransportRows = getUniqueTransportRows(rowsToUse);
     const routeTitle = getRouteTitle(rowsToUse);
-    const protocolosList = getProtocolsList(rowsToUse);
     const totalCarga = getTotalValue();
 
     let imageBlob: Blob | null = null;
@@ -674,12 +728,12 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     const protocolsHtml = uniqueProtocols.length > 0
       ? uniqueProtocols.map(p => `
           <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 4px;">
-            PROTOCOLO: <span style="color: #2563eb; font-family: monospace, Courier, monospace; font-weight: bold;">${p}</span>
+            PROTOCOLO: <span style="color: #0B3B8C; font-family: monospace, Courier, monospace; font-weight: bold;">${p}</span>
           </div>
         `).join('')
       : `
           <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 4px;">
-            PROTOCOLO: <span style="color: #2563eb; font-family: monospace, Courier, monospace; font-weight: bold;">-</span>
+            PROTOCOLO: <span style="color: #0B3B8C; font-family: monospace, Courier, monospace; font-weight: bold;">-</span>
           </div>
         `;
 
@@ -695,13 +749,13 @@ export function Averbacao({ onBack }: AverbacaoProps) {
           Segue <span style="background-color: ${accentHex}; color: ${textColorHex}; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-block;">AVERBAÇÃO</span> realizada via sistema.
         </p>
 
-        <div style="background-color: #f8f9fa; border-left: 5px solid ${accentHex}; padding: 14px 18px; border-radius: 8px; margin: 16px 0; font-family: Arial, sans-serif;">
-          <div style="font-size: 14px; font-weight: bold; color: #2563eb; margin-bottom: 6px; text-transform: uppercase;">
+        <div style="background-color: #FAF6EC; border: 1px solid #F2C94C; padding: 14px 18px; border-radius: 10px; margin: 16px 0; font-family: Arial, sans-serif;">
+          <div style="font-size: 14px; font-weight: bold; color: #0B3B8C; margin-bottom: 6px; text-transform: uppercase;">
             ${routeTitle || 'AGUARDANDO DADOS'}
           </div>
           ${protocolsHtml}
           <div style="font-size: 13px; font-weight: bold; color: #000000; margin-top: 4px;">
-            Valor da Carga: <span style="color: #dc2626; font-family: monospace, Courier, monospace; font-weight: bold;">${totalCarga}</span>
+            Valor da Carga: <span style="color: #BA0C16; font-family: monospace, Courier, monospace; font-weight: bold;">${totalCarga}</span>
           </div>
         </div>
 
@@ -713,7 +767,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
           <div style="margin: 18px 0; overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; text-align: center; border: 1px solid #000000;">
               <thead>
-                <tr style="background-color: #292820; color: #ffffff; font-weight: bold; font-size: 10px; text-transform: uppercase;">
+                <tr style="background-color: #24231E; color: #ffffff; font-weight: bold; font-size: 10px; text-transform: uppercase;">
                   <th style="border: 1px solid #000000; padding: 7px 6px;">ORIGEM</th>
                   <th style="border: 1px solid #000000; padding: 7px 6px;">DESTINO</th>
                   <th style="border: 1px solid #000000; padding: 7px 6px;">TRANSPORTADORA</th>
@@ -753,7 +807,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col relative text-left bg-[#F5F0E6] p-3 text-[#25231F] font-sans overflow-y-auto">
+    <div className="w-full h-full flex flex-col relative text-left bg-[#FAF6EF] p-3.5 sm:p-4 text-[#181715] font-sans overflow-y-auto">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -778,648 +832,457 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       {/* ========================================================================= */}
       {/* GRID SYSTEM: MASTER BOARD ON THE LEFT, SIDEBAR ON THE RIGHT               */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4 w-full items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4 w-full items-start">
         
-        {/* LEFT COLUMN: BRANDED INTERACTIVE BOARD PANEL */}
-        <div className="flex flex-col gap-3.5 w-full">
+        {/* LEFT COLUMN: STACKED CARDS MATCHING REFERENCE DESIGN */}
+        <div className="flex flex-col gap-3 w-full">
           
-          {/* TOP CONTROLS: CODES BAR & QUICK IMPORT ACTIONS */}
-          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-[#25231F]">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-[11px] font-black uppercase text-[#C49A45] flex items-center gap-1 font-mono">
-                ⚡ CÓDIGOS RÁPIDOS:
-              </span>
-              
-              {/* Capsula Field */}
-              <div className="flex items-center bg-white border border-[#E6D2A3] rounded px-3 py-1.5 font-bold font-mono text-[#292820] gap-2 shadow-inner">
-                <span className="text-[#77736B]">CÁPSULA:</span>
-                <span className="text-[#C49A45] tracking-wider font-extrabold uppercase">
-                  9000000982
-                </span>
-                <button 
-                  onClick={() => copyCodeToClipboard('CÁPSULA', '9000000982')}
-                  className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
-                  title="Copiar código Cápsula"
-                >
-                  <Copy size={11} />
-                </button>
+          {/* CARD 1: TOP CONTROLS BAR (CÓDIGOS RÁPIDOS + PLANILHA + LIMPAR) */}
+          <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl p-3 sm:px-4 sm:py-3 shadow-[0_4px_16px_rgba(0,0,0,0.035)] flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
+            
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap flex-1">
+              {/* Branded Badge Container */}
+              <div className="flex items-center gap-2.5 bg-[#FAF6EE] border border-[#EDE3CE]/90 rounded-2xl px-3.5 py-2 shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#24231E] flex items-center justify-center shadow-xs shrink-0">
+                  <Zap size={15} className="text-[#F5B82E] fill-[#F5B82E]" />
+                </div>
+                <div className="leading-tight pr-1">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#181715] block">
+                    CÓDIGOS RÁPIDOS
+                  </span>
+                  <span className="text-[10px] font-medium text-[#7A7469] block">
+                    Clique para copiar
+                  </span>
+                </div>
               </div>
 
-              {/* Maquina Field */}
-              <div className="flex items-center bg-white border border-[#E6D2A3] rounded px-3 py-1.5 font-bold font-mono text-[#292820] gap-2 shadow-inner">
-                <span className="text-[#77736B]">MÁQUINA:</span>
-                <span className="text-[#C49A45] font-black">000000901</span>
-                <button 
-                  onClick={() => copyCodeToClipboard('MÁQUINA', '000000901')}
-                  className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
-                  title="Copiar código Máquina"
-                >
-                  <Copy size={11} />
-                </button>
-              </div>
+              {/* Interactive Quick Code Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 flex-1">
+                {[
+                  { label: 'CÁPSULA', code: '9000000982' },
+                  { label: 'MÁQUINA', code: '000000901' },
+                  { label: 'EMBARQUES', code: '132' },
+                ].map((item) => {
+                  const isItemCopied = copiedCode === item.label;
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => copyCodeToClipboard(item.label, item.code)}
+                      title={`Clique para copiar ${item.label}: ${item.code}`}
+                      className={cn(
+                        "group relative flex items-center justify-between gap-2 px-4 py-2 rounded-2xl border text-left transition-all duration-150 cursor-pointer select-none active:scale-[0.98]",
+                        isItemCopied
+                          ? "bg-emerald-50 border-emerald-400 shadow-xs"
+                          : "bg-white hover:bg-[#FFFDF9] border-[#EDE3CE] hover:border-[#D69E2E] shadow-[0_2px_6px_rgba(0,0,0,0.025)]"
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <span className={cn(
+                          "text-[9.5px] font-bold uppercase tracking-wider block transition-colors",
+                          isItemCopied ? "text-emerald-700" : "text-[#7A7469]"
+                        )}>
+                          {item.label}
+                        </span>
+                        <span className={cn(
+                          "text-xs sm:text-[13px] font-extrabold tracking-tight block mt-0.5 tabular-nums",
+                          isItemCopied ? "text-emerald-900" : "text-[#181715]"
+                        )}>
+                          {item.code}
+                        </span>
+                      </div>
 
-              {/* Embarques Field */}
-              <div className="flex items-center bg-white border border-[#E6D2A3] rounded px-3 py-1.5 font-bold font-mono text-[#292820] gap-2 shadow-inner">
-                <span className="text-[#77736B]">EMBARQUES:</span>
-                <span className="text-[#C49A45] font-black">132</span>
-                <button 
-                  onClick={() => copyCodeToClipboard('EMBARQUES', '132')}
-                  className="text-[#77736B] hover:text-[#C49A45] cursor-pointer"
-                  title="Copiar código Embarques"
-                >
-                  <Copy size={11} />
-                </button>
+                      <div className="shrink-0">
+                        {isItemCopied ? (
+                          <Check size={14} className="text-emerald-600 stroke-[2.5]" />
+                        ) : (
+                          <Copy size={14} className="text-[#C8922A] group-hover:scale-110 transition-transform" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* BUTTON BAR: INTELLIGENT PASTE & ACTION BUTTONS */}
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              {!hideAnexos && (
-                <button
-                  onClick={handlePasteFromClipboard}
-                  title="Colar dados da área de transferência (ou use Ctrl+V na página)"
-                  className="bg-gradient-to-r from-[#C49A45] to-[#A07A33] hover:brightness-110 text-white text-[11px] font-black uppercase px-3.5 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-[#E6D2A3] flex items-center gap-1.5"
-                >
-                  <Clipboard size={12} />
-                  <span>COLAR DADOS (CTRL+V)</span>
-                </button>
-              )}
-
+            {/* Action Pill Buttons: PLANILHA & LIMPAR */}
+            <div className="flex items-center gap-2.5 justify-end shrink-0">
               <button
+                type="button"
                 onClick={() => setShowPasteModal(true)}
-                className="bg-white hover:bg-[#F5F0E6] border border-[#E6D2A3] text-[#292820] text-[11px] font-black uppercase px-3 py-2 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1"
+                className="bg-[#282622] hover:bg-[#383630] text-white text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95 whitespace-nowrap"
                 title="Abrir caixa de colagem manual de planilha"
               >
-                <FileSpreadsheet size={12} className="text-[#C49A45]" />
+                <FileSpreadsheet size={14} className="text-[#F5B82E]" />
                 <span>PLANILHA</span>
               </button>
 
               <button
+                type="button"
                 onClick={handleClearAll}
-                className="bg-[#FFF5F5] hover:bg-[#FFE3E3] border border-red-300 text-[#C91F2D] text-[11px] font-black uppercase px-3 py-2 rounded-xl shadow-xs cursor-pointer"
+                className="bg-[#BA0C16] hover:bg-[#9E0810] text-white text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95 whitespace-nowrap"
                 title="Limpar todos os registros"
               >
-                LIMPAR
+                <Trash2 size={14} className="text-white" />
+                <span>LIMPAR</span>
               </button>
             </div>
           </div>
 
-          {/* QUICK PASTE CALLOUT BANNER */}
-          {!hideAnexos && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-[#E6D2A3] rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
-              <div className="flex items-center gap-2 text-stone-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
-                <span className="font-bold text-[11px]">
-                  💡 <strong>Dica de Agilidade:</strong> Copie sua linha no Excel/Google Sheets e aperte <kbd className="bg-white px-1.5 py-0.5 rounded border border-[#E6D2A3] text-stone-900 font-mono text-[10px] shadow-2xs">Ctrl+V</kbd> em qualquer lugar desta tela para importar dados e NFs automaticamente!
-                </span>
+          {/* CARD 2: PALETA DE CORES DO E-MAIL */}
+          <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl px-4 py-3 shadow-[0_3px_12px_rgba(0,0,0,0.03)] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-[#FEF4D6] flex items-center justify-center shrink-0">
+                <Palette size={16} className="text-[#D99B16]" />
               </div>
+              <span className="text-xs font-extrabold uppercase tracking-wide text-[#181715]">
+                PALETA DE CORES DO E-MAIL
+              </span>
             </div>
-          )}
 
-          {/* SEARCH BAR (Wide) */}
-          {!hideAnexos && (
-            <div className="relative w-full">
-              <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#77736B]" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por placa, nota fiscal, motorista, protocolo ou destino..."
-                className="w-full bg-[#FFFCF6] text-[#292820] border border-[#E6D2A3] rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#C49A45] shadow-inner placeholder-[#77736B]"
-              />
-            </div>
-          )}
-
-          {/* COLOR THEME PICKER */}
-          <div className="flex items-center justify-between bg-[#292820] text-white px-4 py-2.5 rounded-xl border border-[#E6D2A3]">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#E6D2A3]">PALETA DE CORES DO E-MAIL</span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               {(Object.keys(COLOR_THEMES) as Array<keyof typeof COLOR_THEMES>).map((key) => {
                 const theme = COLOR_THEMES[key];
                 const isSelected = emailColor === key;
                 return (
                   <button
                     key={key}
+                    type="button"
                     onClick={() => setEmailColor(key)}
                     className={cn(
-                      "w-9 h-6 rounded-full transition-all cursor-pointer flex items-center justify-center font-bold text-xs border",
+                      "w-7 h-7 rounded-full transition-all cursor-pointer flex items-center justify-center shadow-xs",
                       theme.circleBg,
-                      isSelected ? "ring-2 ring-white scale-110 shadow-md border-white" : "border-transparent opacity-80 hover:opacity-100"
+                      isSelected
+                        ? "ring-2 ring-offset-2 ring-[#C8922A] scale-105"
+                        : "opacity-90 hover:opacity-100 hover:scale-105"
                     )}
                     title={theme.name}
                   >
-                    {isSelected && <Check size={12} className={key === 'amarelo' ? "text-black" : "text-white"} />}
+                    {isSelected && (
+                      <Check
+                        size={14}
+                        className={cn("stroke-[2.8]", key === 'amarelo' ? "text-[#181715]" : "text-white")}
+                      />
+                    )}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* EMAIL PREVIEW CARD CONTAINER */}
-          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm text-xs font-mono space-y-3.5 text-[#25231F]">
-            
-            {/* Header Area */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E6D2A3]/60 pb-3 gap-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#C49A45]/15 text-[#C49A45] border border-[#E6D2A3] flex items-center justify-center shrink-0">
-                  <Mail size={16} />
-                </div>
-                <div className="text-left leading-none">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-[#C49A45] block">
-                    FORMATO PARA CLIENTE DE E-MAIL
-                  </span>
-                  <span className="text-[13px] font-black text-[#292820] uppercase tracking-tight block mt-1">
-                    CORPO DA MENSAGEM DE AVERBAÇÃO
-                  </span>
-                </div>
+          {/* CARD 3: HEADER BAR - FORMATO PARA CLIENTE DE E-MAIL / CORPO DA MENSAGEM DE AVERBAÇÃO */}
+          <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl px-4 py-3 shadow-[0_3px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#D69E2E] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Mail size={17} />
               </div>
-
-              <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={copyToEmail}
-                    className="bg-gradient-to-r from-[#C49A45] via-[#B88938] to-[#9A7230] hover:brightness-110 text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#E6D2A3]"
-                    title="Copiar e-mail formatado"
-                  >
-                    <Clipboard size={12} />
-                    <span>{copied ? 'COPIADO' : 'COPIAR FORMATADO'}</span>
-                  </button>
-                  {!hideAnexos && (
-                    <button
-                      onClick={copyAsImage}
-                      disabled={isGeneratingImg}
-                      className="bg-white hover:bg-[#F5F0E6] text-[#292820] border border-[#E6D2A3] text-[11px] font-black uppercase px-3 py-2 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                      title="Copiar visualização como imagem"
-                    >
-                      <ImageIcon size={12} className="text-[#C49A45]" />
-                      <span>{isGeneratingImg ? 'GERANDO...' : 'COPIAR IMAGEM'}</span>
-                    </button>
-                  )}
+              <div className="text-left leading-tight">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#6E685F] block">
+                  FORMATO PARA CLIENTE DE E-MAIL
+                </span>
+                <span className="text-xs sm:text-[13px] font-extrabold text-[#181715] uppercase tracking-tight block mt-0.5">
+                  CORPO DA MENSAGEM DE AVERBAÇÃO
+                </span>
               </div>
             </div>
 
-            {/* Inner Message Template (rendered for display & image capture) */}
-            <div 
-              ref={emailPreviewRef}
-              className="bg-white border border-[#E6D2A3] rounded-2xl p-6 text-left font-sans text-stone-900 space-y-4 shadow-sm leading-relaxed"
-            >
-              <p className="font-extrabold text-stone-950 text-sm">Bom dia!</p>
-              
-              <p className="font-semibold text-stone-800 text-xs sm:text-sm">
-                Segue <span className={cn("px-2 py-0.5 rounded font-black", activeTheme.highlightClass)} style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}>AVERBAÇÃO</span> realizada via sistema.
-              </p>
-
-              {/* Highlights Quote Panel */}
-              <div 
-                className="bg-[#FAF7F0] p-4.5 rounded-xl space-y-1.5 shadow-2xs border border-[#E6D2A3]/40"
-                style={{ borderLeft: `5px solid ${activeTheme.accentColor}` }}
-              >
-                <div className="text-xs sm:text-[13px] font-black text-blue-600 uppercase">
-                  {getRouteTitle(filteredRows.length > 0 ? filteredRows : parsedRows) || 'AGUARDANDO DADOS'}
-                </div>
-                {getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0 ? (
-                  getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).map((prot, idx) => (
-                    <div key={idx} className="text-xs font-black text-stone-900">
-                      PROTOCOLO: <span className="text-blue-600 font-extrabold font-mono">{prot}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-xs font-black text-stone-900">
-                    PROTOCOLO: <span className="text-blue-600 font-extrabold font-mono">-</span>
-                  </div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={handleCopySubject}
+                className={cn(
+                  "text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap",
+                  copiedSubject
+                    ? "bg-emerald-600 text-white"
+                    : "bg-[#282622] hover:bg-[#383630] text-white"
                 )}
-                <div className="text-xs font-black text-stone-900 pt-0.5">
-                  Valor da Carga: <span className="text-[#C91F2D] font-extrabold font-mono">{getTotalValue()}</span>
-                </div>
-              </div>
+                title="Copiar assunto do e-mail"
+              >
+                {copiedSubject ? <Check size={14} /> : <Copy size={14} className="text-[#F5B82E]" />}
+                <span>{copiedSubject ? 'ASSUNTO COPIADO!' : 'COPIAR ASSUNTO'}</span>
+              </button>
 
-              <p className="text-xs sm:text-sm font-semibold text-stone-800">
-                Segue dados e NF's em anexo.
-              </p>
-
-              {/* Operational Transport Data Table */}
-              <div className="overflow-x-auto rounded-xl border border-black shadow-xs my-2">
-                <table className="w-full border-collapse text-center text-xs font-sans">
-                  <thead>
-                    <tr className="bg-[#292820] text-white text-[10px] font-black uppercase">
-                      <th className="p-2 border border-black">ORIGEM</th>
-                      <th className="p-2 border border-black">DESTINO</th>
-                      <th className="p-2 border border-black">TRANSPORTADORA</th>
-                      <th className="p-2 border border-black">PLACA CAVALO</th>
-                      <th className="p-2 border border-black">PLACAS CARRETAS</th>
-                      <th className="p-2 border border-black">TECNOLOGIA</th>
-                      <th className="p-2 border border-black">NOME MOTORISTA</th>
-                      <th className="p-2 border border-black">CPF</th>
-                      <th className="p-2 border border-black">TELEFONE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
-                      <tr 
-                        key={row.id || idx}
-                        className={cn("font-bold text-[11px]", activeTheme.tableCellClass)}
-                        style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
-                      >
-                        <td className="p-1 border border-black uppercase">
-                          <input
-                            type="text"
-                            value={row.origem || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black uppercase">
-                          <input
-                            type="text"
-                            value={row.destino || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black uppercase">
-                          <input
-                            type="text"
-                            value={row.transportadora || extraData.transportadora || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black font-mono">
-                          <input
-                            type="text"
-                            value={row.placaCav || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold uppercase font-mono outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black font-mono">
-                          <input
-                            type="text"
-                            value={row.placaCarr || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold uppercase font-mono outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black uppercase">
-                          <input
-                            type="text"
-                            value={row.tecnologia || extraData.tecnologia || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black uppercase">
-                          <input
-                            type="text"
-                            value={row.nomeMotorista || extraData.nomeMotorista || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black font-mono">
-                          <input
-                            type="text"
-                            value={row.cpf || extraData.cpf || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold font-mono outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="p-1 border border-black">
-                          <input
-                            type="text"
-                            value={row.telefone || extraData.telefone || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-bold outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <p className="font-extrabold text-stone-950 pt-2 text-sm">Att,</p>
+              <button
+                type="button"
+                onClick={copyToEmail}
+                className="bg-gradient-to-r from-[#D69E2E] to-[#B87D14] hover:brightness-105 text-white text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                title="Copiar e-mail formatado"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} className="text-white" />}
+                <span>{copied ? 'COPIADO!' : 'COPIAR FORMATADO'}</span>
+              </button>
             </div>
-
-            {/* Branded footer of this panel */}
-            <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] font-bold text-[#77736B] border-t border-[#E6D2A3]/60 pt-3 gap-2">
-              <div className="flex items-center gap-1 flex-wrap uppercase">
-                <span>TOTAL DE ROTAS: {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).length || 0}</span>
-                <span>•</span>
-                <span>TOTAL DE NOTAS: {parsedRows.length}</span>
-                <span>•</span>
-                <span>SOMA: {getTotalValue()}</span>
-              </div>
-              
-              <div className="flex items-center gap-1.5 uppercase text-emerald-600">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                <span>SISTEMA PRONTO PARA CÓPIA</span>
-              </div>
-            </div>
-
           </div>
 
-          {/* EDITABLE SECTION: GERENCIADOR DE NOTAS FISCAIS IMPORTADAS */}
-          {!hideAnexos && (
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm text-xs text-[#25231F] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E6D2A3]/60 pb-2.5 gap-2">
-                <div className="flex items-center gap-2">
-                  <Layers size={15} className="text-[#C49A45]" />
-                  <span className="font-black uppercase tracking-wider text-[11px] text-[#292820]">
-                    Gerenciador de Notas Fiscais Importadas ({parsedRows.length})
+          {/* CARD 4: ASSUNTO DO E-MAIL BAR */}
+          <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl px-4 py-3.5 shadow-[0_3px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0 text-left">
+              <div className="flex items-center gap-2.5 mb-1 flex-wrap">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6E685F]">
+                  ASSUNTO DO E-MAIL
+                </span>
+                {isTransportadora3C() && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#FCE588] text-[#181715] text-[10px] font-extrabold uppercase tracking-wide">
+                    MODO 3C / FROTA 3C (&amp; SM)
                   </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleAddEmptyRow}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] uppercase px-2.5 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all shadow-xs"
-                  >
-                    <Plus size={11} />
-                    <span>Adicionar Nota</span>
-                  </button>
-                </div>
+                )}
               </div>
+              <div className="text-xs sm:text-[14px] font-extrabold text-[#181715] select-all break-words tracking-tight">
+                {getEmailSubject()}
+              </div>
+            </div>
 
-              {parsedRows.length === 0 ? (
-                <div className="text-center py-6 text-stone-500 space-y-2">
-                  <AlertCircle size={24} className="mx-auto text-amber-500" />
-                  <p className="font-bold">Nenhuma nota fiscal na lista.</p>
-                  <p className="text-[11px]">Cole os dados da planilha usando Ctrl+V ou clique no botão "COLAR DADOS".</p>
-                </div>
+            <button
+              type="button"
+              onClick={handleCopySubject}
+              className={cn(
+                "px-4 py-2 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0 border whitespace-nowrap",
+                copiedSubject
+                  ? "bg-emerald-600 text-white border-emerald-500"
+                  : "bg-[#FAF6EE] hover:bg-[#F3E9D2] text-[#181715] border-[#E6D6B8] shadow-2xs active:scale-95"
+              )}
+              title="Copiar assunto do e-mail"
+            >
+              {copiedSubject ? <Check size={13} className="text-white" /> : <Copy size={13} className="text-[#C8922A]" />}
+              <span>{copiedSubject ? 'COPIADO!' : 'COPIAR ASSUNTO'}</span>
+            </button>
+          </div>
+
+          {/* CARD 5: EMAIL BODY PREVIEW CONTAINER */}
+          <div 
+            ref={emailPreviewRef}
+            className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl p-5 text-left font-sans text-[#181715] space-y-3.5 shadow-[0_4px_18px_rgba(0,0,0,0.035)] leading-relaxed"
+          >
+            <p className="font-extrabold text-[#181715] text-sm">Bom dia!</p>
+            
+            <p className="font-medium text-[#181715] text-xs sm:text-[13px] flex items-center gap-1.5 flex-wrap">
+              <span>Segue</span>
+              <span
+                className={cn("px-2.5 py-0.5 rounded-md font-extrabold text-xs uppercase shadow-2xs", activeTheme.highlightClass)}
+                style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
+              >
+                AVERBAÇÃO
+              </span>
+              <span>realizada via sistema.</span>
+            </p>
+
+            {/* Highlights Quote Box */}
+            <div className="bg-[#FAF6EC] border border-[#F2C94C] px-4 py-3.5 rounded-2xl space-y-1">
+              <div className="text-xs sm:text-[13px] font-extrabold text-[#0B3B8C] uppercase tracking-tight">
+                {getRouteTitle(filteredRows.length > 0 ? filteredRows : parsedRows) || 'AGUARDANDO DADOS'}
+              </div>
+              {getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0 ? (
+                getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).map((prot, idx) => (
+                  <div key={idx} className="text-xs sm:text-[13px] font-extrabold text-[#181715]">
+                    PROTOCOLO: <span className="text-[#0B3B8C] font-extrabold">{prot}</span>
+                  </div>
+                ))
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-[#E6D2A3]/70">
-                  <table className="w-full border-collapse text-left text-xs font-mono">
-                    <thead>
-                      <tr className="bg-[#292820] text-white text-[10px] font-black uppercase">
-                        <th className="p-2 border border-[#3A3830] w-10 text-center">#</th>
-                        <th className="p-2 border border-[#3A3830] w-32">NF</th>
-                        <th className="p-2 border border-[#3A3830] w-36">VALOR</th>
-                        <th className="p-2 border border-[#3A3830] w-12 text-center">AÇÃO</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {parsedRows.map((row, idx) => (
-                        <tr key={row.id || idx} className="hover:bg-amber-50/50 bg-white">
-                          <td className="p-1.5 border border-stone-200 text-center font-bold text-[10px] text-stone-500">
-                            {idx + 1}
-                          </td>
-                          <td className="p-1.5 border border-stone-200">
-                            <input
-                              type="text"
-                              value={row.nf}
-                              onChange={(e) => handleUpdateRowField(idx, 'nf', e.target.value)}
-                              className="w-full bg-transparent outline-none font-bold text-[11px]"
-                            />
-                          </td>
-                          <td className="p-1.5 border border-stone-200">
-                            <input
-                              type="text"
-                              value={row.valorNf}
-                              onChange={(e) => handleUpdateRowField(idx, 'valorNf', e.target.value)}
-                              className="w-full bg-transparent outline-none font-bold text-red-700 text-[11px]"
-                            />
-                          </td>
-                          <td className="p-1.5 border border-stone-200 text-center">
-                            <button
-                              onClick={() => handleRemoveRow(idx)}
-                              className="text-stone-400 hover:text-red-600 transition-colors cursor-pointer"
-                              title="Remover nota"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="text-xs sm:text-[13px] font-extrabold text-[#181715]">
+                  PROTOCOLO: <span className="text-[#0B3B8C] font-extrabold">-</span>
                 </div>
               )}
+              <div className="text-xs sm:text-[13px] font-extrabold text-[#181715]">
+                Valor da Carga: <span className="text-[#BA0C16] font-extrabold tabular-nums">{getTotalValue()}</span>
+              </div>
             </div>
-          )}
+
+            <p className="text-xs sm:text-[13px] font-medium text-[#181715]">
+              Segue dados e NF's em anexo.
+            </p>
+
+            {/* Operational Transport Data Table */}
+            <div className="overflow-x-auto rounded-xl border border-[#24231E] shadow-2xs">
+              <table className="w-full border-collapse text-center text-xs font-sans">
+                <thead>
+                  <tr className="bg-[#24231E] text-white text-[10px] font-extrabold uppercase tracking-wider">
+                    <th className="py-2.5 px-2 border border-[#3A3832]">ORIGEM</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">DESTINO</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">TRANSPORTADORA</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">PLACA CAVALO</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">PLACAS CARRETAS</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">TECNOLOGIA</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">NOME MOTORISTA</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">CPF</th>
+                    <th className="py-2.5 px-2 border border-[#3A3832]">TELEFONE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
+                    <tr 
+                      key={row.id || idx}
+                      className={cn("font-extrabold text-[11px]", activeTheme.tableCellClass)}
+                      style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
+                    >
+                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
+                        <input
+                          type="text"
+                          value={row.origem || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
+                        <input
+                          type="text"
+                          value={row.destino || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
+                        <input
+                          type="text"
+                          value={row.transportadora || extraData.transportadora || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60">
+                        <input
+                          type="text"
+                          value={row.placaCav || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60">
+                        <input
+                          type="text"
+                          value={row.placaCarr || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
+                        <input
+                          type="text"
+                          value={row.tecnologia || extraData.tecnologia || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
+                        <input
+                          type="text"
+                          value={row.nomeMotorista || extraData.nomeMotorista || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60 tabular-nums">
+                        <input
+                          type="text"
+                          value={row.cpf || extraData.cpf || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                      <td className="py-2 px-1.5 border border-[#24231E]/60 tabular-nums">
+                        <input
+                          type="text"
+                          value={row.telefone || extraData.telefone || ''}
+                          onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
+                          placeholder="-"
+                          className="w-full bg-transparent text-center font-extrabold tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11px]"
+                          style={{ color: activeTheme.textColor }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="font-extrabold text-[#181715] pt-1 text-sm">Att,</p>
+          </div>
 
         </div>
 
-        {/* RIGHT COLUMN: "DADOS OPERACIONAIS" SIDEBAR */}
-        <div className="flex flex-col gap-3 w-full shrink-0">
+        {/* RIGHT COLUMN: UNIFIED "DADOS OPERACIONAIS" SIDEBAR CARD */}
+        <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col w-full shrink-0">
           
-          {/* Header Section */}
-          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 flex items-center justify-between shadow-sm">
-            <span className="text-xs font-black uppercase text-[#C49A45] tracking-wider flex items-center gap-2 font-mono">
-              🏢 DADOS OPERACIONAIS
-            </span>
-            <ChevronDown size={14} className="text-[#C49A45]" />
-          </div>
-
-          {/* SIDEBAR FIELDS CARDS (Updated automatically upon pasting or manual editing!) */}
-          <div className="space-y-3.5 text-xs text-left">
-            
-            {/* Field 1: Origem */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                ORIGEM
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <MapPin size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.origem}
-                  onChange={(e) => handleUpdateOperationalField('origem', e.target.value.toUpperCase())}
-                  placeholder="EX: SANTA LUZIA"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
+          {/* Card Header */}
+          <button
+            type="button"
+            onClick={() => setIsOperationalOpen(!isOperationalOpen)}
+            className="w-full flex items-center justify-between pb-3.5 border-b border-[#EDE3CE] cursor-pointer text-left"
+          >
+            <div className="flex items-center gap-2.5">
+              <BarChart3 size={20} className="text-[#F0A818] stroke-[2.4]" />
+              <span className="text-xs sm:text-[13px] font-extrabold uppercase text-[#181715] tracking-wide">
+                DADOS OPERACIONAIS
+              </span>
             </div>
-
-            {/* Field 2: Destino */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                DESTINO
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <MapPin size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.destino}
-                  onChange={(e) => handleUpdateOperationalField('destino', e.target.value.toUpperCase())}
-                  placeholder="EX: LONDRINA"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Field 3: Transportadora */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                TRANSPORTADORA
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <Building size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.transportadora}
-                  onChange={(e) => handleUpdateOperationalField('transportadora', e.target.value.toUpperCase())}
-                  placeholder="EX: MODECENSE"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Field 4: Placa Cavalo */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                PLACA CAVALO
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <Truck size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.placaCav}
-                  onChange={(e) => handleUpdateOperationalField('placaCav', e.target.value.toUpperCase())}
-                  placeholder="EX: QWA6A22"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase font-mono placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Field 5: Placas Carretas */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                PLACAS CARRETAS
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <Truck size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.placaCarr}
-                  onChange={(e) => handleUpdateOperationalField('placaCarr', e.target.value.toUpperCase())}
-                  placeholder="EX: DLV7307"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase font-mono placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Field 6: Tecnologia */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                TECNOLOGIA
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <ShieldCheck size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.tecnologia}
-                  onChange={(e) => handleUpdateOperationalField('tecnologia', e.target.value.toUpperCase())}
-                  placeholder="EX: SIGHRA"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Field 7: Nome do Condutor */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                NOME MOTORISTA
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <User size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.nomeMotorista}
-                  onChange={(e) => handleUpdateOperationalField('nomeMotorista', e.target.value.toUpperCase())}
-                  placeholder="EX: ROBSON LUIS VIEIRA"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none uppercase placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Field 8: CPF */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                CPF
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <CreditCard size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.cpf}
-                  onChange={(e) => handleUpdateOperationalField('cpf', e.target.value)}
-                  placeholder="000.000.000-00"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none font-mono placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Field 9: Telefone */}
-            <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-xl p-3 shadow-sm">
-              <label className="text-[9px] font-black text-[#77736B] uppercase block mb-1">
-                TELEFONE
-              </label>
-              <div className="flex items-center gap-2 bg-white border border-[#E6D2A3] rounded px-3 py-2 shadow-inner">
-                <Phone size={13} className="text-[#77736B]" />
-                <input
-                  type="text"
-                  value={extraData.telefone}
-                  onChange={(e) => handleUpdateOperationalField('telefone', e.target.value)}
-                  placeholder="(00) 00000-0000"
-                  className="w-full bg-transparent font-black text-[#292820] outline-none placeholder:text-stone-400 placeholder:font-normal text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Summary Info Card */}
-            {!hideAnexos && (
-              <div className="bg-gradient-to-br from-white to-[#FAF6EE] border border-[#E6D2A3] rounded-xl p-3 shadow-2xs space-y-1.5">
-                <span className="text-[10px] font-black text-[#C49A45] uppercase block font-mono">
-                  📊 RESUMO DA AVERBAÇÃO
-                </span>
-                <div className="flex justify-between items-center text-[11px] font-bold">
-                  <span className="text-stone-600">Total de Notas:</span>
-                  <span className="font-mono text-stone-900">{parsedRows.length}</span>
-                </div>
-                <div className="flex justify-between items-center text-[11px] font-bold">
-                  <span className="text-stone-600">Valor Total:</span>
-                  <span className="font-mono text-red-700">{getTotalValue()}</span>
-                </div>
-                <div className="flex flex-col gap-1 border-t border-[#E6D2A3]/50 pt-1.5 mt-1">
-                  <div className="flex justify-between items-center text-[11px] font-bold">
-                    <span className="text-stone-600">Protocolo(s):</span>
-                    <span className="font-mono text-blue-700 font-extrabold">{getUniqueProtocols(parsedRows).length}</span>
-                  </div>
-                  {getUniqueProtocols(parsedRows).length > 0 ? (
-                    getUniqueProtocols(parsedRows).map((prot, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-[10.5px] font-mono text-blue-700 bg-blue-50/70 px-2 py-0.5 rounded border border-blue-200/50">
-                        <span className="text-stone-500 font-sans text-[8.5px] uppercase font-bold">PROTOCOLO:</span>
-                        <span className="font-extrabold">{prot}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="flex justify-between items-center text-[10.5px] font-mono text-stone-400">
-                      <span>PROTOCOLO:</span>
-                      <span>-</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+            {isOperationalOpen ? (
+              <ChevronUp size={18} className="text-[#D69E2E]" />
+            ) : (
+              <ChevronDown size={18} className="text-[#D69E2E]" />
             )}
+          </button>
 
-          </div>
+          {/* Operational Fields List */}
+          {isOperationalOpen && (
+            <div className="pt-3.5 space-y-3 text-left">
+              {[
+                { key: 'origem' as const, label: 'ORIGEM', placeholder: 'SANTA LUZIA', icon: MapPin, uppercase: true },
+                { key: 'destino' as const, label: 'DESTINO', placeholder: 'LONDRINA', icon: MapPin, uppercase: true },
+                { key: 'transportadora' as const, label: 'TRANSPORTADORA', placeholder: 'FROTA 3C', icon: Truck, uppercase: true },
+                { key: 'placaCav' as const, label: 'PLACA CAVALO', placeholder: 'QWA6A22', icon: Car, uppercase: true },
+                { key: 'placaCarr' as const, label: 'PLACAS CARRETAS', placeholder: 'DLV7307', icon: Truck, uppercase: true },
+                { key: 'tecnologia' as const, label: 'TECNOLOGIA', placeholder: 'SIGHRA', icon: Cpu, uppercase: true },
+                { key: 'nomeMotorista' as const, label: 'NOME MOTORISTA', placeholder: 'ROBSON LUIS VIEIRA', icon: User, uppercase: true },
+                { key: 'cpf' as const, label: 'CPF', placeholder: '000.000.000-00', icon: CreditCard, uppercase: false },
+                { key: 'telefone' as const, label: 'TELEFONE', placeholder: '(00) 00000-0000', icon: Phone, uppercase: false },
+              ].map((field) => {
+                const IconComp = field.icon;
+                return (
+                  <div
+                    key={field.key}
+                    className="bg-[#FFFDF9] hover:bg-white focus-within:bg-white border border-[#EDE3CE] focus-within:border-[#D69E2E] rounded-2xl px-3.5 py-2 transition-all shadow-[0_2px_6px_rgba(0,0,0,0.015)]"
+                  >
+                    <label className="text-[9.5px] font-bold text-[#6E685F] uppercase tracking-wider block pl-7 mb-0.5">
+                      {field.label}
+                    </label>
+                    <div className="flex items-center gap-2.5">
+                      <IconComp size={16} className="text-[#F0A818] shrink-0 stroke-[2.2]" />
+                      <input
+                        type="text"
+                        value={extraData[field.key] || ''}
+                        onChange={(e) =>
+                          handleUpdateOperationalField(
+                            field.key,
+                            field.uppercase ? e.target.value.toUpperCase() : e.target.value
+                          )
+                        }
+                        placeholder={field.placeholder}
+                        className={cn(
+                          "w-full bg-transparent font-extrabold text-[#181715] outline-none placeholder:text-[#A39C90] placeholder:font-medium text-xs sm:text-[13px]",
+                          field.uppercase && "uppercase"
+                        )}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
         </div>
 

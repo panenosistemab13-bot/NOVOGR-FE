@@ -31,7 +31,7 @@ export const DEFAULT_AGENT_PAGES = [
   'checklist', 
   'averbacao', 
   'sm_creator', 
-  'iscas', 
+  'lancamento', 
   'controle', 
   'disponibilidade', 
   'escala'
@@ -41,7 +41,7 @@ export const ALL_ADMIN_PAGES = [
   'checklist', 
   'averbacao', 
   'sm_creator', 
-  'iscas', 
+  'lancamento', 
   'controle', 
   'disponibilidade', 
   'escala', 

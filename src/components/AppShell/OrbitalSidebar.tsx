@@ -22,7 +22,7 @@ export const ORBITAL_SIDEBAR_ITEMS: OrbitalSidebarItem[] = [
   { id: 'checklist', label: 'CHECKLIST', icon: ClipboardCheck },
   { id: 'averbacao', label: 'AVERBAÇÃO', icon: FileCheck2 },
   { id: 'sm_creator', label: 'SM', icon: Share2 },
-  { id: 'iscas', label: 'ISCAS', icon: Route },
+  { id: 'lancamento', label: 'LANÇAMENTO', icon: Route },
   { id: 'controle', label: 'PRÉ-ALERTA', icon: Sliders },
   { id: 'disponibilidade', label: 'DISPONIBILIDADE', icon: Route },
   { id: 'escala', label: 'ESCALA', icon: Calendar },
