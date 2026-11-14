@@ -222,7 +222,6 @@ export default function NavigationDrawer({
       )}
 
       <aside 
-        style={{ zoom: 0.92 }}
         className={cn(
           "fixed left-0 top-0 bottom-0 z-50 w-[335px] max-w-[90vw] bg-gradient-to-b from-[#FAF9F6] via-[#F7F6F2] to-[#F3F2EE] rounded-r-[28px] border-r border-[#E6D6B2] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col font-sans transition-transform duration-250 ease-out overflow-hidden",
           isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"

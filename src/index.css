@@ -85,10 +85,6 @@ body {
   background-color: #080A0C;
 }
 
-.internal-pages-wrapper {
-  zoom: 0.9;
-}
-
 /* Scrollbar sutil elegante */
 ::-webkit-scrollbar {
   width: 6px;
