@@ -2505,7 +2505,7 @@ export default function Controle({ onBack }: ControleProps) {
         </table>
 
         <!-- RESUMO DA CARGA: 3 GRUPOS HORIZONTAIS GRAFITE E DOURADO -->
-        <table style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #181A1D 0%, #202429 50%, #181A1D 100%); border: 1px solid #C5A059; border-radius: 8px; overflow: hidden; margin-bottom: 20px; font-family: 'Segoe UI', Arial, sans-serif; box-shadow: 0 3px 10px rgba(0,0,0,0.15);">
+        <table style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #181A1D 0%, #202429 50%, #181A1D 100%); border: 1px solid #C5A059; border-radius: 8px; overflow: hidden; margin-bottom: 20px; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; box-shadow: 0 3px 10px rgba(0,0,0,0.15); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; font-variant-numeric: tabular-nums;">
           <tr>
             <!-- Grupo 1: Número da NF -->
             <td style="padding: 12px 14px; border-right: 1px solid #3F3B32; text-align: center; width: 34%; vertical-align: middle;">
@@ -2517,8 +2517,8 @@ export default function Controle({ onBack }: ControleProps) {
                     </div>
                   </td>
                   <td style="vertical-align: middle; text-align: left;">
-                    <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">NÚMERO DA NF:</div>
-                    <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px;">
+                    <div style="font-size: 10.5px; font-weight: 600; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.7px;">NÚMERO DA NF:</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.4px; margin-top: 2px; font-variant-numeric: tabular-nums;">
                       ${nfInicio.replace(/-/g, '') || '---'} ${numCarretas === 2 && isca2 !== "SEM ISCA" && nfFim ? `/ ${nfFim.replace(/-/g, '')}` : ''}
                     </div>
                   </td>
@@ -2535,8 +2535,8 @@ export default function Controle({ onBack }: ControleProps) {
                     </div>
                   </td>
                   <td style="vertical-align: middle; text-align: left;">
-                    <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">TRANSPORTADORA:</div>
-                    <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px; text-transform: uppercase;">
+                    <div style="font-size: 10.5px; font-weight: 600; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.7px;">TRANSPORTADORA:</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.4px; margin-top: 2px; text-transform: uppercase;">
                       ${transportadora || '---'}
                     </div>
                   </td>
@@ -2554,12 +2554,12 @@ export default function Controle({ onBack }: ControleProps) {
                   </td>
                   <td style="vertical-align: middle; text-align: left;">
                     ${!isValorCargaEmpty(valorCarga) ? `
-                      <div style="font-size: 9px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 0.8px;">VALOR DA CARGA:</div>
-                      <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; margin-top: 2px;">
+                      <div style="font-size: 10.5px; font-weight: 600; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.7px;">VALOR DA CARGA:</div>
+                      <div style="font-size: 13px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.4px; margin-top: 2px; font-variant-numeric: tabular-nums;">
                         ${valorCarga.trim()}
                       </div>
                     ` : `
-                      <div style="font-size: 14px; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px;">
+                      <div style="font-size: 13px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.4px;">
                         CAFE TRES CORAÇÕES
                       </div>
                     `}
@@ -2571,49 +2571,49 @@ export default function Controle({ onBack }: ControleProps) {
         </table>
 
         <!-- TABELA 1: DADOS DA OPERAÇÃO (CABEÇALHOS GRAFITE, BORDAS DOURADAS, LINHAS MARFIM) -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FDFBF7; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; text-align: center; color: #0F172A; margin-bottom: 20px; border: 1.5px solid #C5A059; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;">
-          <tr style="background: linear-gradient(180deg, #22262B 0%, #181A1D 100%); color: #FFFFFF; font-weight: 700; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.6px;">
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">MOTORISTA</td>
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">CAVALO</td>
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">CARRETAS</td>
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">N° ISCA</td>
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">PROD. EMBARCADO</td>
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">CÓD. U.M.A.</td>
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">DESTINO</td>
-            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 700;">DATA PARTIDA</td>
+        <table style="width: 100%; border-collapse: collapse; background-color: #FDFBF7; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; font-size: 12.5px; text-align: center; color: #0F172A; margin-bottom: 20px; border: 1.5px solid #C5A059; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; font-variant-numeric: tabular-nums;">
+          <tr style="background: linear-gradient(180deg, #22262B 0%, #181A1D 100%); color: #FFFFFF; font-weight: 600; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.6px;">
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">MOTORISTA</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">CAVALO</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">CARRETAS</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">N° ISCA</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">PROD. EMBARCADO</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">CÓD. U.M.A.</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">DESTINO</td>
+            <td style="padding: 10px 8px; border: 1px solid #C5A059; border-top: none; color: #FFFFFF; font-weight: 600;">DATA PARTIDA</td>
           </tr>
           <tr style="background-color: #FFFFFF; border-bottom: 1px solid #E5D5B5;">
-            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12.5px; color: #0F172A; text-transform: uppercase;">${motorista}</td>
-            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 900; font-size: 13px; color: #0F172A; letter-spacing: 0.8px;">${cavalo}</td>
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${carreta1}</td>
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 900; font-size: 13px; color: #C91F2D; letter-spacing: 0.8px;">
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">${motorista}</td>
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">${cavalo}</td>
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">${carreta1}</td>
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #C91F2D; text-transform: uppercase;">
               ${isca1 || 'ISCA 1'}
             </td>
             <!-- PRODUTO EMBARCADO -->
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 12px; color: #0F172A;">
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">
               ${produto1 || "PROD 1"}
             </td>
             <!-- CÓDIGO U.M.A. -->
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 11.5px; line-height: 1.3; color: #0F172A;">
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; line-height: 1.3; color: #0F172A; text-transform: uppercase;">
               ${uma1 || "CÓDIGO U.M.A."}
             </td>
-            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${destino}</td>
-            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${dataEnviada}</td>
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">${destino}</td>
+            <td rowspan="${numCarretas}" style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">${dataEnviada}</td>
           </tr>
           ${
             numCarretas === 2
               ? `
           <tr style="background-color: #FBF8F1; border-bottom: 1px solid #E5D5B5;">
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${carreta2}</td>
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 900; font-size: 13px; color: #C91F2D; letter-spacing: 0.8px;">
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">${carreta2}</td>
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #C91F2D; text-transform: uppercase;">
               ${isca2 || 'ISCA 2'}
             </td>
             <!-- PROD 2 -->
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 12px; color: #0F172A;">
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A; text-transform: uppercase;">
               ${produto2 || "PROD 2"}
             </td>
             <!-- UMA 2 -->
-            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 700; font-size: 11.5px; line-height: 1.3; color: #0F172A;">
+            <td style="padding: 10px 8px; border: 1px solid #E5D5B5; text-align: center; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; line-height: 1.3; color: #0F172A; text-transform: uppercase;">
               ${uma2 || "CÓDIGO U.M.A."}
             </td>
           </tr>
@@ -2623,15 +2623,15 @@ export default function Controle({ onBack }: ControleProps) {
         </table>
 
         <!-- TABELA 2: PARAMETRIZAÇÃO DAS ISCAS CORPORATIVA DOURADA & GRAFITE -->
-        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; text-align: center; color: #0F172A; margin-bottom: 22px; border: 1.5px solid #C5A059; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;">
-          <tr style="background: linear-gradient(180deg, #1A1D20 0%, #252A30 100%); color: #FFFFFF; font-size: 12.5px;">
-            <td colspan="4" style="padding: 11px 14px; border-bottom: 1.5px solid #C5A059; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">
+        <table style="width: 100%; border-collapse: collapse; background-color: #FFFFFF; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; font-size: 12.5px; text-align: center; color: #0F172A; margin-bottom: 22px; border: 1.5px solid #C5A059; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; font-variant-numeric: tabular-nums;">
+          <tr style="background: linear-gradient(180deg, #1A1D20 0%, #252A30 100%); color: #FFFFFF; font-size: 11.5px;">
+            <td colspan="4" style="padding: 11px 14px; border-bottom: 1.5px solid #C5A059; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;">
               <table cellpadding="0" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                 <tr>
                   <td style="width: 28px; vertical-align: middle;">
-                    <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #F59E0B 0%, #B8860B 100%); border: 1px solid #D4AF37; border-radius: 50%; text-align: center; line-height: 22px; color: #111111; font-weight: 900; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">⚙</div>
+                    <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #F59E0B 0%, #B8860B 100%); border: 1px solid #D4AF37; border-radius: 50%; text-align: center; line-height: 22px; color: #111111; font-weight: 700; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">⚙</div>
                   </td>
-                  <td style="vertical-align: middle; color: #FFFFFF; font-weight: 900; font-size: 12.5px; letter-spacing: 1.5px; text-align: center;">
+                  <td style="vertical-align: middle; color: #FFFFFF; font-weight: 600; font-size: 11.5px; letter-spacing: 1.2px; text-align: center;">
                     PARAMETRIZAÇÃO DAS ISCAS
                   </td>
                   <td style="width: 28px; text-align: right;"></td>
@@ -2639,28 +2639,28 @@ export default function Controle({ onBack }: ControleProps) {
               </table>
             </td>
           </tr>
-          <tr style="background-color: #F5EDDA; color: #2D1B06; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; border-bottom: 1px solid #C5A059;">
+          <tr style="background-color: #F5EDDA; color: #2D1B06; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; border-bottom: 1px solid #C5A059;">
             <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 25%;">
-              PLACA / CÓDIGO DE VENDA ⇅
+              PLACA / CÓDIGO DE VENDA
             </td>
-            <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</td>
-            <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 18%;">DATA POSIÇÃO ⇅</td>
-            <td style="padding: 9px 8px; width: 12%;">BATERIA ISCA _ RF ⇅</td>
+            <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 45%;">ENDEREÇO APROXIMADO DA POSIÇÃO</td>
+            <td style="padding: 9px 8px; border-right: 1px solid #C5A059; width: 18%;">DATA POSIÇÃO</td>
+            <td style="padding: 9px 8px; width: 12%;">BATERIA ISCA _ RF</td>
           </tr>
           ${
             numCarretas === 2 && !!isca2DisplayCode
               ? `
           <tr style="background-color: #FFFFFF; border-bottom: 1px solid #E5D5B5;">
-            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 900; font-size: 12.5px; color: #C91F2D; text-align: center; letter-spacing: 0.8px;">${isca2DisplayCode}</td>
-            <td style="padding: 10px 10px; border-right: 1px solid #E5D5B5; text-align: left; font-weight: 600; font-size: 12px; line-height: 1.4; color: ${!pastePlanilha.trim() && !isca2Endereco ? "#C91F2D" : "#0F172A"};">${isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
-            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${isca2Data}</td>
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 600; font-size: 12.5px; color: #C91F2D; text-align: center; letter-spacing: 0.3px;">${isca2DisplayCode}</td>
+            <td style="padding: 10px 10px; border-right: 1px solid #E5D5B5; text-align: left; text-transform: uppercase; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; line-height: 1.4; color: ${!pastePlanilha.trim() && !isca2Endereco ? "#C91F2D" : "#0F172A"};">${isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A;">${isca2Data}</td>
             <td style="padding: 10px 8px;">
               ${
                 ((isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
                   ? ""
                   : `
               <div style="display: flex; align-items: center; justify-content: center;">
-                <span style="margin-right: 6px; font-weight: 800; font-size: 12px; color: #16A34A;">${isca2Bateria || "100%"}</span>
+                <span style="margin-right: 6px; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #16A34A;">${isca2Bateria || "100%"}</span>
                 <div style="width: 20px; height: 10px; border: 1px solid #16A34A; border-radius: 2px; padding: 1px; display: inline-block; position: relative; vertical-align: middle;">
                   <div style="width: ${Math.min(100, parseInt(isca2Bateria) || 100)}%; height: 100%; background-color: #16A34A; border-radius: 1px;"></div>
                   <div style="position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background-color: #16A34A; border-radius: 0 1px 1px 0;"></div>
@@ -2674,16 +2674,16 @@ export default function Controle({ onBack }: ControleProps) {
               : ""
           }
           <tr style="background-color: #FFFFFF;">
-            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 900; font-size: 12.5px; color: #C91F2D; text-align: center; letter-spacing: 0.8px;">${isca1DisplayCode}</td>
-            <td style="padding: 10px 10px; border-right: 1px solid #E5D5B5; text-align: left; font-weight: 600; font-size: 12px; line-height: 1.4; color: ${!pastePlanilha.trim() && !isca1Endereco ? "#C91F2D" : "#0F172A"};">${isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
-            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; font-weight: 700; font-size: 12px; color: #0F172A;">${isca1Data}</td>
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; text-transform: uppercase; font-weight: 600; font-size: 12.5px; color: #C91F2D; text-align: center; letter-spacing: 0.3px;">${isca1DisplayCode}</td>
+            <td style="padding: 10px 10px; border-right: 1px solid #E5D5B5; text-align: left; text-transform: uppercase; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; line-height: 1.4; color: ${!pastePlanilha.trim() && !isca1Endereco ? "#C91F2D" : "#0F172A"};">${isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}</td>
+            <td style="padding: 10px 8px; border-right: 1px solid #E5D5B5; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #0F172A;">${isca1Data}</td>
             <td style="padding: 10px 8px;">
               ${
                 ((isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")).includes("temporariamente fora do ar"))
                   ? ""
                   : `
               <div style="display: flex; align-items: center; justify-content: center;">
-                <span style="margin-right: 6px; font-weight: 800; font-size: 12px; color: #16A34A;">${isca1Bateria || "100%"}</span>
+                <span style="margin-right: 6px; font-weight: 600; font-size: 12.5px; letter-spacing: 0.3px; color: #16A34A;">${isca1Bateria || "100%"}</span>
                 <div style="width: 20px; height: 10px; border: 1px solid #16A34A; border-radius: 2px; padding: 1px; display: inline-block; position: relative; vertical-align: middle;">
                   <div style="width: ${Math.min(100, parseInt(isca1Bateria) || 100)}%; height: 100%; background-color: #16A34A; border-radius: 1px;"></div>
                   <div style="position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background-color: #16A34A; border-radius: 0 1px 1px 0;"></div>
@@ -4262,7 +4262,15 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
 
                 {/* PAINEL CORPORATIVO GRAFITE & DOURADO PRINCIPAL */}
-                <div className="w-full rounded-2xl overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.4)] mb-3 bg-[#121417] border border-[#C5A059]">
+                <div 
+                  className="w-full rounded-2xl overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.4)] mb-3 bg-[#121417] border border-[#C5A059] tabular-nums"
+                  style={{
+                    fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                    WebkitFontSmoothing: 'antialiased',
+                    MozOsxFontSmoothing: 'grayscale',
+                    textRendering: 'geometricPrecision'
+                  }}
+                >
                   {/* BLOCO SUPERIOR GRAFITE & DOURADO: NF, TRANSPORTADORA, VALOR DA CARGA */}
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-0 border-b border-[#C5A059]" style={{ background: 'linear-gradient(135deg, #181A1D 0%, #202429 50%, #181A1D 100%)' }}>
                     {/* MODULE 1: NÚMERO DA NF */}
@@ -4273,7 +4281,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             <FileText size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
-                        <span className="font-bold text-[#E5C27A] text-[11px] sm:text-[12px] uppercase tracking-wider select-none font-sans">
+                        <span className="font-semibold text-[#E5C27A] text-[11px] uppercase tracking-[0.07em] select-none">
                           NÚMERO DA NF:
                         </span>
                       </div>
@@ -4284,7 +4292,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           onChange={(e) => setNfInicio(e.target.value.replace(/-/g, ""))}
                           spellCheck={false}
                           autoCorrect="off"
-                          className="w-full text-center font-bold bg-transparent border-none outline-none text-[13px] sm:text-[14px] text-white tracking-wider"
+                          className="w-full text-center font-bold bg-transparent border-none outline-none text-[13px] text-white tracking-[0.03em] tabular-nums"
                           placeholder="3004567"
                           title="NF Início"
                         />
@@ -4295,7 +4303,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             onChange={(e) => setNfFim(e.target.value.replace(/-/g, ""))}
                             spellCheck={false}
                             autoCorrect="off"
-                            className="w-full text-center font-bold bg-transparent border-none outline-none text-[13px] sm:text-[14px] text-white tracking-wider mt-0.5 border-t border-[#C5A059]"
+                            className="w-full text-center font-bold bg-transparent border-none outline-none text-[13px] text-white tracking-[0.03em] tabular-nums mt-0.5 border-t border-[#C5A059]"
                             placeholder="3004566"
                             title="NF Fim"
                           />
@@ -4311,7 +4319,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                             <Truck size={16} className="text-[#D4AF37]" />
                           </div>
                         </div>
-                        <span className="font-bold text-[#E5C27A] text-[11px] sm:text-[12px] uppercase tracking-wider select-none font-sans">
+                        <span className="font-semibold text-[#E5C27A] text-[11px] uppercase tracking-[0.07em] select-none">
                           TRANSPORTADORA:
                         </span>
                       </div>
@@ -4319,11 +4327,11 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         <select
                           value={transportadora}
                           onChange={(e) => handleTableTranspChange(e.target.value)}
-                          className="w-full text-center font-bold uppercase bg-transparent border-none outline-none text-[12px] sm:text-[13px] cursor-pointer text-white tracking-wider pr-4 appearance-none"
+                          className="w-full text-center font-bold uppercase bg-transparent border-none outline-none text-[13px] cursor-pointer text-white tracking-[0.03em] pr-4 appearance-none"
                         >
                           <option value="">GTMINAS</option>
                           {sortedTransportadoras.map((t, index) => (
-                            <option key={`transp-2-${index}-${t}`} value={t} className="text-[#1A1D20] uppercase text-xs font-bold">
+                            <option key={`transp-2-${index}-${t}`} value={t} className="text-[#1A1D20] uppercase text-xs font-semibold">
                               {t}
                             </option>
                           ))}
@@ -4342,8 +4350,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         </div>
                         {!isValorCargaEmpty(valorCarga) && (
                           <div className="flex flex-col text-left">
-                            <span className="font-bold text-[#E5C27A] text-[10px] sm:text-[11px] uppercase tracking-wider leading-none">
-                              VALOR DA CARGA
+                            <span className="font-semibold text-[#E5C27A] text-[11px] uppercase tracking-[0.07em] leading-none">
+                              VALOR DA CARGA:
                             </span>
                           </div>
                         )}
@@ -4355,7 +4363,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           onChange={(e) => setValorCarga(e.target.value)}
                           spellCheck={false}
                           autoCorrect="off"
-                          className="w-full text-right font-black uppercase text-white bg-transparent border-none outline-none text-[12.5px] sm:text-[13.5px] tracking-wide hover:bg-black/40 focus:bg-black rounded px-1 transition-all placeholder:text-[#E5C27A] placeholder:font-black"
+                          className="w-full text-right font-bold uppercase text-white bg-transparent border-none outline-none text-[13px] tracking-[0.03em] tabular-nums hover:bg-black/40 focus:bg-black rounded px-1 transition-all placeholder:text-[#E5C27A] placeholder:font-bold"
                           placeholder="CAFE TRES CORAÇÕES"
                           title="Valor da Carga (NF) - Quando vazia exibe: CAFE TRES CORAÇÕES"
                         />
@@ -4367,17 +4375,17 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-[#C5A059]/40">
                     {/* TABELA 1 CORPO PRINCIPAL */}
                     <table 
-                      className="w-full border-collapse text-xs font-sans text-[#0F172A] table-fixed min-w-[980px]"
+                      className="w-full border-collapse text-[12.5px] text-[#0F172A] table-fixed min-w-[980px] tabular-nums"
                       style={{
-                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                        fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                         WebkitFontSmoothing: 'antialiased',
                         MozOsxFontSmoothing: 'grayscale',
-                        textRendering: 'optimizeLegibility'
+                        textRendering: 'geometricPrecision'
                       }}
                     >
                       <thead>
                         {/* Row: Corporate Graphite Column Headings */}
-                        <tr className="border-b text-white text-center font-bold uppercase text-[11.5px] sm:text-[12px] tracking-wider h-[42px] shadow-xs" style={{ background: 'linear-gradient(180deg, #22262B 0%, #181A1D 100%)', borderColor: '#C5A059' }}>
+                        <tr className="border-b text-white text-center font-semibold uppercase text-[11.5px] tracking-[0.06em] h-[42px] shadow-xs" style={{ background: 'linear-gradient(180deg, #22262B 0%, #181A1D 100%)', borderColor: '#C5A059' }}>
                           {table1ColumnOrder.map((colKey, idx) => {
                             const col = TABLE1_COLS[colKey];
                             const widthVal = table1ColumnWidths[colKey] || col.defaultWidth;
@@ -4400,7 +4408,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   >
                                     ◀
                                   </button>
-                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-black text-white text-[12.5px] sm:text-[13px] tracking-widest">
+                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-semibold text-white text-[11.5px] tracking-[0.06em]">
                                     {colKey === 'motorista' && <User size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
                                     {colKey === 'cavalo' && <Truck size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
                                     {colKey === 'carretas' && <Container size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
@@ -4409,7 +4417,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                     {colKey === 'uma' && <FileText size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
                                     {colKey === 'destino' && <MapPin size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
                                     {colKey === 'data' && <Calendar size={13} className="text-[#E5C27A] shrink-0 inline-block" />}
-                                    <span className="font-black text-white tracking-widest">{col.label}</span>
+                                    <span className="font-semibold text-white tracking-[0.06em]">{col.label}</span>
                                   </span>
                                   <div className="flex items-center gap-0.5 opacity-0 group-hover/col:opacity-100 hover:opacity-100 transition-opacity">
                                     <button
@@ -4446,32 +4454,32 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                       </thead>
                       <tbody>
                         {/* Rows of data with reordered columns */}
-                        <tr className="border-b border-[#E5D5B5] text-center text-xs h-[42px] bg-white">
+                        <tr className="border-b border-[#E5D5B5] text-center text-[12.5px] h-[42px] bg-white">
                           {table1ColumnOrder.map((colKey) => {
                             switch (colKey) {
                               case 'motorista':
                                 return (
-                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
+                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                     <textarea
                                       value={motorista}
                                       onChange={(e) => handleTableMotoristaChange(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full h-full min-h-[44px] text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded resize-none p-1 text-[13px] sm:text-[14px] leading-tight text-[#0F172A] transition-all duration-150 tracking-tight"
+                                      className="w-full h-full min-h-[44px] text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded resize-none p-1 text-[12.5px] leading-tight text-[#0F172A] transition-all duration-150 tracking-[0.02em]"
                                       placeholder="NOME MOTORISTA"
                                     />
                                   </td>
                                 );
                               case 'cavalo':
                                 return (
-                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-black uppercase text-[13px] align-middle">
+                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                     <input
                                       type="text"
                                       value={cavalo}
                                       onChange={(e) => setCavalo(e.target.value.replace(/-/g, ""))}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[14px] text-[#0F172A] tracking-widest transition-all duration-150"
+                                      className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#0F172A] tracking-[0.025em] tabular-nums transition-all duration-150"
                                       placeholder="PLACA"
                                       title="Placa"
                                     />
@@ -4486,77 +4494,77 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       onChange={(e) => setCarreta1(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-bold text-[12px] text-[#0F172A] tracking-wide transition-all duration-150"
+                                      className="w-full text-center bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-semibold text-[12.5px] text-[#0F172A] tracking-[0.025em] tabular-nums transition-all duration-150"
                                       placeholder="CARRETA 1"
                                     />
                                   </td>
                                 );
                               case 'isca':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-black uppercase text-[12.5px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                     <input
                                       type="text"
                                       value={isca1}
                                       onChange={(e) => setIsca1(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[14px] text-[#C91F2D] tracking-widest transition-all duration-150"
+                                      className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#C91F2D] tracking-[0.025em] tabular-nums transition-all duration-150"
                                       placeholder="ISCA 1"
                                     />
                                   </td>
                                 );
                               case 'produto':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                     <input
                                       type="text"
                                       value={produto1}
                                       onChange={(e) => setProduto1(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] transition-all duration-150"
+                                      className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#0F172A] tracking-[0.02em] tabular-nums transition-all duration-150"
                                       placeholder="PROD 1"
                                     />
                                   </td>
                                 );
                               case 'uma':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[11.5px] align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                     <input
                                       type="text"
                                       value={uma1}
                                       onChange={(e) => setUma1(formatUMA(e.target.value))}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[11.5px] sm:text-[12px] leading-tight text-[#0F172A] transition-all duration-150"
+                                      className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] leading-tight text-[#0F172A] tracking-[0.02em] tabular-nums transition-all duration-150"
                                       placeholder="CÓDIGO 1"
                                     />
                                   </td>
                                 );
                               case 'destino':
                                 return (
-                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
+                                  <td key={colKey} rowSpan={numCarretas} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                     <input
                                       type="text"
                                       value={destino}
                                       onChange={(e) => setDestino(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] tracking-wide transition-all duration-150"
+                                      className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#0F172A] tracking-[0.02em] transition-all duration-150"
                                       placeholder="DESTINO"
                                     />
                                   </td>
                                 );
                               case 'data':
                                 return (
-                                  <td key={colKey} rowSpan={numCarretas} className="p-1.5 font-bold text-[#0F172A] text-[12px] align-middle">
+                                  <td key={colKey} rowSpan={numCarretas} className="p-1.5 font-semibold text-[#0F172A] text-[12.5px] align-middle">
                                     <input
                                       type="text"
                                       value={dataEnviada}
                                       onChange={(e) => setDataEnviada(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full text-center font-bold bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] transition-all duration-150"
+                                      className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#0F172A] tracking-[0.02em] tabular-nums transition-all duration-150"
                                       placeholder="DATA"
                                     />
                                   </td>
@@ -4569,7 +4577,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                         {/* Second row of sub-items (Carreta 2, Isca 2, Prod 2, UMA 2) */}
                         {numCarretas === 2 && (
-                          <tr className="border-b border-[#E5D5B5] text-center text-xs h-[42px] bg-[#FBF8F1]">
+                          <tr className="border-b border-[#E5D5B5] text-center text-[12.5px] h-[42px] bg-[#FBF8F1]">
                             {table1ColumnOrder.map((colKey) => {
                               switch (colKey) {
                                 case 'carretas':
@@ -4581,49 +4589,49 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                         onChange={(e) => setCarreta2(e.target.value)}
                                         spellCheck={false}
                                         autoCorrect="off"
-                                        className="w-full text-center bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-black text-[13px] text-[#0F172A] tracking-wider transition-all duration-150"
+                                        className="w-full text-center bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 uppercase font-semibold text-[12.5px] text-[#0F172A] tracking-[0.025em] tabular-nums transition-all duration-150"
                                         placeholder="CARRETA 2"
                                       />
                                     </td>
                                   );
                                 case 'isca':
                                   return (
-                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-black uppercase text-[12.5px] align-middle">
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                       <input
                                         type="text"
                                         value={isca2}
                                         onChange={(e) => setIsca2(e.target.value)}
                                         spellCheck={false}
                                         autoCorrect="off"
-                                        className="w-full text-center font-black uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[14px] text-[#C91F2D] tracking-widest transition-all duration-150"
+                                        className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#C91F2D] tracking-[0.025em] tabular-nums transition-all duration-150"
                                         placeholder="ISCA 2"
                                       />
                                     </td>
                                   );
                                 case 'produto':
                                   return (
-                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[12px] align-middle">
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                       <input
                                         type="text"
                                         value={produto2}
                                         onChange={(e) => setProduto2(e.target.value)}
                                         spellCheck={false}
                                         autoCorrect="off"
-                                        className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-[#0F172A] transition-all duration-150"
+                                        className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-[#0F172A] tracking-[0.02em] tabular-nums transition-all duration-150"
                                         placeholder="PROD 2"
                                       />
                                     </td>
                                   );
                                 case 'uma':
                                   return (
-                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-bold uppercase text-[11.5px] align-middle">
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-1.5 font-semibold uppercase text-[12.5px] align-middle">
                                       <input
                                         type="text"
                                         value={uma2}
                                         onChange={(e) => setUma2(formatUMA(e.target.value))}
                                         spellCheck={false}
                                         autoCorrect="off"
-                                        className="w-full text-center font-bold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[11.5px] sm:text-[12px] leading-tight text-[#0F172A] transition-all duration-150"
+                                        className="w-full text-center font-semibold uppercase bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] leading-tight text-[#0F172A] tracking-[0.02em] tabular-nums transition-all duration-150"
                                         placeholder="CÓDIGO 2"
                                       />
                                     </td>
@@ -4639,26 +4647,26 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
 
                     {/* TABLE 2: PARAMETRIZAÇÃO DAS ISCAS CORPORATIVA DOURADA & GRAFITE */}
                     <table 
-                      className="w-full border-collapse text-xs font-sans text-[#0F172A] table-fixed min-w-[980px] mt-0"
+                      className="w-full border-collapse text-[12.5px] text-[#0F172A] table-fixed min-w-[980px] mt-0 tabular-nums"
                       style={{
-                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                        fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                         WebkitFontSmoothing: 'antialiased',
                         MozOsxFontSmoothing: 'grayscale',
-                        textRendering: 'optimizeLegibility'
+                        textRendering: 'geometricPrecision'
                       }}
                     >
                       <tbody>
                         <tr>
                           <td
                             colSpan={4}
-                            className="text-center font-black text-white p-3 uppercase text-[12.5px] sm:text-[13px] tracking-widest border-t border-b border-[#C5A059] relative shadow-md"
+                            className="text-center font-semibold text-white p-3 uppercase text-[11.5px] tracking-[0.12em] border-t border-b border-[#C5A059] relative shadow-md"
                             style={{ background: 'linear-gradient(180deg, #181A1D 0%, #252A30 100%)' }}
                           >
                             <div className="flex items-center justify-between px-2">
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#8C6D2B] flex items-center justify-center text-[#111111] font-black text-xs shadow-sm">
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#8C6D2B] flex items-center justify-center text-[#111111] font-bold text-xs shadow-sm">
                                 ⚙
                               </div>
-                              <span className="select-none tracking-widest text-white font-black text-xs sm:text-[13px]">
+                              <span className="select-none tracking-[0.12em] text-white font-semibold text-[11.5px]">
                                 PARAMETRIZAÇÃO DAS ISCAS
                               </span>
                               <div className="w-6"></div>
@@ -4666,7 +4674,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           </td>
                         </tr>
                         {/* Subheaders Row */}
-                        <tr className="text-[#2D1B06] text-center font-bold text-[11px] sm:text-[11.5px] tracking-wider h-[36px] border-b border-[#C5A059]" style={{ background: '#F5EDDA' }}>
+                        <tr className="text-[#2D1B06] text-center font-semibold text-[11.5px] tracking-[0.05em] h-[36px] border-b border-[#C5A059]" style={{ background: '#F5EDDA' }}>
                           {table2ColumnOrder.map((colKey, idx) => {
                             const col = TABLE2_COLS[colKey];
                             const widthVal = table2ColumnWidths[colKey] || col.defaultWidth;
@@ -4674,7 +4682,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                               <td
                                 key={colKey}
                                 className={cn(
-                                  "border-r border-[#C5A059]/60 p-1.5 uppercase tracking-wider text-[11px] sm:text-[11.5px] align-middle relative group/col2 select-none font-bold text-[#2D1B06]",
+                                  "border-r border-[#C5A059]/60 p-1.5 uppercase tracking-[0.05em] text-[11.5px] align-middle relative group/col2 select-none font-semibold text-[#2D1B06]",
                                   idx === table2ColumnOrder.length - 1 && "border-r-0"
                                 )}
                                 style={{ width: `${widthVal}%` }}
@@ -4689,29 +4697,29 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   >
                                     ◀
                                   </button>
-                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-bold text-[#2D1B06]">
+                                  <span className="truncate flex-1 text-center flex items-center justify-center gap-1.5 font-semibold text-[#2D1B06]">
                                     {colKey === 'isca' && (
                                       <>
                                         <Barcode size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                        <span>PLACA / CÓDIGO DE VENDA ⇅</span>
+                                        <span>PLACA / CÓDIGO DE VENDA</span>
                                       </>
                                     )}
                                     {colKey === 'endereco' && (
                                       <>
                                         <MapPin size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                        <span>ENDEREÇO APROXIMADO DA POSIÇÃO ⇅</span>
+                                        <span>ENDEREÇO APROXIMADO DA POSIÇÃO</span>
                                       </>
                                     )}
                                     {colKey === 'data' && (
                                       <>
                                         <Calendar size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                        <span>DATA POSIÇÃO ⇅</span>
+                                        <span>DATA POSIÇÃO</span>
                                       </>
                                     )}
                                     {colKey === 'bateria' && (
                                       <>
                                         <Battery size={12} className="text-[#8C6D2B] shrink-0 inline-block" />
-                                        <span>BATERIA ISCA _ RF ⇅</span>
+                                        <span>BATERIA ISCA _ RF</span>
                                       </>
                                     )}
                                   </span>
@@ -4749,18 +4757,18 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         </tr>
                         {/* Row 1 (Isca 2) - Only rendered if numCarretas === 2 and isca2 is NOT 'SEM ISCA' */}
                         {numCarretas === 2 && isca2 !== "SEM ISCA" && (
-                          <tr className="bg-[#FBF8F1] text-center font-medium text-[#0F172A] h-[38px] border-b border-[#E5D5B5]">
+                          <tr className="bg-[#FBF8F1] text-center font-semibold text-[#0F172A] h-[38px] border-b border-[#E5D5B5]">
                             {table2ColumnOrder.map((colKey) => {
                               switch (colKey) {
                                 case 'isca':
                                   return (
-                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 font-black uppercase text-[12.5px] text-center align-middle text-[#C91F2D]">
-                                      {isca2DisplayCode ? <span className="font-black text-[12.5px] text-[#C91F2D] uppercase tracking-wider">{isca2DisplayCode}</span> : ""}
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 font-semibold uppercase text-[12.5px] text-center align-middle text-[#C91F2D]">
+                                      {isca2DisplayCode ? <span className="font-semibold text-[12.5px] text-[#C91F2D] uppercase tracking-[0.025em] tabular-nums">{isca2DisplayCode}</span> : ""}
                                     </td>
                                   );
                                 case 'endereco':
                                   return (
-                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-left font-semibold text-[12px] sm:text-[12.5px] align-middle">
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-left font-semibold text-[12.5px] align-middle">
                                       <textarea
                                         value={isca2 === "SEM ISCA" ? "" : (isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : ""))}
                                         onChange={(e) => setIsca2Endereco(e.target.value)}
@@ -4769,8 +4777,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                         autoCorrect="off"
                                         rows={1}
                                         className={cn(
-                                          "w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] sm:text-[12.5px] resize-y leading-snug font-semibold transition-all duration-150 disabled:opacity-50",
-                                          !pastePlanilha.trim() && !isca2Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#0F172A]"
+                                          "w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] uppercase tracking-[0.02em] resize-y leading-snug font-semibold transition-all duration-150 disabled:opacity-50",
+                                          !pastePlanilha.trim() && !isca2Endereco ? "text-[#C91F2D]" : "text-[#0F172A]"
                                         )}
                                         placeholder={isca2 === "SEM ISCA" ? "" : "Endereço da Isca 2..."}
                                       />
@@ -4778,7 +4786,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   );
                                 case 'data':
                                   return (
-                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-center font-bold text-[12px] align-middle">
+                                    <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-center font-semibold text-[12.5px] align-middle">
                                       <input
                                         type="text"
                                         value={isca2 === "SEM ISCA" ? "" : isca2Data}
@@ -4786,7 +4794,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                         disabled={isca2 === "SEM ISCA"}
                                         spellCheck={false}
                                         autoCorrect="off"
-                                        className="w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-center text-[#0F172A] font-bold tracking-wide transition-all duration-150 disabled:opacity-50"
+                                        className="w-full bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-center text-[#0F172A] font-semibold tracking-[0.02em] tabular-nums transition-all duration-150 disabled:opacity-50"
                                         placeholder={isca2 === "SEM ISCA" ? "" : "Data/Hora..."}
                                       />
                                     </td>
@@ -4795,7 +4803,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                   const text2 = isca2Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
                                   const isOffline2 = text2.includes("temporariamente fora do ar");
                                   return (
-                                    <td key={colKey} className="p-2 text-center font-bold text-[12px] align-middle">
+                                    <td key={colKey} className="p-2 text-center font-semibold text-[12.5px] align-middle">
                                       {isOffline2 ? null : (
                                         <div className="flex items-center justify-center gap-1.5 mx-auto w-fit">
                                           <input
@@ -4805,7 +4813,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                             disabled={isca2 === "SEM ISCA"}
                                             spellCheck={false}
                                             autoCorrect="off"
-                                            className="w-12 bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-1 text-[12px] text-center text-[#16A34A] font-black transition-all duration-150 disabled:opacity-50"
+                                            className="w-12 bg-transparent border-none outline-none hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-1 text-[12.5px] text-center text-[#16A34A] font-semibold tracking-[0.02em] tabular-nums transition-all duration-150 disabled:opacity-50"
                                             placeholder={isca2 === "SEM ISCA" ? "" : "100%"}
                                           />
                                           <div className="relative flex items-center shrink-0">
@@ -4826,21 +4834,21 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           </tr>
                         )}
                         {/* Row 2 (Isca 1) */}
-                        <tr className="bg-white text-center font-medium text-[#0F172A] h-[38px] border-b border-[#E5D5B5]">
+                        <tr className="bg-white text-center font-semibold text-[#0F172A] h-[38px] border-b border-[#E5D5B5]">
                           {table2ColumnOrder.map((colKey) => {
                             switch (colKey) {
                               case 'isca':
                                 return (
                                   <td key={colKey} className={cn(
-                                    "border-r border-[#E5D5B5] p-2 font-black uppercase text-[12.5px] text-center bg-white align-middle",
+                                    "border-r border-[#E5D5B5] p-2 font-semibold uppercase text-[12.5px] text-center bg-white align-middle",
                                     isGreenOrigem ? "text-emerald-600" : isPurpleOrigem ? "text-purple-700" : isCuiabaOrigem ? "text-amber-600" : "text-[#C91F2D]"
                                   )}>
-                                    {isca1DisplayCode ? <span className="font-black text-[12.5px] text-[#C91F2D] uppercase tracking-wider">{isca1DisplayCode}</span> : ""}
+                                    {isca1DisplayCode ? <span className="font-semibold text-[12.5px] text-[#C91F2D] uppercase tracking-[0.025em] tabular-nums">{isca1DisplayCode}</span> : ""}
                                   </td>
                                 );
                               case 'endereco':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-left font-semibold text-[12px] sm:text-[12.5px] bg-white align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-left font-semibold text-[12.5px] bg-white align-middle">
                                     <textarea
                                       value={isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "")}
                                       onChange={(e) => setIsca1Endereco(e.target.value)}
@@ -4848,8 +4856,8 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                       autoCorrect="off"
                                       rows={1}
                                       className={cn(
-                                        "w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] sm:text-[12.5px] resize-y leading-snug font-semibold transition-all duration-150",
-                                        !pastePlanilha.trim() && !isca1Endereco ? "text-[#C91F2D] font-black uppercase" : "text-[#0F172A]"
+                                        "w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] uppercase tracking-[0.02em] resize-y leading-snug font-semibold transition-all duration-150",
+                                        !pastePlanilha.trim() && !isca1Endereco ? "text-[#C91F2D]" : "text-[#0F172A]"
                                       )}
                                       placeholder="Endereço da Isca 1..."
                                     />
@@ -4857,14 +4865,14 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 );
                               case 'data':
                                 return (
-                                  <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-center font-bold text-[12px] bg-white align-middle">
+                                  <td key={colKey} className="border-r border-[#E5D5B5] p-2 text-center font-semibold text-[12.5px] bg-white align-middle">
                                     <input
                                       type="text"
                                       value={isca1Data}
                                       onChange={(e) => setIsca1Data(e.target.value)}
                                       spellCheck={false}
                                       autoCorrect="off"
-                                      className="w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12px] text-center text-[#0F172A] font-bold tracking-wide transition-all duration-150"
+                                      className="w-full bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1.5 py-1 text-[12.5px] text-center text-[#0F172A] font-semibold tracking-[0.02em] tabular-nums transition-all duration-150"
                                       placeholder="Data/Hora..."
                                     />
                                   </td>
@@ -4873,7 +4881,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                 const text1 = isca1Endereco || (!pastePlanilha.trim() ? "O site das iscas está temporariamente fora do ar." : "");
                                 const isOffline1 = text1.includes("temporariamente fora do ar");
                                 return (
-                                  <td key={colKey} className="p-2 text-center font-bold text-[12px] bg-white align-middle">
+                                  <td key={colKey} className="p-2 text-center font-semibold text-[12.5px] bg-white align-middle">
                                     {isOffline1 ? null : (
                                       <div className="flex items-center justify-center gap-1.5 mx-auto w-fit">
                                         <input
@@ -4882,7 +4890,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                                           onChange={(e) => setIsca1Bateria(e.target.value)}
                                           spellCheck={false}
                                           autoCorrect="off"
-                                          className="w-12 bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-1 text-[12px] text-center text-[#16A34A] font-black transition-all duration-150"
+                                          className="w-12 bg-transparent border-none outline-none hover:bg-[#FAF7F0] focus:bg-white focus:ring-1 focus:ring-[#C5A059] rounded px-1 py-1 text-[12.5px] text-center text-[#16A34A] font-semibold tracking-[0.02em] tabular-nums transition-all duration-150"
                                           placeholder="100%"
                                         />
                                         <div className="relative flex items-center shrink-0">
