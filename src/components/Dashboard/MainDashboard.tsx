@@ -118,32 +118,6 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
         </div>
       )}
 
-      {/* 4. BÚSSOLA DOURADA TRIDIMENSIONA NO CANTO INFERIOR DIREITO (IDÊNTICA À IMAGEM) */}
-      <div className="absolute bottom-5 right-5 z-20 pointer-events-none select-none flex flex-col items-center">
-        {/* Marcador 'N' no Topo */}
-        <span className="text-[#FFC247] font-black text-xs md:text-sm tracking-widest drop-shadow-[0_0_8px_rgba(255,194,71,0.8)] mb-0.5 font-heading">
-          N
-        </span>
-
-        {/* Disco da Bússola 3D */}
-        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-[#FFC247] bg-gradient-to-br from-[#10243D]/90 via-[#0a1626]/95 to-black/95 shadow-[0_0_20px_rgba(217,154,25,0.4)] flex items-center justify-center relative p-1">
-          {/* Anel Metálico Interno */}
-          <div className="w-full h-full rounded-full border border-[#D99A19]/50 flex items-center justify-center relative">
-            
-            {/* Ponteiro da Bússola Dourado apontando para cima (Norte) */}
-            <div className="w-1 h-7 md:h-8 bg-gradient-to-t from-[#D99A19] via-[#FFC247] to-white rounded-full shadow-[0_0_10px_#FFC247] relative flex items-center justify-center">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#FFC247] border border-white shadow-xs absolute" />
-            </div>
-
-            {/* Linhas Cardeais Discretas L/O */}
-            <div className="absolute inset-0 flex items-center justify-between px-1 pointer-events-none opacity-40 text-[7px] text-[#FFC247] font-bold">
-              <span>O</span>
-              <span>L</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   );
 }
