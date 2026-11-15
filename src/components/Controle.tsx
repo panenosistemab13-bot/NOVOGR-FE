@@ -1460,10 +1460,10 @@ export default function Controle({ onBack }: ControleProps) {
 
     const getCleanIsca = (iscaVal: string, prefix: string, suffix: string) => {
       let val = (iscaVal || "").trim();
-      if (!val && (prefix || suffix)) {
+      if ((!val || val.toUpperCase() === "SEM ISCA" || val === "---") && suffix.trim()) {
         val = (prefix + suffix).trim();
       }
-      if (!val || val.toUpperCase() === "SEM ISCA" || val === "---") {
+      if (!val || val.toUpperCase() === "SEM ISCA" || val === "---" || (!iscaVal.trim() && !suffix.trim())) {
         return "";
       }
       return val;
@@ -1472,10 +1472,8 @@ export default function Controle({ onBack }: ControleProps) {
     const isca1Clean = getCleanIsca(isca1, iscaPrefix1, iscaSuffix1);
     if (isca1Clean) iscasList.push(isca1Clean);
 
-    if (numCarretas === 2) {
-      const isca2Clean = getCleanIsca(isca2, iscaPrefix2, iscaSuffix2);
-      if (isca2Clean) iscasList.push(isca2Clean);
-    }
+    const isca2Clean = getCleanIsca(isca2, iscaPrefix2, iscaSuffix2);
+    if (isca2Clean) iscasList.push(isca2Clean);
 
     return iscasList.join(" ");
   };
@@ -2444,19 +2442,19 @@ export default function Controle({ onBack }: ControleProps) {
               <table cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                 <tr>
                   <td style="vertical-align: middle; padding-right: 14px;">
-                    <div style="width: 48px; height: 48px; background: radial-gradient(circle, #D92332 0%, #9B1526 100%); border: 2px solid #D4AF37; border-radius: 50%; text-align: center; line-height: 46px; color: #FFFFFF; font-weight: 900; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+                    <div style="width: 48px; height: 48px; background: radial-gradient(circle, #D92332 0%, #9B1526 100%); border: 1.5px solid #D4AF37; border-radius: 50%; text-align: center; line-height: 46px; color: #FFFFFF; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Arial, sans-serif; font-weight: 600; font-size: 11.5px; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(0,0,0,0.4);">
                       3♥C
                     </div>
                   </td>
-                  <td style="vertical-align: middle;">
-                    <div style="font-family: Arial, sans-serif; font-weight: 900; font-size: 20px; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.8px; margin: 0; line-height: 1.1;">
-                      CENTRAL GR <span style="color: #D4AF37;">• LOGISTICS NETWORK</span>
+                  <td style="vertical-align: middle; font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+                    <div style="font-weight: 600; font-size: 19px; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1.4px; margin: 0; line-height: 1.15;">
+                      CENTRAL GR <span style="color: #D4AF37; font-weight: 300; margin: 0 4px;">•</span> <span style="color: #E5C158; font-weight: 500;">${origem || "SANTA LUZIA/MG"}</span>
                     </div>
-                    <div style="font-size: 10px; font-weight: 800; color: #C5A059; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px;">
+                    <div style="font-size: 10px; font-weight: 500; color: #E5C158; text-transform: uppercase; letter-spacing: 2.8px; margin-top: 4px; line-height: 1.2;">
                       CENTRAL DE CONTROLE
                     </div>
-                    <div style="font-size: 8px; font-weight: 600; color: #C4C9D0; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px;">
-                      MONITORAMENTO INTELIGENTE · MAIS SEGURANÇA · SUA CARGA SEMPRE EM FOCO
+                    <div style="font-size: 9px; font-weight: 400; color: #F4F1EA; text-transform: uppercase; letter-spacing: 1.3px; margin-top: 5px; line-height: 1.3;">
+                      MONITORAMENTO INTELIGENTE <span style="color: #D4AF37; margin: 0 3px;">·</span> MAIS SEGURANÇA <span style="color: #D4AF37; margin: 0 3px;">·</span> SUA CARGA SEMPRE EM FOCO
                     </div>
                   </td>
                 </tr>
@@ -4079,19 +4077,19 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,13,14,0.98)_0%,rgba(18,20,23,0.95)_31%,rgba(18,20,23,0.42)_60%,rgba(12,13,14,0.82)_100%)]" />
                   <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#8C6D2B] via-[#F5D27B] to-[#8C6D2B]" />
 
-                  <div className="relative z-10 flex min-w-0 items-center gap-3 sm:gap-4 max-w-[76%]">
-                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E92D3C] to-[#8C0E1B] border-2 border-[#D4AF37] flex items-center justify-center shrink-0 shadow-[0_0_0_3px_rgba(212,175,55,0.14)]">
-                      <span className="font-black text-xs sm:text-sm text-white tracking-tight">3♥C</span>
+                  <div className="relative z-10 flex min-w-0 items-center gap-3.5 sm:gap-4 max-w-[78%]" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E92D3C] to-[#8C0E1B] border-[1.5px] border-[#D4AF37] flex items-center justify-center shrink-0 shadow-[0_0_0_3px_rgba(212,175,55,0.14)]">
+                      <span className="font-semibold text-xs sm:text-[13px] text-white tracking-[0.04em] antialiased">3♥C</span>
                     </div>
-                    <div className="min-w-0">
-                      <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-white m-0 leading-tight">
-                        CENTRAL GR <span className="text-[#E3BB57]">• LOGISTICS NETWORK</span>
+                    <div className="min-w-0 antialiased">
+                      <h2 className="text-[17px] sm:text-[21px] font-semibold uppercase tracking-[0.07em] text-white m-0 leading-snug">
+                        CENTRAL GR <span className="text-[#D4AF37] font-light mx-1">•</span> <span className="text-[#E5C158] font-medium">{origem || "SANTA LUZIA/MG"}</span>
                       </h2>
-                      <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[1.5px] text-[#E3BB57] mt-1 mb-0">
+                      <p className="text-[9.5px] sm:text-[10.5px] font-medium uppercase tracking-[0.24em] text-[#E5C158] mt-1 mb-0 leading-tight">
                         CENTRAL DE CONTROLE
                       </p>
-                      <p className="text-[7px] sm:text-[9px] font-semibold uppercase tracking-wide text-[#FFF7DF] mt-1 mb-0 leading-snug">
-                        MONITORAMENTO INTELIGENTE · MAIS SEGURANÇA · SUA CARGA SEMPRE EM FOCO
+                      <p className="text-[8.5px] sm:text-[9.5px] font-normal uppercase tracking-[0.13em] text-[#F8F5EE]/95 mt-1.5 mb-0 leading-relaxed">
+                        MONITORAMENTO INTELIGENTE <span className="text-[#E5C158] mx-1">•</span> MAIS SEGURANÇA <span className="text-[#E5C158] mx-1">•</span> SUA CARGA SEMPRE EM FOCO
                       </p>
                     </div>
                   </div>
@@ -5704,68 +5702,69 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
 
                 {/* ISCA 2 SECTION */}
-                {numCarretas === 2 && sidebarEmbarque2 !== "none" && (
-                  <div>
-                    <span className="text-[9px] font-extrabold uppercase text-[#D92332] block mb-1">
-                      DISPOSITIVO ISCA 2:
-                    </span>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
-                          PREFIXO:
-                        </span>
-                        <select
-                          value={iscaPrefix2}
-                          onChange={(e) => {
-                            const newPrefix = e.target.value;
-                            setIscaPrefix2(newPrefix);
-                            const newIsca2 = newPrefix + iscaSuffix2;
-                            setIsca2(newIsca2);
-                            if (isPrefix30D1(newPrefix, newIsca2)) {
-                              setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
-                            } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
-                              setAlertaResgate(FRASE_RESGATE_PADRAO);
-                            }
-                          }}
-                          className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] focus:border-[#C49A45] outline-none cursor-pointer transition-all"
-                        >
-                          <option value="R100000" className="bg-[#FFFFFF] text-[#292820]">R100000</option>
-                          <option value="R10000" className="bg-[#FFFFFF] text-[#292820]">R10000</option>
-                          <option value="30D10000" className="bg-[#FFFFFF] text-[#292820]">30D10000</option>
-                        </select>
-                      </div>
-                      <div>
-                        <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
-                          RESTO:
-                        </span>
-                        <input
-                          type="text"
-                          value={iscaSuffix2}
-                          onChange={(e) => {
-                            const val = e.target.value.toUpperCase();
-                            let newPrefix = iscaPrefix2;
-                            if (!iscaPrefix2.toLowerCase().startsWith("30d1")) {
-                              if (val.length === 3) newPrefix = "R100000";
-                              else if (val.length === 4) newPrefix = "R10000";
-                            }
-                            
-                            setIscaSuffix2(val);
-                            setIscaPrefix2(newPrefix);
-                            const newIsca2 = newPrefix + val;
-                            setIsca2(newIsca2);
-                            if (isPrefix30D1(newPrefix, newIsca2)) {
-                              setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
-                            } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
-                              setAlertaResgate(FRASE_RESGATE_PADRAO);
-                            }
-                          }}
-                          className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] uppercase focus:border-[#C49A45] outline-none transition-all placeholder:text-[#77736B]"
-                          placeholder="RESTO..."
-                        />
-                      </div>
+                <div>
+                  <span className="text-[9px] font-extrabold uppercase text-[#D92332] block mb-1">
+                    DISPOSITIVO ISCA 2:
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
+                        PREFIXO:
+                      </span>
+                      <select
+                        value={iscaPrefix2}
+                        onChange={(e) => {
+                          const newPrefix = e.target.value;
+                          setIscaPrefix2(newPrefix);
+                          const newIsca2 = iscaSuffix2.trim() ? newPrefix + iscaSuffix2 : (isca2 === "SEM ISCA" ? "SEM ISCA" : "");
+                          setIsca2(newIsca2);
+                          if (iscaSuffix2.trim() && isPrefix30D1(newPrefix, newIsca2)) {
+                            setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
+                          } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
+                            setAlertaResgate(FRASE_RESGATE_PADRAO);
+                          }
+                        }}
+                        className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] focus:border-[#C49A45] outline-none cursor-pointer transition-all"
+                      >
+                        <option value="R100000" className="bg-[#FFFFFF] text-[#292820]">R100000</option>
+                        <option value="R10000" className="bg-[#FFFFFF] text-[#292820]">R10000</option>
+                        <option value="30D10000" className="bg-[#FFFFFF] text-[#292820]">30D10000</option>
+                      </select>
+                    </div>
+                    <div>
+                      <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
+                        RESTO:
+                      </span>
+                      <input
+                        type="text"
+                        value={iscaSuffix2}
+                        onChange={(e) => {
+                          const val = e.target.value.toUpperCase();
+                          let newPrefix = iscaPrefix2;
+                          if (!iscaPrefix2.toLowerCase().startsWith("30d1")) {
+                            if (val.length === 3) newPrefix = "R100000";
+                            else if (val.length === 4) newPrefix = "R10000";
+                          }
+                          
+                          setIscaSuffix2(val);
+                          setIscaPrefix2(newPrefix);
+                          const newIsca2 = val.trim() ? newPrefix + val : (carreta2 ? "SEM ISCA" : "");
+                          setIsca2(newIsca2);
+                          if (val.trim() && numCarretas === 1) {
+                            setNumCarretas(2);
+                          }
+                          if (val.trim() && isPrefix30D1(newPrefix, newIsca2)) {
+                            setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
+                          } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
+                            setAlertaResgate(FRASE_RESGATE_PADRAO);
+                          }
+                        }}
+                        className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] uppercase focus:border-[#C49A45] outline-none transition-all placeholder:text-[#77736B]"
+                        placeholder="RESTO..."
+                      />
                     </div>
                   </div>
-                )}
+                </div>
 
                 {/* VISUAL PREVIEW & QUICK COPY BAR */}
                 {getIscasSpaceSeparated() ? (
