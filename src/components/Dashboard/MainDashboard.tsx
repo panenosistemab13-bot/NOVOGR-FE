@@ -45,40 +45,40 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
   return (
     <div className="w-full h-[calc(100vh-76px)] overflow-hidden relative bg-[#070c14] select-none font-sans">
       
-      {/* 1. MAPA CINEMATOGRÁFICO DO BRASIL DE FUNDO (ÂNCORA NO BOTTOM SEM FAIXA PRETA) */}
-      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#070c14]">
+      {/* 1. MAPA CINEMATOGRÁFICO DO BRASIL DE FUNDO (SEM O CABEÇALHO DUPLICADO DA IMAGEM) */}
+      <div className="absolute inset-x-0 -top-[15.5%] w-full h-[115.5%] z-0 overflow-hidden bg-[#070c14]">
         <img
           src={brasilSatelliteMap}
           alt="Central GR - Mapa Logístico 3D Brasil"
-          className="w-full h-full object-cover origin-bottom scale-[1.03] pointer-events-none select-none"
+          className="w-full h-full object-cover object-bottom pointer-events-none select-none"
         />
         {/* Glow overlay suave nos bordos */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-black/10" />
-      </div>
 
-      {/* 2. OVERLAY INTERATIVO DE CIDADES E ROTAS */}
-      <div className="absolute inset-0 z-10 pointer-events-auto">
-        {CITY_MARKERS.map((city) => (
-          <div
-            key={city.id}
-            style={{ top: city.top, left: city.left }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-            onClick={() => handleCityClick(city)}
-          >
-            {/* Ponto Pulsante Dourado */}
-            <div className="relative flex items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-[#FFC247] opacity-65" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFC247] border border-white shadow-[0_0_10px_#FFC247]" />
-            </div>
+        {/* 2. OVERLAY INTERATIVO DE CIDADES E ROTAS */}
+        <div className="absolute inset-0 z-10 pointer-events-auto">
+          {CITY_MARKERS.map((city) => (
+            <div
+              key={city.id}
+              style={{ top: city.top, left: city.left }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
+              onClick={() => handleCityClick(city)}
+            >
+              {/* Ponto Pulsante Dourado */}
+              <div className="relative flex items-center justify-center">
+                <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-[#FFC247] opacity-65" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFC247] border border-white shadow-[0_0_10px_#FFC247]" />
+              </div>
 
-            {/* Tooltip / Label Hover FX */}
-            <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-[#10243D]/90 backdrop-blur-md text-white border border-[#FFC247]/40 px-3 py-1.5 rounded-lg shadow-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 z-30">
-              <Radio className="w-3 h-3 text-[#FFC247] animate-pulse" />
-              <span>{city.name}</span>
-              <span className="text-[#FFC247]">({city.routesCount} rotas)</span>
+              {/* Tooltip / Label Hover FX */}
+              <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-[#10243D]/90 backdrop-blur-md text-white border border-[#FFC247]/40 px-3 py-1.5 rounded-lg shadow-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 z-30">
+                <Radio className="w-3 h-3 text-[#FFC247] animate-pulse" />
+                <span>{city.name}</span>
+                <span className="text-[#FFC247]">({city.routesCount} rotas)</span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* 3. CARD DE INFORMAÇÕES CIDADE SELECIONADA (MODAL DISCRETO SE CLICADO) */}
