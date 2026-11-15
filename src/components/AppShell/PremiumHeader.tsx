@@ -61,7 +61,7 @@ export default function PremiumHeader({
   }, []);
 
   return (
-    <header className="w-full relative bg-white select-none font-sans z-30 shadow-xs">
+    <header style={{ zoom: 0.84 }} className="w-full relative bg-white select-none font-sans z-30 shadow-xs">
       {/* Barra Principal Branca - 76px de Altura */}
       <div className="w-full h-[76px] px-4 md:px-6 flex items-center justify-between">
         

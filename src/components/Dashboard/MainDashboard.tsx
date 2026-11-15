@@ -43,14 +43,14 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-76px)] overflow-hidden relative bg-[#070c14] select-none font-sans">
+    <div className="w-full h-full overflow-hidden relative bg-[#070c14] select-none font-sans">
       
       {/* 1. MAPA CINEMATOGRÁFICO DO BRASIL DE FUNDO (SEM O CABEÇALHO DUPLICADO DA IMAGEM) */}
       <div className="absolute inset-x-0 -top-[15.5%] w-full h-[115.5%] z-0 overflow-hidden bg-[#070c14]">
         <img
           src={brasilSatelliteMap}
           alt="Central GR - Mapa Logístico 3D Brasil"
-          className="w-full h-full object-cover object-bottom pointer-events-none select-none"
+          className="w-full h-full object-fill pointer-events-none select-none"
         />
         {/* Glow overlay suave nos bordos */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-black/10" />
