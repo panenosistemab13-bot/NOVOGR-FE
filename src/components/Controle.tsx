@@ -1472,8 +1472,10 @@ export default function Controle({ onBack }: ControleProps) {
     const isca1Clean = getCleanIsca(isca1, iscaPrefix1, iscaSuffix1);
     if (isca1Clean) iscasList.push(isca1Clean);
 
-    const isca2Clean = getCleanIsca(isca2, iscaPrefix2, iscaSuffix2);
-    if (isca2Clean) iscasList.push(isca2Clean);
+    if (numCarretas === 2 && isca2 !== "SEM ISCA") {
+      const isca2Clean = getCleanIsca(isca2, iscaPrefix2, iscaSuffix2);
+      if (isca2Clean) iscasList.push(isca2Clean);
+    }
 
     return iscasList.join(" ");
   };
@@ -4202,7 +4204,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                         onClick={() => {
                           setNumCarretas(2);
                           if (isca2 === "SEM ISCA") {
-                            setIsca2("");
+                            setIsca2(iscaSuffix2.trim() ? iscaPrefix2 + iscaSuffix2 : "");
                             setProduto2("");
                             setUma2("");
                           }
@@ -4217,7 +4219,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                           <button
                             type="button"
                             onClick={() => {
-                              setIsca2("");
+                              setIsca2(iscaSuffix2.trim() ? iscaPrefix2 + iscaSuffix2 : "");
                               setProduto2("");
                               setUma2("");
                             }}
@@ -5702,69 +5704,68 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 </div>
 
                 {/* ISCA 2 SECTION */}
-                <div>
-                  <span className="text-[9px] font-extrabold uppercase text-[#D92332] block mb-1">
-                    DISPOSITIVO ISCA 2:
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
-                        PREFIXO:
-                      </span>
-                      <select
-                        value={iscaPrefix2}
-                        onChange={(e) => {
-                          const newPrefix = e.target.value;
-                          setIscaPrefix2(newPrefix);
-                          const newIsca2 = iscaSuffix2.trim() ? newPrefix + iscaSuffix2 : (isca2 === "SEM ISCA" ? "SEM ISCA" : "");
-                          setIsca2(newIsca2);
-                          if (iscaSuffix2.trim() && isPrefix30D1(newPrefix, newIsca2)) {
-                            setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
-                          } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
-                            setAlertaResgate(FRASE_RESGATE_PADRAO);
-                          }
-                        }}
-                        className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] focus:border-[#C49A45] outline-none cursor-pointer transition-all"
-                      >
-                        <option value="R100000" className="bg-[#FFFFFF] text-[#292820]">R100000</option>
-                        <option value="R10000" className="bg-[#FFFFFF] text-[#292820]">R10000</option>
-                        <option value="30D10000" className="bg-[#FFFFFF] text-[#292820]">30D10000</option>
-                      </select>
-                    </div>
-                    <div>
-                      <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
-                        RESTO:
-                      </span>
-                      <input
-                        type="text"
-                        value={iscaSuffix2}
-                        onChange={(e) => {
-                          const val = e.target.value.toUpperCase();
-                          let newPrefix = iscaPrefix2;
-                          if (!iscaPrefix2.toLowerCase().startsWith("30d1")) {
-                            if (val.length === 3) newPrefix = "R100000";
-                            else if (val.length === 4) newPrefix = "R10000";
-                          }
-                          
-                          setIscaSuffix2(val);
-                          setIscaPrefix2(newPrefix);
-                          const newIsca2 = val.trim() ? newPrefix + val : (carreta2 ? "SEM ISCA" : "");
-                          setIsca2(newIsca2);
-                          if (val.trim() && numCarretas === 1) {
-                            setNumCarretas(2);
-                          }
-                          if (val.trim() && isPrefix30D1(newPrefix, newIsca2)) {
-                            setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
-                          } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
-                            setAlertaResgate(FRASE_RESGATE_PADRAO);
-                          }
-                        }}
-                        className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] uppercase focus:border-[#C49A45] outline-none transition-all placeholder:text-[#77736B]"
-                        placeholder="RESTO..."
-                      />
+                {numCarretas === 2 && isca2 !== "SEM ISCA" && (
+                  <div>
+                    <span className="text-[9px] font-extrabold uppercase text-[#D92332] block mb-1">
+                      DISPOSITIVO ISCA 2:
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
+                          PREFIXO:
+                        </span>
+                        <select
+                          value={iscaPrefix2}
+                          onChange={(e) => {
+                            const newPrefix = e.target.value;
+                            setIscaPrefix2(newPrefix);
+                            const newIsca2 = iscaSuffix2.trim() ? newPrefix + iscaSuffix2 : "";
+                            setIsca2(newIsca2);
+                            if (iscaSuffix2.trim() && isPrefix30D1(newPrefix, newIsca2)) {
+                              setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
+                            } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
+                              setAlertaResgate(FRASE_RESGATE_PADRAO);
+                            }
+                          }}
+                          className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] focus:border-[#C49A45] outline-none cursor-pointer transition-all"
+                        >
+                          <option value="R100000" className="bg-[#FFFFFF] text-[#292820]">R100000</option>
+                          <option value="R10000" className="bg-[#FFFFFF] text-[#292820]">R10000</option>
+                          <option value="30D10000" className="bg-[#FFFFFF] text-[#292820]">30D10000</option>
+                        </select>
+                      </div>
+                      <div>
+                        <span className="text-[8px] font-extrabold uppercase text-[#77736B] block mb-0.5">
+                          RESTO:
+                        </span>
+                        <input
+                          type="text"
+                          value={iscaSuffix2}
+                          onChange={(e) => {
+                            const val = e.target.value.toUpperCase();
+                            let newPrefix = iscaPrefix2;
+                            if (!iscaPrefix2.toLowerCase().startsWith("30d1")) {
+                              if (val.length === 3) newPrefix = "R100000";
+                              else if (val.length === 4) newPrefix = "R10000";
+                            }
+                            
+                            setIscaSuffix2(val);
+                            setIscaPrefix2(newPrefix);
+                            const newIsca2 = val.trim() ? newPrefix + val : "";
+                            setIsca2(newIsca2);
+                            if (val.trim() && isPrefix30D1(newPrefix, newIsca2)) {
+                              setAlertaResgate(FRASE_RESGATE_DESCARTAVEL);
+                            } else if (!isDispositivoDescartavel(iscaPrefix1, newPrefix, isca1, newIsca2, numCarretas)) {
+                              setAlertaResgate(FRASE_RESGATE_PADRAO);
+                            }
+                          }}
+                          className="w-full bg-[#FFFFFF] border border-[#EDE2CE] rounded-lg px-2 py-1.5 text-[10px] font-black text-[#292820] uppercase focus:border-[#C49A45] outline-none transition-all placeholder:text-[#77736B]"
+                          placeholder="RESTO..."
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* VISUAL PREVIEW & QUICK COPY BAR */}
                 {getIscasSpaceSeparated() ? (

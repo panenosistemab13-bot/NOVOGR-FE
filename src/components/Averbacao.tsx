@@ -1008,11 +1008,16 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <button
                 type="button"
                 onClick={copyToEmail}
-                className="bg-gradient-to-r from-[#D69E2E] to-[#B87D14] hover:brightness-105 text-white text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
-                title="Copiar e-mail formatado"
+                className={cn(
+                  "text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap",
+                  copied
+                    ? "bg-emerald-600 text-white"
+                    : "bg-[#BA0C16] hover:bg-[#9E0810] text-white"
+                )}
+                title="Copiar para e-mail"
               >
                 {copied ? <Check size={14} /> : <Copy size={14} className="text-white" />}
-                <span>{copied ? 'COPIADO!' : 'COPIAR FORMATADO'}</span>
+                <span>{copied ? 'COPIADO!' : 'COPIAR PARA EMAIL'}</span>
               </button>
             </div>
           </div>
