@@ -50,7 +50,7 @@ export default function MainDashboard({ onNavigate }: MainDashboardProps) {
         <img
           src={brasilSatelliteMap}
           alt="Central GR - Mapa Logístico 3D Brasil"
-          className="w-full h-full object-cover origin-bottom scale-[1.14] pointer-events-none select-none"
+          className="w-full h-full object-cover origin-bottom scale-[1.03] pointer-events-none select-none"
         />
         {/* Glow overlay suave nos bordos */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-black/10" />

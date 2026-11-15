@@ -184,7 +184,7 @@ export interface Motorista3C {
   rg: string;
 }
 
-// 27 Drivers list from user's attached image (image.png)
+// 37 Drivers list from user's attached images
 export const INITIAL_MOTORISTAS_3C: Omit<Motorista3C, 'id'>[] = [
   { nome: 'ADILSON DOS REIS SILVA', cpf: '599.612.106.97', rg: 'MG3330429' },
   { nome: 'ADRIANO DA SILVA DE SOUZA', cpf: '080.054.376.92', rg: 'MG13811014' },
@@ -212,7 +212,17 @@ export const INITIAL_MOTORISTAS_3C: Omit<Motorista3C, 'id'>[] = [
   { nome: 'WENDEL POLOZZI REIS MAIA', cpf: '108.064.276.55', rg: 'MG16269190' },
   { nome: 'JOSE FRANCISCO DEBORTOLI LOPES', cpf: '084.694.686.24', rg: 'MG14542349' },
   { nome: 'EVERTON LUCAS FERNANDES', cpf: '079.149.766.60', rg: 'MG14891367' },
-  { nome: 'WELLINGTON TADEU MUNIZ', cpf: '050.728.216.69', rg: '' }
+  { nome: 'WELLINGTON TADEU MUNIZ', cpf: '050.728.216.69', rg: '' },
+  { nome: 'ADRIANO CESAR RODRIGUES', cpf: '772.414.876.72', rg: '' },
+  { nome: 'ELIANDRO JOSÉ BORGES', cpf: '052.503.196.02', rg: '' },
+  { nome: 'CARLOS MANOEL DAS GRAÇAS', cpf: '072.340.726.67', rg: '' },
+  { nome: 'ANDRE BARBOSA FELICIO DA SILVA', cpf: '013.779.616.13', rg: '' },
+  { nome: 'ALEXANDRO FERREIRA DOS SANTOS', cpf: '037.886.256.19', rg: '' },
+  { nome: 'JOSÉ INÁCIO DA COSTA JUNIOR', cpf: '059.485.246.39', rg: '' },
+  { nome: 'FLAVIO LEANDRO ALVARENGA', cpf: '033.989.346.09', rg: '' },
+  { nome: 'WELLINGTON SALES DA SILVA', cpf: '696.445.944.87', rg: '' },
+  { nome: 'EDSON VANELI ANGNEZI', cpf: '086.669.447.14', rg: '' },
+  { nome: 'EVALDO MENDES JUNIOR', cpf: '989.935.505.49', rg: '' }
 ];
 
 // 58 Standardized Destinations from user's attached list (image.png)
@@ -454,7 +464,9 @@ export default function Escala({ onBack }: EscalaProps) {
     } catch {}
     return DEFAULT_TRANSPORTADORAS;
   });
-  const [motoristas3C, setMotoristas3C] = useState<Motorista3C[]>([]);
+  const [motoristas3C, setMotoristas3C] = useState<Motorista3C[]>(() =>
+    INITIAL_MOTORISTAS_3C.map((m, idx) => ({ id: `init_${idx}`, ...m }))
+  );
   const [searchMotorista, setSearchMotorista] = useState<string>('');
 
   // Modal State for adding/editing driver
@@ -521,20 +533,34 @@ export default function Escala({ onBack }: EscalaProps) {
     }
   }, []);
 
-  // Subscribe to Motoristas 3C database & seed if empty
+  // Subscribe to Motoristas 3C database & seed/sync missing initial drivers
   useEffect(() => {
+    let syncedMissing = false;
     try {
       const motoristasRef = ref(rtdb, 'motoristas_3c');
       const unsubscribe = onValue(motoristasRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          const list = Object.entries(data).map(([key, val]: [string, any]) => ({
+          const list: Motorista3C[] = Object.entries(data).map(([key, val]: [string, any]) => ({
             id: key,
             ...val
           }));
           setMotoristas3C(list);
+
+          if (!syncedMissing) {
+            syncedMissing = true;
+            const normStr = (s: string) =>
+              (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
+            const existingNames = new Set(list.map(m => normStr(m.nome)));
+
+            INITIAL_MOTORISTAS_3C.forEach((item) => {
+              if (!existingNames.has(normStr(item.nome))) {
+                push(motoristasRef, item);
+              }
+            });
+          }
         } else {
-          // Seed initial 27 drivers if empty in database
+          syncedMissing = true;
           INITIAL_MOTORISTAS_3C.forEach((item) => {
             push(motoristasRef, item);
           });

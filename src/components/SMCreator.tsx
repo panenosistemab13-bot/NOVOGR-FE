@@ -1853,52 +1853,55 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   };
 
   return (
-    <div className="w-full relative pb-10 space-y-5 font-sans text-[#1A1917] text-left bg-[#FDF8EE] p-4 sm:p-7 rounded-3xl border border-[#EFE2C6] shadow-lg">
+    <div
+      className="w-full min-h-[calc(100vh-76px)] relative pb-10 space-y-4 font-sans text-[#1A1917] text-left bg-[#FDF8EE] p-4 sm:p-6 rounded-3xl border border-[#EFE2C6] shadow-lg"
+      style={{ zoom: 0.84 }}
+    >
       
       {internalView === 'codes' || view === 'codes' ? (
         <div className="relative z-10 bg-[#FFFDF9] p-6 rounded-3xl border border-[#EFE2C6] shadow-md text-[#1A1917]">{renderCodesTable()}</div>
       ) : (
-        <div className="relative z-10 space-y-5 animate-fade-in text-left">
+        <div className="relative z-10 space-y-4 animate-fade-in text-left">
           
           {/* ========================================================================= */}
           {/* EXECUTIVE DASHBOARD GRAPHIC (CENTRAL DE ESCALA & ASSUNTOS PADRONIZADOS)    */}
           {/* ========================================================================= */}
-          <div className="w-full shrink-0 space-y-5">
+          <div className="w-full shrink-0 space-y-4">
             {/* Header: ROTA DE TRANSPORTE - BRASIL / Central de Escala */}
-            <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1 pt-1">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-[#FBD24D] via-[#F2B529] to-[#E39B12] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(234,168,25,0.32)] shrink-0">
-                  <Route size={28} className="stroke-[2.2] text-white" />
+            <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 pt-0.5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-[16px] bg-gradient-to-br from-[#FBD24D] via-[#F2B529] to-[#E39B12] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(234,168,25,0.32)] shrink-0">
+                  <Route size={24} className="stroke-[2.2] text-white" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-[11px] sm:text-xs font-extrabold tracking-[0.06em] text-[#DE9A14] uppercase leading-tight">
+                  <span className="text-[10.5px] font-extrabold tracking-[0.06em] text-[#DE9A14] uppercase leading-tight">
                     ROTA DE TRANSPORTE - BRASIL
                   </span>
-                  <h1 className="text-2xl sm:text-[31px] font-black tracking-tight text-[#1A1917] leading-none mt-1">
+                  <h1 className="text-xl sm:text-[26px] font-black tracking-tight text-[#1A1917] leading-none mt-0.5">
                     Central de Escala
                   </h1>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsRouteSelectorOpen(true)}
-                  className="px-5 py-2.5 text-xs font-bold rounded-full bg-[#FFFDF9] hover:bg-[#FAF1DF] text-[#1A1917] border border-[#EDE0C8] cursor-pointer transition-all flex items-center gap-2 shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-95"
+                  className="px-4 py-2 text-xs font-bold rounded-full bg-[#FFFDF9] hover:bg-[#FAF1DF] text-[#1A1917] border border-[#EDE0C8] cursor-pointer transition-all flex items-center gap-2 shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-95"
                   title="Escolher quais rotas devem aparecer"
                 >
-                  <SlidersHorizontal size={15} className="text-[#1A1917] stroke-[2.2]" />
+                  <SlidersHorizontal size={14} className="text-[#1A1917] stroke-[2.2]" />
                   <span>Rotas ({Object.values(visibleRoutes).filter(Boolean).length}/4)</span>
-                  <ArrowDown size={13} className="text-[#785A28] stroke-[2.3]" />
+                  <ArrowDown size={12} className="text-[#785A28] stroke-[2.3]" />
                 </button>
 
                 <button
                   type="button"
                   onClick={handleClearAllSM}
-                  className="px-5 py-2.5 text-xs font-bold rounded-full bg-[#C90A14] hover:bg-[#AD0710] text-white cursor-pointer transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(201,10,20,0.25)] active:scale-95"
+                  className="px-4 py-2 text-xs font-bold rounded-full bg-[#C90A14] hover:bg-[#AD0710] text-white cursor-pointer transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(201,10,20,0.25)] active:scale-95"
                   title="Limpar todas as informações"
                 >
-                  <Trash2 size={15} className="stroke-[2.2]" />
+                  <Trash2 size={14} className="stroke-[2.2]" />
                   <span>Limpar Dados</span>
                 </button>
 
@@ -1906,10 +1909,10 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
                   <button
                     type="button"
                     onClick={onBack}
-                    className="px-5 py-2.5 text-xs font-bold rounded-full bg-[#1C1B1A] hover:bg-[#2F2E2C] text-white cursor-pointer transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.18)] active:scale-95"
+                    className="px-4 py-2 text-xs font-bold rounded-full bg-[#1C1B1A] hover:bg-[#2F2E2C] text-white cursor-pointer transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.18)] active:scale-95"
                     title="Voltar ao menu"
                   >
-                    <ArrowLeft size={15} className="stroke-[2.2]" />
+                    <ArrowLeft size={14} className="stroke-[2.2]" />
                     <span>Voltar</span>
                   </button>
                 )}
@@ -3554,9 +3557,9 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
             {/* Calculator Sidebar (Sticky - Acompanha a rolagem da tela para cima e para baixo) */}
             <div className="xl:col-span-1">
               <div className="sticky top-4 space-y-4 font-sans z-20">
-                <div className="bg-[#FFFBF2] border border-[#F0E1C6] p-5 rounded-[28px] shadow-[0_10px_30px_rgba(180,140,60,0.08)] relative overflow-hidden flex flex-col font-sans max-h-[calc(100vh-2rem)] overflow-y-auto">
+                <div className="bg-[#FFFBF2] border border-[#F0E1C6] p-4 rounded-[24px] shadow-[0_10px_30px_rgba(180,140,60,0.08)] relative overflow-hidden flex flex-col font-sans">
                   {/* Top Header Row: Soma de Valores + PDF + Trash */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3.5">
                     <h3 className="text-[18px] font-extrabold text-[#181715] flex items-center gap-2.5 tracking-tight">
                       <svg
                         viewBox="0 0 24 24"

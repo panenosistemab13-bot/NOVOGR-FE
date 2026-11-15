@@ -140,7 +140,7 @@ export default function NavigationDrawer({
     <div key={item.id} className="relative flex items-center group">
       {/* Left Gold Pill Bar when Active */}
       {isActive && (
-        <div className=" -left-1.5 w-1.5 h-10 rounded-l-full bg-gradient-to-b from-[#DF9F28] via-[#F2C347] to-[#C8881A] shrink-0 mr-1 shadow-xs" />
+        <div className="-left-1.5 w-1.5 h-9 rounded-l-full bg-gradient-to-b from-[#DF9F28] via-[#F2C347] to-[#C8881A] shrink-0 mr-1 shadow-xs" />
       )}
 
       <button
@@ -148,10 +148,10 @@ export default function NavigationDrawer({
         onClick={onClick}
         title={item.label}
         className={cn(
-          "w-full flex items-center justify-between px-3.5 py-2.5 rounded-[18px] transition-all duration-200 cursor-pointer select-none relative overflow-hidden",
+          "w-full flex items-center justify-between px-3 py-2 rounded-[16px] transition-all duration-200 cursor-pointer select-none relative overflow-hidden",
           isActive
-            ? "bg-gradient-to-r from-[#FFF7DF] via-[#FBE295] to-[#F2C144] text-[#141414] border-[1.5px] border-[#E5AE29] shadow-[0_6px_16px_rgba(229,174,41,0.28)]"
-            : "bg-white/95 hover:bg-white text-[#1E1E1E] border border-[#EAE8E1] hover:border-[#DFD4BC] shadow-[0_3px_10px_rgba(0,0,0,0.03)]"
+            ? "bg-gradient-to-r from-[#FFF7DF] via-[#FBE295] to-[#F2C144] text-[#141414] border-[1.5px] border-[#E5AE29] shadow-[0_5px_14px_rgba(229,174,41,0.26)]"
+            : "bg-white/95 hover:bg-white text-[#1E1E1E] border border-[#EAE8E1] hover:border-[#DFD4BC] shadow-[0_2px_8px_rgba(0,0,0,0.03)]"
         )}
       >
         {/* Subtle Diagonal Gloss Sheen on Active Button */}
@@ -165,11 +165,11 @@ export default function NavigationDrawer({
           />
         )}
 
-        <div className="flex items-center gap-3.5 min-w-0 relative z-10">
+        <div className="flex items-center gap-3 min-w-0 relative z-10">
           {/* Icon Box */}
           <div
             className={cn(
-              "w-10 h-10 rounded-[13px] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105",
+              "w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105",
               isActive
                 ? "bg-gradient-to-b from-[#2A2A2A] to-[#0E0E0E] text-white shadow-[0_3px_8px_rgba(0,0,0,0.35)] border border-[#D4AF37]/40"
                 : "bg-[#F4F3F0] text-[#1F1F1F] border border-[#E8E6E1]/80 shadow-2xs"
@@ -181,7 +181,7 @@ export default function NavigationDrawer({
           {/* Label */}
           <span
             className={cn(
-              "text-[14.5px] truncate tracking-tight text-left",
+              "text-[13.5px] truncate tracking-tight text-left",
               isActive ? "font-extrabold text-[#111111]" : "font-bold text-[#1E1E1E]"
             )}
           >
@@ -192,7 +192,7 @@ export default function NavigationDrawer({
         {/* Right Chevron */}
         <div className="flex items-center shrink-0 ml-2 relative z-10">
           <ChevronRight
-            size={16}
+            size={15}
             className={cn(
               "transition-transform group-hover:translate-x-0.5",
               isActive ? "text-[#141414] stroke-[2.5]" : "text-[#3A3A3A] stroke-[2]"
@@ -222,8 +222,9 @@ export default function NavigationDrawer({
       )}
 
       <aside 
+        style={{ zoom: 0.83 }}
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-50 w-[335px] max-w-[90vw] bg-gradient-to-b from-[#FAF9F6] via-[#F7F6F2] to-[#F3F2EE] rounded-r-[28px] border-r border-[#E6D6B2] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col font-sans transition-transform duration-250 ease-out overflow-hidden",
+          "fixed left-0 top-0 bottom-0 z-50 w-[315px] max-w-[88vw] bg-gradient-to-b from-[#FAF9F6] via-[#F7F6F2] to-[#F3F2EE] rounded-r-[26px] border-r border-[#E6D6B2] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col font-sans transition-transform duration-250 ease-out overflow-hidden",
           isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
       >
@@ -242,14 +243,14 @@ export default function NavigationDrawer({
         </div>
 
         {/* HEADER: Gold Route Icon + Divider + CENTRAL GR + Close Button */}
-        <div className="px-5 pt-5 pb-3 flex items-center justify-between relative z-10 shrink-0">
-          <div className="flex items-center gap-3.5">
+        <div className="px-4 pt-4 pb-2.5 flex items-center justify-between relative z-10 shrink-0">
+          <div className="flex items-center gap-3">
             {/* 3D Metallic Gold App Badge */}
-            <div className="w-13 h-13 rounded-[16px] bg-gradient-to-br from-[#F7DE88] via-[#D89E28] to-[#9E690E] p-[1.5px] shadow-[0_6px_14px_rgba(196,138,32,0.35)] shrink-0">
-              <div className="w-full h-full rounded-[14.5px] bg-gradient-to-br from-[#F5D061] via-[#D49722] to-[#A87010] flex items-center justify-center relative overflow-hidden">
+            <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-[#F7DE88] via-[#D89E28] to-[#9E690E] p-[1.5px] shadow-[0_5px_12px_rgba(196,138,32,0.35)] shrink-0">
+              <div className="w-full h-full rounded-[12.5px] bg-gradient-to-br from-[#F5D061] via-[#D49722] to-[#A87010] flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.45),transparent_55%)] pointer-events-none" />
                 {/* Route Network Nodes SVG */}
-                <svg viewBox="0 0 32 32" className="w-8 h-8 text-white drop-shadow-xs" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <svg viewBox="0 0 32 32" className="w-7 h-7 text-white drop-shadow-xs" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="21" cy="7" r="3" />
                   <circle cx="9" cy="23" r="3" />
                   <circle cx="23" cy="21" r="2.5" />
@@ -262,15 +263,15 @@ export default function NavigationDrawer({
             </div>
 
             {/* Vertical Dark Divider Line */}
-            <div className="w-[1.5px] h-9 bg-[#3A3A3A]/75 rounded-full shrink-0" />
+            <div className="w-[1.5px] h-8 bg-[#3A3A3A]/75 rounded-full shrink-0" />
 
             {/* CENTRAL GR / MENU OPERACIONAL */}
             <div className="flex flex-col text-left leading-none">
-              <div className="flex items-center gap-1.5 text-[19px] font-black tracking-tight">
+              <div className="flex items-center gap-1.5 text-[17.5px] font-black tracking-tight">
                 <span className="text-[#121212]">CENTRAL</span>
                 <span className="text-[#C89128]">GR</span>
               </div>
-              <span className="text-[10.5px] font-extrabold text-[#6E6E6E] tracking-wide uppercase mt-1">
+              <span className="text-[9.5px] font-extrabold text-[#6E6E6E] tracking-wide uppercase mt-1">
                 MENU OPERACIONAL
               </span>
             </div>
@@ -280,7 +281,7 @@ export default function NavigationDrawer({
           <button 
             type="button" 
             onClick={() => setIsOpen && setIsOpen(false)} 
-            className="w-9 h-9 rounded-full bg-white hover:bg-[#FAF6EC] border border-[#E6D2A3] text-[#1A1A1A] flex items-center justify-center cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:scale-105 transition-all shrink-0"
+            className="w-8 h-8 rounded-full bg-white hover:bg-[#FAF6EC] border border-[#E6D2A3] text-[#1A1A1A] flex items-center justify-center cursor-pointer shadow-[0_3px_10px_rgba(0,0,0,0.08)] hover:scale-105 transition-all shrink-0"
             title="Fechar Menu"
           >
             <X className="w-4 h-4 stroke-[2.5]" />
@@ -288,16 +289,16 @@ export default function NavigationDrawer({
         </div>
 
         {/* SECTION DIVIDER: NAVEGAÇÃO PRINCIPAL */}
-        <div className="px-5 pt-2 pb-2 flex items-center gap-2 shrink-0 relative z-10">
-          <span className="w-1.5 h-3.5 rounded-full bg-gradient-to-b from-[#E5B84B] to-[#B8821E] shrink-0" />
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#666666] shrink-0">
+        <div className="px-4 pt-1.5 pb-1.5 flex items-center gap-2 shrink-0 relative z-10">
+          <span className="w-1.5 h-3 rounded-full bg-gradient-to-b from-[#E5B84B] to-[#B8821E] shrink-0" />
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#666666] shrink-0">
             NAVEGAÇÃO PRINCIPAL
           </span>
           <div className="flex-1 h-[1px] bg-gradient-to-r from-[#DFC17B] to-[#E8D5A7]/40 ml-1" />
         </div>
 
         {/* NAVIGATION ITEMS LIST */}
-        <div className="flex-1 overflow-y-auto px-4 py-1.5 space-y-2.5 scrollbar-thin scrollbar-thumb-amber-200 relative z-10">
+        <div className="flex-1 overflow-y-auto px-3.5 py-1.5 space-y-2 scrollbar-thin scrollbar-thumb-amber-200 relative z-10">
           {menuItems.map((item) => {
             const isActive = activeTab === item.id;
             return renderNavItemButton(item, isActive, () => handleSelect(item.id));

@@ -807,7 +807,10 @@ export function Averbacao({ onBack }: AverbacaoProps) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col relative text-left bg-[#FAF6EF] p-3.5 sm:p-4 text-[#181715] font-sans overflow-y-auto">
+    <div
+      className="w-full min-h-[calc(100vh-76px)] flex flex-col relative text-left bg-[#FAF6EF] p-3.5 sm:p-4 text-[#181715] font-sans overflow-y-auto"
+      style={{ zoom: 0.84 }}
+    >
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -832,10 +835,10 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       {/* ========================================================================= */}
       {/* GRID SYSTEM: MASTER BOARD ON THE LEFT, SIDEBAR ON THE RIGHT               */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4 w-full items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-3.5 w-full items-start">
         
         {/* LEFT COLUMN: STACKED CARDS MATCHING REFERENCE DESIGN */}
-        <div className="flex flex-col gap-3 w-full">
+        <div className="flex flex-col gap-2.5 w-full">
           
           {/* CARD 1: TOP CONTROLS BAR (CÓDIGOS RÁPIDOS + PLANILHA + LIMPAR) */}
           <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl p-3 sm:px-4 sm:py-3 shadow-[0_4px_16px_rgba(0,0,0,0.035)] flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">

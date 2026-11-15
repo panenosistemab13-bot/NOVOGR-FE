@@ -486,7 +486,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#F5F0E6] text-[#25231F] font-sans flex flex-col justify-between p-3 sm:p-6 select-none overflow-x-hidden rounded-3xl border border-[#EDE2CE] shadow-sm">
+    <div style={{ zoom: 0.84 }} className="w-full min-h-screen bg-[#F5F0E6] text-[#25231F] font-sans flex flex-col justify-between p-3.5 sm:p-5 select-none overflow-x-hidden rounded-3xl border border-[#EDE2CE] shadow-sm">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -503,12 +503,12 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         )}
       </AnimatePresence>
 
-      <div className="w-full max-w-full mx-auto space-y-6">
+      <div className="w-full max-w-full mx-auto space-y-4">
         
         {/* ========================================================================= */}
         {/* EXECUTIVE DASHBOARD GRAPHIC (CENTRAL DE DISPONIBILIDADE • 4K)             */}
         {/* ========================================================================= */}
-        <div className="relative w-full h-[68px] bg-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
+        <div className="relative w-full h-[64px] bg-[#292820] rounded-2xl overflow-hidden flex items-center justify-between px-5 sm:px-6 shadow-md border border-[#C49A45]/40">
           <div className="relative z-10 flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E6D2A3] to-[#C49A45] flex items-center justify-center text-[#25231F] shadow-sm shrink-0">
               <Truck size={22} className="stroke-[2.5]" />
@@ -550,7 +550,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
           
           {/* Card 1: Total Veículos */}
-          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left">
               <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Total de Veículos
@@ -569,7 +569,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
           </div>
 
           {/* Card 2: Frota vs Agregado */}
-          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left flex-1 mr-3">
               <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Frota Própria vs Agregados
@@ -596,7 +596,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
           </div>
 
           {/* Card 3: Origens Principais */}
-          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left">
               <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Origens Ativas
@@ -615,7 +615,7 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
           </div>
 
           {/* Card 4: Status do Pátio */}
-          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
             <div className="space-y-1 text-left">
               <span className="text-[11px] font-mono font-bold text-[#77736B] uppercase tracking-wider block">
                 Status Operacional
@@ -635,14 +635,9 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         </div>
 
         {/* ========================================================================= */}
-        {/* MODERN PASTE FIELD FOR SPREADSHEET DATA                                  */}
-        {/* ========================================================================= */}
-        {/* ========================================================================= */}
-        {/* MODERN PASTE FIELD FOR SPREADSHEET DATA (Dark Luxury & Gold)              */}
-        {/* ========================================================================= */}
         {/* INPUT BUFFER & PASTE ACTION CARD (SMCreator Style)                       */}
         {/* ========================================================================= */}
-        <div className="w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-6 sm:p-8 shadow-sm text-left space-y-4 text-[#25231F]">
+        <div className="w-full bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-5 sm:p-6 shadow-sm text-left space-y-4 text-[#25231F]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6D2A3] pb-4">
             <div>
               <h3 className="text-xs sm:text-sm font-mono font-black text-[#25231F] uppercase tracking-wide flex items-center gap-2 font-heading">

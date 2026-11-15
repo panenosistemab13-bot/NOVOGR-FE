@@ -155,11 +155,11 @@ export default function ConfiguracoesPaginasView({
   const hiddenCount = totalPages - visibleCount;
 
   return (
-    <div className="min-h-full bg-[#F5F0E6] text-[#25231F] p-4 sm:p-6 lg:p-8 select-none font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div style={{ zoom: 0.84 }} className="min-h-full bg-[#F5F0E6] text-[#25231F] p-4 sm:p-6 select-none font-sans">
+      <div className="max-w-7xl mx-auto space-y-5">
 
         {/* HEADER BAR */}
-        <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {onBack && (
               <button

@@ -2884,30 +2884,30 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
   };
 
   return (
-    <div className="w-full relative z-10 max-w-full mx-auto flex flex-col font-sans space-y-5 text-[#292820] min-h-screen bg-[#F5F0E6] p-4 sm:p-6 rounded-3xl border border-[#EDE2CE] shadow-sm">
+    <div style={{ zoom: 0.84 }} className="w-full relative z-10 max-w-full mx-auto flex flex-col font-sans space-y-4 text-[#292820] min-h-screen bg-[#F5F0E6] p-3.5 sm:p-5 rounded-3xl border border-[#EDE2CE] shadow-sm">
       
       {/* CINEMATIC HERO BANNER */}
       <div 
-        className="relative w-full rounded-2xl sm:rounded-3xl p-6 sm:p-8 overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 border border-[#E6D2A3] shadow-md"
+        className="relative w-full rounded-2xl sm:rounded-3xl p-5 sm:p-6 overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-5 shrink-0 border border-[#E6D2A3] shadow-md"
         style={{
           backgroundImage: `linear-gradient(135deg, rgba(255, 252, 246, 0.94) 0%, rgba(245, 240, 230, 0.95) 50%, rgba(237, 226, 206, 0.96) 100%), url(${heroRotas})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
-        <div className="flex items-center gap-5 relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E6D2A3] via-[#C49A45] to-[#B08632] flex items-center justify-center text-[#292820] shadow-md border border-[#E6D2A3] shrink-0">
-            <Radio size={30} className="stroke-[2.5]" />
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#E6D2A3] via-[#C49A45] to-[#B08632] flex items-center justify-center text-[#292820] shadow-md border border-[#E6D2A3] shrink-0">
+            <Radio size={26} className="stroke-[2.5]" />
           </div>
 
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDE2CE] border border-[#E6D2A3] text-[#292820] text-[10px] font-mono font-black uppercase tracking-wider mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#EDE2CE] border border-[#E6D2A3] text-[#292820] text-[10px] font-mono font-black uppercase tracking-wider mb-1.5">
               <span>// OPERAÇÃO 3C</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-[#292820] font-sans drop-shadow-xs">
               CENTRAL DE CONTROLE PGR
             </h1>
-            <p className="text-xs text-[#77736B] font-sans mt-1 max-w-xl leading-relaxed">
+            <p className="text-xs text-[#77736B] font-sans mt-0.5 max-w-xl leading-relaxed">
               Gerador inteligente de controle, pré-alerta, monitoramento e gestão de frota integrada.
             </p>
           </div>
