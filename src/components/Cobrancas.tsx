@@ -468,7 +468,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
 
     const htmlEmail = `
       <div style="font-family: Arial, sans-serif; color: #292820; font-size: 13px;">
-        <h3 style="color: #D92332; text-transform: uppercase; margin-bottom: 8px;">ACOMPANHAMENTO DE ISCAS EM TRÂNSITO</h3>
+        <h3 style="color: #D92332; text-transform: uppercase; margin-bottom: 8px;">RELATÓRIO DE ISCAS PENDENTES DE DEVOLUÇÃO</h3>
         <p><b>${saudacao}</b></p>
         <p>Pedimos a gentileza de priorizarem o recolhimento e a entrega dos itens abaixo, medida essencial para mantermos o fluxo contínuo da nossa operação:</p>
         <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; border-color: #D4AF37; width: 100%; font-size: 11px; margin-top: 10px;">
@@ -494,7 +494,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
       </div>
     `;
 
-    const plainText = `ACOMPANHAMENTO DE ISCAS EM TRÂNSITO\n${saudacao}\nPedimos a gentileza de priorizarem o recolhimento e a entrega dos itens abaixo, medida essencial para mantermos o fluxo contínuo da nossa operação:\n\n` + 
+    const plainText = `RELATÓRIO DE ISCAS PENDENTES DE DEVOLUÇÃO\n${saudacao}\nPedimos a gentileza de priorizarem o recolhimento e a entrega dos itens abaixo, medida essencial para mantermos o fluxo contínuo da nossa operação:\n\n` + 
       filteredRows.map(r => COLUMNS.map(c => `${c.label}: ${r[c.key]}`).join(' | ')).join('\n');
 
     try {
