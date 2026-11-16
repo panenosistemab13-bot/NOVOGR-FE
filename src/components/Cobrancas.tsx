@@ -47,23 +47,27 @@ export interface CobrancaRow {
   idIsca: string;
   destino: string;
   status: string;
+  obs1: string;
+  dataStatus: string;
+  carreta: string;
   cavalo: string;
   motorista: string;
+  unidade: string;
   diasAguard: string;
   diasNum: number;
-  ultimaPosicao: string;
-  endereco: string;
 }
 
 type ColumnKey =
   | 'idIsca'
   | 'destino'
   | 'status'
+  | 'obs1'
+  | 'dataStatus'
+  | 'carreta'
   | 'cavalo'
   | 'motorista'
-  | 'diasAguard'
-  | 'ultimaPosicao'
-  | 'endereco';
+  | 'unidade'
+  | 'diasAguard';
 
 interface ColumnDef {
   key: ColumnKey;
@@ -76,19 +80,31 @@ const COLUMNS: ColumnDef[] = [
   { key: 'idIsca', label: 'ID ISCA', width: 'min-w-[130px]', icon: Barcode },
   { key: 'destino', label: 'DESTINO', width: 'min-w-[145px]', icon: MapPin },
   { key: 'status', label: 'STATUS', width: 'min-w-[135px]', icon: Layers },
+  { key: 'obs1', label: 'OBS 1', width: 'min-w-[135px]', icon: FileText },
+  { key: 'dataStatus', label: 'DATA STATUS', width: 'min-w-[118px]', icon: Calendar },
+  { key: 'carreta', label: 'CARRETA', width: 'min-w-[115px]', icon: Container },
   { key: 'cavalo', label: 'CAVALO', width: 'min-w-[115px]', icon: Truck },
   { key: 'motorista', label: 'MOTORISTA', width: 'min-w-[220px]', icon: User },
-  { key: 'diasAguard', label: 'DIAS AGUARD', width: 'min-w-[118px]', icon: Clock },
-  { key: 'ultimaPosicao', label: 'Ultima posição Atualizada', width: 'min-w-[180px]', icon: Clock },
-  { key: 'endereco', label: 'Endereço', width: 'min-w-[300px]', icon: MapPin }
+  { key: 'unidade', label: 'UNIDADE', width: 'min-w-[135px]', icon: Building2 },
+  { key: 'diasAguard', label: 'DIAS AGUARD', width: 'min-w-[118px]', icon: Clock }
 ];
 
-const SAMPLE_TSV = `ID ISCA\tDESTINO\tSTATUS\tCAVALO\tMOTORISTA\tDIAS AGUARD\tUltima posição Atualizada\tEndereço
-R100002328\tPREPARAÇÃO\tPND\tPOD-0645\tEllas de Souza Barbosa\t3\t16/11/2026 03:23:00\tr Olto - 1 A 216 - Santa Luzia - MG
-R100000704\tRIO DE JANEIRO\tNO DESTINO\tPOD-0645\tElias de Souza Barbosa\t3\t16/11/2026 03:14:00\trua Do Alplate - Rio De Janeiro - RJ
-R100000122\tRIO DE JANEIRO\tNO DESTINO\tPOD0255\tPEDRO HENRIQUE ARAUJO SOUSA\t3\t16/11/2026 03:00:00\trua California - Rio De Janeiro - RJ
-R1000003148\tRIO DE JANEIRO\tNO DESTINO\tSAR-8D82\tADILSON DOS REIS SILVA\t3\t31/08/2026 08:15:32\trua Kelson - Penha Circular - Rio de Janeiro - RJ
-R1000003140\tRIO DE JANEIRO\tNO DESTINO\tSBN-4J62\tLUIZ ANTONIO DOS SANTOS MARQUES\t3\t16/11/2026 03:20:00\trua kelson - penha circular - rio de janeiro - rj`;
+const SAMPLE_TSV = `ID ISCA\tDESTINO\tSTATUS\tOBS 1\tDATA STATUS\tCARRETA\tCAVALO\tMOTORISTA\tUNIDADE\tDIAS AGUARD
+R100000629\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t28.out.\tUUG8C65\tUUN-2A45\tELIANDRO JOSÉ BORGES\tSANTA LUZIA\t19
+R100002348\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t29.out.\tTIC0D95\tPOD-0645\tELIAS DE SOUZA BARBOSA\tSANTA LUZIA\t18
+R100002342\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t29.out.\tMIN8723\tPOD-0645\tELIAS DE SOUZA BARBOSA\tSANTA LUZIA\t18
+R100000625\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t29.out.\tRYD4H44\tRLO9G70\tMAURILIO RODRIGUES DA SILVA\tSANTA LUZIA\t18
+R100000945\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t29.out.\tFBI2376\tSEV5A47\tRomualdo de Godoi Almeida\tSANTA LUZIA\t18
+R100003183\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t30.out.\tQTL8222\tRXQ3A24\tJOÃO JOSÉ DE SANTANA NETO\tSANTA LUZIA\t17
+R100000713\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t03.nov.\tRYY0A24\tRXV2G98\tMÁRCIO DO ROSÁRIO DO ESPÍRITO SANTOS\tSANTA LUZIA\t13
+R100000763\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t03.nov.\tUUG5H65\tUUM-9E35\tCARLOS MANOEL DAS GRAÇAS\tSANTA LUZIA\t13
+R100000872\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t03.nov.\tUUG6A45\tUUM9E35\tCARLOS MANOEL DAS GRAÇAS\tSANTA LUZIA\t13
+R100000614\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t04.nov.\tRVZ6E91\tRVT9F88\tMario Maximo\tSANTA LUZIA\t12
+R100002178\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t05.nov.\tFEI1635\tHKN3I00\tJOSE SANTOS SILVA\tSANTA LUZIA\t11
+R100002163\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t06.nov.\tRYL4E90\tRXN2B22\tLUIS CLEMENTINO DOS SANTOS\tSANTA LUZIA\t10
+R100002208\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t06.nov.\tLYP0A24\tSEV5A49\tEmidio Candido do Nascimento\tSANTA LUZIA\t10
+R100000864\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t06.nov.\tMCM0789\tTAQ3C99\tJOUB CORREA DOS SANTOS\tSANTA LUZIA\t10
+R100000886\tARAÇARIGUAMA\tEM ROTA(IDA)\tRODRIGO\t06.nov.\tUMM0G80\tTAR1F49\tElisvan de Almeida Souza\tSANTA LUZIA\t10`;
 
 const STORAGE_KEY = 'pgr_cobrancas_raw_v1';
 
@@ -100,16 +116,6 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
     .filter(Boolean);
 
   const parsed: CobrancaRow[] = [];
-  let headerIndices: Record<string, number> = {
-    idIsca: 0,
-    destino: 1,
-    status: 2,
-    cavalo: 6,
-    motorista: 7,
-    diasAguard: 9,
-    ultimaPosicao: 14,
-    endereco: 15
-  };
 
   lines.forEach((line, idx) => {
     const cols = line.includes('\t')
@@ -125,65 +131,36 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
     if (
       firstUpper.includes('ID ISCA') ||
       (firstUpper === 'ID' && secondUpper.includes('DESTINO')) ||
-      secondUpper === 'DESTINO' ||
-      firstUpper.includes('ID')
+      secondUpper === 'DESTINO'
     ) {
-      cols.forEach((colName, cIdx) => {
-        const u = colName.toUpperCase();
-        if (u.includes('ID ISCA') || u === 'ID') headerIndices.idIsca = cIdx;
-        else if (u.includes('DESTINO')) headerIndices.destino = cIdx;
-        else if (u.includes('STATUS')) headerIndices.status = cIdx;
-        else if (u.includes('CAVALO')) headerIndices.cavalo = cIdx;
-        else if (u.includes('MOTORISTA')) headerIndices.motorista = cIdx;
-        else if (u.includes('DIAS') || u.includes('AGUARD')) headerIndices.diasAguard = cIdx;
-        else if (u.includes('ULTIMA') || u.includes('POSIÇÃO') || u.includes('POSICAO') || u.includes('ATUALIZADA')) headerIndices.ultimaPosicao = cIdx;
-        else if (u.includes('ENDEREÇO') || u.includes('ENDERECO')) headerIndices.endereco = cIdx;
-      });
       return;
     }
 
-    let idIsca = '-';
-    let destino = '-';
-    let status = '-';
-    let cavalo = '-';
-    let motorista = '-';
-    let diasAguard = '-';
-    let ultimaPosicao = '-';
-    let endereco = '-';
-
-    if (cols.length <= 8) {
-      idIsca = cols[0] || '-';
-      destino = cols[1] || '-';
-      status = cols[2] || '-';
-      cavalo = cols[3] || '-';
-      motorista = cols[4] || '-';
-      diasAguard = cols[5] || '-';
-      ultimaPosicao = cols[6] || '-';
-      endereco = cols[7] || '-';
-    } else {
-      idIsca = cols[headerIndices.idIsca] !== undefined ? cols[headerIndices.idIsca] : (cols[0] || '-');
-      destino = cols[headerIndices.destino] !== undefined ? cols[headerIndices.destino] : (cols[1] || '-');
-      status = cols[headerIndices.status] !== undefined ? cols[headerIndices.status] : (cols[2] || '-');
-      cavalo = cols[headerIndices.cavalo] !== undefined ? cols[headerIndices.cavalo] : (cols[6] || '-');
-      motorista = cols[headerIndices.motorista] !== undefined ? cols[headerIndices.motorista] : (cols[7] || '-');
-      diasAguard = cols[headerIndices.diasAguard] !== undefined ? cols[headerIndices.diasAguard] : (cols[9] || '-');
-      ultimaPosicao = cols[headerIndices.ultimaPosicao] !== undefined ? cols[headerIndices.ultimaPosicao] : (cols[14] || '-');
-      endereco = cols[headerIndices.endereco] !== undefined ? cols[headerIndices.endereco] : (cols[15] || cols[cols.length - 1] || '-');
-    }
-
+    const idIsca = cols[0] || '-';
+    const destino = cols[1] || '-';
+    const status = cols[2] || '-';
+    const obs1 = cols[3] || '-';
+    const dataStatus = cols[4] || '-';
+    const carreta = cols[5] || '-';
+    const cavalo = cols[6] || '-';
+    const motorista = cols[7] || '-';
+    const unidade = cols[8] || '-';
+    const diasAguard = cols[9] !== undefined ? cols[9] : '-';
     const diasNum = parseInt(String(diasAguard).replace(/[^\d-]/g, ''), 10);
 
     parsed.push({
-      id: `${idx}-${idIsca}-${cavalo}`,
-      idIsca: idIsca || '-',
-      destino: destino || '-',
-      status: status || '-',
-      cavalo: cavalo || '-',
-      motorista: motorista || '-',
-      diasAguard: diasAguard || '-',
-      diasNum: isNaN(diasNum) ? 0 : diasNum,
-      ultimaPosicao: ultimaPosicao || '-',
-      endereco: endereco || '-'
+      id: `${idx}-${idIsca}-${carreta}`,
+      idIsca,
+      destino,
+      status,
+      obs1,
+      dataStatus,
+      carreta,
+      cavalo,
+      motorista,
+      unidade,
+      diasAguard,
+      diasNum: isNaN(diasNum) ? 0 : diasNum
     });
   });
 
@@ -204,22 +181,26 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
     idIsca: '',
     destino: '',
     status: '',
+    obs1: '',
+    dataStatus: '',
+    carreta: '',
     cavalo: '',
     motorista: '',
-    diasAguard: '',
-    ultimaPosicao: '',
-    endereco: ''
+    unidade: '',
+    diasAguard: ''
   });
 
   const [columnExact, setColumnExact] = useState<Record<ColumnKey, string>>({
     idIsca: 'TODOS',
     destino: 'TODOS',
     status: 'TODOS',
+    obs1: 'TODOS',
+    dataStatus: 'TODOS',
+    carreta: 'TODOS',
     cavalo: 'TODOS',
     motorista: 'TODOS',
-    diasAguard: 'TODOS',
-    ultimaPosicao: 'TODOS',
-    endereco: 'TODOS'
+    unidade: 'TODOS',
+    diasAguard: 'TODOS'
   });
 
   const [severityFilter, setSeverityFilter] = useState<'ALL' | 'CRITICAL' | 'WARNING' | 'NORMAL'>('ALL');
@@ -245,11 +226,13 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
       idIsca: [],
       destino: [],
       status: [],
+      obs1: [],
+      dataStatus: [],
+      carreta: [],
       cavalo: [],
       motorista: [],
-      diasAguard: [],
-      ultimaPosicao: [],
-      endereco: []
+      unidade: [],
+      diasAguard: []
     };
 
     COLUMNS.forEach(({ key }) => {
@@ -316,10 +299,10 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
       .slice(0, 6);
   }, [filteredRows]);
 
-  const chartByMotorista = useMemo(() => {
+  const chartByObs1 = useMemo(() => {
     const counts: Record<string, number> = {};
     filteredRows.forEach(r => {
-      const k = r.motorista || 'N/I';
+      const k = r.obs1 || 'N/I';
       counts[k] = (counts[k] || 0) + 1;
     });
     return Object.entries(counts)
@@ -375,19 +358,25 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
       idIsca: '',
       destino: '',
       status: '',
+      obs1: '',
+      dataStatus: '',
+      carreta: '',
       cavalo: '',
       motorista: '',
-      ultimaPosicao: '',
-      endereco: ''
+      unidade: '',
+      diasAguard: ''
     });
     setColumnExact({
       idIsca: 'TODOS',
       destino: 'TODOS',
       status: 'TODOS',
+      obs1: 'TODOS',
+      dataStatus: 'TODOS',
+      carreta: 'TODOS',
       cavalo: 'TODOS',
       motorista: 'TODOS',
-      ultimaPosicao: 'TODOS',
-      endereco: 'TODOS'
+      unidade: 'TODOS',
+      diasAguard: 'TODOS'
     });
   };
 
@@ -400,10 +389,13 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
           r.idIsca,
           r.destino,
           r.status,
+          r.obs1,
+          r.dataStatus,
+          r.carreta,
           r.cavalo,
           r.motorista,
-          r.ultimaPosicao,
-          r.endereco
+          r.unidade,
+          r.diasAguard
         ].join('\t')
       )
       .join('\n');
@@ -476,7 +468,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
 
     const htmlEmail = `
       <div style="font-family: Arial, sans-serif; color: #292820; font-size: 13px;">
-        <h3 style="color: #D92332; text-transform: uppercase; margin-bottom: 8px;">RELATÓRIO DE ISCAS PENDENTES DE DEVOLUÇÃO</h3>
+        <h3 style="color: #D92332; text-transform: uppercase; margin-bottom: 8px;">ACOMPANHAMENTO DE ISCAS EM TRÂNSITO</h3>
         <p><b>${saudacao}</b></p>
         <p>Pedimos a gentileza de priorizarem o recolhimento e a entrega dos itens abaixo, medida essencial para mantermos o fluxo contínuo da nossa operação:</p>
         <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; border-color: #D4AF37; width: 100%; font-size: 11px; margin-top: 10px;">
@@ -488,10 +480,13 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
               <td style="color: #D92332; font-weight: bold;">${r.idIsca}</td>
               <td>${r.destino}</td>
               <td>${r.status}</td>
+              <td>${r.obs1}</td>
+              <td>${r.dataStatus}</td>
+              <td>${r.carreta}</td>
               <td>${r.cavalo}</td>
               <td>${r.motorista}</td>
-              <td>${r.ultimaPosicao}</td>
-              <td style="text-align: left;">${r.endereco}</td>
+              <td>${r.unidade}</td>
+              <td style="background-color: ${r.diasNum >= 15 ? '#FCE588' : '#FDF0B8'}; font-weight: bold;">${r.diasAguard}</td>
             </tr>
           `).join('')}
         </table>
@@ -499,7 +494,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
       </div>
     `;
 
-    const plainText = `RELATÓRIO DE ISCAS PENDENTES DE DEVOLUÇÃO\n${saudacao}\nPedimos a gentileza de priorizarem o recolhimento e a entrega dos itens abaixo, medida essencial para mantermos o fluxo contínuo da nossa operação:\n\n` + 
+    const plainText = `ACOMPANHAMENTO DE ISCAS EM TRÂNSITO\n${saudacao}\nPedimos a gentileza de priorizarem o recolhimento e a entrega dos itens abaixo, medida essencial para mantermos o fluxo contínuo da nossa operação:\n\n` + 
       filteredRows.map(r => COLUMNS.map(c => `${c.label}: ${r[c.key]}`).join(' | ')).join('\n');
 
     try {
@@ -1199,9 +1194,9 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
                   </div>
                   <div>
                     <h3 className="text-xs font-black uppercase text-[#292820] tracking-tight">
-                      GRÁFICO 3D 4K - MOTORISTA
+                      GRÁFICO 3D 4K - RESPONSÁVEL (OBS 1)
                     </h3>
-                    <span className="text-[9.5px] font-bold text-[#77736B]">Clique no motorista para filtrar as Iscas</span>
+                    <span className="text-[9.5px] font-bold text-[#77736B]">Clique no responsável para filtrar as Iscas (OBS 1)</span>
                   </div>
                 </div>
               </div>
@@ -1218,21 +1213,21 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
                 </div>
 
                 <div className="space-y-2 flex-1 pl-4">
-                  <span className="text-[10px] font-black uppercase text-[#77736B] block">MOTORISTA</span>
-                  {chartByMotorista.slice(0, 1).map((obs) => (
+                  <span className="text-[10px] font-black uppercase text-[#77736B] block">RESPONSÁVEL (OBS 1)</span>
+                  {chartByObs1.slice(0, 1).map((obs) => (
                     <button
                       key={obs.label}
-                      onClick={() => toggleChartFilter('motorista', obs.label)}
+                      onClick={() => toggleChartFilter('obs1', obs.label)}
                       className={cn(
                         "w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs",
-                        columnExact.motorista === obs.label
+                        columnExact.obs1 === obs.label
                           ? "bg-[#D92332] text-white border-[#D92332]"
                           : "bg-white hover:bg-[#FFF9ED] text-[#292820] border-[#D4AF37]/60"
                       )}
                     >
                       <div className="flex items-center gap-2">
-                        <User size={13} className={columnExact.motorista === obs.label ? "text-white" : "text-[#B8860B]"} />
-                        <span className="uppercase truncate max-w-[120px]">{obs.label}</span>
+                        <User size={13} className={columnExact.obs1 === obs.label ? "text-white" : "text-[#B8860B]"} />
+                        <span className="uppercase">{obs.label}</span>
                       </div>
                       <span className="px-2 py-0.5 rounded-md bg-[#FAF7F0] text-[#292820] font-black text-[10px] border border-[#D4AF37]/50">
                         {obs.value}
@@ -1404,20 +1399,26 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
                           </div>
                         </td>
                         {/* STATUS */}
-                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold uppercase select-all">
+                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] uppercase select-all">
                           <div className="flex items-center justify-between gap-1">
-                            <span className={cn(
-                              "mx-auto flex items-center gap-1.5",
-                              row.status.toUpperCase().includes('EXTRAVIADA') ? "text-[#D92332] font-black" : "text-[#0F172A]"
-                            )}>
-                              <span className={cn(
-                                "w-2 h-2 rounded-full inline-block",
-                                row.status.toUpperCase().includes('EXTRAVIADA') ? "bg-[#D92332]" : "bg-emerald-500"
-                              )} />
+                            <span className="mx-auto flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
                               {row.status}
                             </span>
                             <ChevronDown size={11} className="text-[#D4AF37] shrink-0" />
                           </div>
+                        </td>
+                        {/* OBS 1 */}
+                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] uppercase select-all">
+                          {row.obs1}
+                        </td>
+                        {/* DATA STATUS */}
+                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] select-all">
+                          {row.dataStatus}
+                        </td>
+                        {/* CARRETA */}
+                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] uppercase select-all">
+                          {row.carreta}
                         </td>
                         {/* CAVALO */}
                         <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] uppercase select-all">
@@ -1427,13 +1428,23 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
                         <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] select-all">
                           {row.motorista}
                         </td>
-                        {/* ULTIMA POSIÇÃO */}
-                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] select-all">
-                          {row.ultimaPosicao}
+                        {/* UNIDADE */}
+                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] uppercase select-all">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="mx-auto">{row.unidade}</span>
+                            <ChevronDown size={11} className="text-[#D4AF37] shrink-0" />
+                          </div>
                         </td>
-                        {/* ENDEREÇO */}
-                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] text-left select-all">
-                          {row.endereco}
+                        {/* DIAS AGUARD */}
+                        <td
+                          className={cn(
+                            "cp-days px-2.5 py-1.5 font-black tabular-nums select-all",
+                            row.diasNum >= 15
+                              ? "bg-[#FCE588] text-[#D92332]"
+                              : "bg-[#FDF0B8] text-[#292820]"
+                          )}
+                        >
+                          {row.diasAguard}
                         </td>
                       </tr>
                     ))
