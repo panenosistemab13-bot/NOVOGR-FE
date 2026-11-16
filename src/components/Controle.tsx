@@ -2870,10 +2870,20 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
     }
   };
 
-  const handleCopySubject = async () => {
+  const getFormattedEmailSubject = () => {
     const isDefaultOrigem = origem === "SANTA LUZIA/MG";
     const subjectPrefix = isDefaultOrigem ? "" : `${origem.toUpperCase()} X `;
-    const subject = `PRÉ-ALERTA DE ISCA - ${subjectPrefix}${(destino || "GUARULHOS/SP").toUpperCase()} - ${(cavalo.replace(/-/g, "") || "TYQ6F51").toUpperCase()}`;
+    const rawDest = (destino || "").trim().toUpperCase();
+    const isCondor = rawDest.includes("CONDOR") || (rota1 || "").toUpperCase().includes("CONDOR");
+    const destFormatted = isCondor
+      ? "CURITIBA (CLIENTE CONDOR)"
+      : (rawDest || "BRASÍLIA");
+    const plateFormatted = (cavalo.replace(/-/g, "") || "TYQ6F51").toUpperCase();
+    return `PRÉ-ALERTA DE ISCA - ${subjectPrefix}${destFormatted} - ${plateFormatted}`;
+  };
+
+  const handleCopySubject = async () => {
+    const subject = getFormattedEmailSubject();
     try {
       await navigator.clipboard.writeText(subject);
       setCopiedAssunto(true);
@@ -3880,7 +3890,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                 <div className="hidden lg:flex items-center gap-2 bg-[#F5F0E6] border border-[#EDE2CE] px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-[#292820] shadow-xs">
                   <span className="text-[9px] uppercase text-[#77736B] font-sans font-bold">Assunto:</span>
                   <span className="text-[11px] text-[#292820] font-black max-w-[280px] truncate">
-                    PRÉ-ALERTA DE ISCA - {destino || "BRASÍLIA"} - {cavalo.replace(/-/g, "") || "TYQ6F51"}
+                    {getFormattedEmailSubject()}
                   </span>
                   <button
                     type="button"
@@ -4026,7 +4036,7 @@ Desde já agradeço e ficamos no aguardo do retorno sobre as devoluções.
                   ASSUNTO DO E-MAIL (COPIAR SEPARADAMENTE)
                 </span>
                 <h1 className="text-base sm:text-[18px] md:text-[20px] font-sans font-black text-[#292820] uppercase tracking-tight m-0 select-all leading-tight">
-                  PRÉ-ALERTA DE ISCA - {destino || "BRASÍLIA"} - {cavalo.replace(/-/g, "") || "TYQ6F51"}
+                  {getFormattedEmailSubject()}
                 </h1>
               </div>
               <button
