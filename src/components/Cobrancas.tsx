@@ -136,13 +136,31 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
       return;
     }
 
-    const idIsca = cols[headerIndices.idIsca] !== undefined ? cols[headerIndices.idIsca] : (cols[0] || '-');
-    const destino = cols[headerIndices.destino] !== undefined ? cols[headerIndices.destino] : (cols[1] || '-');
-    const status = cols[headerIndices.status] !== undefined ? cols[headerIndices.status] : (cols[2] || '-');
-    const cavalo = cols[headerIndices.cavalo] !== undefined ? cols[headerIndices.cavalo] : (cols[6] || '-');
-    const motorista = cols[headerIndices.motorista] !== undefined ? cols[headerIndices.motorista] : (cols[7] || '-');
-    const ultimaPosicao = cols[headerIndices.ultimaPosicao] !== undefined ? cols[headerIndices.ultimaPosicao] : (cols[12] || '-');
-    const endereco = cols[headerIndices.endereco] !== undefined ? cols[headerIndices.endereco] : (cols[15] || '-');
+    let idIsca = '-';
+    let destino = '-';
+    let status = '-';
+    let cavalo = '-';
+    let motorista = '-';
+    let ultimaPosicao = '-';
+    let endereco = '-';
+
+    if (cols.length <= 7) {
+      idIsca = cols[0] || '-';
+      destino = cols[1] || '-';
+      status = cols[2] || '-';
+      cavalo = cols[3] || '-';
+      motorista = cols[4] || '-';
+      ultimaPosicao = cols[5] || '-';
+      endereco = cols[6] || '-';
+    } else {
+      idIsca = cols[headerIndices.idIsca] !== undefined ? cols[headerIndices.idIsca] : (cols[0] || '-');
+      destino = cols[headerIndices.destino] !== undefined ? cols[headerIndices.destino] : (cols[1] || '-');
+      status = cols[headerIndices.status] !== undefined ? cols[headerIndices.status] : (cols[2] || '-');
+      cavalo = cols[headerIndices.cavalo] !== undefined ? cols[headerIndices.cavalo] : (cols[6] || '-');
+      motorista = cols[headerIndices.motorista] !== undefined ? cols[headerIndices.motorista] : (cols[7] || '-');
+      ultimaPosicao = cols[headerIndices.ultimaPosicao] !== undefined ? cols[headerIndices.ultimaPosicao] : (cols[12] || '-');
+      endereco = cols[headerIndices.endereco] !== undefined ? cols[headerIndices.endereco] : (cols[cols.length - 1] || '-');
+    }
 
     parsed.push({
       id: `${idx}-${idIsca}-${cavalo}`,
@@ -1370,10 +1388,16 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
                           </div>
                         </td>
                         {/* STATUS */}
-                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] uppercase select-all">
+                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold uppercase select-all">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="mx-auto flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                            <span className={cn(
+                              "mx-auto flex items-center gap-1.5",
+                              row.status.toUpperCase().includes('EXTRAVIADA') ? "text-[#D92332] font-black" : "text-[#0F172A]"
+                            )}>
+                              <span className={cn(
+                                "w-2 h-2 rounded-full inline-block",
+                                row.status.toUpperCase().includes('EXTRAVIADA') ? "bg-[#D92332]" : "bg-emerald-500"
+                              )} />
                               {row.status}
                             </span>
                             <ChevronDown size={11} className="text-[#D4AF37] shrink-0" />
