@@ -684,6 +684,18 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     );
   });
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Bom dia!';
+    if (hour >= 12 && hour < 18) return 'Boa tarde!';
+    return 'Boa noite!';
+  };
+
+  const getCleanRouteText = (rows: AverbacaoRow[]) => {
+    const raw = getRouteTitle(rows) || 'ROTA: AGUARDANDO DADOS';
+    return raw.replace(/^ROTA:\s*/i, '').trim() || 'AGUARDANDO DADOS';
+  };
+
   const copyToEmail = async () => {
     const accentHex = activeTheme.accentColor;
     const textColorHex = activeTheme.textColor;
@@ -693,11 +705,16 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
     const uniqueTransportRows = getUniqueTransportRows(rowsToUse);
     const routeTitle = getRouteTitle(rowsToUse);
+    const cleanRoute = getCleanRouteText(rowsToUse);
     const totalCarga = getTotalValue();
+    const greeting = getGreeting();
 
     let imageBlob: Blob | null = null;
     if (emailPreviewRef.current) {
       try {
+        emailPreviewRef.current.querySelectorAll('input').forEach(input => {
+          input.setAttribute('value', input.value);
+        });
         imageBlob = await htmlToImage.toBlob(emailPreviewRef.current, {
           quality: 0.98,
           pixelRatio: 2,
@@ -711,72 +728,77 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     }
 
     const tableRowsHtml = uniqueTransportRows.map(row => `
-      <tr style="background-color: ${activeTheme.accentColor}; color: ${activeTheme.textColor}; font-weight: bold; text-align: center; font-size: 11px;">
-        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.origem || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.destino || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.transportadora || extraData.transportadora || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px; font-family: monospace;">${row.placaCav || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px; font-family: monospace;">${row.placaCarr || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.tecnologia || extraData.tecnologia || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px; text-transform: uppercase;">${row.nomeMotorista || extraData.nomeMotorista || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px; font-family: monospace;">${row.cpf || extraData.cpf || '-'}</td>
-        <td style="border: 1px solid #000000; padding: 6px 8px;">${row.telefone || extraData.telefone || '-'}</td>
+      <tr style="background-color: ${activeTheme.accentColor}; color: ${activeTheme.textColor}; font-weight: 400; text-align: center; font-size: 11.5px;">
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.origem || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.destino || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.transportadora || extraData.transportadora || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 400;">${row.placaCav || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 400;">${row.placaCarr || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.tecnologia || extraData.tecnologia || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.nomeMotorista || extraData.nomeMotorista || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-family: Arial, sans-serif; font-weight: 400;">${row.cpf || extraData.cpf || '-'}</td>
+        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-weight: 400;">${row.telefone || extraData.telefone || '-'}</td>
       </tr>
     `).join('');
 
     const uniqueProtocols = getUniqueProtocols(rowsToUse);
-    const protocolsHtml = uniqueProtocols.length > 0
-      ? uniqueProtocols.map(p => `
-          <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 4px;">
-            PROTOCOLO: <span style="color: #0B3B8C; font-family: monospace, Courier, monospace; font-weight: bold;">${p}</span>
-          </div>
-        `).join('')
-      : `
-          <div style="font-size: 13px; font-weight: bold; color: #000000; margin-bottom: 4px;">
-            PROTOCOLO: <span style="color: #0B3B8C; font-family: monospace, Courier, monospace; font-weight: bold;">-</span>
-          </div>
-        `;
+    const protocolsListToRender = uniqueProtocols.length > 0 ? uniqueProtocols : ['-'];
+    const protocolsRowsHtml = protocolsListToRender.map(p => `
+      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #000000; margin-top: 6px; font-weight: 600; letter-spacing: 0.2px;">
+        PROTOCOLO: <span style="color: #0000FF; font-family: Arial, Helvetica, sans-serif; font-weight: 600;">${p}</span>
+      </div>
+    `).join('');
 
     const protocolsPlainText = uniqueProtocols.length > 0
       ? uniqueProtocols.map(p => `PROTOCOLO: ${p}`).join('\n')
       : 'PROTOCOLO: -';
 
     const htmlContent = `
-      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #111827; line-height: 1.6; max-width: 950px; background-color: #ffffff; padding: 16px; border: 1px solid #e5e7eb; border-radius: 12px;">
-        <p style="font-weight: bold; margin: 0 0 12px 0; color: #000000; font-size: 15px;">Bom dia!</p>
-        
-        <p style="margin: 0 0 14px 0; color: #1f2937;">
-          Segue <span style="background-color: ${accentHex}; color: ${textColorHex}; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-block;">AVERBAÇÃO</span> realizada via sistema.
-        </p>
+      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #141517; line-height: 1.5; max-width: 980px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; border-radius: 16px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
+          <tr>
+            <td style="text-align: left; vertical-align: middle;">
+              <div style="display: inline-block; background-color: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 12px; padding: 8px 16px; font-size: 15px; font-weight: 400; color: #1F2937;">
+                ${greeting}
+              </div>
+            </td>
+            <td style="text-align: right; vertical-align: middle;">
+              <div style="display: inline-block; background-color: #F4F5F7; border: 1px solid #DCDEE4; border-radius: 999px; padding: 6px 16px; font-size: 12.5px; color: #181715;">
+                <span style="font-weight: 400;">Segue</span>
+                <span style="background-color: ${accentHex}; color: ${textColorHex}; padding: 3px 10px; border-radius: 6px; font-weight: 400; font-size: 11px; text-transform: uppercase; margin: 0 4px; display: inline-block;">AVERBAÇÃO</span>
+                <span style="font-weight: 400;">realizada via sistema.</span>
+              </div>
+            </td>
+          </tr>
+        </table>
 
-        <div style="background-color: #FAF6EC; border: 1px solid #F2C94C; padding: 14px 18px; border-radius: 10px; margin: 16px 0; font-family: Arial, sans-serif;">
-          <div style="font-size: 14px; font-weight: bold; color: #0B3B8C; margin-bottom: 6px; text-transform: uppercase;">
-            ${routeTitle || 'AGUARDANDO DADOS'}
+        <div style="background-color: #F8FAFC; border-left: 5px solid ${accentHex}; border-radius: 10px; padding: 14px 18px; margin-bottom: 18px; font-family: Arial, Helvetica, sans-serif;">
+          <div style="font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 600; color: #000000; text-transform: uppercase; letter-spacing: 0.2px; margin-bottom: 6px;">
+            ROTA: <span style="color: #0000FF; font-family: Arial, Helvetica, sans-serif; font-weight: 600;">${cleanRoute}</span>
           </div>
-          ${protocolsHtml}
-          <div style="font-size: 13px; font-weight: bold; color: #000000; margin-top: 4px;">
-            Valor da Carga: <span style="color: #BA0C16; font-family: monospace, Courier, monospace; font-weight: bold;">${totalCarga}</span>
+          ${protocolsRowsHtml}
+          <div style="font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #000000; margin-top: 6px; font-weight: 600; letter-spacing: 0.2px;">
+            Valor da Carga: <span style="color: #CC0000; font-family: Arial, Helvetica, sans-serif; font-weight: 600;">${totalCarga}</span>
           </div>
         </div>
 
-        <p style="margin: 14px 0 10px 0; color: #1f2937; font-size: 13px; font-weight: 500;">
-          Segue dados e NF's em anexo.
-        </p>
-
         ${uniqueTransportRows.length > 0 ? `
-          <div style="margin: 18px 0; overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; text-align: center; border: 1px solid #000000;">
+          <div style="border: 2px solid #141518; border-radius: 16px; overflow: hidden; background-color: #141518;">
+            <div style="background-color: #18191D; color: #ffffff; padding: 10px 16px; font-size: 13px; font-weight: 400; border-bottom: 1px solid #2E3036;">
+              Segue dados e NFs em anexo.
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; text-align: center;">
               <thead>
-                <tr style="background-color: #24231E; color: #ffffff; font-weight: bold; font-size: 10px; text-transform: uppercase;">
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">ORIGEM</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">DESTINO</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">TRANSPORTADORA</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">PLACA CAVALO</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">PLACAS CARRETAS</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">TECNOLOGIA</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">NOME MOTORISTA</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">CPF</th>
-                  <th style="border: 1px solid #000000; padding: 7px 6px;">TELEFONE</th>
+                <tr style="background-color: #1F2024; color: #ffffff; font-weight: 400; font-size: 10px; text-transform: uppercase;">
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">ORIGEM</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">DESTINO</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">TRANSPORTADORA</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">PLACA CAVALO</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">PLACA S. CARRETAS</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">TECNOLOGIA</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">NOME MOTORISTA</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">CPF</th>
+                  <th style="border: 1px solid #32343A; padding: 9px 6px; font-weight: 400;">TELEFONE</th>
                 </tr>
               </thead>
               <tbody>
@@ -785,8 +807,6 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             </table>
           </div>
         ` : ''}
-
-        <p style="font-weight: bold; margin-top: 16px; margin-bottom: 0; color: #000000;">Att,</p>
       </div>
     `.trim();
 
@@ -794,7 +814,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       `${r.origem || '-'} | ${r.destino || '-'} | ${r.transportadora || extraData.transportadora || '-'} | ${r.placaCav || '-'} | ${r.placaCarr || '-'} | ${r.tecnologia || extraData.tecnologia || '-'} | ${r.nomeMotorista || extraData.nomeMotorista || '-'} | ${r.cpf || extraData.cpf || '-'} | ${r.telefone || extraData.telefone || '-'}`
     ).join('\n');
 
-    const plainText = `Bom dia!\n\nSegue AVERBAÇÃO realizada via sistema.\n\n${routeTitle || 'AGUARDANDO DADOS'}\n${protocolsPlainText}\nValor da Carga: ${totalCarga}\n\nSegue dados e NF's em anexo.\n\n${uniqueTransportRows.length > 0 ? `ORIGEM | DESTINO | TRANSPORTADORA | PLACA CAVALO | PLACAS CARRETAS | TECNOLOGIA | NOME MOTORISTA | CPF | TELEFONE\n${plainTextTable}\n\n` : ''}Att,`;
+    const plainText = `${greeting}\n\nSegue AVERBAÇÃO realizada via sistema.\n\n${routeTitle || 'ROTA: AGUARDANDO DADOS'}\n${protocolsPlainText}\nValor da Carga: ${totalCarga}\n\nSegue dados e NFs em anexo.\n\n${uniqueTransportRows.length > 0 ? `ORIGEM | DESTINO | TRANSPORTADORA | PLACA CAVALO | PLACA S. CARRETAS | TECNOLOGIA | NOME MOTORISTA | CPF | TELEFONE\n${plainTextTable}` : ''}`;
 
     const copiedSuccessfully = await safeCopyHtmlAndText(htmlContent, plainText, imageBlob);
     if (copiedSuccessfully) {
@@ -820,7 +840,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -15, scale: 0.96 }}
             className={cn(
-              "fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl border text-xs font-mono font-bold flex items-center gap-3 shadow-2xl backdrop-blur-md",
+              "fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl border text-xs font-mono font-normal flex items-center gap-3 shadow-2xl backdrop-blur-md",
               notification.type === 'delete'
                 ? "bg-[#FFF5F5] text-[#C91F2D] border-red-300"
                 : "bg-[#F0FFF4] text-emerald-800 border-emerald-300"
@@ -850,10 +870,10 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                   <Zap size={15} className="text-[#F5B82E] fill-[#F5B82E]" />
                 </div>
                 <div className="leading-tight pr-1">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#181715] block">
+                  <span className="text-[11px] font-normal uppercase tracking-wider text-[#181715] block">
                     CÓDIGOS RÁPIDOS
                   </span>
-                  <span className="text-[10px] font-medium text-[#7A7469] block">
+                  <span className="text-[10px] font-normal text-[#7A7469] block">
                     Clique para copiar
                   </span>
                 </div>
@@ -882,13 +902,13 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                     >
                       <div className="min-w-0">
                         <span className={cn(
-                          "text-[9.5px] font-bold uppercase tracking-wider block transition-colors",
+                          "text-[9.5px] font-normal uppercase tracking-wider block transition-colors",
                           isItemCopied ? "text-emerald-700" : "text-[#7A7469]"
                         )}>
                           {item.label}
                         </span>
                         <span className={cn(
-                          "text-xs sm:text-[13px] font-extrabold tracking-tight block mt-0.5 tabular-nums",
+                          "text-xs sm:text-[13px] font-normal tracking-tight block mt-0.5 tabular-nums",
                           isItemCopied ? "text-emerald-900" : "text-[#181715]"
                         )}>
                           {item.code}
@@ -897,7 +917,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
                       <div className="shrink-0">
                         {isItemCopied ? (
-                          <Check size={14} className="text-emerald-600 stroke-[2.5]" />
+                          <Check size={14} className="text-emerald-600 stroke-[2]" />
                         ) : (
                           <Copy size={14} className="text-[#C8922A] group-hover:scale-110 transition-transform" />
                         )}
@@ -913,7 +933,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <button
                 type="button"
                 onClick={() => setShowPasteModal(true)}
-                className="bg-[#282622] hover:bg-[#383630] text-white text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95 whitespace-nowrap"
+                className="bg-[#282622] hover:bg-[#383630] text-white text-[11px] font-normal uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95 whitespace-nowrap"
                 title="Abrir caixa de colagem manual de planilha"
               >
                 <FileSpreadsheet size={14} className="text-[#F5B82E]" />
@@ -923,7 +943,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <button
                 type="button"
                 onClick={handleClearAll}
-                className="bg-[#BA0C16] hover:bg-[#9E0810] text-white text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95 whitespace-nowrap"
+                className="bg-[#BA0C16] hover:bg-[#9E0810] text-white text-[11px] font-normal uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95 whitespace-nowrap"
                 title="Limpar todos os registros"
               >
                 <Trash2 size={14} className="text-white" />
@@ -938,7 +958,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               <div className="w-7 h-7 rounded-full bg-[#FEF4D6] flex items-center justify-center shrink-0">
                 <Palette size={16} className="text-[#D99B16]" />
               </div>
-              <span className="text-xs font-extrabold uppercase tracking-wide text-[#181715]">
+              <span className="text-xs font-normal uppercase tracking-wide text-[#181715]">
                 PALETA DE CORES DO E-MAIL
               </span>
             </div>
@@ -964,7 +984,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                     {isSelected && (
                       <Check
                         size={14}
-                        className={cn("stroke-[2.8]", key === 'amarelo' ? "text-[#181715]" : "text-white")}
+                        className={cn("stroke-[2.2]", key === 'amarelo' ? "text-[#181715]" : "text-white")}
                       />
                     )}
                   </button>
@@ -980,10 +1000,10 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 <Mail size={17} />
               </div>
               <div className="text-left leading-tight">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#6E685F] block">
+                <span className="text-[10px] font-normal uppercase tracking-wider text-[#6E685F] block">
                   FORMATO PARA CLIENTE DE E-MAIL
                 </span>
-                <span className="text-xs sm:text-[13px] font-extrabold text-[#181715] uppercase tracking-tight block mt-0.5">
+                <span className="text-xs sm:text-[13px] font-normal text-[#181715] uppercase tracking-tight block mt-0.5">
                   CORPO DA MENSAGEM DE AVERBAÇÃO
                 </span>
               </div>
@@ -994,7 +1014,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 type="button"
                 onClick={handleCopySubject}
                 className={cn(
-                  "text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap",
+                  "text-[11px] font-normal uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap",
                   copiedSubject
                     ? "bg-emerald-600 text-white"
                     : "bg-[#282622] hover:bg-[#383630] text-white"
@@ -1009,7 +1029,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                 type="button"
                 onClick={copyToEmail}
                 className={cn(
-                  "text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap",
+                  "text-[11px] font-normal uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95 whitespace-nowrap",
                   copied
                     ? "bg-emerald-600 text-white"
                     : "bg-[#BA0C16] hover:bg-[#9E0810] text-white"
@@ -1022,20 +1042,20 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             </div>
           </div>
 
-          {/* CARD 4: ASSUNTO DO E-MAIL BAR */}
-          <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl px-4 py-3.5 shadow-[0_3px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* CARD 4: ASSUNTO DO E-MAIL BAR (OCULTO) */}
+          <div className="hidden bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl px-4 py-3.5 shadow-[0_3px_12px_rgba(0,0,0,0.03)] flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex-1 min-w-0 text-left">
               <div className="flex items-center gap-2.5 mb-1 flex-wrap">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6E685F]">
+                <span className="text-[10px] font-normal uppercase tracking-wider text-[#6E685F]">
                   ASSUNTO DO E-MAIL
                 </span>
                 {isTransportadora3C() && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#FCE588] text-[#181715] text-[10px] font-extrabold uppercase tracking-wide">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#FCE588] text-[#181715] text-[10px] font-normal uppercase tracking-wide">
                     MODO 3C / FROTA 3C (&amp; SM)
                   </span>
                 )}
               </div>
-              <div className="text-xs sm:text-[14px] font-extrabold text-[#181715] select-all break-words tracking-tight">
+              <div className="text-xs sm:text-[14px] font-normal text-[#181715] select-all break-words tracking-tight">
                 {getEmailSubject()}
               </div>
             </div>
@@ -1044,7 +1064,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               type="button"
               onClick={handleCopySubject}
               className={cn(
-                "px-4 py-2 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0 border whitespace-nowrap",
+                "px-4 py-2 rounded-full text-[11px] font-normal uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0 border whitespace-nowrap",
                 copiedSubject
                   ? "bg-emerald-600 text-white border-emerald-500"
                   : "bg-[#FAF6EE] hover:bg-[#F3E9D2] text-[#181715] border-[#E6D6B8] shadow-2xs active:scale-95"
@@ -1056,169 +1076,263 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             </button>
           </div>
 
-          {/* CARD 5: EMAIL BODY PREVIEW CONTAINER */}
+          {/* CARD 5: EMAIL BODY PREVIEW CONTAINER (PAINEL DE AVERBAÇÃO DA ROTA) */}
           <div 
             ref={emailPreviewRef}
-            className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl p-5 text-left font-sans text-[#181715] space-y-3.5 shadow-[0_4px_18px_rgba(0,0,0,0.035)] leading-relaxed"
+            className="bg-white border border-[#E5E7EB] rounded-3xl p-5 sm:p-6 text-left font-sans text-[#181715] space-y-4 shadow-[0_4px_18px_rgba(0,0,0,0.035)]"
           >
-            <p className="font-extrabold text-[#181715] text-sm">Bom dia!</p>
-            
-            <p className="font-medium text-[#181715] text-xs sm:text-[13px] flex items-center gap-1.5 flex-wrap">
-              <span>Segue</span>
-              <span
-                className={cn("px-2.5 py-0.5 rounded-md font-extrabold text-xs uppercase shadow-2xs", activeTheme.highlightClass)}
-                style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
-              >
-                AVERBAÇÃO
-              </span>
-              <span>realizada via sistema.</span>
-            </p>
-
-            {/* Highlights Quote Box */}
-            <div className="bg-[#FAF6EC] border border-[#F2C94C] px-4 py-3.5 rounded-2xl space-y-1">
-              <div className="text-xs sm:text-[13px] font-extrabold text-[#0B3B8C] uppercase tracking-tight">
-                {getRouteTitle(filteredRows.length > 0 ? filteredRows : parsedRows) || 'AGUARDANDO DADOS'}
+            {/* TOP ROW: GREETING PILL (LEFT) & STATUS CAPSULE (RIGHT) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Left Greeting Pill */}
+              <div className="inline-flex items-center bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl px-4 py-2.5 self-start">
+                <span className="text-[15px] font-normal tracking-normal text-[#1F2937] leading-none">
+                  {getGreeting()}
+                </span>
               </div>
-              {getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0 ? (
-                getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).map((prot, idx) => (
-                  <div key={idx} className="text-xs sm:text-[13px] font-extrabold text-[#181715]">
-                    PROTOCOLO: <span className="text-[#0B3B8C] font-extrabold">{prot}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs sm:text-[13px] font-extrabold text-[#181715]">
-                  PROTOCOLO: <span className="text-[#0B3B8C] font-extrabold">-</span>
+
+              {/* Right Status Capsule Pill */}
+              <div className="inline-flex items-center gap-2 bg-[#F4F5F7] border border-[#DCDEE4] rounded-full px-4 py-1.5 self-start sm:self-auto">
+                <span className="text-xs sm:text-[12.5px] font-normal text-[#181715]">
+                  Segue
+                </span>
+                <span
+                  className="px-2.5 py-0.5 rounded-md font-normal text-[11px] uppercase tracking-wide"
+                  style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
+                >
+                  AVERBAÇÃO
+                </span>
+                <span className="text-xs sm:text-[12.5px] font-normal text-[#26272B]">
+                  realizada via sistema.
+                </span>
+              </div>
+            </div>
+
+            {/* MIDDLE BLOCK: ROTA + PROTOCOLOS + VALOR DA CARGA (MATCHING image_aac15e6e.png) */}
+            <div
+              className="bg-[#F8FAFC] rounded-xl px-5 py-4 space-y-2 border-l-[5px]"
+              style={{ borderLeftColor: activeTheme.accentColor, fontFamily: 'Arial, Helvetica, sans-serif' }}
+            >
+              {/* ROTA */}
+              <div className="text-[13px] font-semibold uppercase tracking-[0.015em] break-words">
+                <span className="text-[#000000]">ROTA: </span>
+                <span className="text-[#0000FF]">
+                  {getCleanRouteText(filteredRows.length > 0 ? filteredRows : parsedRows)}
+                </span>
+              </div>
+
+              {/* PROTOCOLO(S) */}
+              {(getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0
+                ? getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows)
+                : ['-']
+              ).map((prot, idx) => (
+                <div key={idx} className="text-[13px] font-semibold tracking-[0.015em]">
+                  <span className="uppercase text-[#000000]">PROTOCOLO: </span>
+                  <span className="text-[#0000FF] tabular-nums">{prot}</span>
                 </div>
-              )}
-              <div className="text-xs sm:text-[13px] font-extrabold text-[#181715]">
-                Valor da Carga: <span className="text-[#BA0C16] font-extrabold tabular-nums">{getTotalValue()}</span>
+              ))}
+
+              {/* Valor da Carga */}
+              <div className="text-[13px] font-semibold tracking-[0.015em] pt-0.5">
+                <span className="text-[#000000]">Valor da Carga: </span>
+                <span className="text-[#CC0000] tabular-nums">
+                  {getTotalValue()}
+                </span>
               </div>
             </div>
 
-            <p className="text-xs sm:text-[13px] font-medium text-[#181715]">
-              Segue dados e NF's em anexo.
-            </p>
+            {/* BOTTOM UNIFIED TABLE CARD MATCHING REFERENCE IMAGE (image_16a38314.png) */}
+            <div className="rounded-2xl overflow-hidden bg-gradient-to-b from-[#2A2C32] via-[#15161A] to-[#0E0F12] shadow-[0_8px_22px_rgba(0,0,0,0.12)] border border-[#18191C]">
+              
+              {/* Top Glossy Dark Bar: Gold Truck + "Segue dados e NFs em anexo." + Diagonal Yellow Corner Stripes */}
+              <div className="relative px-4 py-2.5 flex items-center justify-between overflow-hidden">
+                {/* Subtle Top Gloss Line */}
+                <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-white/30 via-white/10 to-transparent pointer-events-none" />
+                
+                <div className="flex items-center gap-2.5 z-10">
+                  {/* Gold Truck SVG Icon */}
+                  <svg className="w-6 h-5 shrink-0" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 3C1 1.89543 1.89543 1 3 1H16C17.1046 1 18 1.89543 18 3V14H1V3Z" fill="#FFD600" />
+                    <path d="M18 5.5H23.2C23.9 5.5 24.5 5.9 24.8 6.5L27 11V14H18V5.5Z" fill="#F5B800" />
+                    <path d="M19.5 7H23L24.8 10.5H19.5V7Z" fill="#18191D" />
+                    <circle cx="6.5" cy="15.5" r="2.8" fill="#18191D" stroke="#FFD600" strokeWidth="1.7" />
+                    <circle cx="22.5" cy="15.5" r="2.8" fill="#18191D" stroke="#FFD600" strokeWidth="1.7" />
+                  </svg>
+                  <span className="text-xs sm:text-[13.5px] font-normal text-white/95 tracking-wide">
+                    Segue dados e NFs em anexo.
+                  </span>
+                </div>
 
-            {/* Operational Transport Data Table */}
-            <div className="overflow-x-auto rounded-xl border border-[#24231E] shadow-2xs">
-              <table className="w-full border-collapse text-center text-xs font-sans">
-                <thead>
-                  <tr className="bg-[#24231E] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                    <th className="py-2.5 px-2 border border-[#3A3832]">ORIGEM</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">DESTINO</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">TRANSPORTADORA</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">PLACA CAVALO</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">PLACAS CARRETAS</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">TECNOLOGIA</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">NOME MOTORISTA</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">CPF</th>
-                    <th className="py-2.5 px-2 border border-[#3A3832]">TELEFONE</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
-                    <tr 
-                      key={row.id || idx}
-                      className={cn("font-extrabold text-[11px]", activeTheme.tableCellClass)}
-                      style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
-                    >
-                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
-                        <input
-                          type="text"
-                          value={row.origem || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
-                        <input
-                          type="text"
-                          value={row.destino || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
-                        <input
-                          type="text"
-                          value={row.transportadora || extraData.transportadora || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60">
-                        <input
-                          type="text"
-                          value={row.placaCav || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60">
-                        <input
-                          type="text"
-                          value={row.placaCarr || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
-                        <input
-                          type="text"
-                          value={row.tecnologia || extraData.tecnologia || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60 uppercase">
-                        <input
-                          type="text"
-                          value={row.nomeMotorista || extraData.nomeMotorista || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold uppercase outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60 tabular-nums">
-                        <input
-                          type="text"
-                          value={row.cpf || extraData.cpf || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
-                      <td className="py-2 px-1.5 border border-[#24231E]/60 tabular-nums">
-                        <input
-                          type="text"
-                          value={row.telefone || extraData.telefone || ''}
-                          onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
-                          placeholder="-"
-                          className="w-full bg-transparent text-center font-extrabold tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11px]"
-                          style={{ color: activeTheme.textColor }}
-                        />
-                      </td>
+                {/* Right Corner Diagonal Yellow Stripes matching image_16a38314.png */}
+                <svg className="absolute right-0 top-0 h-full w-24 pointer-events-none" viewBox="0 0 96 44" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="44,44 76,0 85,0 53,44" fill="#FFD600" />
+                  <polygon points="58,44 90,0 96,0 96,44" fill="#FFD600" />
+                </svg>
+              </div>
+
+              {/* Inner Rounded Table Frame */}
+              <div className="overflow-x-auto rounded-t-2xl border-t border-[#3A3C44] bg-[#141518]">
+                <table className="w-full border-collapse text-center text-xs font-sans">
+                  <thead>
+                    <tr className="bg-gradient-to-b from-[#2C2E34] via-[#18191D] to-[#0D0E11] text-white text-[10px] sm:text-[10.5px] font-normal uppercase tracking-wider">
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <MapPin size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>ORIGEM</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <MapPin size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>DESTINO</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <Truck size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>TRANSPORTADORA</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <CreditCard size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>PLACA CAVALO</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <Truck size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>PLACA S. CARRETAS</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <Cpu size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>TECNOLOGIA</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <User size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>NOME MOTORISTA</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <Clipboard size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>CPF</span>
+                        </div>
+                      </th>
+                      <th className="py-3 px-2 font-normal">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          <Phone size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                          <span>TELEFONE</span>
+                        </div>
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
+                      <tr 
+                        key={row.id || idx}
+                        className={cn("font-normal text-[11.5px]", activeTheme.tableCellClass)}
+                        style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
+                      >
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                          <input
+                            type="text"
+                            value={row.origem || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                          <input
+                            type="text"
+                            value={row.destino || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                          <input
+                            type="text"
+                            value={row.transportadora || extraData.transportadora || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 font-normal">
+                          <input
+                            type="text"
+                            value={row.placaCav || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 font-normal">
+                          <input
+                            type="text"
+                            value={row.placaCarr || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                          <input
+                            type="text"
+                            value={row.tecnologia || extraData.tecnologia || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                          <input
+                            type="text"
+                            value={row.nomeMotorista || extraData.nomeMotorista || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-r border-black/25 tabular-nums font-normal">
+                          <input
+                            type="text"
+                            value={row.cpf || extraData.cpf || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                        <td className="py-3 px-1.5 border-t border-black/25 tabular-nums font-normal">
+                          <input
+                            type="text"
+                            value={row.telefone || extraData.telefone || ''}
+                            onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
+                            placeholder="-"
+                            className="w-full bg-transparent text-center font-normal tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                            style={{ color: activeTheme.textColor }}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-
-            <p className="font-extrabold text-[#181715] pt-1 text-sm">Att,</p>
           </div>
 
         </div>
@@ -1233,8 +1347,8 @@ export function Averbacao({ onBack }: AverbacaoProps) {
             className="w-full flex items-center justify-between pb-3.5 border-b border-[#EDE3CE] cursor-pointer text-left"
           >
             <div className="flex items-center gap-2.5">
-              <BarChart3 size={20} className="text-[#F0A818] stroke-[2.4]" />
-              <span className="text-xs sm:text-[13px] font-extrabold uppercase text-[#181715] tracking-wide">
+              <BarChart3 size={20} className="text-[#F0A818] stroke-[2]" />
+              <span className="text-xs sm:text-[13px] font-medium uppercase text-[#181715] tracking-wide">
                 DADOS OPERACIONAIS
               </span>
             </div>
@@ -1265,11 +1379,11 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                     key={field.key}
                     className="bg-[#FFFDF9] hover:bg-white focus-within:bg-white border border-[#EDE3CE] focus-within:border-[#D69E2E] rounded-2xl px-3.5 py-2 transition-all shadow-[0_2px_6px_rgba(0,0,0,0.015)]"
                   >
-                    <label className="text-[9.5px] font-bold text-[#6E685F] uppercase tracking-wider block pl-7 mb-0.5">
+                    <label className="text-[9.5px] font-normal text-[#6E685F] uppercase tracking-wider block pl-7 mb-0.5">
                       {field.label}
                     </label>
                     <div className="flex items-center gap-2.5">
-                      <IconComp size={16} className="text-[#F0A818] shrink-0 stroke-[2.2]" />
+                      <IconComp size={16} className="text-[#F0A818] shrink-0 stroke-[1.8]" />
                       <input
                         type="text"
                         value={extraData[field.key] || ''}
@@ -1281,7 +1395,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
                         }
                         placeholder={field.placeholder}
                         className={cn(
-                          "w-full bg-transparent font-extrabold text-[#181715] outline-none placeholder:text-[#A39C90] placeholder:font-medium text-xs sm:text-[13px]",
+                          "w-full bg-transparent font-normal text-[#181715] outline-none placeholder:text-[#A39C90] placeholder:font-normal text-xs sm:text-[13px]",
                           field.uppercase && "uppercase"
                         )}
                       />
