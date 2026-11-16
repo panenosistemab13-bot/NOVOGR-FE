@@ -49,6 +49,8 @@ export interface CobrancaRow {
   status: string;
   cavalo: string;
   motorista: string;
+  diasAguard: string;
+  diasNum: number;
   ultimaPosicao: string;
   endereco: string;
 }
@@ -59,6 +61,7 @@ type ColumnKey =
   | 'status'
   | 'cavalo'
   | 'motorista'
+  | 'diasAguard'
   | 'ultimaPosicao'
   | 'endereco';
 
@@ -75,16 +78,17 @@ const COLUMNS: ColumnDef[] = [
   { key: 'status', label: 'STATUS', width: 'min-w-[135px]', icon: Layers },
   { key: 'cavalo', label: 'CAVALO', width: 'min-w-[115px]', icon: Truck },
   { key: 'motorista', label: 'MOTORISTA', width: 'min-w-[220px]', icon: User },
+  { key: 'diasAguard', label: 'DIAS AGUARD', width: 'min-w-[118px]', icon: Clock },
   { key: 'ultimaPosicao', label: 'Ultima posição Atualizada', width: 'min-w-[180px]', icon: Clock },
-  { key: 'endereco', label: 'ENDEREÇO', width: 'min-w-[300px]', icon: MapPin }
+  { key: 'endereco', label: 'Endereço', width: 'min-w-[300px]', icon: MapPin }
 ];
 
-const SAMPLE_TSV = `ID ISCA\tDESTINO\tSTATUS\tCAVALO\tMOTORISTA\tUltima posição Atualizada\tEndereço
-R100002328\tPREPARAÇÃO\tPND\tPOD-0645\tEllas de Souza Barbosa\t16/11/2026 03:23:00\tr Olto - 1 A 216 - Santa Luzia - MG
-R100000704\tRIO DE JANEIRO\tNO DESTINO\tPOD-0645\tElias de Souza Barbosa\t16/11/2026 03:14:00\trua Do Alplate - Rio De Janeiro - RJ
-R100000122\tRIO DE JANEIRO\tNO DESTINO\tPOD0255\tPEDRO HENRIQUE ARAUJO SOUSA\t16/11/2026 03:00:00\trua California - Rio De Janeiro - RJ
-R1000003148\tRIO DE JANEIRO\tNO DESTINO\tSAR-8D82\tADILSON DOS REIS SILVA\t31/08/2026 08:15:32\trua Kelson - Penha Circular - Rio de Janeiro - RJ
-R1000003140\tRIO DE JANEIRO\tNO DESTINO\tSBN-4J62\tLUIZ ANTONIO DOS SANTOS MARQUES\t16/11/2026 03:20:00\trua kelson - penha circular - rio de janeiro - rj`;
+const SAMPLE_TSV = `ID ISCA\tDESTINO\tSTATUS\tCAVALO\tMOTORISTA\tDIAS AGUARD\tUltima posição Atualizada\tEndereço
+R100002328\tPREPARAÇÃO\tPND\tPOD-0645\tEllas de Souza Barbosa\t3\t16/11/2026 03:23:00\tr Olto - 1 A 216 - Santa Luzia - MG
+R100000704\tRIO DE JANEIRO\tNO DESTINO\tPOD-0645\tElias de Souza Barbosa\t3\t16/11/2026 03:14:00\trua Do Alplate - Rio De Janeiro - RJ
+R100000122\tRIO DE JANEIRO\tNO DESTINO\tPOD0255\tPEDRO HENRIQUE ARAUJO SOUSA\t3\t16/11/2026 03:00:00\trua California - Rio De Janeiro - RJ
+R1000003148\tRIO DE JANEIRO\tNO DESTINO\tSAR-8D82\tADILSON DOS REIS SILVA\t3\t31/08/2026 08:15:32\trua Kelson - Penha Circular - Rio de Janeiro - RJ
+R1000003140\tRIO DE JANEIRO\tNO DESTINO\tSBN-4J62\tLUIZ ANTONIO DOS SANTOS MARQUES\t3\t16/11/2026 03:20:00\trua kelson - penha circular - rio de janeiro - rj`;
 
 const STORAGE_KEY = 'pgr_cobrancas_raw_v1';
 
@@ -102,7 +106,8 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
     status: 2,
     cavalo: 6,
     motorista: 7,
-    ultimaPosicao: 12,
+    diasAguard: 9,
+    ultimaPosicao: 14,
     endereco: 15
   };
 
@@ -130,6 +135,7 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
         else if (u.includes('STATUS')) headerIndices.status = cIdx;
         else if (u.includes('CAVALO')) headerIndices.cavalo = cIdx;
         else if (u.includes('MOTORISTA')) headerIndices.motorista = cIdx;
+        else if (u.includes('DIAS') || u.includes('AGUARD')) headerIndices.diasAguard = cIdx;
         else if (u.includes('ULTIMA') || u.includes('POSIÇÃO') || u.includes('POSICAO') || u.includes('ATUALIZADA')) headerIndices.ultimaPosicao = cIdx;
         else if (u.includes('ENDEREÇO') || u.includes('ENDERECO')) headerIndices.endereco = cIdx;
       });
@@ -141,26 +147,31 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
     let status = '-';
     let cavalo = '-';
     let motorista = '-';
+    let diasAguard = '-';
     let ultimaPosicao = '-';
     let endereco = '-';
 
-    if (cols.length <= 7) {
+    if (cols.length <= 8) {
       idIsca = cols[0] || '-';
       destino = cols[1] || '-';
       status = cols[2] || '-';
       cavalo = cols[3] || '-';
       motorista = cols[4] || '-';
-      ultimaPosicao = cols[5] || '-';
-      endereco = cols[6] || '-';
+      diasAguard = cols[5] || '-';
+      ultimaPosicao = cols[6] || '-';
+      endereco = cols[7] || '-';
     } else {
       idIsca = cols[headerIndices.idIsca] !== undefined ? cols[headerIndices.idIsca] : (cols[0] || '-');
       destino = cols[headerIndices.destino] !== undefined ? cols[headerIndices.destino] : (cols[1] || '-');
       status = cols[headerIndices.status] !== undefined ? cols[headerIndices.status] : (cols[2] || '-');
       cavalo = cols[headerIndices.cavalo] !== undefined ? cols[headerIndices.cavalo] : (cols[6] || '-');
       motorista = cols[headerIndices.motorista] !== undefined ? cols[headerIndices.motorista] : (cols[7] || '-');
-      ultimaPosicao = cols[headerIndices.ultimaPosicao] !== undefined ? cols[headerIndices.ultimaPosicao] : (cols[12] || '-');
-      endereco = cols[headerIndices.endereco] !== undefined ? cols[headerIndices.endereco] : (cols[cols.length - 1] || '-');
+      diasAguard = cols[headerIndices.diasAguard] !== undefined ? cols[headerIndices.diasAguard] : (cols[9] || '-');
+      ultimaPosicao = cols[headerIndices.ultimaPosicao] !== undefined ? cols[headerIndices.ultimaPosicao] : (cols[14] || '-');
+      endereco = cols[headerIndices.endereco] !== undefined ? cols[headerIndices.endereco] : (cols[15] || cols[cols.length - 1] || '-');
     }
+
+    const diasNum = parseInt(String(diasAguard).replace(/[^\d-]/g, ''), 10);
 
     parsed.push({
       id: `${idx}-${idIsca}-${cavalo}`,
@@ -169,6 +180,8 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
       status: status || '-',
       cavalo: cavalo || '-',
       motorista: motorista || '-',
+      diasAguard: diasAguard || '-',
+      diasNum: isNaN(diasNum) ? 0 : diasNum,
       ultimaPosicao: ultimaPosicao || '-',
       endereco: endereco || '-'
     });
@@ -193,6 +206,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
     status: '',
     cavalo: '',
     motorista: '',
+    diasAguard: '',
     ultimaPosicao: '',
     endereco: ''
   });
@@ -203,6 +217,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
     status: 'TODOS',
     cavalo: 'TODOS',
     motorista: 'TODOS',
+    diasAguard: 'TODOS',
     ultimaPosicao: 'TODOS',
     endereco: 'TODOS'
   });
@@ -232,6 +247,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
       status: [],
       cavalo: [],
       motorista: [],
+      diasAguard: [],
       ultimaPosicao: [],
       endereco: []
     };
