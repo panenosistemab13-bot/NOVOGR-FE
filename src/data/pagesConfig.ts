@@ -136,6 +136,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     badge: 'Conversor'
   },
   { 
+    id: 'ordem_servico', 
+    label: 'Ordem de Serviço', 
+    buttonLabel: 'Sascar O.S.', 
+    category: 'Gestão Técnica',
+    iconName: 'ClipboardCheck',
+    description: 'Acesso rápido às credenciais Sascar, CNPJ, CEP e endereço padrão para abertura de Ordem de Serviço.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'Sascar'
+  },
+  { 
     id: 'presence', 
     label: 'calendário', 
     buttonLabel: 'Efetivo', 
@@ -269,6 +280,9 @@ export function loadPageVisibility(): Record<string, boolean> {
         if (parsed.lancamento === undefined) {
           visibility.lancamento = true;
         }
+        if (parsed.ordem_servico === undefined) {
+          visibility.ordem_servico = true;
+        }
         delete visibility['blitz'];
         delete visibility['parceiros'];
         delete visibility['iscas'];
@@ -297,6 +311,9 @@ export function loadPageVisibility(): Record<string, boolean> {
 
   if (visibility['lancamento'] === undefined) {
     visibility['lancamento'] = true;
+  }
+  if (visibility['ordem_servico'] === undefined) {
+    visibility['ordem_servico'] = true;
   }
 
   return visibility;

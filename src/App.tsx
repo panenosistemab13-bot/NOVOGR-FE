@@ -56,6 +56,7 @@ import Checklist from './components/Checklist';
 import Controle from './components/Controle';
 import Escala from './components/Escala';
 import Disponibilidade from './components/Disponibilidade';
+import OrdemServico from './components/OrdemServico';
 import CalendarioView from './components/views/CalendarioView';
 import LoginScreen from './components/LoginScreen';
 import RestrictedPagesModal from './components/RestrictedPagesModal';
@@ -93,7 +94,7 @@ import factoryRotasBg from './assets/images/factory_wallpaper_rotas_179132871941
 import tresCoracoes8kBg from './assets/images/tres_coracoes_wallpaper_1791938048589.jpg';
 import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'lancamento' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'calendario' | 'settings' | 'cadastro';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'lancamento' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'ordem_servico' | 'calendario' | 'settings' | 'cadastro';
 
 const backgroundImages: Record<Tab, string> = {
   menu: tresCoracoes8kBg,
@@ -107,6 +108,7 @@ const backgroundImages: Record<Tab, string> = {
   controle: tresCoracoes8kBg,
   escala: tresCoracoes8kBg,
   disponibilidade: tresCoracoes8kBg,
+  ordem_servico: tresCoracoes8kBg,
   calendario: tresCoracoes8kBg,
   settings: tresCoracoes8kBg,
   cadastro: tresCoracoes8kBg
@@ -123,6 +125,7 @@ const allTabs = [
   { id: 'settings', label: 'Configurações & Páginas', icon: Sliders },
   { id: 'escala', label: 'Escala', icon: FileSpreadsheet },
   { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
+  { id: 'ordem_servico', label: 'Ordem de Serviço', icon: ClipboardCheck },
   { id: 'calendario', label: 'Calendário', icon: CalendarDays },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: Route },
@@ -307,6 +310,9 @@ export default function App() {
           saveStoredPageOrder(pageOrder);
         }
         if (visibility && typeof visibility === 'object') {
+          if (visibility.ordem_servico === undefined) {
+            visibility.ordem_servico = true;
+          }
           savePageVisibility(visibility);
           setPageVisibility(visibility);
         }
@@ -473,6 +479,8 @@ export default function App() {
         return <Escala onBack={() => setActiveTab('menu')} />;
       case 'disponibilidade':
         return <Disponibilidade onBack={() => setActiveTab('menu')} />;
+      case 'ordem_servico':
+        return <OrdemServico onBack={() => setActiveTab('menu')} />;
       case 'calendario':
         return <CalendarioView onBack={() => setActiveTab('menu')} />;
       case 'settings':
@@ -607,6 +615,8 @@ export default function App() {
         return <Rotas onBack={() => setActiveTab('menu')} />;
       case 'lancamento':
         return <Lancamento onBack={() => setActiveTab('menu')} />;
+      case 'ordem_servico':
+        return <OrdemServico onBack={() => setActiveTab('menu')} />;
       case 'settings':
         return <ConfiguracoesPaginasView initialTab="paginas" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'cadastro':
