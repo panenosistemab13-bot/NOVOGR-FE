@@ -3,14 +3,14 @@
   "name": "Sistema PGR - Gerenciamento de Risco Operacional",
   "icons": [
     {
-      "src": "/logo-pgr.png",
-      "type": "image/png",
+      "src": "/logo-app.jpg?v=2",
+      "type": "image/jpeg",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-pgr.png",
-      "type": "image/png",
+      "src": "/logo-app.jpg?v=2",
+      "type": "image/jpeg",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
