@@ -147,6 +147,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     badge: 'Sascar'
   },
   { 
+    id: 'cobrancas', 
+    label: 'Cobranças', 
+    buttonLabel: 'Cobranças', 
+    category: 'Monitoramento & Iscas',
+    iconName: 'Activity',
+    description: 'Painel 3D 4K de cobranças de iscas em rota com colagem de planilha, iCards 3D, gráficos interativos e filtro individual por coluna.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: '3D 4K'
+  },
+  { 
     id: 'presence', 
     label: 'calendário', 
     buttonLabel: 'Efetivo', 
@@ -283,6 +294,9 @@ export function loadPageVisibility(): Record<string, boolean> {
         if (parsed.ordem_servico === undefined) {
           visibility.ordem_servico = true;
         }
+        if (parsed.cobrancas === undefined) {
+          visibility.cobrancas = true;
+        }
         delete visibility['blitz'];
         delete visibility['parceiros'];
         delete visibility['iscas'];
@@ -314,6 +328,9 @@ export function loadPageVisibility(): Record<string, boolean> {
   }
   if (visibility['ordem_servico'] === undefined) {
     visibility['ordem_servico'] = true;
+  }
+  if (visibility['cobrancas'] === undefined) {
+    visibility['cobrancas'] = true;
   }
 
   return visibility;

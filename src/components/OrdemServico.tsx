@@ -11,8 +11,8 @@ import {
   Wrench,
   FileText,
   Navigation,
-  ShieldCheck,
-  Sparkles
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -25,51 +25,61 @@ interface CopyItem {
   id: string;
   label: string;
   value: string;
-  helper?: string;
+  subtitle: string;
   icon: React.ElementType;
   isLink?: boolean;
+  isPassword?: boolean;
 }
 
 const CREDENTIALS_ITEMS: CopyItem[] = [
   {
     id: 'site',
-    label: 'SITE',
+    label: 'Site Oficial',
     value: 'https://sascar.com.br/',
-    helper: 'Portal Oficial Sascar',
+    subtitle: 'Portal Web Sascar',
     icon: Globe,
     isLink: true
   },
   {
     id: 'login',
-    label: 'LOGIN',
+    label: 'Login',
     value: 'SCLARA',
-    helper: 'Usuário de acesso',
+    subtitle: 'Usuário do Portal',
     icon: User
   },
   {
     id: 'senha',
-    label: 'SENHA',
+    label: 'Senha',
     value: 'SASCAR@741#',
-    helper: 'Credencial de acesso',
-    icon: KeyRound
+    subtitle: 'Credencial de Segurança',
+    icon: KeyRound,
+    isPassword: true
   },
   {
     id: 'cnpj',
     label: 'CNPJ',
     value: '63310411000101',
-    helper: 'Cadastro Nacional de Pessoa Jurídica',
+    subtitle: 'Documento da Empresa',
     icon: Building2
   },
   {
     id: 'cep',
     label: 'CEP',
     value: '34.735-010',
-    helper: 'Código de Endereçamento Postal',
+    subtitle: 'Código Postal Padrão',
     icon: MapPin
   }
 ];
 
-const ADDRESS_FORM_ITEMS: CopyItem[] = [
+interface AddressField {
+  id: string;
+  label: string;
+  value: string;
+  icon: React.ElementType;
+  colSpan?: string;
+}
+
+const ADDRESS_FIELDS: AddressField[] = [
   {
     id: 'pais',
     label: 'País',
@@ -78,7 +88,7 @@ const ADDRESS_FORM_ITEMS: CopyItem[] = [
   },
   {
     id: 'cep_form',
-    label: 'Cep',
+    label: 'CEP',
     value: '34.735-010',
     icon: MapPin
   },
@@ -98,13 +108,15 @@ const ADDRESS_FORM_ITEMS: CopyItem[] = [
     id: 'bairro',
     label: 'Bairro*',
     value: 'DISTRITO INDUSTRIAL SIMAO DA CUNHA',
-    icon: Navigation
+    icon: Navigation,
+    colSpan: 'sm:col-span-2'
   },
   {
     id: 'logradouro',
     label: 'Logradouro* (mínimo três letras para a autopesquisa)',
     value: 'RODOVIA BR-381',
-    icon: Navigation
+    icon: Navigation,
+    colSpan: 'sm:col-span-2'
   },
   {
     id: 'numero',
@@ -122,9 +134,10 @@ const ADDRESS_FORM_ITEMS: CopyItem[] = [
 
 export default function OrdemServico({ onBack: _onBack }: OrdemServicoProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const copyText = async (id: string, label: string, value: string) => {
+  const copyText = async (id: string, label: string, value: string, isSecret = false) => {
     try {
       await navigator.clipboard.writeText(value);
     } catch {
@@ -139,7 +152,7 @@ export default function OrdemServico({ onBack: _onBack }: OrdemServicoProps) {
     }
 
     setCopiedId(id);
-    setToastMessage(`${label} copiado: ${value}`);
+    setToastMessage(isSecret ? `${label} copiada para a área de transferência!` : `${label} copiado: ${value}`);
     setTimeout(() => {
       setCopiedId(prev => (prev === id ? null : prev));
     }, 2000);
@@ -159,7 +172,7 @@ export default function OrdemServico({ onBack: _onBack }: OrdemServicoProps) {
       'cep: 34.735-010'
     ].join('\n');
 
-    copyText('all_credentials', 'Todas as credenciais', fullText);
+    copyText('all_credentials', 'Todas as credenciais', fullText, true);
   };
 
   const handleCopyAllAddress = () => {
@@ -174,182 +187,199 @@ export default function OrdemServico({ onBack: _onBack }: OrdemServicoProps) {
       'Ponto de Referência: SUPERMERCADO REDE MANIA'
     ].join('\n');
 
-    copyText('all_address', 'Endereço completo', fullAddress);
+    copyText('all_address', 'Endereço completo', fullAddress, true);
   };
 
   return (
     <div
-      className="w-full min-h-[calc(100vh-76px)] bg-[#FAF6EF] text-[#181715] p-4 sm:p-6 font-sans select-none overflow-y-auto"
+      className="w-full min-h-[calc(100vh-76px)] bg-white text-[#1E293B] p-4 sm:p-7 font-sans select-none overflow-y-auto"
       style={{ zoom: 0.88 }}
     >
       {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -14, scale: 0.96 }}
+            initial={{ opacity: 0, y: -12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -14, scale: 0.96 }}
-            className="fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl bg-[#F0FFF4] text-emerald-900 border border-emerald-300 text-xs font-medium flex items-center gap-2.5 shadow-xl"
+            exit={{ opacity: 0, y: -12, scale: 0.97 }}
+            className="fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs font-normal flex items-center gap-2.5 shadow-lg"
           >
-            <Check size={15} className="text-emerald-600 shrink-0" />
+            <Check size={14} className="text-emerald-600 shrink-0" />
             <span className="truncate max-w-xs sm:max-w-md">{toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="max-w-6xl mx-auto space-y-5">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* =================================================================== */}
-        {/* CABEÇALHO PRINCIPAL - ORDEM DE SERVIÇO                              */}
+        {/* CABEÇALHO LIMPO E ELEGANTE (FUNDO BRANCO)                           */}
         {/* =================================================================== */}
-        <div className="bg-gradient-to-r from-[#1E1D1A] via-[#282621] to-[#1E1D1A] rounded-3xl p-5 sm:p-6 text-white border border-[#D4AF37]/40 shadow-[0_10px_30px_rgba(0,0,0,0.12)] relative overflow-hidden">
-          <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-[#D4AF37]/10 blur-2xl pointer-events-none" />
-
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#F7DE88] via-[#D89E28] to-[#9E690E] p-[1.5px] shadow-lg shrink-0">
-                <div className="w-full h-full rounded-[14px] bg-[#1E1D1A] flex items-center justify-center">
-                  <Wrench className="w-6 h-6 text-[#F5C242]" />
-                </div>
-              </div>
-
-              <div className="text-left">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#F7DE88] text-[10px] uppercase tracking-widest mb-1">
-                  <ShieldCheck size={12} />
-                  <span>CENTRAL GR • GESTÃO TÉCNICA</span>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white uppercase">
-                  ORDEM DE SERVIÇO — SASCAR
-                </h1>
-                <p className="text-xs text-[#C9C4B8] mt-0.5">
-                  Acesso rápido às credenciais, CNPJ, CEP e endereço padrão para abertura de O.S.
-                </p>
-              </div>
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-[0_2px_14px_rgba(15,23,42,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shrink-0 text-[#B98321] shadow-2xs">
+              <Wrench className="w-5 h-5 stroke-[1.8]" />
             </div>
 
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <a
-                href="https://sascar.com.br/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-full bg-[#F5B82E] hover:bg-[#E5A81E] text-[#181715] text-xs font-medium uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm cursor-pointer active:scale-95"
-              >
-                <ExternalLink size={14} />
-                <span>Abrir Site Sascar</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={handleCopyAllCredentials}
-                className={cn(
-                  "px-4 py-2.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border active:scale-95",
-                  copiedId === 'all_credentials'
-                    ? "bg-emerald-600 text-white border-emerald-500"
-                    : "bg-white/10 hover:bg-white/15 text-white border-white/20"
-                )}
-              >
-                {copiedId === 'all_credentials' ? <Check size={14} /> : <Copy size={14} className="text-[#F5B82E]" />}
-                <span>{copiedId === 'all_credentials' ? 'Tudo Copiado!' : 'Copiar Todos os Dados'}</span>
-              </button>
+            <div className="text-left">
+              <span className="text-[11px] font-normal uppercase tracking-[0.14em] text-slate-400 block">
+                CENTRAL GR • GESTÃO DE SERVIÇOS
+              </span>
+              <h1 className="text-lg sm:text-xl font-medium tracking-tight text-slate-900 mt-0.5">
+                Ordem de Serviço — Sascar
+              </h1>
+              <p className="text-xs font-normal text-slate-500 mt-0.5">
+                Credenciais de acesso e dados de endereço padronizados para abertura rápida de O.S.
+              </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <a
+              href="https://sascar.com.br/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-normal tracking-wide transition-all flex items-center gap-2 shadow-2xs cursor-pointer active:scale-95"
+            >
+              <ExternalLink size={13} className="text-[#F5B82E]" />
+              <span>Acessar Portal Sascar</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={handleCopyAllCredentials}
+              className={cn(
+                "px-4 py-2 rounded-xl text-xs font-normal tracking-wide transition-all flex items-center gap-2 cursor-pointer border active:scale-95",
+                copiedId === 'all_credentials'
+                  ? "bg-emerald-600 text-white border-emerald-600"
+                  : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+              )}
+            >
+              {copiedId === 'all_credentials' ? (
+                <Check size={13} />
+              ) : (
+                <Copy size={13} className="text-slate-500" />
+              )}
+              <span>{copiedId === 'all_credentials' ? 'Credenciais Copiadas' : 'Copiar Tudo'}</span>
+            </button>
           </div>
         </div>
 
         {/* =================================================================== */}
-        {/* BLOCO 1: CREDENCIAIS E DADOS PRINCIPAIS PARA COPIAR                 */}
+        {/* SEÇÃO 1: CARDS DE CREDENCIAIS E IDENTIFICAÇÃO                       */}
         {/* =================================================================== */}
-        <div className="bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl p-5 sm:p-6 shadow-[0_4px_18px_rgba(0,0,0,0.035)] space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#EFE7D6]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#24231E] text-[#F5B82E] flex items-center justify-center shrink-0">
-                <Sparkles size={16} />
-              </div>
-              <div className="text-left">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-[#181715]">
-                  DADOS DE ACESSO E IDENTIFICAÇÃO
-                </h2>
-                <p className="text-[11px] text-[#7A7469]">
-                  Clique em qualquer cartão ou no botão copiar para transferir o dado imediatamente
-                </p>
-              </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <div className="text-left">
+              <h2 className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+                Credenciais de Acesso &amp; Dados Principais
+              </h2>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
             {CREDENTIALS_ITEMS.map((item) => {
               const Icon = item.icon;
               const isCopied = copiedId === item.id;
+              const isPasswordItem = Boolean(item.isPassword);
+              const displayedValue = isPasswordItem && !showPassword ? '•••••••••••' : item.value;
 
               return (
                 <div
                   key={item.id}
-                  onClick={() => copyText(item.id, item.label, item.value)}
                   className={cn(
-                    "group relative rounded-2xl border p-4 transition-all duration-150 cursor-pointer flex flex-col justify-between gap-3",
+                    "group relative rounded-2xl border p-4 transition-all duration-150 flex flex-col justify-between gap-3.5 bg-white",
                     isCopied
-                      ? "bg-emerald-50/90 border-emerald-400 shadow-xs"
-                      : "bg-white hover:bg-[#FFFDF9] border-[#E7DEC8] hover:border-[#D4AF37] shadow-[0_2px_10px_rgba(0,0,0,0.025)]"
+                      ? "border-emerald-400 bg-emerald-50/30 shadow-xs"
+                      : "border-slate-200/90 hover:border-slate-300 shadow-[0_2px_10px_rgba(15,23,42,0.03)]"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  {/* Topo do Card: Ícone + Label + subtítulo */}
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={cn(
-                          "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                          "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors border",
                           isCopied
-                            ? "bg-emerald-600 text-white"
-                            : "bg-[#FAF6EE] text-[#B8821E] border border-[#EDE3CE]"
+                            ? "bg-emerald-600 text-white border-emerald-600"
+                            : "bg-slate-50 text-slate-600 border-slate-200/70"
                         )}
                       >
-                        <Icon size={17} />
+                        <Icon size={15} className="stroke-[1.8]" />
                       </div>
                       <div className="text-left min-w-0">
-                        <span className="text-[10px] font-medium uppercase tracking-wider text-[#7A7469] block">
+                        <span className="text-xs font-medium text-slate-800 block truncate">
                           {item.label}
                         </span>
-                        {item.helper && (
-                          <span className="text-[10px] text-[#9A9386] truncate block">
-                            {item.helper}
-                          </span>
-                        )}
+                        <span className="text-[10.5px] font-normal text-slate-400 block truncate">
+                          {item.subtitle}
+                        </span>
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyText(item.id, item.label, item.value);
-                      }}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-[11px] font-medium uppercase tracking-wider flex items-center gap-1.5 transition-all shrink-0 cursor-pointer",
-                        isCopied
-                          ? "bg-emerald-600 text-white"
-                          : "bg-[#FAF6EE] group-hover:bg-[#24231E] text-[#181715] group-hover:text-white border border-[#E5D8BC]"
-                      )}
-                    >
-                      {isCopied ? <Check size={13} /> : <Copy size={13} className="text-[#C8922A] group-hover:text-[#F5B82E]" />}
-                      <span>{isCopied ? 'Copiado' : 'Copiar'}</span>
-                    </button>
-                  </div>
-
-                  <div className="pt-1 border-t border-[#F4EFE4] flex items-center justify-between gap-2">
-                    <span className="text-sm sm:text-[15px] font-medium text-[#181715] select-all break-all">
-                      {item.value}
-                    </span>
 
                     {item.isLink && (
                       <a
                         href={item.value}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-[11px] text-[#2563EB] hover:underline flex items-center gap-1 shrink-0"
-                        title="Abrir link em nova guia"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        title="Abrir site em nova aba"
                       >
-                        <span>Abrir</span>
-                        <ExternalLink size={12} />
+                        <ExternalLink size={13} />
                       </a>
                     )}
+                  </div>
+
+                  {/* Valor do Card */}
+                  <div className="px-3 py-2 rounded-xl bg-slate-50/80 border border-slate-100 flex items-center justify-between gap-2 min-h-[38px]">
+                    <span
+                      className={cn(
+                        "text-[13px] font-normal text-slate-800 truncate",
+                        isPasswordItem && !showPassword ? "tracking-[0.2em] text-slate-500 select-none" : "select-all"
+                      )}
+                      title={isPasswordItem && !showPassword ? 'Senha oculta' : item.value}
+                    >
+                      {displayedValue}
+                    </span>
+
+                    {isPasswordItem && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(prev => !prev)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer shrink-0"
+                        title={showPassword ? 'Ocultar senha' : 'Visualizar senha'}
+                      >
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Botões de Ação na Base do Card */}
+                  <div className="flex items-center gap-2">
+                    {isPasswordItem && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(prev => !prev)}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-[11px] font-normal transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                        title={showPassword ? 'Ocultar senha' : 'Visualizar senha'}
+                      >
+                        {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+                        <span>{showPassword ? 'Ocultar' : 'Ver'}</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => copyText(item.id, item.label, item.value, isPasswordItem)}
+                      className={cn(
+                        "flex-1 py-1.5 px-3 rounded-xl text-[11px] font-normal transition-all flex items-center justify-center gap-1.5 cursor-pointer border",
+                        isCopied
+                          ? "bg-emerald-600 text-white border-emerald-600"
+                          : "bg-white hover:bg-slate-900 text-slate-700 hover:text-white border-slate-200 hover:border-slate-900"
+                      )}
+                    >
+                      {isCopied ? <Check size={12} /> : <Copy size={12} />}
+                      <span>{isCopied ? 'Copiado!' : 'Copiar'}</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -358,18 +388,18 @@ export default function OrdemServico({ onBack: _onBack }: OrdemServicoProps) {
         </div>
 
         {/* =================================================================== */}
-        {/* BLOCO 2: ENDEREÇO E CAMPOS DO FORMULÁRIO (CONFORME IMAGEM ANEXA)    */}
+        {/* SEÇÃO 2: DADOS DO ENDEREÇO E REFERÊNCIA DO FORMULÁRIO               */}
         {/* =================================================================== */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* Coluna Esquerda: Campos estilo formulário Sascar clicáveis para copiar */}
-          <div className="lg:col-span-7 bg-white border border-[#E5E7EB] rounded-3xl p-5 sm:p-6 shadow-[0_4px_18px_rgba(0,0,0,0.035)] space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+          {/* Coluna Esquerda: Cards delicados dos campos de endereço */}
+          <div className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-[0_2px_14px_rgba(15,23,42,0.035)] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3.5 border-b border-slate-100">
               <div className="text-left">
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-[#181715]">
-                  CAMPOS DE ENDEREÇO (CADASTRO O.S.)
+                <h3 className="text-sm font-medium text-slate-800">
+                  Dados de Endereço para Abertura de O.S.
                 </h3>
-                <p className="text-[11px] text-[#6B7280]">
-                  Clique em qualquer campo abaixo para copiar o valor exato do formulário
+                <p className="text-xs font-normal text-slate-400 mt-0.5">
+                  Clique em qualquer cartão abaixo para copiar o campo correspondente
                 </p>
               </div>
 
@@ -377,194 +407,70 @@ export default function OrdemServico({ onBack: _onBack }: OrdemServicoProps) {
                 type="button"
                 onClick={handleCopyAllAddress}
                 className={cn(
-                  "px-3.5 py-2 rounded-full text-[11px] font-medium uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border",
+                  "px-3.5 py-1.5 rounded-xl text-xs font-normal flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border",
                   copiedId === 'all_address'
-                    ? "bg-emerald-600 text-white border-emerald-500"
-                    : "bg-[#FAF6EE] hover:bg-[#24231E] text-[#181715] hover:text-white border-[#E5D8BC]"
+                    ? "bg-emerald-600 text-white border-emerald-600"
+                    : "bg-slate-50 hover:bg-slate-900 text-slate-700 hover:text-white border-slate-200"
                 )}
               >
-                {copiedId === 'all_address' ? <Check size={13} /> : <Copy size={13} className="text-[#C8922A]" />}
-                <span>{copiedId === 'all_address' ? 'Endereço Copiado!' : 'Copiar Endereço'}</span>
+                {copiedId === 'all_address' ? <Check size={13} /> : <Copy size={13} />}
+                <span>{copiedId === 'all_address' ? 'Endereço Copiado' : 'Copiar Endereço Completo'}</span>
               </button>
             </div>
 
-            {/* Grid reproduzindo fielmente a disposição do formulário da imagem */}
-            <div className="space-y-3.5 text-left">
-              {/* Linha 1: País e Cep */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {ADDRESS_FORM_ITEMS.slice(0, 2).map((field) => {
-                  const isCopied = copiedId === field.id;
-                  return (
-                    <div key={field.id} className="space-y-1">
-                      <label className="text-xs font-medium text-[#4B5563] block">
-                        {field.label}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => copyText(field.id, field.label, field.value)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+              {ADDRESS_FIELDS.map((field) => {
+                const Icon = field.icon;
+                const isCopied = copiedId === field.id;
+
+                return (
+                  <div
+                    key={field.id}
+                    onClick={() => copyText(field.id, field.label, field.value)}
+                    className={cn(
+                      "group rounded-xl border p-3.5 transition-all cursor-pointer flex items-center justify-between gap-3",
+                      field.colSpan || '',
+                      isCopied
+                        ? "bg-emerald-50/50 border-emerald-400"
+                        : "bg-slate-50/50 hover:bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-2xs"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
                         className={cn(
-                          "w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-left transition-all cursor-pointer",
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors",
                           isCopied
-                            ? "bg-emerald-50 border-emerald-400 text-emerald-950"
-                            : "bg-[#E8F0FE] hover:bg-[#DCE7FE] border-[#CBD5E1] text-[#111827]"
+                            ? "bg-emerald-600 text-white border-emerald-600"
+                            : "bg-white text-slate-500 border-slate-200/80"
                         )}
                       >
-                        <span className="text-xs sm:text-[13px] font-normal select-all">{field.value}</span>
-                        {isCopied ? (
-                          <Check size={14} className="text-emerald-600 shrink-0" />
-                        ) : (
-                          <Copy size={14} className="text-[#4B5563] shrink-0" />
-                        )}
-                      </button>
+                        <Icon size={14} className="stroke-[1.75]" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-normal text-slate-400 block truncate">
+                          {field.label}
+                        </span>
+                        <span className="text-[13px] font-normal text-slate-800 block truncate select-all mt-0.5">
+                          {field.value}
+                        </span>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
 
-              {/* Linha 2: Estado* e Cidade* */}
-              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-3.5">
-                {ADDRESS_FORM_ITEMS.slice(2, 4).map((field) => {
-                  const isCopied = copiedId === field.id;
-                  return (
-                    <div key={field.id} className="space-y-1">
-                      <label className="text-xs font-medium text-[#4B5563] block">
-                        {field.label}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => copyText(field.id, field.label, field.value)}
-                        className={cn(
-                          "w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-left transition-all cursor-pointer",
-                          isCopied
-                            ? "bg-emerald-50 border-emerald-400 text-emerald-950"
-                            : field.id === 'estado'
-                            ? "bg-[#E8F0FE] hover:bg-[#DCE7FE] border-[#CBD5E1] text-[#111827]"
-                            : "bg-[#F9FAFB] hover:bg-[#F3F4F6] border-[#E5E7EB] text-[#4B5563]"
-                        )}
-                      >
-                        <span className="text-xs sm:text-[13px] font-normal select-all">{field.value}</span>
-                        {isCopied ? (
-                          <Check size={14} className="text-emerald-600 shrink-0" />
-                        ) : (
-                          <Copy size={14} className="text-[#6B7280] shrink-0" />
-                        )}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Linha 3: Bairro* */}
-              {ADDRESS_FORM_ITEMS.slice(4, 5).map((field) => {
-                const isCopied = copiedId === field.id;
-                return (
-                  <div key={field.id} className="space-y-1">
-                    <label className="text-xs font-medium text-[#4B5563] block">
-                      {field.label}
-                    </label>
                     <button
                       type="button"
-                      onClick={() => copyText(field.id, field.label, field.value)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyText(field.id, field.label, field.value);
+                      }}
                       className={cn(
-                        "w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-left transition-all cursor-pointer",
+                        "px-2.5 py-1 rounded-lg text-[11px] font-normal flex items-center gap-1 transition-all shrink-0 border",
                         isCopied
-                          ? "bg-emerald-50 border-emerald-400 text-emerald-950"
-                          : "bg-[#E8F0FE] hover:bg-[#DCE7FE] border-[#CBD5E1] text-[#111827]"
+                          ? "bg-emerald-600 text-white border-emerald-600"
+                          : "bg-white group-hover:bg-slate-900 text-slate-600 group-hover:text-white border-slate-200 group-hover:border-slate-900"
                       )}
                     >
-                      <span className="text-xs sm:text-[13px] font-normal select-all">{field.value}</span>
-                      {isCopied ? (
-                        <Check size={14} className="text-emerald-600 shrink-0" />
-                      ) : (
-                        <Copy size={14} className="text-[#4B5563] shrink-0" />
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-
-              {/* Linha 4: Logradouro* */}
-              {ADDRESS_FORM_ITEMS.slice(5, 6).map((field) => {
-                const isCopied = copiedId === field.id;
-                return (
-                  <div key={field.id} className="space-y-1">
-                    <label className="text-xs font-medium text-[#4B5563] block">
-                      {field.label}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => copyText(field.id, field.label, field.value)}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-left transition-all cursor-pointer",
-                        isCopied
-                          ? "bg-emerald-50 border-emerald-400 text-emerald-950"
-                          : "bg-[#F3F4F6] hover:bg-[#E5E7EB] border-[#E5E7EB] text-[#4B5563]"
-                      )}
-                    >
-                      <span className="text-xs sm:text-[13px] font-normal select-all">{field.value}</span>
-                      {isCopied ? (
-                        <Check size={14} className="text-emerald-600 shrink-0" />
-                      ) : (
-                        <Copy size={14} className="text-[#6B7280] shrink-0" />
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-
-              {/* Linha 5: Número* */}
-              {ADDRESS_FORM_ITEMS.slice(6, 7).map((field) => {
-                const isCopied = copiedId === field.id;
-                return (
-                  <div key={field.id} className="space-y-1 max-w-xs">
-                    <label className="text-xs font-medium text-[#4B5563] block">
-                      {field.label}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => copyText(field.id, field.label, field.value)}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-left transition-all cursor-pointer",
-                        isCopied
-                          ? "bg-emerald-50 border-emerald-400 text-emerald-950"
-                          : "bg-[#E8F0FE] hover:bg-[#DCE7FE] border-[#CBD5E1] text-[#111827]"
-                      )}
-                    >
-                      <span className="text-xs sm:text-[13px] font-normal select-all">{field.value}</span>
-                      {isCopied ? (
-                        <Check size={14} className="text-emerald-600 shrink-0" />
-                      ) : (
-                        <Copy size={14} className="text-[#4B5563] shrink-0" />
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-
-              {/* Linha 6: Ponto de Referência* */}
-              {ADDRESS_FORM_ITEMS.slice(7, 8).map((field) => {
-                const isCopied = copiedId === field.id;
-                return (
-                  <div key={field.id} className="space-y-1">
-                    <label className="text-xs font-medium text-[#4B5563] block">
-                      {field.label}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => copyText(field.id, field.label, field.value)}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-left transition-all cursor-pointer",
-                        isCopied
-                          ? "bg-emerald-50 border-emerald-400 text-emerald-950"
-                          : "bg-[#E8F0FE] hover:bg-[#DCE7FE] border-[#CBD5E1] text-[#111827]"
-                      )}
-                    >
-                      <span className="text-xs sm:text-[13px] font-normal select-all">{field.value}</span>
-                      {isCopied ? (
-                        <Check size={14} className="text-emerald-600 shrink-0" />
-                      ) : (
-                        <Copy size={14} className="text-[#4B5563] shrink-0" />
-                      )}
+                      {isCopied ? <Check size={12} /> : <Copy size={12} />}
+                      <span>{isCopied ? 'Copiado' : 'Copiar'}</span>
                     </button>
                   </div>
                 );
@@ -572,31 +478,23 @@ export default function OrdemServico({ onBack: _onBack }: OrdemServicoProps) {
             </div>
           </div>
 
-          {/* Coluna Direita: Imagem de Referência Anexada */}
-          <div className="lg:col-span-5 bg-[#FFFDF9] border border-[#EDE3CE] rounded-3xl p-5 shadow-[0_4px_18px_rgba(0,0,0,0.035)] space-y-3 text-left">
-            <div className="pb-2 border-b border-[#EFE7D6]">
-              <span className="text-[10px] font-medium uppercase tracking-wider text-[#B8821E] block">
-                MODELO DE PREENCHIMENTO
+          {/* Coluna Direita: Imagem de Referência do Formulário */}
+          <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-[0_2px_14px_rgba(15,23,42,0.035)] space-y-3.5 text-left">
+            <div className="pb-3 border-b border-slate-100">
+              <span className="text-[10.5px] font-normal uppercase tracking-[0.12em] text-slate-400 block">
+                Referência Visual
               </span>
-              <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-[#181715]">
-                REFERÊNCIA VISUAL DO FORMULÁRIO
+              <h3 className="text-sm font-medium text-slate-800 mt-0.5">
+                Espelho do Formulário Sascar
               </h3>
             </div>
 
-            <div className="rounded-2xl overflow-hidden border border-[#E5E7EB] bg-white p-2 shadow-2xs">
+            <div className="rounded-xl overflow-hidden border border-slate-200/80 bg-slate-50/50 p-2">
               <img
                 src="/assets/aistudio/image_a06dbe91.png"
                 alt="Referência de preenchimento Ordem de Serviço Sascar"
-                className="w-full h-auto object-contain rounded-xl"
+                className="w-full h-auto object-contain rounded-lg"
               />
-            </div>
-
-            <div className="bg-[#FAF6EE] border border-[#EDE3CE] rounded-2xl p-3.5 text-xs space-y-1 text-[#4A463F]">
-              <p><strong>Site:</strong> https://sascar.com.br/</p>
-              <p><strong>Login:</strong> SCLARA</p>
-              <p><strong>Senha:</strong> SASCAR@741#</p>
-              <p><strong>CNPJ:</strong> 63310411000101</p>
-              <p><strong>CEP:</strong> 34.735-010</p>
             </div>
           </div>
         </div>

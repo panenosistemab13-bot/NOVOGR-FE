@@ -57,6 +57,7 @@ import Controle from './components/Controle';
 import Escala from './components/Escala';
 import Disponibilidade from './components/Disponibilidade';
 import OrdemServico from './components/OrdemServico';
+import Cobrancas from './components/Cobrancas';
 import CalendarioView from './components/views/CalendarioView';
 import LoginScreen from './components/LoginScreen';
 import RestrictedPagesModal from './components/RestrictedPagesModal';
@@ -94,7 +95,7 @@ import factoryRotasBg from './assets/images/factory_wallpaper_rotas_179132871941
 import tresCoracoes8kBg from './assets/images/tres_coracoes_wallpaper_1791938048589.jpg';
 import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'lancamento' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'ordem_servico' | 'calendario' | 'settings' | 'cadastro';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'lancamento' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'ordem_servico' | 'cobrancas' | 'calendario' | 'settings' | 'cadastro';
 
 const backgroundImages: Record<Tab, string> = {
   menu: tresCoracoes8kBg,
@@ -109,6 +110,7 @@ const backgroundImages: Record<Tab, string> = {
   escala: tresCoracoes8kBg,
   disponibilidade: tresCoracoes8kBg,
   ordem_servico: tresCoracoes8kBg,
+  cobrancas: tresCoracoes8kBg,
   calendario: tresCoracoes8kBg,
   settings: tresCoracoes8kBg,
   cadastro: tresCoracoes8kBg
@@ -126,6 +128,7 @@ const allTabs = [
   { id: 'escala', label: 'Escala', icon: FileSpreadsheet },
   { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
   { id: 'ordem_servico', label: 'Ordem de Serviço', icon: ClipboardCheck },
+  { id: 'cobrancas', label: 'Cobranças', icon: Activity },
   { id: 'calendario', label: 'Calendário', icon: CalendarDays },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: Route },
@@ -313,6 +316,9 @@ export default function App() {
           if (visibility.ordem_servico === undefined) {
             visibility.ordem_servico = true;
           }
+          if (visibility.cobrancas === undefined) {
+            visibility.cobrancas = true;
+          }
           savePageVisibility(visibility);
           setPageVisibility(visibility);
         }
@@ -481,6 +487,8 @@ export default function App() {
         return <Disponibilidade onBack={() => setActiveTab('menu')} />;
       case 'ordem_servico':
         return <OrdemServico onBack={() => setActiveTab('menu')} />;
+      case 'cobrancas':
+        return <Cobrancas onBack={() => setActiveTab('menu')} />;
       case 'calendario':
         return <CalendarioView onBack={() => setActiveTab('menu')} />;
       case 'settings':
@@ -617,6 +625,8 @@ export default function App() {
         return <Lancamento onBack={() => setActiveTab('menu')} />;
       case 'ordem_servico':
         return <OrdemServico onBack={() => setActiveTab('menu')} />;
+      case 'cobrancas':
+        return <Cobrancas onBack={() => setActiveTab('menu')} />;
       case 'settings':
         return <ConfiguracoesPaginasView initialTab="paginas" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'cadastro':
