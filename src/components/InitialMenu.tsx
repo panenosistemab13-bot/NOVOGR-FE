@@ -433,7 +433,7 @@ export default function InitialMenu({
                     <div className="w-7.5 h-7.5 rounded-full bg-stone-50 text-[#8C6D28] border border-stone-200 flex items-center justify-center shrink-0">
                       <Settings size={14} />
                     </div>
-                    <span>{currentUser?.role === 'admin' ? 'CONFIGURAÇÕES & PÁGINAS' : 'MEU PERFIL / SENHA'}</span>
+                    <span>{currentUser?.role === 'admin' ? 'CONFIGURAÇÕES' : 'MEU PERFIL / SENHA'}</span>
                   </div>
                   <ChevronRight size={14} className="text-stone-400" />
                 </button>

@@ -6,13 +6,17 @@ import {
   Trash2, 
   Shield, 
   Lock, 
-  Mail, 
-  UserCheck, 
-  Check, 
+  Mail,
+  Check,
   AlertCircle,
   ArrowLeft,
   Sliders,
-  ShieldCheck
+  ShieldCheck,
+  User,
+  Edit3,
+  Info,
+  Ban,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
@@ -222,6 +226,8 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
   }, [users, currentUser, isAdmin, selectedUserId]);
 
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedButton, setSavedButton] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const availablePagesList = useMemo(() => {
@@ -233,7 +239,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
         buttonLabel: 'Histórico',
         category: 'Auditoria & Controle',
         iconName: 'History',
-        description: 'Acesso à aba Histórico dentro de Configurações & Páginas.',
+        description: 'Acesso à aba Histórico dentro de Configurações.',
         isDefaultVisible: true,
         isRestrictedByDefault: false
       });
@@ -261,16 +267,10 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     return () => unsubscribe();
   }, []);
 
-  const saveToStorageAndFirebase = (newUsers: UserAccount[]) => {
+  const saveToStorageAndFirebase = async (newUsers: UserAccount[]): Promise<boolean> => {
     const cleaned = sanitizeUsers(newUsers);
     setUsers(cleaned);
     localStorage.setItem('app_users', JSON.stringify(cleaned));
-    try {
-      const payload = cleanUsersForFirebase(cleaned);
-      set(ref(rtdb, 'app_users'), payload);
-    } catch (e) {
-      console.error('Erro ao sincronizar com Firebase:', e);
-    }
 
     if (currentUser) {
       const myEmail = (currentUser.email || '').trim().toLowerCase();
@@ -288,6 +288,44 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
         };
         localStorage.setItem('logged_user', JSON.stringify(updatedLogged));
       }
+    }
+
+    try {
+      const payload = cleanUsersForFirebase(cleaned);
+      await set(ref(rtdb, 'app_users'), payload);
+      return true;
+    } catch (e) {
+      console.error('Erro ao sincronizar com Firebase:', e);
+      return false;
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    const normalizedUsers = users.map((u) => ({
+      ...u,
+      name: String(u.name || '').trim(),
+      email: String(u.email || '').trim()
+    }));
+
+    const ok = await saveToStorageAndFirebase(normalizedUsers);
+    setIsSaving(false);
+
+    if (ok) {
+      setSaveSuccess(true);
+      setSavedButton(true);
+      setFeedbackMsg({ text: 'Alterações salvas com sucesso!', type: 'success' });
+      setTimeout(() => setSaveSuccess(false), 2500);
+      setTimeout(() => setSavedButton(false), 3000);
+      setTimeout(() => setFeedbackMsg(null), 3000);
+    } else {
+      setFeedbackMsg({
+        text: 'Erro ao salvar no banco de dados. Verifique sua conexão e tente novamente.',
+        type: 'error'
+      });
+      setTimeout(() => setFeedbackMsg(null), 4000);
     }
   };
 
@@ -450,34 +488,34 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
   };
 
   const content = (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* HEADER BAR (if not embedded) */}
       {!embedded && (
-        <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF1DC] border border-[#DFC078] rounded-3xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {onBack && (
               <button
                 type="button"
                 onClick={onBack}
-                className="p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#25231F] border border-[#E6D2A3] transition-colors cursor-pointer"
+                className="w-10 h-10 rounded-full bg-gradient-to-b from-white to-[#FAF0DA] hover:brightness-95 text-[#17191E] border border-[#DFC078] transition-colors cursor-pointer flex items-center justify-center shadow-xs"
                 title="Voltar"
               >
                 <ArrowLeft size={18} />
               </button>
             )}
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#d41a22] to-[#7f0b12] border-2 border-[#D9C39B] flex items-center justify-center text-white shadow-sm">
-              <Users size={22} className="text-[#F5EFE4]" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-b from-[#D41F29] via-[#9E0E17] to-[#63050A] border-2 border-[#E7C46D] flex items-center justify-center text-white shadow-sm">
+              <Users size={22} className="text-[#FFF5D6]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-[#25231F] tracking-tight font-heading uppercase">
+                <h1 className="text-xl sm:text-2xl font-black text-[#17191E] tracking-tight uppercase">
                   {isAdmin ? 'CADASTRO DE USUÁRIOS' : 'MEUS DADOS DE ACESSO'}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#8C6D28] border border-amber-300 text-[10px] font-mono font-bold uppercase">
+                <span className="px-3 py-0.5 rounded-full bg-gradient-to-b from-[#FCE79D] to-[#DFB042] text-[#292012] border border-[#DFB042] text-[10px] font-extrabold uppercase">
                   {isAdmin ? 'Google Auth & Acessos' : 'Agente de Risco'}
                 </span>
               </div>
-              <p className="text-xs text-[#77736B] font-mono uppercase tracking-wider mt-0.5">
+              <p className="text-xs text-[#6B665D] mt-0.5">
                 {isAdmin ? 'Gerencie nome, e-mail Google e função (Administrador ou Agente de Risco)' : 'Visualize seus dados de acesso cadastrados'}
               </p>
             </div>
@@ -488,9 +526,9 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
               <button
                 type="button"
                 onClick={handleAddUser}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] hover:brightness-110 text-white border-2 border-[#E7C46D] text-xs font-extrabold shadow-md transition-all cursor-pointer active:scale-95"
               >
-                <UserPlus size={16} className="text-[#C5A059]" />
+                <UserPlus size={16} className="text-[#FCE79D]" />
                 <span>Novo Usuário</span>
               </button>
             </div>
@@ -500,17 +538,17 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
 
       {/* EMBEDDED TOP ACTION BAR */}
       {embedded && isAdmin && (
-        <div className="flex items-center justify-between bg-white border border-[#E6D2A3] rounded-2xl p-4 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F5F0E6] text-[#8C6D28] border border-[#E6D2A3] flex items-center justify-center">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF8] to-[#FAF1DC] border border-[#DFC078] rounded-3xl px-5 py-3.5 shadow-[0_8px_22px_-12px_rgba(92,58,12,0.18)]">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-b from-[#FCE79D] via-[#E5BB54] to-[#B98321] border border-[#DFC078] text-[#59090F] flex items-center justify-center shadow-xs shrink-0">
               <Users size={18} />
             </div>
             <div>
-              <h2 className="text-xs font-black uppercase tracking-wider text-[#25231F]">
-                Cadastro de Usuários & Níveis de Acesso
+              <h2 className="text-xs sm:text-sm font-black uppercase tracking-wide text-[#17191E]">
+                Cadastro de Usuários &amp; Níveis de Acesso
               </h2>
-              <p className="text-[11px] text-[#77736B] font-mono">
-                Defina o nome, e-mail Google e a função de cada usuário
+              <p className="text-[11px] text-[#6B665D]">
+                Defina o nome, e-mail Google e a <strong className="font-bold text-[#292012]">função</strong> de cada usuário
               </p>
             </div>
           </div>
@@ -518,9 +556,9 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
           <button
             type="button"
             onClick={handleAddUser}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] hover:brightness-110 text-white border-2 border-[#E7C46D] text-xs font-extrabold shadow-[0_6px_16px_-4px_rgba(142,14,23,0.45),inset_0_1px_0_rgba(255,255,255,0.28)] transition-all cursor-pointer active:scale-95 shrink-0"
           >
-            <UserPlus size={15} className="text-[#C5A059]" />
+            <UserPlus size={15} className="text-[#FCE79D]" />
             <span>Novo Usuário</span>
           </button>
         </div>
@@ -528,35 +566,45 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
 
       {/* FEEDBACK TOAST */}
       {feedbackMsg && (
-        <div className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 border transition-all ${
-          feedbackMsg.type === 'success' 
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+        <div className={cn(
+          'p-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 border transition-all',
+          feedbackMsg.type === 'success'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
             : 'bg-red-50 text-red-800 border-red-300'
-        }`}>
+        )}>
           {feedbackMsg.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
           <span>{feedbackMsg.text}</span>
         </div>
       )}
 
       {/* MAIN 2-COLUMN MANAGEMENT */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
         {/* LEFT: USERS LIST - ONLY FOR ADMINS */}
         {isAdmin && (
-          <div className="md:col-span-5 bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-5 shadow-sm space-y-3 flex flex-col">
+          <div className="md:col-span-5 bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF8] to-[#FAF2DF] border border-[#DFC078] rounded-3xl p-5 shadow-[0_12px_28px_-14px_rgba(92,16,22,0.18)] space-y-3.5 flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-[#E6D2A3]">
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-[#C49A45]" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#25231F]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-b from-[#FCE79D] via-[#E5BB54] to-[#B98321] border border-[#DFC078] flex items-center justify-center text-[#59090F] shadow-2xs shrink-0">
+                  <Users size={15} />
+                </div>
+                <h2 className="text-xs sm:text-sm font-black uppercase tracking-wide text-[#17191E]">
                   Usuários Autorizados ({users.length})
                 </h2>
               </div>
-              <span className="text-[10px] font-mono text-[#77736B] font-bold">
-                Google Auth
-              </span>
+
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#E6D2A3] shadow-2xs">
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.68-.22-2.47H12v4.67h6.46a5.52 5.52 0 0 1-2.39 3.62v3.01h3.87c2.26-2.08 3.58-5.15 3.58-8.83Z" />
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.93-2.9l-3.87-3.01c-1.07.72-2.44 1.15-4.06 1.15-3.12 0-5.77-2.11-6.72-4.95H1.28v3.1A12 12 0 0 0 12 24Z" />
+                  <path fill="#FBBC05" d="M5.28 14.29a7.2 7.2 0 0 1 0-4.58v-3.1H1.28a12 12 0 0 0 0 10.78l4-3.1Z" />
+                  <path fill="#EA4335" d="M12 4.75c1.76 0 3.34.61 4.58 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.61l4 3.1C6.23 6.86 8.88 4.75 12 4.75Z" />
+                </svg>
+                <span className="text-[10.5px] font-bold text-[#292012]">Google Auth</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-2xs" />
+              </div>
             </div>
 
-            <div className="space-y-2 overflow-y-auto max-h-[560px] pr-1">
+            <div className="space-y-2.5 overflow-y-auto max-h-[580px] pr-1">
               {users.map((u) => {
                 const isSelected = selectedUserId === u.id;
                 const isUserAdmin = u.role === 'Administrador';
@@ -566,38 +614,38 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                   <div
                     key={u.id}
                     onClick={() => setSelectedUserId(u.id)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                    className={cn(
+                      'p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3',
                       isSelected
-                        ? 'bg-[#F5F0E6] border-[#C49A45] shadow-sm ring-1 ring-[#C49A45]/30'
-                        : 'bg-white border-[#EDE2CE] hover:border-[#D9C39B] hover:bg-stone-50'
-                    }`}
+                        ? 'bg-gradient-to-r from-[#FFF1F2] via-[#FFE6E9] to-[#FFF5F5] border-[1.5px] border-[#C81B24]/70 shadow-[0_6px_16px_-6px_rgba(142,14,23,0.22)]'
+                        : 'bg-white border-[#E6D2A3] hover:border-[#C59B38] hover:bg-[#FFFDF8] shadow-2xs'
+                    )}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
-                        isSelected 
-                          ? 'bg-[#292820] text-[#C49A45] border-[#C49A45]' 
-                          : 'bg-stone-100 text-[#77736B] border-stone-200'
-                      }`}>
-                        {isUserAdmin ? <ShieldCheck size={16} /> : <Sliders size={16} />}
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] border-2 border-[#E7C46D] shadow-sm flex items-center justify-center text-white shrink-0">
+                        <User size={19} className="text-[#FFF6DD]" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-black text-[#25231F] truncate leading-tight">
-                          {u.name}
+                        <p className="text-sm font-black text-[#17191E] truncate leading-tight">
+                          {u.name || 'Sem nome'}
                         </p>
-                        <p className="text-[11px] text-[#77736B] font-mono truncate">
+                        <p className="text-[11px] text-[#5A564E] truncate mt-0.5">
                           {u.email || 'Sem e-mail'}
                         </p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase ${
-                            isUserAdmin
-                              ? 'bg-amber-100 text-[#8C6D28] border border-amber-300'
-                              : 'bg-blue-50 text-blue-800 border border-blue-200'
-                          }`}>
-                            {u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco'}
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                          <span
+                            className={cn(
+                              'px-3 py-0.5 rounded-full text-[9.5px] font-extrabold uppercase tracking-wide border shadow-2xs',
+                              isUserAdmin
+                                ? 'bg-gradient-to-b from-[#FCE79D] via-[#E6BB55] to-[#C28D24] text-[#292012] border-[#DFB042]'
+                                : 'bg-gradient-to-b from-[#C81B24] to-[#8E0E17] text-white border-[#E7C46D]/60'
+                            )}
+                          >
+                            {isUserAdmin ? 'ADMINISTRADOR' : 'AGENTE DE RISCO'}
                           </span>
                           {!isUserAdmin && (
-                            <span className="text-[9px] font-mono text-[#8C7B63] bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200">
-                              {allowedCount} pág.
+                            <span className="text-[9.5px] font-bold text-[#292012] bg-white px-2.5 py-0.5 rounded-full border border-[#DFC078] shadow-2xs tabular-nums">
+                              {allowedCount} Pág.
                             </span>
                           )}
                         </div>
@@ -610,7 +658,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                         e.stopPropagation();
                         handleDeleteUser(u.id);
                       }}
-                      className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-8 h-8 rounded-xl bg-[#FAF6EC] hover:bg-rose-50 border border-[#E6D2A3] hover:border-rose-300 text-[#6B665D] hover:text-rose-600 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
                       title="Excluir usuário"
                     >
                       <Trash2 size={15} />
@@ -620,8 +668,8 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
               })}
             </div>
 
-            <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 text-[11px] text-[#8C6D28] font-mono flex items-start gap-2 mt-auto">
-              <Lock size={14} className="shrink-0 mt-0.5 text-amber-600" />
+            <div className="p-3 rounded-2xl bg-gradient-to-r from-[#FFF7DF] to-[#FAF0D4] border border-[#DFC078] text-[11px] text-[#6B4E12] flex items-start gap-2 mt-auto">
+              <Lock size={14} className="shrink-0 mt-0.5 text-[#9E0E17]" />
               <span>
                 O acesso ao aplicativo é feito inteiramente via Conta Google correspondente ao e-mail cadastrado.
               </span>
@@ -630,18 +678,25 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
         )}
 
         {/* RIGHT: EDIT FORM */}
-        <div className={cn("bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-6 shadow-sm space-y-5", isAdmin ? "md:col-span-7" : "md:col-span-12 max-w-xl mx-auto w-full")}>
+        <div
+          className={cn(
+            'bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF8] to-[#FAF2DF] border border-[#DFC078] rounded-3xl p-5 sm:p-6 shadow-[0_12px_28px_-14px_rgba(92,16,22,0.18)] space-y-5',
+            isAdmin ? 'md:col-span-7' : 'md:col-span-12 max-w-2xl mx-auto w-full'
+          )}
+        >
           {selectedUser ? (
             <>
-              <div className="flex items-center justify-between pb-4 border-b border-[#E6D2A3]">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b border-[#E6D2A3]">
                 <div className="flex items-center gap-2.5">
-                  <UserCheck size={18} className="text-[#C49A45]" />
-                  <h2 className="text-sm font-black uppercase tracking-wider text-[#25231F]">
-                    {isAdmin ? `Editar Cadastro: ${selectedUser.name}` : 'Meus Dados de Acesso (Google)'}
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-b from-[#FCE79D] via-[#E5BB54] to-[#B98321] border border-[#DFC078] flex items-center justify-center text-[#59090F] shadow-2xs shrink-0">
+                    <Edit3 size={15} />
+                  </div>
+                  <h2 className="text-sm sm:text-base font-black uppercase tracking-wide text-[#17191E]">
+                    {isAdmin ? `EDITAR CADASTRO: ${selectedUser.name || 'USUÁRIO'}` : 'MEUS DADOS DE ACESSO (GOOGLE)'}
                   </h2>
                 </div>
                 {saveSuccess && (
-                  <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-300 flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1 shadow-2xs">
                     <Check size={12} /> Salvo Automaticamente
                   </span>
                 )}
@@ -650,20 +705,24 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
               <div className="space-y-4">
                 {/* 1. NOME DO USUÁRIO */}
                 <div>
-                  <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-[#292012] mb-1.5">
                     1. Nome do Usuário
                   </label>
-                  <div className="relative">
-                    <Users size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <div className="relative flex items-center">
+                    <div className="absolute left-2 w-7 h-7 rounded-full bg-[#FCF4E0] border border-[#E6D2A3] flex items-center justify-center text-[#8C6D28] pointer-events-none">
+                      <User size={14} />
+                    </div>
                     <input
                       type="text"
                       disabled={!isAdmin || isSelectedUserFixedAdmin}
                       value={selectedUser.name}
                       onChange={(e) => updateUserField('name', e.target.value)}
-                      placeholder="Ex: João Silva"
+                      placeholder="Ex: Vinicius"
                       className={cn(
-                        "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold focus:outline-none",
-                        !isAdmin || isSelectedUserFixedAdmin ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                        'w-full border rounded-full pl-11 pr-4 py-2.5 text-xs font-bold focus:outline-none transition-all',
+                        !isAdmin || isSelectedUserFixedAdmin
+                          ? 'bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed'
+                          : 'bg-white border-[#DFC078] text-[#17191E] focus:border-[#9E0E17] focus:ring-2 focus:ring-[#9E0E17]/15 shadow-inner'
                       )}
                     />
                   </div>
@@ -671,11 +730,13 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
 
                 {/* 2. EMAIL GOOGLE */}
                 <div>
-                  <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5">
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-[#292012] mb-1.5">
                     2. E-mail Google
                   </label>
-                  <div className="relative">
-                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <div className="relative flex items-center">
+                    <div className="absolute left-2 w-7 h-7 rounded-full bg-[#FCF4E0] border border-[#E6D2A3] flex items-center justify-center text-[#8C6D28] pointer-events-none">
+                      <Mail size={14} />
+                    </div>
                     <input
                       type="email"
                       disabled={!isAdmin && !embedded}
@@ -683,58 +744,70 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                       onChange={(e) => updateUserField('email', e.target.value)}
                       placeholder="usuario@gmail.com ou corporativo"
                       className={cn(
-                        "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-mono font-bold focus:outline-none",
-                        !isAdmin ? "bg-stone-50 border-stone-200 text-stone-600 cursor-not-allowed" : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                        'w-full border rounded-full pl-11 pr-4 py-2.5 text-xs font-bold focus:outline-none transition-all',
+                        !isAdmin
+                          ? 'bg-stone-50 border-stone-200 text-stone-600 cursor-not-allowed'
+                          : 'bg-white border-[#DFC078] text-[#17191E] focus:border-[#9E0E17] focus:ring-2 focus:ring-[#9E0E17]/15 shadow-inner'
                       )}
                     />
                   </div>
-                  <p className="text-[10px] text-[#77736B] font-mono mt-1">
-                    Este deve ser o e-mail exato da Conta Google utilizada no login.
+                  <p className="text-[11px] text-[#6B665D] mt-1.5 flex items-center gap-1.5">
+                    <Info size={13} className="text-[#8C6D28] shrink-0" />
+                    <span>Este deve ser o e-mail exato da Conta Google utilizada no login.</span>
                   </p>
                 </div>
 
                 {/* 3. FUNÇÃO (ADMINISTRADOR, AGENTE DE RISCO) */}
                 <div>
-                  <label className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-[#77736B] mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Shield size={14} className="text-[#C49A45]" />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-extrabold uppercase tracking-wider text-[#292012] flex items-center gap-1.5">
+                      <Shield size={13} className="text-[#B98321]" />
                       <span>3. Função</span>
+                    </label>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-[#5B4720] flex items-center gap-1">
+                      <span>{selectedUser.role === 'Administrador' ? 'Acesso Total' : 'Acesso Restrito a Páginas'}</span>
+                      <Info size={12} className="text-[#8C6D28]" />
                     </span>
-                    <span className="text-[9.5px] text-[#8C6D28] font-bold">
-                      {selectedUser.role === 'Administrador' ? 'Acesso Total' : 'Acesso Restrito a Páginas'}
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <Shield size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                  </div>
+
+                  <div className="relative flex items-center">
+                    <div className="absolute left-2 w-7 h-7 rounded-full bg-[#FCF4E0] border border-[#E6D2A3] flex items-center justify-center text-[#8C6D28] pointer-events-none">
+                      <Shield size={14} />
+                    </div>
                     <select
                       disabled={!isAdmin || isSelectedUserFixedAdmin}
                       value={selectedUser.role}
-                      onChange={(e) => updateUserField('role', (e.target.value as 'Administrador' | 'Agente de Risco'))}
+                      onChange={(e) => updateUserField('role', e.target.value as 'Administrador' | 'Agente de Risco')}
                       className={cn(
-                        "w-full border rounded-xl pl-10 pr-3 py-2.5 text-xs font-bold focus:outline-none cursor-pointer",
-                        !isAdmin || isSelectedUserFixedAdmin 
-                          ? "bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed" 
-                          : "bg-white border-[#E6D2A3] text-[#25231F] focus:border-[#C49A45]"
+                        'w-full appearance-none border rounded-full pl-11 pr-10 py-2.5 text-xs font-extrabold focus:outline-none transition-all',
+                        !isAdmin || isSelectedUserFixedAdmin
+                          ? 'bg-stone-50 border-stone-200 text-stone-500 cursor-not-allowed'
+                          : 'bg-white border-[#DFC078] text-[#17191E] focus:border-[#9E0E17] cursor-pointer shadow-inner'
                       )}
                     >
                       <option value="Administrador">Administrador</option>
                       <option value="Agente de Risco">Agente de Risco</option>
                     </select>
+                    <ChevronDown size={15} className="absolute right-4 text-[#5B4720] pointer-events-none" />
                   </div>
 
                   <div className="mt-2.5">
                     {selectedUser.role === 'Administrador' ? (
-                      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 flex items-start gap-2.5 text-xs">
-                        <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
-                        <div className="leading-relaxed">
+                      <div className="p-3 rounded-2xl bg-emerald-50/90 border border-emerald-300 text-emerald-950 flex items-center gap-3 text-xs">
+                        <div className="w-7 h-7 rounded-full bg-emerald-600 border border-emerald-200 text-white flex items-center justify-center shrink-0">
+                          <ShieldCheck size={15} />
+                        </div>
+                        <div className="leading-snug">
                           <strong className="font-black uppercase text-emerald-800">Administrador:</strong> Acesso total a todas as páginas e configurações do sistema.
                         </div>
                       </div>
                     ) : (
-                      <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 flex items-start gap-2.5 text-xs">
-                        <Sliders size={18} className="text-amber-700 shrink-0 mt-0.5" />
-                        <div className="leading-relaxed">
-                          <strong className="font-black uppercase text-amber-800">Agente de Risco:</strong> Acesso customizado estritamente às páginas marcadas abaixo.
+                      <div className="p-3 rounded-2xl bg-gradient-to-r from-[#FFF5D9] via-[#FCEAC0] to-[#FFF5D9] border border-[#DFB042] text-[#292012] flex items-center gap-3 text-xs shadow-2xs">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-b from-[#D2212B] to-[#8E0E17] border border-[#E7C46D] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <Shield size={14} />
+                        </div>
+                        <div className="leading-snug">
+                          <strong className="font-black uppercase text-[#7E0B13]">Agente de Risco:</strong> Acesso customizado estritamente às páginas marcadas abaixo.
                         </div>
                       </div>
                     )}
@@ -743,43 +816,90 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
 
                 {/* PÁGINAS PERMITIDAS PARA O AGENTE DE RISCO */}
                 {selectedUser.role === 'Agente de Risco' && (
-                  <div className="space-y-3 pt-3 border-t border-[#E6D2A3]/70">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <h3 className="text-xs font-black uppercase tracking-wider text-[#25231F] flex items-center gap-1.5">
-                          <Sliders size={14} className="text-[#C49A45]" />
-                          <span>Páginas Autorizadas para este Agente de Risco</span>
-                        </h3>
-                        <p className="text-[10px] text-[#77736B] font-mono mt-0.5">
-                          Marque as páginas que este usuário poderá visualizar e utilizar:
-                        </p>
+                  <div className="relative overflow-hidden rounded-3xl border border-[#DFC078] bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF8] to-[#FAF1DC] p-4 sm:p-5 shadow-[0_10px_26px_-12px_rgba(92,16,22,0.16)]">
+                    {/* Detalhes sutis carmesim e dourado nos cantos */}
+                    <svg
+                      className="pointer-events-none absolute top-0 left-0 w-24 h-12 opacity-90"
+                      viewBox="0 0 120 60"
+                      fill="none"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                    >
+                      <defs>
+                        <linearGradient id="authSecTopRed" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#6E060C" />
+                          <stop offset="100%" stopColor="#C81B24" />
+                        </linearGradient>
+                        <linearGradient id="authSecGold" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#E4BE5E" />
+                          <stop offset="50%" stopColor="#FCE79D" />
+                          <stop offset="100%" stopColor="#B98321" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M0 0H102C68 18 36 32 0 54V0Z" fill="url(#authSecTopRed)" />
+                      <path d="M0 54C36 32 68 18 102 0H114C76 22 42 38 0 60V54Z" fill="url(#authSecGold)" />
+                    </svg>
+
+                    <svg
+                      className="pointer-events-none absolute bottom-0 right-0 w-28 h-12 opacity-90"
+                      viewBox="0 0 140 60"
+                      fill="none"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                    >
+                      <path d="M140 60V12C104 38 66 50 18 60H140Z" fill="url(#authSecTopRed)" />
+                      <path d="M140 12C104 38 66 50 18 60H4C58 46 98 30 140 2V12Z" fill="url(#authSecGold)" />
+                    </svg>
+
+                    {/* Cabeçalho */}
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] border-2 border-[#E7C46D] shadow-[0_6px_14px_-4px_rgba(142,14,23,0.45),inset_0_1px_0_rgba(255,255,255,0.3)] flex items-center justify-center text-[#FCE79D] shrink-0">
+                          <Shield size={20} />
+                        </div>
+                        <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#D2212B] to-[#7B080F] shrink-0" />
+                        <div>
+                          <h3 className="text-xs sm:text-sm font-black uppercase tracking-wide text-[#17191E]">
+                            Páginas Autorizadas para este Agente de Risco
+                          </h3>
+                          <p className="text-[11px] text-[#5A564E] mt-0.5">
+                            Marque as páginas que este usuário poderá visualizar e utilizar:
+                          </p>
+                        </div>
                       </div>
 
                       {isAdmin && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
                           <button
                             type="button"
                             onClick={handleSelectAllPages}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold transition-all cursor-pointer"
+                            className="px-4 py-2 rounded-full bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#560409] hover:brightness-110 text-white border-2 border-[#E7C46D] text-[11px] font-extrabold flex items-center gap-1.5 shadow-[0_5px_14px_-4px_rgba(142,14,23,0.45)] transition-all cursor-pointer active:scale-95"
                           >
-                            Marcar Todas
+                            <Check size={13} strokeWidth={2.8} />
+                            <span>Marcar Todas</span>
                           </button>
                           <button
                             type="button"
                             onClick={handleClearAllPages}
-                            className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 text-[10px] font-bold transition-all cursor-pointer"
+                            className="px-4 py-2 rounded-full bg-gradient-to-b from-[#FFFFFF] via-[#FFF9EC] to-[#F7E7C4] hover:brightness-98 text-[#292012] border border-[#DFC078] text-[11px] font-extrabold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer active:scale-95"
                           >
-                            Desmarcar Todas
+                            <Ban size={13} className="text-[#8E0E17]" />
+                            <span>Desmarcar Todas</span>
                           </button>
                         </div>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-                      {availablePagesList.map((page) => {
-                        const isAllowed = (selectedUser.allowedPages || []).includes(page.id);
-                        const IconComp = ICON_MAP[page.iconName] || Sliders;
+                    {/* Linha divisória metálica dourada */}
+                    <div className="relative z-10 h-[1px] w-full bg-gradient-to-r from-[#DFB042]/30 via-[#DFB042] to-[#DFB042]/30 my-3.5" />
 
+                    {(() => {
+                      const allowedSet = new Set(selectedUser.allowedPages || []);
+                      const authorizedPages = availablePagesList.filter((p) => allowedSet.has(p.id));
+                      const blockedPages = availablePagesList.filter((p) => !allowedSet.has(p.id));
+
+                      const renderPagePill = (page: typeof availablePagesList[number], isAllowed: boolean) => {
+                        const IconComp = ICON_MAP[page.iconName] || Sliders;
                         return (
                           <div
                             key={page.id}
@@ -789,68 +909,157 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                               }
                             }}
                             className={cn(
-                              "p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 select-none",
-                              isAdmin && !isSelectedUserFixedAdmin ? "cursor-pointer" : "cursor-default",
+                              'px-2.5 py-2 rounded-full border transition-all flex items-center justify-between gap-2.5 select-none',
+                              isAdmin && !isSelectedUserFixedAdmin ? 'cursor-pointer' : 'cursor-default',
                               isAllowed
-                                ? "bg-white border-emerald-400 shadow-xs ring-1 ring-emerald-400/30"
-                                : "bg-stone-50 border-stone-200 opacity-60 hover:opacity-100 hover:border-stone-300"
+                                ? 'border-[1.5px] border-[#C81B24]/80 bg-gradient-to-r from-[#FFF6F6] via-[#FFEBEB] to-[#FFF6F6] shadow-[0_4px_12px_-6px_rgba(142,14,23,0.28)] hover:border-[#9E0E17]'
+                                : 'border-[#D4D6DC] bg-gradient-to-b from-[#FFFFFF] via-[#F7F8FA] to-[#ECEEF2] shadow-[0_2px_8px_-4px_rgba(15,23,42,0.12)] hover:border-[#B98321]/60'
                             )}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className={cn(
-                                "w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border",
-                                isAllowed
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                                  : "bg-stone-100 text-stone-400 border-stone-200"
-                              )}>
+                              <div
+                                className={cn(
+                                  'w-8 h-8 rounded-full flex items-center justify-center shrink-0 border shadow-xs',
+                                  isAllowed
+                                    ? 'bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] border-2 border-[#E7C46D] text-white'
+                                    : 'bg-gradient-to-b from-[#FFFFFF] via-[#E9ECEF] to-[#CFD4DC] border-[#B8BFC9] text-[#5A606B]'
+                                )}
+                              >
                                 <IconComp size={14} />
                               </div>
-                              <p className={cn("text-xs font-black truncate leading-tight", isAllowed ? "text-[#25231F]" : "text-stone-500")}>
+                              <p
+                                className={cn(
+                                  'text-xs truncate leading-tight',
+                                  isAllowed ? 'font-extrabold text-[#17191E]' : 'font-bold text-[#2F333B]'
+                                )}
+                              >
                                 {page.label}
                               </p>
                             </div>
 
-                            <span className={cn(
-                              "px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold border",
-                              isAllowed ? "bg-emerald-100 text-emerald-800 border-emerald-300" : "bg-stone-200 text-stone-600 border-stone-300"
-                            )}>
-                              {isAllowed ? 'AUTORIZADA' : 'BLOQUEADA'}
+                            <span
+                              className={cn(
+                                'px-3 py-1 rounded-full text-[9.5px] font-extrabold uppercase tracking-wider border shrink-0 flex items-center gap-1 shadow-2xs',
+                                isAllowed
+                                  ? 'bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#5E050A] border-[#E7C46D]/70 text-white'
+                                  : 'bg-gradient-to-b from-[#E9ECEF] to-[#D6DBE2] border-[#C4C9D2] text-[#4E545F]'
+                              )}
+                            >
+                              {isAllowed ? (
+                                <>
+                                  <Check size={10} strokeWidth={3} />
+                                  <span>AUTORIZADA</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Lock size={10} />
+                                  <span>BLOQUEADA</span>
+                                </>
+                              )}
                             </span>
                           </div>
                         );
-                      })}
-                    </div>
+                      };
+
+                      return (
+                        <div className="relative z-10 space-y-3.5">
+                          {/* GRUPO 1: TODAS AS AUTORIZADAS AGRUPADAS */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-2 px-1">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-[#B81620]" />
+                                <span className="text-[10.5px] font-black uppercase tracking-wider text-[#7E0B13]">
+                                  Autorizadas para {selectedUser.name || 'este usuário'} ({authorizedPages.length})
+                                </span>
+                              </div>
+                              {isAdmin && authorizedPages.length > 0 && (
+                                <span className="text-[10px] font-semibold text-[#6B665D]">
+                                  Clique para bloquear
+                                </span>
+                              )}
+                            </div>
+
+                            {authorizedPages.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                {authorizedPages.map((page) => renderPagePill(page, true))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-[#6B665D] font-medium px-2 py-1">
+                                Nenhuma página autorizada ainda. Selecione abaixo para liberar.
+                              </p>
+                            )}
+                          </div>
+
+                          {/* GRUPO 2: BLOQUEADAS */}
+                          <div className="space-y-2 pt-2 border-t border-[#E6D2A3]/70">
+                            <div className="flex items-center justify-between gap-2 px-1">
+                              <div className="flex items-center gap-2">
+                                <Lock size={11} className="text-[#6B665D]" />
+                                <span className="text-[10.5px] font-black uppercase tracking-wider text-[#5A564E]">
+                                  Bloqueadas / Disponíveis ({blockedPages.length})
+                                </span>
+                              </div>
+                              {isAdmin && blockedPages.length > 0 && (
+                                <span className="text-[10px] font-semibold text-[#6B665D]">
+                                  Clique para autorizar
+                                </span>
+                              )}
+                            </div>
+
+                            {blockedPages.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                {blockedPages.map((page) => renderPagePill(page, false))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-[#6B665D] font-medium px-2 py-1">
+                                Todas as páginas disponíveis já estão autorizadas para este usuário.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
 
               <div className="pt-4 border-t border-[#E6D2A3] flex items-center justify-between">
-                <div className="text-[11px] font-mono text-[#77736B]">
+                <div className="text-[11px] font-mono font-semibold text-[#6B665D]">
                   ID Cadastral: #{selectedUser.id}
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    saveToStorageAndFirebase(users);
-                    setFeedbackMsg({ text: 'Alterações salvas com sucesso!', type: 'success' });
-                    setTimeout(() => setFeedbackMsg(null), 3000);
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B] text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                  onClick={handleSaveChanges}
+                  disabled={isSaving}
+                  className={cn(
+                    'px-5 py-2.5 rounded-full text-xs font-extrabold shadow-md flex items-center gap-2 cursor-pointer transition-all active:scale-95 border-2 disabled:opacity-75',
+                    savedButton
+                      ? 'bg-gradient-to-b from-emerald-500 via-emerald-600 to-emerald-700 text-white border-emerald-300 shadow-[0_8px_20px_-6px_rgba(16,185,129,0.55)]'
+                      : 'bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] hover:brightness-110 text-white border-[#E7C46D]'
+                  )}
                 >
-                  <Save size={15} className="text-[#C49A45]" />
-                  <span>Salvar Alterações</span>
+                  {savedButton ? (
+                    <>
+                      <Check size={15} className="text-white stroke-[2.5]" />
+                      <span>Salvo</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={15} className="text-[#FCE79D]" />
+                      <span>{isSaving ? 'Salvando...' : 'Salvar Alterações'}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </>
           ) : (
-            <div className="text-center py-12 text-[#77736B]">
+            <div className="text-center py-12 text-[#6B665D]">
               <Users size={32} className="mx-auto mb-2 text-stone-300" />
               <p className="text-sm font-bold">Nenhum usuário selecionado</p>
               <p className="text-xs">Selecione um usuário à esquerda ou clique em "Novo Usuário".</p>
             </div>
           )}
         </div>
-
       </div>
     </div>
   );
@@ -860,8 +1069,8 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
   }
 
   return (
-    <div className="min-h-full bg-[#F5F0E6] text-[#25231F] p-4 sm:p-6 lg:p-8 select-none font-sans">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-full bg-[#F9F8F6] text-[#17191E] p-4 sm:p-6 lg:p-8 select-none font-sans">
+      <div className="max-w-7xl mx-auto">
         {content}
       </div>
     </div>

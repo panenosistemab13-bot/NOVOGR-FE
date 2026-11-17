@@ -145,7 +145,7 @@ export default function PremiumHeader({
                       className="w-full px-4 py-2 text-left flex items-center gap-2 font-semibold cursor-pointer hover:bg-slate-100 text-slate-700"
                     >
                       <Settings className="w-3.5 h-3.5 text-[#E5C27A]" />
-                      <span>{currentUser?.role === 'admin' ? 'Configurações & Páginas' : 'Meu Perfil / Senha'}</span>
+                      <span>{currentUser?.role === 'admin' ? 'Configurações' : 'Meu Perfil / Senha'}</span>
                     </button>
                   )}
                   {onLogout && (

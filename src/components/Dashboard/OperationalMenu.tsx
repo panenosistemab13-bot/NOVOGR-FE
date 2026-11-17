@@ -85,7 +85,7 @@ export default function OperationalMenu({
     {
       id: 'configuracoes',
       number: '07',
-      name: 'CONFIGURAÇÕES & PÁGINAS',
+      name: 'CONFIGURAÇÕES',
       description: 'PREFERÊNCIAS & SISTEMA',
       icon: Settings
     }

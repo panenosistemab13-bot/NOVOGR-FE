@@ -210,7 +210,7 @@ export default function NavigationDrawer({
 
   const isSettingsActive = activeTab === 'settings' || activeTab === 'cadastro';
   const settingsLabel = (currentUser?.role === 'admin' || currentUser?.name?.toLowerCase() === 'jefferson')
-    ? 'Configurações & Páginas'
+    ? 'Configurações'
     : 'Meus Dados de Acesso';
 
   return (

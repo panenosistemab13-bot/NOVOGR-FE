@@ -128,7 +128,7 @@ const allTabs = [
   { id: 'lancamento', label: 'Lançamento', icon: FileSpreadsheet },
   { id: 'controle', label: 'Controle', icon: Sliders },
   { id: 'cadastro', label: 'Cadastro', icon: Users2 },
-  { id: 'settings', label: 'Configurações & Páginas', icon: Sliders },
+  { id: 'settings', label: 'Configurações', icon: Sliders },
   { id: 'escala', label: 'Escala', icon: FileSpreadsheet },
   { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
   { id: 'ordem_servico', label: 'Ordem de Serviço', icon: ClipboardCheck },
@@ -741,12 +741,12 @@ export default function App() {
               ? "bg-[#FDF8EE] overflow-y-auto"
               : activeTab === 'averbacao'
                 ? "bg-[#FAF6EF] overflow-y-auto"
-                : activeTab === 'ordem_servico' || activeTab === 'lista_emails' || activeTab === 'cobrancas'
+                : activeTab === 'ordem_servico' || activeTab === 'lista_emails' || activeTab === 'cobrancas' || activeTab === 'settings' || activeTab === 'cadastro' || activeTab === 'historico'
                   ? "bg-[#F9F8F6] overflow-y-auto"
                   : "overflow-y-auto"
         )}
         style={
-          activeTab === 'menu' || activeTab === 'sm_creator' || activeTab === 'averbacao' || activeTab === 'lista_emails' || activeTab === 'ordem_servico' || activeTab === 'cobrancas'
+          activeTab === 'menu' || activeTab === 'sm_creator' || activeTab === 'averbacao' || activeTab === 'lista_emails' || activeTab === 'ordem_servico' || activeTab === 'cobrancas' || activeTab === 'settings' || activeTab === 'cadastro' || activeTab === 'historico'
             ? {}
             : {
                 backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
@@ -764,7 +764,7 @@ export default function App() {
               "internal-pages-wrapper w-full min-h-full flex flex-col",
               activeTab === 'sm_creator' && "bg-[#FDF8EE]",
               activeTab === 'averbacao' && "bg-[#FAF6EF]",
-              (activeTab === 'ordem_servico' || activeTab === 'lista_emails') && "bg-[#F9F8F6]",
+              (activeTab === 'ordem_servico' || activeTab === 'lista_emails' || activeTab === 'settings' || activeTab === 'cadastro' || activeTab === 'historico') && "bg-[#F9F8F6]",
               activeTab === 'cobrancas' && "bg-[#F4F5F7]"
             )}
           >

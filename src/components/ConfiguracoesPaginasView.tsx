@@ -1,24 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Settings, 
-  Eye, 
-  EyeOff, 
-  ArrowLeft, 
-  Check, 
-  RotateCcw, 
-  ShieldCheck, 
-  Sparkles, 
-  Sliders, 
-  Users, 
-  ExternalLink,
+import {
+  Settings,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  Check,
+  RotateCcw,
+  Sliders,
+  Users,
   Info,
-  ShieldAlert,
-  History
+  History,
+  LayoutGrid
 } from 'lucide-react';
-import { 
-  DEFAULT_PAGES, 
-  getAllAvailablePages, 
-  loadPageVisibility, 
+import {
+  getAllAvailablePages,
+  loadPageVisibility,
   savePageVisibility,
   PageDefinition,
   ICON_MAP
@@ -37,32 +33,39 @@ interface ConfiguracoesPaginasViewProps {
   currentUser?: { email: string; name: string; role: string; allowedPages?: string[] } | null;
 }
 
-export default function ConfiguracoesPaginasView({ 
-  onBack, 
-  onOpenCadastro,
+export default function ConfiguracoesPaginasView({
+  onBack,
+  onOpenCadastro: _onOpenCadastro,
   initialTab = 'paginas',
-  currentUser 
+  currentUser
 }: ConfiguracoesPaginasViewProps) {
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'Administrador' || currentUser?.name?.toLowerCase() === 'jefferson';
+  const isAdmin =
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'Administrador' ||
+    currentUser?.name?.toLowerCase() === 'jefferson' ||
+    currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
+    currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br';
   const canViewHistory = isAdmin || Boolean(currentUser?.allowedPages?.includes('historico'));
+
   const resolveInitialTab = (tab: 'paginas' | 'cadastro' | 'historico') => {
     if (tab === 'historico' && canViewHistory) return 'historico';
     return isAdmin ? tab : 'cadastro';
   };
-  const [activeTab, setActiveTab] = useState<'paginas' | 'cadastro' | 'historico'>(() => resolveInitialTab(initialTab));
+
+  const [activeTab, setActiveTab] = useState<'paginas' | 'cadastro' | 'historico'>(() =>
+    resolveInitialTab(initialTab)
+  );
   const [pages, setPages] = useState<PageDefinition[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
   const [historyCount, setHistoryCount] = useState<number>(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Dynamic shortcuts calculation: Início is always 1 (Ctrl + 1),
-  // and subsequent visible pages get consecutive numbers in order of appearance
   const dynamicShortcutMap = useMemo(() => {
     const map: Record<string, string> = {
       menu: 'Ctrl + 1'
     };
     let currentNumber = 2;
-    pages.forEach(p => {
+    pages.forEach((p) => {
       if (p.id === 'cadastro' || p.id === 'settings') {
         map[p.id] = 'Acessos';
         return;
@@ -100,13 +103,13 @@ export default function ConfiguracoesPaginasView({
     setPages(getAllAvailablePages());
     setVisibility(loadPageVisibility());
 
-    // Sincronizar em tempo real com Firebase RTDB
     const configRef = ref(rtdb, 'pages_config');
     const unsubscribe = onValue(configRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.visibility) {
-        setVisibility(data.visibility);
-        savePageVisibility(data.visibility);
+        const merged = { ...loadPageVisibility(), ...data.visibility };
+        setVisibility(merged);
+        savePageVisibility(merged);
       }
     });
 
@@ -117,7 +120,7 @@ export default function ConfiguracoesPaginasView({
     const current = visibility[pageId] ?? true;
     const nextVal = !current;
     const updated = { ...visibility, [pageId]: nextVal };
-    
+
     setVisibility(updated);
     savePageVisibility(updated);
 
@@ -127,7 +130,7 @@ export default function ConfiguracoesPaginasView({
       console.error('Erro ao atualizar Firebase:', e);
     }
 
-    const pageName = pages.find(p => p.id === pageId)?.label || pageId;
+    const pageName = pages.find((p) => p.id === pageId)?.label || pageId;
     logAuditAction({
       action: 'EDIT',
       module: 'Configurações',
@@ -139,7 +142,7 @@ export default function ConfiguracoesPaginasView({
 
   const handleShowAll = () => {
     const updated: Record<string, boolean> = {};
-    pages.forEach(p => {
+    pages.forEach((p) => {
       updated[p.id] = true;
     });
     setVisibility(updated);
@@ -160,7 +163,7 @@ export default function ConfiguracoesPaginasView({
 
   const handleResetToDefault = () => {
     const updated: Record<string, boolean> = {};
-    pages.forEach(p => {
+    pages.forEach((p) => {
       updated[p.id] = p.isDefaultVisible;
     });
     setVisibility(updated);
@@ -185,89 +188,190 @@ export default function ConfiguracoesPaginasView({
   };
 
   const totalPages = pages.length;
-  const visibleCount = pages.filter(p => visibility[p.id] !== false).length;
+  const visibleCount = pages.filter((p) => visibility[p.id] !== false).length;
   const hiddenCount = totalPages - visibleCount;
 
   return (
-    <div style={{ zoom: 0.84 }} className="min-h-full bg-[#F5F0E6] text-[#25231F] p-4 sm:p-6 select-none font-sans">
-      <div className="max-w-7xl mx-auto space-y-5">
+    <div
+      style={{ zoom: 0.88 }}
+      className="min-h-full bg-[#F9F8F6] text-[#17191E] p-4 sm:p-6 relative overflow-hidden select-none font-sans"
+    >
+      {/* Ornamentos luxuosos carmesim e dourado nos cantos */}
+      <svg
+        className="pointer-events-none fixed top-0 left-0 w-48 sm:w-72 h-28 sm:h-40 opacity-90 z-0"
+        viewBox="0 0 320 180"
+        fill="none"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="cfgTopLeftRed" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#63050A" />
+            <stop offset="55%" stopColor="#A6111B" />
+            <stop offset="100%" stopColor="#D6232D" />
+          </linearGradient>
+          <linearGradient id="cfgTopLeftGold" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stopColor="#B98321" />
+            <stop offset="50%" stopColor="#FCE79D" />
+            <stop offset="100%" stopColor="#D9A83E" />
+          </linearGradient>
+        </defs>
+        <path d="M0 0H265C195 36 112 72 0 148V0Z" fill="url(#cfgTopLeftRed)" />
+        <path d="M0 148C112 72 195 36 265 0H286C208 42 122 86 0 164V148Z" fill="url(#cfgTopLeftGold)" />
+      </svg>
 
-        {/* HEADER BAR */}
-        <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-3xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <svg
+        className="pointer-events-none fixed top-0 right-0 w-56 sm:w-96 h-32 sm:h-44 opacity-90 z-0"
+        viewBox="0 0 380 180"
+        fill="none"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="cfgTopRightRed" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stopColor="#8E0E17" />
+            <stop offset="55%" stopColor="#C81B24" />
+            <stop offset="100%" stopColor="#5C050A" />
+          </linearGradient>
+          <linearGradient id="cfgTopRightGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#E6BE5E" />
+            <stop offset="50%" stopColor="#FFF0B8" />
+            <stop offset="100%" stopColor="#B98321" />
+          </linearGradient>
+        </defs>
+        <path d="M380 0H95C198 48 286 72 380 156V0Z" fill="url(#cfgTopRightRed)" />
+        <path d="M95 0C198 48 286 72 380 156V172C278 88 184 58 68 0H95Z" fill="url(#cfgTopRightGold)" />
+      </svg>
+
+      <svg
+        className="pointer-events-none fixed bottom-0 left-0 w-44 sm:w-64 h-24 sm:h-32 opacity-85 z-0"
+        viewBox="0 0 260 130"
+        fill="none"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="cfgBotLeftRed" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stopColor="#5C050A" />
+            <stop offset="60%" stopColor="#A6111B" />
+            <stop offset="100%" stopColor="#D6232D" />
+          </linearGradient>
+          <linearGradient id="cfgBotLeftGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#FCE79D" />
+            <stop offset="100%" stopColor="#B98321" />
+          </linearGradient>
+        </defs>
+        <path d="M0 130V22C68 78 138 106 238 130H0Z" fill="url(#cfgBotLeftRed)" />
+        <path d="M0 22C68 78 138 106 238 130H256C148 98 74 66 0 6V22Z" fill="url(#cfgBotLeftGold)" />
+      </svg>
+
+      <svg
+        className="pointer-events-none fixed bottom-0 right-0 w-48 sm:w-72 h-24 sm:h-32 opacity-85 z-0"
+        viewBox="0 0 280 130"
+        fill="none"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="cfgBotRightRed" x1="1" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#5C050A" />
+            <stop offset="65%" stopColor="#9E0E17" />
+            <stop offset="100%" stopColor="#D2212B" />
+          </linearGradient>
+          <linearGradient id="cfgBotRightGold" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stopColor="#FCE79D" />
+            <stop offset="100%" stopColor="#B98321" />
+          </linearGradient>
+        </defs>
+        <path d="M280 130V18C204 78 132 106 24 130H280Z" fill="url(#cfgBotRightRed)" />
+        <path d="M280 18C204 78 132 106 24 130H6C122 98 198 64 280 4V18Z" fill="url(#cfgBotRightGold)" />
+      </svg>
+
+      <div className="relative z-10 max-w-7xl mx-auto space-y-4">
+        {/* CABEÇALHO PRINCIPAL */}
+        <header className="relative overflow-hidden rounded-3xl border border-[#DFC078] bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF1DC] px-5 py-4 shadow-[0_12px_30px_-14px_rgba(92,16,22,0.22)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 sm:gap-4 relative z-10">
             {onBack && (
               <button
                 type="button"
                 onClick={onBack}
-                className="p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#25231F] border border-[#E6D2A3] transition-colors cursor-pointer"
+                className="w-10 h-10 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#FAF0DA] hover:brightness-95 text-[#17191E] border border-[#DFC078] shadow-[0_3px_10px_-3px_rgba(92,58,12,0.2)] flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
                 title="Voltar ao Início"
               >
-                <ArrowLeft size={18} />
+                <ArrowLeft size={18} strokeWidth={2.3} />
               </button>
             )}
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#d41a22] to-[#7f0b12] border-2 border-[#D9C39B] flex items-center justify-center text-white shadow-sm">
-              <Settings size={22} className="text-[#F5EFE4]" />
+
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-b from-[#D41F29] via-[#9E0E17] to-[#63050A] border-2 border-[#E7C46D] shadow-[0_6px_16px_-4px_rgba(142,14,23,0.45),inset_0_1px_0_rgba(255,255,255,0.3)] flex items-center justify-center text-white shrink-0">
+              <Settings size={23} className="text-[#FFF5D6]" />
             </div>
+
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-[#25231F] tracking-tight font-heading">
-                  {isAdmin ? 'CONFIGURAÇÕES & PÁGINAS' : 'MEUS DADOS DE ACESSO'}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-xl sm:text-2xl font-black text-[#17191E] tracking-tight uppercase">
+                  {isAdmin ? 'CONFIGURAÇÕES' : 'MEUS DADOS DE ACESSO'}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#8C6D28] border border-amber-300 text-[10px] font-mono font-bold uppercase">
+                <span className="px-3 py-0.5 rounded-full bg-gradient-to-b from-[#FCE79D] via-[#EAC159] to-[#C89428] text-[#292012] border border-[#DFB042] text-[10px] font-extrabold uppercase tracking-wider shadow-2xs">
                   {isAdmin ? 'Central de Gestão' : 'Meu Perfil'}
                 </span>
               </div>
-              <p className="text-xs text-[#77736B] font-mono uppercase tracking-wider mt-0.5">
-                {isAdmin 
-                  ? 'Gerencie as páginas do sistema, visibilidade no menu e cadastro de usuários com suas funções' 
-                  : 'Edite e atualize sua senha de acesso ao sistema com segurança'}
+              <p className="text-xs text-[#6B665D] mt-0.5 font-medium">
+                {isAdmin
+                  ? 'Gerencie as páginas do sistema, visibilidade no menu e cadastro de usuários com suas funções'
+                  : 'Visualize seus dados de acesso e acompanhe o histórico autorizado'}
               </p>
             </div>
           </div>
 
-          {/* Quick Actions (only in paginas tab for admin) */}
           {isAdmin && activeTab === 'paginas' && (
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5 relative z-10 shrink-0">
               <button
                 type="button"
                 onClick={handleShowAll}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-[#25231F] border border-[#E6D2A3] text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#FAF0DA] hover:brightness-98 text-[#292012] border border-[#DFC078] text-xs font-extrabold transition-all cursor-pointer shadow-xs"
               >
-                <Eye size={15} className="text-emerald-600" />
+                <Eye size={14} className="text-emerald-600" />
                 <span>Exibir Todas</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleResetToDefault}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-[#25231F] border border-[#E6D2A3] text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#FAF0DA] hover:brightness-98 text-[#292012] border border-[#DFC078] text-xs font-extrabold transition-all cursor-pointer shadow-xs"
               >
-                <RotateCcw size={15} className="text-stone-500" />
+                <RotateCcw size={14} className="text-[#8E0E17]" />
                 <span>Restaurar Padrão</span>
               </button>
             </div>
           )}
-        </div>
+        </header>
 
-        {/* TOP NAVIGATION TABS: PÁGINAS vs CADASTRO vs HISTÓRICO */}
-        <div className="flex flex-wrap items-center gap-3 border-b border-[#E6D2A3] pb-3">
+        {/* ABAS SUPERIORES EM CÁPSULA 3D */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-0.5">
           {isAdmin && (
             <button
               type="button"
               onClick={() => setActiveTab('paginas')}
               className={cn(
-                "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-95",
+                'px-5 py-2.5 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer active:scale-97',
                 activeTab === 'paginas'
-                  ? "bg-[#292820] text-[#FAF7F0] border border-[#D9C39B] shadow-md ring-2 ring-[#C5A059]/30"
-                  : "bg-white hover:bg-stone-50 text-[#77736B] border border-[#E6D2A3]"
+                  ? 'bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#560409] border-2 border-[#E7C46D] text-white shadow-[0_8px_20px_-6px_rgba(142,14,23,0.5),inset_0_1px_0_rgba(255,255,255,0.28)]'
+                  : 'bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF0DA] border border-[#DFC078] text-[#292012] shadow-[0_4px_12px_-4px_rgba(92,58,12,0.18)] hover:border-[#B98321]'
               )}
             >
-              <Sliders size={16} className={activeTab === 'paginas' ? "text-[#C5A059]" : "text-stone-400"} />
+              <LayoutGrid
+                size={15}
+                className={activeTab === 'paginas' ? 'text-[#FCE79D]' : 'text-[#8C6D28]'}
+              />
               <span>Páginas & Menu</span>
-              <span className={cn(
-                "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tabular-nums",
-                activeTab === 'paginas' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
-              )}>
+              <span
+                className={cn(
+                  'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tabular-nums border',
+                  activeTab === 'paginas'
+                    ? 'bg-[#4B0409] border-[#E7C46D]/70 text-[#FCE79D]'
+                    : 'bg-gradient-to-b from-[#FCE79D] to-[#DFB042] border-[#DFB042] text-[#292012]'
+                )}
+              >
                 {visibleCount} ativas
               </span>
             </button>
@@ -277,19 +381,26 @@ export default function ConfiguracoesPaginasView({
             type="button"
             onClick={() => setActiveTab('cadastro')}
             className={cn(
-              "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-95",
+              'px-5 py-2.5 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer active:scale-97',
               activeTab === 'cadastro'
-                ? "bg-[#292820] text-[#FAF7F0] border border-[#D9C39B] shadow-md ring-2 ring-[#C5A059]/30"
-                : "bg-white hover:bg-stone-50 text-[#77736B] border border-[#E6D2A3]"
+                ? 'bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#560409] border-2 border-[#E7C46D] text-white shadow-[0_8px_20px_-6px_rgba(142,14,23,0.5),inset_0_1px_0_rgba(255,255,255,0.28)]'
+                : 'bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF0DA] border border-[#DFC078] text-[#292012] shadow-[0_4px_12px_-4px_rgba(92,58,12,0.18)] hover:border-[#B98321]'
             )}
           >
-            <Users size={16} className={activeTab === 'cadastro' ? "text-[#C5A059]" : "text-stone-400"} />
+            <Users
+              size={15}
+              className={activeTab === 'cadastro' ? 'text-[#FCE79D]' : 'text-[#8C6D28]'}
+            />
             <span>{isAdmin ? 'Aba Cadastro (Usuários & Funções)' : 'Meus Dados de Acesso'}</span>
-            <span className={cn(
-              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
-              activeTab === 'cadastro' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
-            )}>
-              {isAdmin ? 'Acessos' : 'Senha'}
+            <span
+              className={cn(
+                'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border',
+                activeTab === 'cadastro'
+                  ? 'bg-[#4B0409] border-[#E7C46D]/70 text-[#FCE79D]'
+                  : 'bg-gradient-to-b from-[#FCE79D] to-[#DFB042] border-[#DFB042] text-[#292012]'
+              )}
+            >
+              {isAdmin ? 'Acessos' : 'Perfil'}
             </span>
           </button>
 
@@ -298,18 +409,25 @@ export default function ConfiguracoesPaginasView({
               type="button"
               onClick={() => setActiveTab('historico')}
               className={cn(
-                "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-95",
+                'px-5 py-2.5 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer active:scale-97',
                 activeTab === 'historico'
-                  ? "bg-[#292820] text-[#FAF7F0] border border-[#D9C39B] shadow-md ring-2 ring-[#C5A059]/30"
-                  : "bg-white hover:bg-stone-50 text-[#77736B] border border-[#E6D2A3]"
+                  ? 'bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#560409] border-2 border-[#E7C46D] text-white shadow-[0_8px_20px_-6px_rgba(142,14,23,0.5),inset_0_1px_0_rgba(255,255,255,0.28)]'
+                  : 'bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF0DA] border border-[#DFC078] text-[#292012] shadow-[0_4px_12px_-4px_rgba(92,58,12,0.18)] hover:border-[#B98321]'
               )}
             >
-              <History size={16} className={activeTab === 'historico' ? "text-[#C5A059]" : "text-stone-400"} />
+              <History
+                size={15}
+                className={activeTab === 'historico' ? 'text-[#FCE79D]' : 'text-[#8C6D28]'}
+              />
               <span>Histórico</span>
-              <span className={cn(
-                "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tabular-nums",
-                activeTab === 'historico' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
-              )}>
+              <span
+                className={cn(
+                  'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tabular-nums border',
+                  activeTab === 'historico'
+                    ? 'bg-[#4B0409] border-[#E7C46D]/70 text-[#FCE79D]'
+                    : 'bg-gradient-to-b from-[#FCE79D] to-[#DFB042] border-[#DFB042] text-[#292012]'
+                )}
+              >
                 {historyCount} ações
               </span>
             </button>
@@ -318,49 +436,49 @@ export default function ConfiguracoesPaginasView({
 
         {/* TOAST NOTIFICATION */}
         {toastMsg && (
-          <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center gap-2 shadow-sm animate-fade-in">
+          <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center gap-2 shadow-sm">
             <Check size={16} />
             <span>{toastMsg}</span>
           </div>
         )}
 
-        {/* TAB 1: PÁGINAS & MENU (VISIBILIDADE) */}
+        {/* TAB 1: PÁGINAS & MENU */}
         {activeTab === 'paginas' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-5">
             {/* METRICS SUMMARY CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+              <div className="bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF1DC] border border-[#DFC078] rounded-3xl p-4 shadow-[0_8px_20px_-10px_rgba(92,58,12,0.16)] flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-mono font-bold text-[#77736B] uppercase tracking-wider">
+                  <p className="text-[10px] font-extrabold text-[#6B665D] uppercase tracking-wider">
                     Total de Módulos
                   </p>
-                  <p className="text-2xl font-black text-[#25231F] mt-0.5">{totalPages}</p>
+                  <p className="text-2xl font-black text-[#17191E] mt-0.5 tabular-nums">{totalPages}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-600">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-b from-[#FCE79D] via-[#E5BB54] to-[#B98321] border border-[#DFC078] flex items-center justify-center text-[#59090F] shadow-xs">
                   <Sliders size={18} />
                 </div>
               </div>
 
-              <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+              <div className="bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF1DC] border border-[#DFC078] rounded-3xl p-4 shadow-[0_8px_20px_-10px_rgba(92,58,12,0.16)] flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-mono font-bold text-emerald-700 uppercase tracking-wider">
+                  <p className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider">
                     Módulos Visíveis
                   </p>
-                  <p className="text-2xl font-black text-emerald-700 mt-0.5">{visibleCount}</p>
+                  <p className="text-2xl font-black text-emerald-700 mt-0.5 tabular-nums">{visibleCount}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-b from-emerald-500 to-emerald-700 border-2 border-emerald-200 flex items-center justify-center text-white shadow-xs">
                   <Eye size={18} />
                 </div>
               </div>
 
-              <div className="bg-[#FFFCF6] border border-[#E6D2A3] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+              <div className="bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF1DC] border border-[#DFC078] rounded-3xl p-4 shadow-[0_8px_20px_-10px_rgba(92,58,12,0.16)] flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider">
+                  <p className="text-[10px] font-extrabold text-[#8E0E17] uppercase tracking-wider">
                     Módulos Ocultos
                   </p>
-                  <p className="text-2xl font-black text-stone-600 mt-0.5">{hiddenCount}</p>
+                  <p className="text-2xl font-black text-[#8E0E17] mt-0.5 tabular-nums">{hiddenCount}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-500">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] border-2 border-[#E7C46D] flex items-center justify-center text-white shadow-xs">
                   <EyeOff size={18} />
                 </div>
               </div>
@@ -376,49 +494,53 @@ export default function ConfiguracoesPaginasView({
                 return (
                   <div
                     key={page.id}
-                    className={`bg-[#FFFCF6] rounded-2xl p-4 border transition-all flex flex-col justify-between shadow-sm relative overflow-hidden ${
-                      isVisible 
-                        ? 'border-[#E6D2A3] hover:shadow-md' 
-                        : 'border-stone-300/80 opacity-70 bg-stone-50'
-                    }`}
+                    className={cn(
+                      'rounded-3xl p-4 border transition-all flex flex-col justify-between shadow-sm relative overflow-hidden',
+                      isVisible
+                        ? 'bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#FAF1DC] border-[#DFC078] hover:shadow-md'
+                        : 'bg-[#F6F3EC] border-[#E0D6C0] opacity-75'
+                    )}
                   >
-                    {/* Top: Icon & Shortcut */}
                     <div>
                       <div className="flex items-center justify-between mb-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
-                          isVisible 
-                            ? 'bg-[#F5F0E6] text-[#8C6D28] border-[#E6D2A3]' 
-                            : 'bg-stone-200 text-stone-500 border-stone-300'
-                        }`}>
-                          <IconComp size={20} />
+                        <div
+                          className={cn(
+                            'w-10 h-10 rounded-full flex items-center justify-center border shadow-xs',
+                            isVisible
+                              ? 'bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] text-white border-[#E7C46D]'
+                              : 'bg-stone-200 text-stone-500 border-stone-300'
+                          )}
+                        >
+                          <IconComp size={18} />
                         </div>
 
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-stone-100 border border-stone-300 text-stone-600">
+                        <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#DFC078] text-[#5B4720]">
                           {shortcut}
                         </span>
                       </div>
 
-                      {/* Title & Category */}
-                      <h3 className="font-black text-sm text-[#25231F] leading-tight mb-1">
+                      <h3 className="font-black text-sm text-[#17191E] leading-tight mb-1.5">
                         {page.label}
                       </h3>
-                      <span className="inline-block text-[9px] font-mono font-bold uppercase text-[#8C6D28] bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mb-2">
+                      <span className="inline-block text-[9px] font-extrabold uppercase text-[#7A5610] bg-gradient-to-b from-[#FFF3C9] to-[#F7DE94] px-2.5 py-0.5 rounded-full border border-[#DFC078] mb-2">
                         {page.category}
                       </span>
-                      <p className="text-[11px] text-[#77736B] leading-relaxed line-clamp-2">
+                      <p className="text-[11px] text-[#6B665D] leading-relaxed line-clamp-2">
                         {page.description}
                       </p>
                     </div>
 
-                    {/* Bottom: Status & Toggle Button */}
-                    <div className="pt-4 mt-3 border-t border-[#E6D2A3]/60 space-y-2">
-                      <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase">
-                        <span className="text-[#77736B]">Status:</span>
-                        <span className={`px-2 py-0.5 rounded-full ${
-                          isVisible 
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                            : 'bg-stone-200 text-stone-700 border border-stone-300'
-                        }`}>
+                    <div className="pt-3.5 mt-3 border-t border-[#E6D2A3]/80 space-y-2.5">
+                      <div className="flex items-center justify-between text-[10px] font-extrabold uppercase">
+                        <span className="text-[#6B665D]">Status:</span>
+                        <span
+                          className={cn(
+                            'px-2.5 py-0.5 rounded-full border',
+                            isVisible
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : 'bg-stone-200 text-stone-600 border-stone-300'
+                          )}
+                        >
                           {isVisible ? 'VISÍVEL' : 'OCULTO'}
                         </span>
                       </div>
@@ -426,20 +548,21 @@ export default function ConfiguracoesPaginasView({
                       <button
                         type="button"
                         onClick={() => handleToggleVisibility(page.id)}
-                        className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs ${
+                        className={cn(
+                          'w-full py-2 px-3 rounded-full font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs',
                           isVisible
-                            ? 'bg-[#292820] hover:bg-black text-[#FAF7F0] border border-[#D9C39B]'
-                            : 'bg-stone-200 hover:bg-stone-300 text-[#25231F] border border-stone-400'
-                        }`}
+                            ? 'bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#560409] hover:brightness-110 text-white border border-[#E7C46D]'
+                            : 'bg-gradient-to-b from-[#FFFFFF] to-[#FAF0DA] hover:brightness-98 text-[#292012] border border-[#DFC078]'
+                        )}
                       >
                         {isVisible ? (
                           <>
-                            <EyeOff size={15} className="text-[#C49A45]" />
+                            <EyeOff size={14} className="text-[#FCE79D]" />
                             <span>Ocultar Página</span>
                           </>
                         ) : (
                           <>
-                            <Eye size={15} className="text-emerald-700" />
+                            <Eye size={14} className="text-emerald-600" />
                             <span>Tornar Visível</span>
                           </>
                         )}
@@ -451,10 +574,18 @@ export default function ConfiguracoesPaginasView({
             </div>
 
             {/* BOTTOM HELPER BANNER */}
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-[#E6D2A3] flex items-start gap-3 text-xs text-[#8C6D28]">
-              <Info size={18} className="shrink-0 text-amber-700 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FFF6DC] via-[#FCECC0]/70 to-[#FFF6DC] border border-[#DFC078] flex items-start gap-3 text-xs text-[#6B4E12]">
+              <Info size={18} className="shrink-0 text-[#9E0E17] mt-0.5" />
               <div className="leading-relaxed">
-                <span className="font-bold">Dica Operacional:</span> As preferências de visibilidade gerais afetam o menu principal e atalhos. Para atribuir quais páginas cada usuário pode ver de acordo com a função (Administrador ou Agente de Risco), acesse a <button onClick={() => setActiveTab('cadastro')} className="underline font-black hover:text-black cursor-pointer">Aba Cadastro</button>.
+                <span className="font-extrabold">Dica Operacional:</span> As preferências de visibilidade gerais afetam o menu principal do Administrador. Para definir quais páginas cada usuário pode visualizar, acesse a{' '}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('cadastro')}
+                  className="underline font-black text-[#8E0E17] hover:text-black cursor-pointer"
+                >
+                  Aba Cadastro
+                </button>
+                .
               </div>
             </div>
           </div>
@@ -462,19 +593,8 @@ export default function ConfiguracoesPaginasView({
 
         {/* TAB 2: ABA CADASTRO (USUÁRIOS & FUNÇÕES) */}
         {activeTab === 'cadastro' && (
-          <div className="animate-fade-in">
-            <CadastroView 
-              embedded={true} 
-              currentUser={currentUser} 
-              onBack={onBack} 
-            />
-          </div>
-        )}
-
-        {/* TAB 3: HISTÓRICO DE AÇÕES DOS USUÁRIOS */}
-        {activeTab === 'historico' && canViewHistory && (
-          <div className="animate-fade-in">
-            <Historico
+          <div>
+            <CadastroView
               embedded={true}
               currentUser={currentUser}
               onBack={onBack}
@@ -482,6 +602,16 @@ export default function ConfiguracoesPaginasView({
           </div>
         )}
 
+        {/* TAB 3: HISTÓRICO DE AÇÕES DOS USUÁRIOS */}
+        {activeTab === 'historico' && canViewHistory && (
+          <div>
+            <Historico
+              embedded={true}
+              currentUser={currentUser}
+              onBack={onBack}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
