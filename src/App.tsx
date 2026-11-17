@@ -183,9 +183,11 @@ export default function App() {
 
     const pages = availablePages
       .filter(p => {
-        if (!Boolean(pageVisibility[p.id])) return false;
-        if (userAllowed && !userAllowed.includes(p.id)) return false;
-        return true;
+        if (p.id === 'cadastro' || p.id === 'settings' || p.id === 'historico') return false;
+        if (userAllowed !== null) {
+          return userAllowed.includes(p.id);
+        }
+        return pageVisibility[p.id] !== false;
       })
       .map(p => {
         const found = allTabs.find(t => t.id === p.id);
@@ -255,35 +257,75 @@ export default function App() {
     }
   }, []);
 
-  // Sincronização em tempo real e logout imediato se o usuário for removido ou tiver permissões alteradas
+  // Sincronização em tempo real de permissões e remoção de usuário
   useEffect(() => {
     if (!currentUser?.name && !currentUser?.email) return;
     const usersRef = ref(db, 'app_users');
     const unsubscribe = onValue(usersRef, (snapshot) => {
       const data = snapshot.val();
-      if (data && Array.isArray(data)) {
+      const rawList = Array.isArray(data)
+        ? data.filter(Boolean)
+        : (data && typeof data === 'object' ? Object.values(data).filter(Boolean) : null);
+
+      if (rawList && rawList.length > 0) {
+        localStorage.setItem('app_users', JSON.stringify(rawList));
         const myName = (currentUser.name || '').trim().toLowerCase();
         const myEmail = (currentUser.email || '').trim().toLowerCase();
-        const found = data.find((u: any) => 
-          String(u.name || '').trim().toLowerCase() === myName || 
-          String(u.email || '').trim().toLowerCase() === myEmail
-        );
-        
+        const isRootAdmin =
+          myEmail === 'panenosistemab13@gmail.com' ||
+          myEmail === 'jefferson@3coracoes.com.br';
+
+        const found: any =
+          rawList.find((u: any) => myEmail && String(u.email || '').trim().toLowerCase() === myEmail) ||
+          rawList.find((u: any) => myName && String(u.name || '').trim().toLowerCase() === myName);
+
         if (!found) {
-          // Usuário foi removido do sistema
-          alert('Seu usuário foi removido do sistema pelo Administrador.');
-          handleLogout();
+          if (!isRootAdmin) {
+            handleLogout();
+          }
           return;
         }
 
-        const foundRole = found.role === 'Administrador' ? 'admin' : 'agente_de_risco';
-        const currentAllowed = [...(currentUser.allowedPages || [])].sort().join(',');
-        const newAllowed = [...(found.allowedPages || [])].sort().join(',');
+        const isFoundAdmin = found.role === 'Administrador' || isRootAdmin;
+        const foundRole = isFoundAdmin ? 'admin' : 'agente_de_risco';
+        const foundRoleLabel = isFoundAdmin ? 'Administrador' : 'Agente de Risco';
+        const defaultFallback = [
+          'checklist',
+          'averbacao',
+          'sm_creator',
+          'lancamento',
+          'controle',
+          'disponibilidade',
+          'escala',
+          'lista_emails',
+          'historico'
+        ];
+        const foundAllowed: string[] = isFoundAdmin
+          ? []
+          : Array.isArray(found.allowedPages)
+            ? found.allowedPages.filter((p: any) => typeof p === 'string' && p.trim().length > 0)
+            : found.hasCustomPermissions
+              ? []
+              : defaultFallback;
 
-        if (currentUser.role !== foundRole || currentAllowed !== newAllowed) {
-          // Permissões ou função alteradas - deslogar imediatamente para aplicar a atualização
-          alert('Suas permissões ou função foram atualizadas pelo Administrador. Faça login novamente para aplicar.');
-          handleLogout();
+        const currentAllowed = [...(currentUser.allowedPages || [])].sort().join(',');
+        const newAllowed = [...foundAllowed].sort().join(',');
+        const foundName = String(found.name || currentUser.name || '');
+
+        if (
+          currentUser.role !== foundRole ||
+          currentAllowed !== newAllowed ||
+          (foundName && currentUser.name !== foundName)
+        ) {
+          const updatedUser = {
+            ...currentUser,
+            name: foundName,
+            role: foundRole,
+            roleLabel: foundRoleLabel,
+            allowedPages: foundAllowed
+          };
+          localStorage.setItem('logged_user', JSON.stringify(updatedUser));
+          setCurrentUser(updatedUser);
         }
       }
     });
@@ -318,18 +360,22 @@ export default function App() {
           saveStoredPageOrder(pageOrder);
         }
         if (visibility && typeof visibility === 'object') {
-          if (visibility.ordem_servico === undefined) {
-            visibility.ordem_servico = true;
+          const mergedVisibility = {
+            ...loadPageVisibility(),
+            ...visibility
+          };
+          if (mergedVisibility.ordem_servico === undefined) {
+            mergedVisibility.ordem_servico = true;
           }
-          if (visibility.cobrancas === undefined) {
-            visibility.cobrancas = true;
+          if (mergedVisibility.cobrancas === undefined) {
+            mergedVisibility.cobrancas = true;
           }
-          if (visibility.lista_emails === undefined) {
-            visibility.lista_emails = true;
+          if (mergedVisibility.lista_emails === undefined) {
+            mergedVisibility.lista_emails = true;
           }
-          delete visibility.historico;
-          savePageVisibility(visibility);
-          setPageVisibility(visibility);
+          delete mergedVisibility.historico;
+          savePageVisibility(mergedVisibility);
+          setPageVisibility(mergedVisibility);
         }
 
         setAvailablePages(getAllAvailablePages());

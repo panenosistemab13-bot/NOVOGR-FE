@@ -16,7 +16,8 @@ import {
   Sparkles,
   Users,
   Maximize2,
-  Minimize2
+  Minimize2,
+  MousePointerClick
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -949,72 +950,135 @@ export default function ListaEmails({ onBack: _onBack }: ListaEmailsProps) {
                       )}
 
                       {/* Lista de E-mails Extraídos do Campo PARA */}
-                      {unit.emails.length > 0 && (
-                        <div className="pt-3 border-t border-[#EFE2C2] space-y-2.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 text-xs font-bold text-[#3B362C]">
-                              <Users size={14} className="text-[#8C6D28]" />
-                              <span className="tabular-nums">
-                                Destinatários no PARA ({unit.emails.length})
-                              </span>
-                            </div>
-                            <span className="text-[11px] text-[#77736B]">
-                              Clique em um e-mail para copiar individualmente
-                            </span>
-                          </div>
+                      {unit.emails.length > 0 && (() => {
+                        const safeSvgId = unit.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+                        const crimsonGradId = `leDestCrimson_${safeSvgId}`;
+                        const goldGradId = `leDestGold_${safeSvgId}`;
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                            {unit.emails.map((email) => {
-                              const singleCopyId = `single_${unit.id}_${email}`;
-                              const isSingleCopied = copiedId === singleCopyId;
+                        return (
+                          <div className="relative overflow-hidden rounded-2xl border border-[#DFC078] bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF8] to-[#FCF2DC] p-4 sm:p-5 shadow-[0_10px_24px_-12px_rgba(92,16,22,0.16)]">
+                            {/* Ornamento carmesim e dourado no canto inferior direito */}
+                            <svg
+                              className="pointer-events-none absolute bottom-0 right-0 w-24 h-12 opacity-90"
+                              viewBox="0 0 120 60"
+                              fill="none"
+                              preserveAspectRatio="none"
+                              aria-hidden="true"
+                            >
+                              <defs>
+                                <linearGradient id={crimsonGradId} x1="0" y1="0" x2="1" y2="1">
+                                  <stop offset="0%" stopColor="#B81620" />
+                                  <stop offset="65%" stopColor="#75060D" />
+                                  <stop offset="100%" stopColor="#4B0307" />
+                                </linearGradient>
+                                <linearGradient id={goldGradId} x1="0" y1="0" x2="1" y2="0">
+                                  <stop offset="0%" stopColor="#E4BE5E" />
+                                  <stop offset="50%" stopColor="#FCE79D" />
+                                  <stop offset="100%" stopColor="#B98321" />
+                                </linearGradient>
+                              </defs>
+                              <path
+                                d="M120 60V12C102 36 74 52 24 60H120Z"
+                                fill={`url(#${crimsonGradId})`}
+                              />
+                              <path
+                                d="M120 12C102 36 74 52 24 60H8C66 49 98 30 120 4V12Z"
+                                fill={`url(#${goldGradId})`}
+                              />
+                            </svg>
 
-                              return (
-                                <div
-                                  key={email}
-                                  className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E6D2A3] hover:border-[#B98321] shadow-2xs transition-colors group"
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      copyToClipboard(
-                                        singleCopyId,
-                                        email,
-                                        `E-mail copiado: ${email}`
-                                      )
-                                    }
-                                    className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
-                                    title={`Copiar ${email}`}
-                                  >
-                                    {isSingleCopied ? (
-                                      <Check size={13} className="text-emerald-600 shrink-0" />
-                                    ) : (
-                                      <Copy size={13} className="text-[#8C6D28] shrink-0 opacity-70 group-hover:opacity-100" />
-                                    )}
-                                    <span
-                                      className={cn(
-                                        'text-xs truncate',
-                                        isSingleCopied ? 'text-emerald-700 font-semibold' : 'text-[#1E1D1A]'
-                                      )}
-                                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                                    >
-                                      {email}
-                                    </span>
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveSingleEmail(unit.id, email)}
-                                    className="p-1 rounded-full text-stone-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer shrink-0 transition-colors"
-                                    title={`Remover ${email}`}
-                                  >
-                                    <X size={13} />
-                                  </button>
+                            {/* Cabeçalho do Painel */}
+                            <div className="relative z-10 flex flex-wrap items-center justify-between gap-2.5 pb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#C81B24] via-[#9E0E17] to-[#6E060C] border-2 border-[#E7C46D] shadow-sm flex items-center justify-center text-white shrink-0">
+                                  <Users size={16} />
                                 </div>
-                              );
-                            })}
+                                <span className="text-sm sm:text-[15px] font-extrabold text-[#17191E] tracking-tight">
+                                  Destinatários:
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedParaIds((prev) => ({
+                                    ...prev,
+                                    [unit.id]: true,
+                                  }))
+                                }
+                                className="px-3.5 py-1.5 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#FAF0DA] border border-[#DFC078] shadow-[0_2px_6px_-2px_rgba(92,58,12,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] text-xs font-bold text-[#292012] flex items-center gap-1.5 hover:brightness-105 cursor-pointer transition-all"
+                                title="Expandir campo PARA para adicionar e-mails"
+                              >
+                                <MousePointerClick size={14} className="text-[#A8131D]" />
+                                <span>Clique para adicionar</span>
+                              </button>
+                            </div>
+
+                            {/* Linha divisória metálica carmesim-dourada */}
+                            <div className="relative z-10 h-[1.5px] w-full bg-gradient-to-r from-[#8E0E17] via-[#C81B24] to-[#DFB042]/60 mb-3.5" />
+
+                            {/* Cápsulas de E-mail */}
+                            <div className="relative z-10 flex flex-wrap gap-2.5">
+                              {unit.emails.map((email) => {
+                                const singleCopyId = `single_${unit.id}_${email}`;
+                                const isSingleCopied = copiedId === singleCopyId;
+
+                                return (
+                                  <div
+                                    key={email}
+                                    className="flex items-center justify-between gap-2.5 pl-1.5 pr-2 py-1.5 rounded-full max-w-full bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#F7EEDB] border border-[#DFC078] shadow-[0_3px_10px_-4px_rgba(92,58,12,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] hover:border-[#B98321] transition-all group"
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        copyToClipboard(
+                                          singleCopyId,
+                                          email,
+                                          `E-mail copiado: ${email}`
+                                        )
+                                      }
+                                      className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer"
+                                      title={`Copiar ${email}`}
+                                    >
+                                      <span
+                                        className={cn(
+                                          'w-7 h-7 rounded-full flex items-center justify-center shrink-0 border shadow-xs transition-all',
+                                          isSingleCopied
+                                            ? 'bg-emerald-600 border-emerald-300'
+                                            : 'bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] border-[#E7C46D] group-hover:scale-105'
+                                        )}
+                                      >
+                                        {isSingleCopied ? (
+                                          <Check size={13} className="text-white" />
+                                        ) : (
+                                          <Mail size={13} className="text-white" />
+                                        )}
+                                      </span>
+                                      <span
+                                        className={cn(
+                                          'text-xs sm:text-[13px] font-semibold truncate pr-1',
+                                          isSingleCopied ? 'text-emerald-700' : 'text-[#17191E]'
+                                        )}
+                                      >
+                                        {email}
+                                      </span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSingleEmail(unit.id, email)}
+                                      className="w-6 h-6 rounded-full bg-[#FBF4E4] hover:bg-rose-100 border border-[#E6D2A3] flex items-center justify-center shrink-0 text-[#59090F] hover:text-rose-700 transition-colors cursor-pointer"
+                                      title={`Remover ${email}`}
+                                    >
+                                      <X size={12} strokeWidth={2.5} />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
                   )}
                 </article>

@@ -61,17 +61,25 @@ export default function NavigationDrawer({
       { id: 'menu', label: 'Início', subtitle: 'Painel Central', icon: Home }
     ];
     pages.forEach(p => {
-      if (p.id !== 'cadastro' && p.id !== 'settings' && vis[p.id] !== false) {
-        if (userAllowed && !userAllowed.includes(p.id)) {
+      if (p.id === 'cadastro' || p.id === 'settings' || p.id === 'historico') {
+        return;
+      }
+
+      if (userAllowed !== null) {
+        // Para Agente de Risco, todas as páginas explicitamente autorizadas no Cadastro devem aparecer
+        if (!userAllowed.includes(p.id)) {
           return;
         }
-        items.push({
-          id: p.id,
-          label: p.label,
-          subtitle: p.category || p.badge || 'Módulo',
-          icon: ICON_MAP[p.iconName] || Route
-        });
+      } else if (vis[p.id] === false) {
+        return;
       }
+
+      items.push({
+        id: p.id,
+        label: p.label,
+        subtitle: p.category || p.badge || 'Módulo',
+        icon: ICON_MAP[p.iconName] || Route
+      });
     });
     return items;
   }, [availablePages, pageVisibility, currentUser]);
@@ -103,12 +111,9 @@ export default function NavigationDrawer({
         );
       case 'controle':
         return (
-          <div className="relative flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className={cn("w-5 h-5", iconColor)} fill="currentColor">
-              <path fillRule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" clipRule="evenodd" />
-            </svg>
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#DC2626] border-[1.5px] border-white shadow-2xs" />
-          </div>
+          <svg viewBox="0 0 24 24" className={cn("w-5 h-5", iconColor)} fill="currentColor">
+            <path fillRule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" clipRule="evenodd" />
+          </svg>
         );
       case 'escala':
         return (

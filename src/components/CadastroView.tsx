@@ -25,6 +25,7 @@ export interface UserAccount {
   name: string;
   role: 'Administrador' | 'Agente de Risco' | 'Funcionario';
   allowedPages: string[];
+  hasCustomPermissions?: boolean;
   email: string;
 }
 
@@ -85,18 +86,27 @@ const DEFAULT_USERS: UserAccount[] = [
   }
 ];
 
-export const sanitizeUsers = (userList: any[]): UserAccount[] => {
-  if (!Array.isArray(userList)) return DEFAULT_USERS;
-  const cleaned: UserAccount[] = userList
-    .filter((u: any) => u && u.name && String(u.name).trim().toLowerCase() !== 'jeff')
+export const sanitizeUsers = (userList: any): UserAccount[] => {
+  const rawArray = Array.isArray(userList)
+    ? userList
+    : (userList && typeof userList === 'object' ? Object.values(userList) : null);
+  if (!rawArray) return DEFAULT_USERS;
+
+  const cleaned: UserAccount[] = rawArray
+    .filter((u: any) => u && typeof u === 'object' && String(u.name || '').trim().toLowerCase() !== 'jeff')
     .map((u: any) => {
       const role: 'Administrador' | 'Agente de Risco' = 
         u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco';
       
       let allowedPages: string[] = [];
+      let hasCustomPermissions = Boolean(u.hasCustomPermissions);
       if (role === 'Agente de Risco') {
-        if (Array.isArray(u.allowedPages) && u.allowedPages.length > 0) {
+        if (Array.isArray(u.allowedPages)) {
           allowedPages = u.allowedPages.filter((p: any) => typeof p === 'string' && p.trim().length > 0);
+          hasCustomPermissions = true;
+        } else if (u.hasCustomPermissions) {
+          allowedPages = [];
+          hasCustomPermissions = true;
         } else {
           allowedPages = [...DEFAULT_AGENT_PAGES];
         }
@@ -108,16 +118,30 @@ export const sanitizeUsers = (userList: any[]): UserAccount[] => {
 
       return {
         id: Number(u.id) || Date.now(),
-        name: String(u.name || '').trim(),
+        name: String(u.name ?? ''),
         role,
         allowedPages,
-        email: u.email || `${String(u.name || 'usuario').toLowerCase().replace(/\s+/g, '')}@3coracoes.com.br`
+        ...(role === 'Agente de Risco' && hasCustomPermissions ? { hasCustomPermissions: true } : {}),
+        email: String(u.email ?? '') || `${String(u.name || 'usuario').toLowerCase().replace(/\s+/g, '')}@3coracoes.com.br`
       };
     });
   
+  const rootIdx = cleaned.findIndex(
+    u => String(u.email || '').trim().toLowerCase() === FIXED_ADMIN_USER.email.toLowerCase()
+  );
+  if (rootIdx === -1) {
+    cleaned.unshift({ ...FIXED_ADMIN_USER });
+  }
+
   const idx = cleaned.findIndex(u => String(u.name).trim().toLowerCase() === 'jefferson');
   if (idx === -1) {
-    cleaned.unshift(FIXED_ADMIN_USER);
+    cleaned.push({
+      id: 2,
+      name: 'jefferson',
+      role: 'Administrador',
+      email: 'jefferson@3coracoes.com.br',
+      allowedPages: [...ALL_ADMIN_PAGES]
+    });
   } else {
     cleaned[idx] = {
       ...cleaned[idx],
@@ -138,6 +162,7 @@ export const cleanUsersForFirebase = (userList: any[]): UserAccount[] => {
     name: String(u.name || '').trim(),
     role: u.role === 'Administrador' ? 'Administrador' : 'Agente de Risco',
     allowedPages: Array.isArray(u.allowedPages) ? u.allowedPages : [],
+    ...(u.role !== 'Administrador' && u.hasCustomPermissions ? { hasCustomPermissions: true } : {}),
     email: String(u.email || '').trim()
   }));
 };
@@ -149,7 +174,12 @@ export interface CadastroViewProps {
 }
 
 export default function CadastroView({ onBack, currentUser, embedded = false }: CadastroViewProps) {
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'Administrador' || currentUser?.name?.toLowerCase() === 'jefferson';
+  const isAdmin =
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'Administrador' ||
+    currentUser?.name?.toLowerCase() === 'jefferson' ||
+    currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
+    currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br';
 
   const [users, setUsers] = useState<UserAccount[]>(() => {
     try {
@@ -215,8 +245,11 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     const usersRef = ref(rtdb, 'app_users');
     const unsubscribe = onValue(usersRef, (snapshot) => {
       const data = snapshot.val();
-      if (data && Array.isArray(data)) {
-        const cleaned = sanitizeUsers(data);
+      const rawList = Array.isArray(data)
+        ? data
+        : (data && typeof data === 'object' ? Object.values(data) : null);
+      if (rawList && rawList.length > 0) {
+        const cleaned = sanitizeUsers(rawList);
         setUsers(cleaned);
         localStorage.setItem('app_users', JSON.stringify(cleaned));
       } else if (!data) {
@@ -240,7 +273,11 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     }
 
     if (currentUser) {
-      const selfUpdated = cleaned.find(u => u.email === currentUser.email || u.name === currentUser.name);
+      const myEmail = (currentUser.email || '').trim().toLowerCase();
+      const myName = (currentUser.name || '').trim().toLowerCase();
+      const selfUpdated =
+        cleaned.find(u => myEmail && u.email.trim().toLowerCase() === myEmail) ||
+        cleaned.find(u => myName && u.name.trim().toLowerCase() === myName);
       if (selfUpdated) {
         const updatedLogged = {
           email: selfUpdated.email,
@@ -308,7 +345,11 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
       ? currentAllowed.filter(id => id !== pageId)
       : [...currentAllowed, pageId];
 
-    const updated = users.map(u => u.id === selectedUserId ? { ...u, allowedPages: updatedPages } : u);
+    const updated = users.map(u =>
+      u.id === selectedUserId
+        ? { ...u, allowedPages: updatedPages, hasCustomPermissions: true }
+        : u
+    );
     saveToStorageAndFirebase(updated);
     const pageLabel = availablePagesList.find(p => p.id === pageId)?.label || pageId;
     logAuditAction({
@@ -324,7 +365,11 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
   const handleSelectAllPages = () => {
     if (!selectedUser || selectedUser.role === 'Administrador') return;
     const allPageIds = availablePagesList.map(p => p.id);
-    const updated = users.map(u => u.id === selectedUserId ? { ...u, allowedPages: allPageIds } : u);
+    const updated = users.map(u =>
+      u.id === selectedUserId
+        ? { ...u, allowedPages: allPageIds, hasCustomPermissions: true }
+        : u
+    );
     saveToStorageAndFirebase(updated);
     logAuditAction({
       action: 'EDIT',
@@ -338,7 +383,11 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
 
   const handleClearAllPages = () => {
     if (!selectedUser || selectedUser.role === 'Administrador') return;
-    const updated = users.map(u => u.id === selectedUserId ? { ...u, allowedPages: [] } : u);
+    const updated = users.map(u =>
+      u.id === selectedUserId
+        ? { ...u, allowedPages: [], hasCustomPermissions: true }
+        : u
+    );
     saveToStorageAndFirebase(updated);
     logAuditAction({
       action: 'EDIT',

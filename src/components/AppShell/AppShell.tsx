@@ -17,7 +17,7 @@ interface AppShellProps {
   isWallpaperOpen?: boolean;
   pageVisibility?: Record<string, boolean>;
   availablePages?: PageDefinition[];
-  currentUser?: { email: string; name: string; role: string } | null;
+  currentUser?: { email: string; name: string; role: string; roleLabel?: string; allowedPages?: string[] } | null;
   children: ReactNode;
 }
 

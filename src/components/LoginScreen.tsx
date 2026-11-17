@@ -7,10 +7,16 @@ import {
 } from 'lucide-react';
 import { auth, rtdb } from '../firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, get } from 'firebase/database';
 
 interface LoginScreenProps {
-  onLoginSuccess: (user: { email: string; name: string; role: string }) => void;
+  onLoginSuccess: (user: {
+    email: string;
+    name: string;
+    role: string;
+    roleLabel?: string;
+    allowedPages?: string[];
+  }) => void;
 }
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
@@ -33,13 +39,21 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     ];
   });
 
+  const normalizeUsersList = (val: any): any[] => {
+    if (Array.isArray(val)) return val.filter((u) => u && typeof u === 'object');
+    if (val && typeof val === 'object') {
+      return Object.values(val).filter((u) => u && typeof u === 'object');
+    }
+    return [];
+  };
+
   React.useEffect(() => {
     const usersRef = ref(rtdb, 'app_users');
     const unsub = onValue(usersRef, (snapshot) => {
-      const val = snapshot.val();
-      if (val && Array.isArray(val)) {
-        setRegisteredUsers(val);
-        localStorage.setItem('app_users', JSON.stringify(val));
+      const normalized = normalizeUsersList(snapshot.val());
+      if (normalized.length > 0) {
+        setRegisteredUsers(normalized);
+        localStorage.setItem('app_users', JSON.stringify(normalized));
       }
     });
     return () => unsub();
@@ -63,9 +77,24 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         return;
       }
 
-      const currentList = registeredUsers.length > 0 
-        ? registeredUsers 
-        : JSON.parse(localStorage.getItem('app_users') || '[]');
+      let currentList: any[] = [];
+      try {
+        const liveSnap = await get(ref(rtdb, 'app_users'));
+        const liveNormalized = normalizeUsersList(liveSnap.val());
+        if (liveNormalized.length > 0) {
+          currentList = liveNormalized;
+          setRegisteredUsers(liveNormalized);
+          localStorage.setItem('app_users', JSON.stringify(liveNormalized));
+        }
+      } catch {
+        // Fallback para lista em memória / localStorage
+      }
+
+      if (currentList.length === 0) {
+        currentList = registeredUsers.length > 0
+          ? registeredUsers
+          : normalizeUsersList(JSON.parse(localStorage.getItem('app_users') || '[]'));
+      }
 
       const matchedUser = currentList.find((u: any) => {
         const uEmail = String(u.email || '').trim().toLowerCase();
@@ -85,12 +114,32 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const roleStr = matchedUser?.role || (isRootAdmin ? 'Administrador' : 'Agente de Risco');
       const isUserAdmin = roleStr === 'Administrador' || isRootAdmin;
 
+      const defaultAgentFallback = [
+        'checklist',
+        'averbacao',
+        'sm_creator',
+        'lancamento',
+        'controle',
+        'disponibilidade',
+        'escala',
+        'lista_emails',
+        'historico'
+      ];
+
+      const resolvedAllowedPages = isUserAdmin
+        ? []
+        : Array.isArray(matchedUser?.allowedPages)
+          ? matchedUser.allowedPages.filter((p: any) => typeof p === 'string' && p.trim().length > 0)
+          : matchedUser?.hasCustomPermissions
+            ? []
+            : defaultAgentFallback;
+
       const userData = {
         email: googleEmail,
         name: matchedUser?.name || googleName,
         role: isUserAdmin ? 'admin' : 'agente_de_risco',
         roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : (isUserAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'lancamento', 'controle', 'disponibilidade', 'escala', 'lista_emails', 'historico'])
+        allowedPages: resolvedAllowedPages
       };
 
       localStorage.setItem('logged_user', JSON.stringify(userData));
