@@ -672,10 +672,16 @@ export default function App() {
       <div 
         className={cn(
           "w-full h-full relative",
-          activeTab === 'menu' ? "bg-[#070c14] overflow-hidden" : "overflow-y-auto"
+          activeTab === 'menu'
+            ? "bg-[#070c14] overflow-hidden"
+            : activeTab === 'sm_creator'
+              ? "bg-[#FDF8EE] overflow-y-auto"
+              : activeTab === 'averbacao'
+                ? "bg-[#FAF6EF] overflow-y-auto"
+                : "overflow-y-auto"
         )}
         style={
-          activeTab === 'menu'
+          activeTab === 'menu' || activeTab === 'sm_creator' || activeTab === 'averbacao'
             ? {}
             : {
                 backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
@@ -688,7 +694,13 @@ export default function App() {
         {activeTab === 'menu' ? (
           <MainDashboard onNavigate={(id) => setActiveTab(id as Tab)} />
         ) : (
-          <div className="internal-pages-wrapper w-full min-h-full">
+          <div
+            className={cn(
+              "internal-pages-wrapper w-full min-h-full flex flex-col",
+              activeTab === 'sm_creator' && "bg-[#FDF8EE]",
+              activeTab === 'averbacao' && "bg-[#FAF6EF]"
+            )}
+          >
             {renderActiveModuleContent()}
           </div>
         )}

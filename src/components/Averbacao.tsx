@@ -828,7 +828,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
   return (
     <div
-      className="w-full min-h-[calc(100vh-76px)] flex flex-col relative text-left bg-[#FAF6EF] p-3.5 sm:p-4 text-[#181715] font-sans overflow-y-auto"
+      className="w-full min-h-full flex-1 flex flex-col relative text-left bg-[#FAF6EF] p-3.5 sm:p-4 text-[#181715] font-sans"
       style={{ zoom: 0.84 }}
     >
       

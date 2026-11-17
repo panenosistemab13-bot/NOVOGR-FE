@@ -1854,7 +1854,7 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
 
   return (
     <div
-      className="w-full min-h-[calc(100vh-76px)] relative pb-10 space-y-4 font-sans text-[#1A1917] text-left bg-[#FDF8EE] p-4 sm:p-6 rounded-3xl border border-[#EFE2C6] shadow-lg"
+      className="w-full min-h-full flex-1 relative pb-10 space-y-4 font-sans text-[#1A1917] text-left bg-[#FDF8EE] p-4 sm:p-6"
       style={{ zoom: 0.84 }}
     >
       
