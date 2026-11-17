@@ -172,6 +172,13 @@ function parseRawSpreadsheet(raw: string): CobrancaRow[] {
       endereco = cols[headerIndices.endereco] !== undefined ? cols[headerIndices.endereco] : (cols[15] || cols[cols.length - 1] || '-');
     }
 
+    if (/^\d{1,2}[\.\/][A-Z\d]+/i.test(status) || /^\d{2}\/\d{2}/.test(status)) {
+      const statusLikeCol = cols.find(c => /ROTA|IDA|VOLTA|DESTINO|PND|ENTREGUE|AGUARDANDO|VIAGEM/i.test(c));
+      if (statusLikeCol) {
+        status = statusLikeCol;
+      }
+    }
+
     const diasNum = parseInt(String(diasAguard).replace(/[^\d-]/g, ''), 10);
 
     parsed.push({

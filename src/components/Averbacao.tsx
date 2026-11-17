@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
+import html2canvas from 'html2canvas';
 import { 
   ShieldCheck, 
   Zap,
@@ -27,7 +28,13 @@ import {
   Palette,
   BarChart3,
   Cpu,
-  Car
+  Car,
+  Home,
+  ChevronLeft,
+  RefreshCw,
+  Flag,
+  Settings,
+  FileText
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { safeCopyText, safeCopyHtmlAndText, safeCopyImage } from '../utils/clipboard';
@@ -99,6 +106,15 @@ const COLOR_THEMES = {
     accentColor: '#10B981',
     textColor: '#FFFFFF',
     circleBg: 'bg-[#096B36]'
+  },
+  rosa: {
+    name: 'ROSA',
+    highlightClass: 'bg-[#9E0E17] text-white border border-[#DFC078]',
+    tableCellClass: 'bg-[#FFFBF2] text-[#1E1B18] border border-[#EAD9B0]',
+    borderClass: 'border-[#DFC078]',
+    accentColor: '#EC4899',
+    textColor: '#FFFFFF',
+    circleBg: 'bg-[#EC4899]'
   }
 };
 
@@ -108,7 +124,7 @@ interface AverbacaoProps {
 }
 
 export function Averbacao({ onBack }: AverbacaoProps) {
-  const [emailColor, setEmailColor] = useState<'amarelo' | 'vermelho' | 'azul' | 'verde'>('amarelo');
+  const [emailColor, setEmailColor] = useState<'amarelo' | 'vermelho' | 'azul' | 'verde' | 'rosa'>('amarelo');
   const activeTheme = COLOR_THEMES[emailColor];
   const emailPreviewRef = useRef<HTMLDivElement>(null);
   
@@ -760,42 +776,55 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     const greeting = getGreeting();
 
     let imageBlob: Blob | null = null;
-    if (emailPreviewRef.current) {
+    const elemento = document.getElementById('email-preview');
+    if (elemento) {
       try {
-        emailPreviewRef.current.querySelectorAll('input').forEach(input => {
+        elemento.querySelectorAll('input').forEach(input => {
           input.setAttribute('value', input.value);
         });
-        imageBlob = await htmlToImage.toBlob(emailPreviewRef.current, {
-          quality: 0.98,
-          pixelRatio: 2,
+        const canvas = await html2canvas(elemento, {
+          scale: 3,
+          useCORS: true,
+          allowTaint: false,
           backgroundColor: '#ffffff',
-          skipFonts: true,
-          fontEmbedCSS: ''
+          logging: false,
+          imageTimeout: 20000,
+          scrollX: 0,
+          scrollY: 0,
+          width: elemento.scrollWidth,
+          height: elemento.scrollHeight,
+          windowWidth: elemento.scrollWidth,
+          windowHeight: elemento.scrollHeight
+        } as any);
+        imageBlob = await new Promise<Blob | null>(resolve => {
+          canvas.toBlob(resolve, 'image/png');
         });
       } catch (e) {
-        console.warn('Não foi possível gerar blob de imagem:', e);
+        console.warn('Erro ao gerar imagem com html2canvas:', e);
       }
     }
 
+    const isRosaTheme = emailColor === 'rosa';
+
     const tableRowsHtml = uniqueTransportRows.map(row => `
-      <tr style="background-color: ${activeTheme.accentColor}; color: ${activeTheme.textColor}; font-weight: 400; text-align: center; font-size: 11.5px;">
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.origem || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.destino || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.transportadora || extraData.transportadora || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 400;">${row.placaCav || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 400;">${row.placaCarr || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.tecnologia || extraData.tecnologia || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; text-transform: uppercase; font-weight: 400;">${row.nomeMotorista || extraData.nomeMotorista || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-family: Arial, sans-serif; font-weight: 400;">${row.cpf || extraData.cpf || '-'}</td>
-        <td style="border: 1px solid #3A3830; padding: 9px 8px; font-weight: 400;">${row.telefone || extraData.telefone || '-'}</td>
+      <tr style="background-color: ${isRosaTheme ? '#FFFBF2' : activeTheme.accentColor}; color: ${isRosaTheme ? '#1E1B18' : activeTheme.textColor}; font-weight: 500; text-align: center; font-size: 11.5px;">
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; text-transform: uppercase;">${row.origem || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; text-transform: uppercase;">${row.destino || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; text-transform: uppercase;">${row.transportadora || extraData.transportadora || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; font-family: Arial, sans-serif; text-transform: uppercase;">${row.placaCav || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; font-family: Arial, sans-serif; text-transform: uppercase;">${row.placaCarr || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; text-transform: uppercase;">${row.tecnologia || extraData.tecnologia || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; text-transform: uppercase;">${row.nomeMotorista || extraData.nomeMotorista || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px; font-family: Arial, sans-serif;">${row.cpf || extraData.cpf || '-'}</td>
+        <td style="border: 1px solid ${isRosaTheme ? '#EAD9B0' : '#3A3830'}; padding: 9px 8px;">${row.telefone || extraData.telefone || '-'}</td>
       </tr>
     `).join('');
 
     const uniqueProtocols = getUniqueProtocols(rowsToUse);
     const protocolsListToRender = uniqueProtocols.length > 0 ? uniqueProtocols : ['-'];
     const protocolsRowsHtml = protocolsListToRender.map(p => `
-      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #000000; margin-top: 6px; font-weight: 600; letter-spacing: 0.2px;">
-        PROTOCOLO: <span style="color: #0000FF; font-family: Arial, Helvetica, sans-serif; font-weight: 600;">${p}</span>
+      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #1E1B18; margin-top: 6px; font-weight: 600; letter-spacing: 0.2px;">
+        PROTOCOLO: <span style="color: ${isRosaTheme ? '#B9121B' : '#0000FF'}; font-family: Arial, Helvetica, sans-serif; font-weight: 700;">${p}</span>
       </div>
     `).join('');
 
@@ -803,7 +832,61 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       ? uniqueProtocols.map(p => `PROTOCOLO: ${p}`).join('\n')
       : 'PROTOCOLO: -';
 
-    const htmlContent = `
+    const htmlContent = isRosaTheme ? `
+      <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #1E1B18; line-height: 1.5; max-width: 980px; background: linear-gradient(180deg, #FFFDF9 0%, #FFF9EE 100%); padding: 20px; border: 1.5px solid #DFC078; border-radius: 22px;">
+        <table style="width: 100%; height: 210px; border-collapse: collapse; margin-bottom: 16px; background-image: url('/assets/aistudio/image_e4209467.png'); background-size: cover; background-position: center; border: 1.5px solid #DFC078; border-radius: 16px; overflow: hidden;">
+          <tr>
+            <td style="padding: 16px; vertical-align: bottom; text-align: left; width: 27%;">
+              <div style="display: inline-block; background: linear-gradient(180deg, #FFFFFF 0%, #F7E5C0 100%); border: 1.5px solid #DFB963; border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 700; color: #1E1B18;">
+                &lt; ${greeting}
+              </div>
+            </td>
+            <td style="padding: 16px; vertical-align: middle; text-align: center; width: 46%;">
+              <div style="background: linear-gradient(135deg, #FFFFFF 0%, #FFFBF1 100%); border: 1.5px solid #D7A949; border-radius: 16px; padding: 14px 18px; text-align: left; max-width: 420px; margin: 0 auto;">
+                <div style="font-size: 13px; font-weight: 700; color: #1E1B18; text-transform: uppercase; margin-bottom: 6px;">
+                  ROTA: <span style="color: #C8141B;">${cleanRoute}</span>
+                </div>
+                ${protocolsRowsHtml}
+                <div style="font-size: 13.5px; font-weight: 700; color: #1E1B18; margin-top: 8px;">
+                  Valor da Carga: <span style="color: #C8141B; font-size: 15px;">${totalCarga}</span>
+                </div>
+              </div>
+            </td>
+            <td style="padding: 16px; vertical-align: bottom; text-align: right; width: 27%;">
+              <div style="display: inline-block; background: linear-gradient(180deg, #FFFFFF 0%, #F7E6C2 100%); border: 1.5px solid #D7A949; border-radius: 999px; padding: 6px 16px; font-size: 12px; font-weight: 700; color: #1E1B18;">
+                Seguir ↻ <span style="background: linear-gradient(180deg, #D91E28 0%, #6E0409 100%); color: #FFFFFF; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; font-size: 10px;">AVERBAÇÃO</span> realizada via sistema.
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        ${uniqueTransportRows.length > 0 ? `
+          <div style="border: 1.5px solid #DFC078; border-radius: 16px; overflow: hidden; background-color: #FFFBF2;">
+            <div style="background: linear-gradient(90deg, #D41A23 0%, #8F0810 55%, #4A0205 100%); color: #FFFFFF; padding: 12px 16px; font-size: 13.5px; font-weight: 600;">
+              Segue dados e NF's em anexo.
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; text-align: center;">
+              <thead>
+                <tr style="background: linear-gradient(180deg, #AD0F18 0%, #5E0307 100%); color: #FFFFFF; font-size: 10px; text-transform: uppercase; font-weight: 700;">
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">ORIGEM</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">DESTINO</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">TRANSPORTADORA</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">PLACA CAVALO</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">PLACA S. CARRETAS</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">TECNOLOGIA</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">NOME MOTORISTA</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">CPF</th>
+                  <th style="border: 1px solid #DFC280; padding: 9px 6px;">TELEFONE</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRowsHtml}
+              </tbody>
+            </table>
+          </div>
+        ` : ''}
+      </div>
+    `.trim() : `
       <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #141517; line-height: 1.5; max-width: 980px; background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; border-radius: 16px;">
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
           <tr>
@@ -1076,6 +1159,7 @@ export function Averbacao({ onBack }: AverbacaoProps) {
               </button>
 
               <button
+                id="btnCopiarEmail"
                 type="button"
                 onClick={copyToEmail}
                 className={cn(
@@ -1127,263 +1211,601 @@ export function Averbacao({ onBack }: AverbacaoProps) {
           </div>
 
           {/* CARD 5: EMAIL BODY PREVIEW CONTAINER (PAINEL DE AVERBAÇÃO DA ROTA) */}
-          <div 
-            ref={emailPreviewRef}
-            className="bg-white border border-[#E5E7EB] rounded-3xl p-5 sm:p-6 text-left font-sans text-[#181715] space-y-4 shadow-[0_4px_18px_rgba(0,0,0,0.035)]"
-          >
-            {/* TOP ROW: GREETING PILL (LEFT) & STATUS CAPSULE (RIGHT) */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              {/* Left Greeting Pill */}
-              <div className="inline-flex items-center bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl px-4 py-2.5 self-start">
-                <span className="text-[15px] font-normal tracking-normal text-[#1F2937] leading-none">
-                  {getGreeting()}
-                </span>
-              </div>
-
-              {/* Right Status Capsule Pill */}
-              <div className="inline-flex items-center gap-2 bg-[#F4F5F7] border border-[#DCDEE4] rounded-full px-4 py-1.5 self-start sm:self-auto">
-                <span className="text-xs sm:text-[12.5px] font-normal text-[#181715]">
-                  Segue
-                </span>
-                <span
-                  className="px-2.5 py-0.5 rounded-md font-normal text-[11px] uppercase tracking-wide"
-                  style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
-                >
-                  AVERBAÇÃO
-                </span>
-                <span className="text-xs sm:text-[12.5px] font-normal text-[#26272B]">
-                  realizada via sistema.
-                </span>
-              </div>
-            </div>
-
-            {/* MIDDLE BLOCK: ROTA + PROTOCOLOS + VALOR DA CARGA (MATCHING image_aac15e6e.png) */}
+          {emailColor === 'rosa' ? (
             <div
-              className="bg-[#F8FAFC] rounded-xl px-5 py-4 space-y-2 border-l-[5px]"
-              style={{ borderLeftColor: activeTheme.accentColor, fontFamily: 'Arial, Helvetica, sans-serif' }}
+              id="email-preview"
+              ref={emailPreviewRef}
+              className="relative rounded-[24px] overflow-hidden border-[1.5px] border-[#DFC078] bg-gradient-to-b from-[#FFFDF9] via-[#FFF9EE] to-[#FAF0D8] text-left font-sans text-[#1E1B18] shadow-[0_10px_30px_rgba(110,65,15,0.12)]"
             >
-              {/* ROTA */}
-              <div className="text-[13px] font-semibold uppercase tracking-[0.015em] break-words">
-                <span className="text-[#000000]">ROTA: </span>
-                <span className="text-[#0000FF]">
-                  {getCleanRouteText(filteredRows.length > 0 ? filteredRows : parsedRows)}
-                </span>
+              {/* TOP HERO SECTION */}
+              <div 
+                className="relative w-full min-h-[210px] sm:min-h-[224px] flex flex-col justify-center overflow-hidden bg-cover bg-center"
+                style={{ backgroundImage: `url('/assets/aistudio/image_e4209467.png')` }}
+              >
+
+                {/* Soft warm sunlight glow in center-top behind the Rota card */}
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse 42% 85% at 50% 25%, rgba(255,244,218,0.65) 0%, rgba(255,255,255,0) 100%)',
+                  }}
+                />
+
+                {/* Hero Foreground Controls & Cards */}
+                <div className="relative z-10 w-full px-2.5 sm:px-3.5 pt-6 pb-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  {/* Left spacer matching background greeting pill position in image_e4209467.png */}
+                  <div className="lg:w-[27%] shrink-0 hidden lg:block" />
+
+                  {/* Center: ROTA + PROTOCOLOS + VALOR DA CARGA Cream & Gold Card */}
+                  <div className="relative flex-1 max-w-[500px] rounded-[20px] border-[1.5px] border-[#D7A949] bg-gradient-to-br from-[#FFFFFF] via-[#FFFBF1] to-[#F8E6C2] px-5 py-3.5 shadow-[0_8px_22px_rgba(110,72,16,0.16)] overflow-hidden">
+                    {/* Subtle diagonal gold shimmer */}
+                    <div
+                      className="pointer-events-none absolute -right-10 -bottom-8 w-44 h-24 rounded-full opacity-35"
+                      style={{ background: 'linear-gradient(135deg, transparent 25%, #E7C26E 100%)' }}
+                    />
+
+                    <div className="relative z-10 space-y-2">
+                      {/* ROTA */}
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-b from-[#DF1F29] to-[#980B13] flex items-center justify-center shrink-0 shadow-xs border border-[#F3D17F]">
+                          <MapPin size={13} className="text-white stroke-[2.3]" />
+                        </div>
+                        <div className="text-[13.5px] font-bold uppercase tracking-[0.015em] break-words">
+                          <span className="text-[#1E1B18]">ROTA: </span>
+                          <span className="text-[#C8141B]">
+                            {getCleanRouteText(filteredRows.length > 0 ? filteredRows : parsedRows)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* PROTOCOLO(S) */}
+                      {(getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0
+                        ? getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows)
+                        : ['-']
+                      ).map((prot, idx) => (
+                        <div key={idx} className="flex items-center gap-2.5">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-b from-[#FFE693] via-[#E1AD3B] to-[#AD7714] flex items-center justify-center shrink-0 shadow-xs border border-[#9E6A10]">
+                            <Clipboard size={12} className="text-[#FFFDF5] stroke-[2.2]" />
+                          </div>
+                          <div className="text-[13.5px] font-bold tracking-[0.015em]">
+                            <span className="uppercase text-[#1E1B18]">PROTOCOLO: </span>
+                            <span className="text-[#C8141B] tabular-nums">{prot}</span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Valor da Carga */}
+                      <div className="flex items-center gap-2.5 pt-0.5">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-b from-[#FFE693] via-[#E1AD3B] to-[#AD7714] flex items-center justify-center shrink-0 shadow-xs border border-[#8E5D08] text-[12px] font-black text-[#2A1B02]">
+                          $
+                        </div>
+                        <div className="text-[13.5px] font-bold tracking-[0.015em]">
+                          <span className="text-[#1E1B18]">Valor da Carga: </span>
+                          <span className="text-[15.5px] font-extrabold text-[#C8141B] tabular-nums">
+                            {getTotalValue()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Status Capsule (Seguir ⟳ [✓ AVERBAÇÃO] realizada via sistema.) */}
+                  <div className="flex items-center justify-start lg:justify-end shrink-0 lg:pt-8">
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-b from-[#FFFFFF] via-[#FFFBF3] to-[#F7E6C2] border-[1.5px] border-[#D7A949] rounded-full px-3.5 py-1.5 shadow-[0_6px_16px_rgba(120,82,20,0.14)] flex-wrap">
+                      <span className="text-[12px] font-semibold text-[#1E1B18]">Seguir</span>
+                      <RefreshCw size={13} className="text-[#2D241C] stroke-[2.2]" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-b from-[#D91E28] via-[#A90C14] to-[#6E0409] border border-[#ECC871] text-white text-[11px] font-bold uppercase tracking-wider shadow-[0_2px_6px_rgba(120,8,14,0.35)]">
+                        <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-b from-[#FFEAA3] to-[#C88E22] flex items-center justify-center">
+                          <Check size={9} className="text-[#6E050A] stroke-[3]" />
+                        </span>
+                        <span>AVERBAÇÃO</span>
+                      </span>
+                      <span className="text-[12px] font-semibold text-[#1E1B18]">
+                        realizada via sistema.
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* PROTOCOLO(S) */}
-              {(getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0
-                ? getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows)
-                : ['-']
-              ).map((prot, idx) => (
-                <div key={idx} className="text-[13px] font-semibold tracking-[0.015em]">
-                  <span className="uppercase text-[#000000]">PROTOCOLO: </span>
-                  <span className="text-[#0000FF] tabular-nums">{prot}</span>
-                </div>
-              ))}
+              {/* BOTTOM TABLE SECTION + CORNER RIBBONS */}
+              <div className="relative px-3 sm:px-4 pb-5 pt-1">
+                {/* Bottom-Right Crimson & Gold Corner Ribbon */}
+                <svg
+                  className="pointer-events-none absolute right-0 bottom-0 w-72 h-24 select-none"
+                  viewBox="0 0 288 96"
+                  preserveAspectRatio="none"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <linearGradient id="rosaBottomCrimson" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#D61F29" />
+                      <stop offset="60%" stopColor="#940A12" />
+                      <stop offset="100%" stopColor="#580308" />
+                    </linearGradient>
+                    <linearGradient id="rosaBottomGold" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#FFF0B8" />
+                      <stop offset="50%" stopColor="#E1B555" />
+                      <stop offset="100%" stopColor="#A97922" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M55 96 C145 78 220 55 288 22 L288 96 Z" fill="url(#rosaBottomCrimson)" />
+                  <path d="M25 96 C135 76 218 52 288 12 L288 26 C220 60 140 82 48 96 Z" fill="url(#rosaBottomGold)" />
+                </svg>
 
-              {/* Valor da Carga */}
-              <div className="text-[13px] font-semibold tracking-[0.015em] pt-0.5">
-                <span className="text-[#000000]">Valor da Carga: </span>
-                <span className="text-[#CC0000] tabular-nums">
-                  {getTotalValue()}
-                </span>
+                {/* LUXURY TABLE CARD */}
+                <div className="relative z-10 rounded-[18px] p-[2.5px] bg-gradient-to-b from-[#FFFDF7] via-[#F2D99D] to-[#D4A448] border-[1.5px] border-[#DFC078] shadow-[0_10px_26px_rgba(95,12,12,0.20)]">
+                  <div className="rounded-[15px] overflow-hidden border border-[#C99B42]/60 bg-[#FFFBF2]">
+                    {/* Banner Header Bar */}
+                    <div className="relative px-4 py-2.5 flex items-center justify-between overflow-hidden bg-gradient-to-r from-[#D41A23] via-[#8F0810] to-[#4A0205] border-b border-[#E5BE66]/70">
+                      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-white/40 via-[#FFE4A0]/35 to-transparent pointer-events-none" />
+
+                      {/* Subtle dotted world texture */}
+                      <svg
+                        className="absolute inset-0 w-full h-full pointer-events-none opacity-25"
+                        viewBox="0 0 900 48"
+                        preserveAspectRatio="none"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        {Array.from({ length: 42 }).map((_, cIdx) =>
+                          Array.from({ length: 5 }).map((__, rIdx) => (
+                            <circle
+                              key={`${cIdx}-${rIdx}`}
+                              cx={280 + cIdx * 13}
+                              cy={6 + rIdx * 9}
+                              r={(cIdx + rIdx) % 3 === 0 ? 1.5 : 0.9}
+                              fill="#FF8C8C"
+                            />
+                          ))
+                        )}
+                      </svg>
+
+                      <div className="flex items-center gap-3 z-10">
+                        {/* Metallic Gold Semi-Truck Icon */}
+                        <svg className="w-7 h-5 shrink-0" viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="1" y="2" width="18" height="13" rx="2" fill="#F5CA68" />
+                          <path d="M19 6H25.5C26.4 6 27.1 6.5 27.5 7.3L30 12.2V15H19V6Z" fill="#DFAA3B" />
+                          <path d="M21 7.8H25.2L27.3 11.5H21V7.8Z" fill="#6F070C" />
+                          <circle cx="7" cy="17" r="3" fill="#6F070C" stroke="#F8D989" strokeWidth="1.8" />
+                          <circle cx="24" cy="17" r="3" fill="#6F070C" stroke="#F8D989" strokeWidth="1.8" />
+                        </svg>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-semibold text-white tracking-wide drop-shadow-xs">
+                          Segue dados e NF&apos;s em anexo.
+                        </span>
+                      </div>
+
+                      {/* Right Corner Diagonal Gold Stripes */}
+                      <svg
+                        className="absolute right-0 top-0 h-full w-28 pointer-events-none"
+                        viewBox="0 0 112 48"
+                        preserveAspectRatio="none"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <polygon points="32,48 68,0 79,0 43,48" fill="#F3C968" />
+                        <polygon points="49,48 85,0 100,0 64,48" fill="#D59A2B" />
+                      </svg>
+                    </div>
+
+                    {/* Inner Editable Table */}
+                    <div className="overflow-x-auto bg-gradient-to-b from-[#FFFDF9] to-[#FBF0DA]">
+                      <table className="w-full border-collapse text-center text-xs font-sans">
+                        <thead>
+                          <tr className="bg-gradient-to-b from-[#AD0F18] via-[#84070E] to-[#5E0307] text-white text-[10px] sm:text-[10.5px] font-bold uppercase tracking-wider">
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <MapPin size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>ORIGEM</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <Flag size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>DESTINO</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <Truck size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>TRANSPORTADORA</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <CreditCard size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>PLACA CAVALO</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <Truck size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>PLACA S. CARRETAS</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <Settings size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>TECNOLOGIA</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <User size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>NOME MOTORISTA</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 border-r border-[#C9854B]/45 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <FileText size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>CPF</span>
+                              </div>
+                            </th>
+                            <th className="py-2.5 px-2 font-bold">
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <Phone size={13} className="text-[#F5CB64] stroke-[2] shrink-0" />
+                                <span>TELEFONE</span>
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
+                            <tr
+                              key={row.id || idx}
+                              className="bg-gradient-to-b from-[#FFFDF9] to-[#FBF0DA] text-[#1E1B18] font-semibold text-[11.5px]"
+                            >
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280] uppercase">
+                                <input
+                                  type="text"
+                                  value={row.origem || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold uppercase outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280] uppercase">
+                                <input
+                                  type="text"
+                                  value={row.destino || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold uppercase outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280] uppercase">
+                                <input
+                                  type="text"
+                                  value={row.transportadora || extraData.transportadora || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold uppercase outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280]">
+                                <input
+                                  type="text"
+                                  value={row.placaCav || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold uppercase outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280]">
+                                <input
+                                  type="text"
+                                  value={row.placaCarr || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold uppercase outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280] uppercase">
+                                <input
+                                  type="text"
+                                  value={row.tecnologia || extraData.tecnologia || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold uppercase outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280] uppercase">
+                                <input
+                                  type="text"
+                                  value={row.nomeMotorista || extraData.nomeMotorista || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold uppercase outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-r border-[#DFC280] tabular-nums">
+                                <input
+                                  type="text"
+                                  value={row.cpf || extraData.cpf || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold tabular-nums outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                              <td className="py-3 px-1.5 border-t border-[#DFC280] tabular-nums">
+                                <input
+                                  type="text"
+                                  value={row.telefone || extraData.telefone || ''}
+                                  onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
+                                  placeholder="-"
+                                  className="w-full bg-transparent text-center font-semibold tabular-nums outline-none focus:bg-[#F5E8C8]/50 rounded px-1 text-[11.5px] tracking-wide text-[#1E1B18]"
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-
-            {/* BOTTOM UNIFIED TABLE CARD MATCHING REFERENCE IMAGE (image_16a38314.png) */}
-            <div className="rounded-2xl overflow-hidden bg-gradient-to-b from-[#2A2C32] via-[#15161A] to-[#0E0F12] shadow-[0_8px_22px_rgba(0,0,0,0.12)] border border-[#18191C]">
-              
-              {/* Top Glossy Dark Bar: Gold Truck + "Segue dados e NFs em anexo." + Diagonal Yellow Corner Stripes */}
-              <div className="relative px-4 py-2.5 flex items-center justify-between overflow-hidden">
-                {/* Subtle Top Gloss Line */}
-                <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-white/30 via-white/10 to-transparent pointer-events-none" />
-                
-                <div className="flex items-center gap-2.5 z-10">
-                  {/* Gold Truck SVG Icon */}
-                  <svg className="w-6 h-5 shrink-0" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 3C1 1.89543 1.89543 1 3 1H16C17.1046 1 18 1.89543 18 3V14H1V3Z" fill="#FFD600" />
-                    <path d="M18 5.5H23.2C23.9 5.5 24.5 5.9 24.8 6.5L27 11V14H18V5.5Z" fill="#F5B800" />
-                    <path d="M19.5 7H23L24.8 10.5H19.5V7Z" fill="#18191D" />
-                    <circle cx="6.5" cy="15.5" r="2.8" fill="#18191D" stroke="#FFD600" strokeWidth="1.7" />
-                    <circle cx="22.5" cy="15.5" r="2.8" fill="#18191D" stroke="#FFD600" strokeWidth="1.7" />
-                  </svg>
-                  <span className="text-xs sm:text-[13.5px] font-normal text-white/95 tracking-wide">
-                    Segue dados e NFs em anexo.
+          ) : (
+            <div 
+              ref={emailPreviewRef}
+              className="bg-white border border-[#E5E7EB] rounded-3xl p-5 sm:p-6 text-left font-sans text-[#181715] space-y-4 shadow-[0_4px_18px_rgba(0,0,0,0.035)]"
+            >
+              {/* TOP ROW: GREETING PILL (LEFT) & STATUS CAPSULE (RIGHT) */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Left Greeting Pill */}
+                <div className="inline-flex items-center bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl px-4 py-2.5 self-start">
+                  <span className="text-[15px] font-normal tracking-normal text-[#1F2937] leading-none">
+                    {getGreeting()}
                   </span>
                 </div>
 
-                {/* Right Corner Diagonal Yellow Stripes matching image_16a38314.png */}
-                <svg className="absolute right-0 top-0 h-full w-24 pointer-events-none" viewBox="0 0 96 44" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polygon points="44,44 76,0 85,0 53,44" fill="#FFD600" />
-                  <polygon points="58,44 90,0 96,0 96,44" fill="#FFD600" />
-                </svg>
+                {/* Right Status Capsule Pill */}
+                <div className="inline-flex items-center gap-2 bg-[#F4F5F7] border border-[#DCDEE4] rounded-full px-4 py-1.5 self-start sm:self-auto">
+                  <span className="text-xs sm:text-[12.5px] font-normal text-[#181715]">
+                    Segue
+                  </span>
+                  <span
+                    className="px-2.5 py-0.5 rounded-md font-normal text-[11px] uppercase tracking-wide"
+                    style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
+                  >
+                    AVERBAÇÃO
+                  </span>
+                  <span className="text-xs sm:text-[12.5px] font-normal text-[#26272B]">
+                    realizada via sistema.
+                  </span>
+                </div>
               </div>
 
-              {/* Inner Rounded Table Frame */}
-              <div className="overflow-x-auto rounded-t-2xl border-t border-[#3A3C44] bg-[#141518]">
-                <table className="w-full border-collapse text-center text-xs font-sans">
-                  <thead>
-                    <tr className="bg-gradient-to-b from-[#2C2E34] via-[#18191D] to-[#0D0E11] text-white text-[10px] sm:text-[10.5px] font-normal uppercase tracking-wider">
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <MapPin size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>ORIGEM</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <MapPin size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>DESTINO</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <Truck size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>TRANSPORTADORA</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <CreditCard size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>PLACA CAVALO</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <Truck size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>PLACA S. CARRETAS</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <Cpu size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>TECNOLOGIA</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <User size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>NOME MOTORISTA</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <Clipboard size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>CPF</span>
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 font-normal">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          <Phone size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
-                          <span>TELEFONE</span>
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
-                      <tr 
-                        key={row.id || idx}
-                        className={cn("font-normal text-[11.5px]", activeTheme.tableCellClass)}
-                        style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
-                      >
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
-                          <input
-                            type="text"
-                            value={row.origem || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
-                          <input
-                            type="text"
-                            value={row.destino || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
-                          <input
-                            type="text"
-                            value={row.transportadora || extraData.transportadora || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 font-normal">
-                          <input
-                            type="text"
-                            value={row.placaCav || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 font-normal">
-                          <input
-                            type="text"
-                            value={row.placaCarr || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
-                          <input
-                            type="text"
-                            value={row.tecnologia || extraData.tecnologia || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
-                          <input
-                            type="text"
-                            value={row.nomeMotorista || extraData.nomeMotorista || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-r border-black/25 tabular-nums font-normal">
-                          <input
-                            type="text"
-                            value={row.cpf || extraData.cpf || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
-                        <td className="py-3 px-1.5 border-t border-black/25 tabular-nums font-normal">
-                          <input
-                            type="text"
-                            value={row.telefone || extraData.telefone || ''}
-                            onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
-                            placeholder="-"
-                            className="w-full bg-transparent text-center font-normal tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
-                            style={{ color: activeTheme.textColor }}
-                          />
-                        </td>
+              {/* MIDDLE BLOCK: ROTA + PROTOCOLOS + VALOR DA CARGA (MATCHING image_aac15e6e.png) */}
+              <div
+                className="bg-[#F8FAFC] rounded-xl px-5 py-4 space-y-2 border-l-[5px]"
+                style={{ borderLeftColor: activeTheme.accentColor, fontFamily: 'Arial, Helvetica, sans-serif' }}
+              >
+                {/* ROTA */}
+                <div className="text-[13px] font-semibold uppercase tracking-[0.015em] break-words">
+                  <span className="text-[#000000]">ROTA: </span>
+                  <span className="text-[#0000FF]">
+                    {getCleanRouteText(filteredRows.length > 0 ? filteredRows : parsedRows)}
+                  </span>
+                </div>
+
+                {/* PROTOCOLO(S) */}
+                {(getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows).length > 0
+                  ? getUniqueProtocols(filteredRows.length > 0 ? filteredRows : parsedRows)
+                  : ['-']
+                ).map((prot, idx) => (
+                  <div key={idx} className="text-[13px] font-semibold tracking-[0.015em]">
+                    <span className="uppercase text-[#000000]">PROTOCOLO: </span>
+                    <span className="text-[#0000FF] tabular-nums">{prot}</span>
+                  </div>
+                ))}
+
+                {/* Valor da Carga */}
+                <div className="text-[13px] font-semibold tracking-[0.015em] pt-0.5">
+                  <span className="text-[#000000]">Valor da Carga: </span>
+                  <span className="text-[#CC0000] tabular-nums">
+                    {getTotalValue()}
+                  </span>
+                </div>
+              </div>
+
+              {/* BOTTOM UNIFIED TABLE CARD MATCHING REFERENCE IMAGE (image_16a38314.png) */}
+              <div className="rounded-2xl overflow-hidden bg-gradient-to-b from-[#2A2C32] via-[#15161A] to-[#0E0F12] shadow-[0_8px_22px_rgba(0,0,0,0.12)] border border-[#18191C]">
+                
+                {/* Top Glossy Dark Bar: Gold Truck + "Segue dados e NFs em anexo." + Diagonal Yellow Corner Stripes */}
+                <div className="relative px-4 py-2.5 flex items-center justify-between overflow-hidden">
+                  {/* Subtle Top Gloss Line */}
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-white/30 via-white/10 to-transparent pointer-events-none" />
+                  
+                  <div className="flex items-center gap-2.5 z-10">
+                    {/* Gold Truck SVG Icon */}
+                    <svg className="w-6 h-5 shrink-0" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 3C1 1.89543 1.89543 1 3 1H16C17.1046 1 18 1.89543 18 3V14H1V3Z" fill="#FFD600" />
+                      <path d="M18 5.5H23.2C23.9 5.5 24.5 5.9 24.8 6.5L27 11V14H18V5.5Z" fill="#F5B800" />
+                      <path d="M19.5 7H23L24.8 10.5H19.5V7Z" fill="#18191D" />
+                      <circle cx="6.5" cy="15.5" r="2.8" fill="#18191D" stroke="#FFD600" strokeWidth="1.7" />
+                      <circle cx="22.5" cy="15.5" r="2.8" fill="#18191D" stroke="#FFD600" strokeWidth="1.7" />
+                    </svg>
+                    <span className="text-xs sm:text-[13.5px] font-normal text-white/95 tracking-wide">
+                      Segue dados e NFs em anexo.
+                    </span>
+                  </div>
+
+                  {/* Right Corner Diagonal Yellow Stripes matching image_16a38314.png */}
+                  <svg className="absolute right-0 top-0 h-full w-24 pointer-events-none" viewBox="0 0 96 44" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="44,44 76,0 85,0 53,44" fill="#FFD600" />
+                    <polygon points="58,44 90,0 96,0 96,44" fill="#FFD600" />
+                  </svg>
+                </div>
+
+                {/* Inner Rounded Table Frame */}
+                <div className="overflow-x-auto rounded-t-2xl border-t border-[#3A3C44] bg-[#141518]">
+                  <table className="w-full border-collapse text-center text-xs font-sans">
+                    <thead>
+                      <tr className="bg-gradient-to-b from-[#2C2E34] via-[#18191D] to-[#0D0E11] text-white text-[10px] sm:text-[10.5px] font-normal uppercase tracking-wider">
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <MapPin size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>ORIGEM</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <MapPin size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>DESTINO</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <Truck size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>TRANSPORTADORA</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <CreditCard size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>PLACA CAVALO</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <Truck size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>PLACA S. CARRETAS</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <Cpu size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>TECNOLOGIA</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <User size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>NOME MOTORISTA</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 border-r border-[#2E3036] font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <Clipboard size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>CPF</span>
+                          </div>
+                        </th>
+                        <th className="py-3 px-2 font-normal">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <Phone size={13} className="text-[#FFD600] stroke-[1.7] shrink-0" />
+                            <span>TELEFONE</span>
+                          </div>
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {getUniqueTransportRows(filteredRows.length > 0 ? filteredRows : parsedRows).map((row, idx) => (
+                        <tr 
+                          key={row.id || idx}
+                          className={cn("font-normal text-[11.5px]", activeTheme.tableCellClass)}
+                          style={{ backgroundColor: activeTheme.accentColor, color: activeTheme.textColor }}
+                        >
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                            <input
+                              type="text"
+                              value={row.origem || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'origem', e.target.value.toUpperCase())}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                            <input
+                              type="text"
+                              value={row.destino || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'destino', e.target.value.toUpperCase())}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                            <input
+                              type="text"
+                              value={row.transportadora || extraData.transportadora || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'transportadora', e.target.value.toUpperCase())}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 font-normal">
+                            <input
+                              type="text"
+                              value={row.placaCav || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'placaCav', e.target.value.toUpperCase())}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 font-normal">
+                            <input
+                              type="text"
+                              value={row.placaCarr || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'placaCarr', e.target.value.toUpperCase())}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                            <input
+                              type="text"
+                              value={row.tecnologia || extraData.tecnologia || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'tecnologia', e.target.value.toUpperCase())}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 uppercase font-normal">
+                            <input
+                              type="text"
+                              value={row.nomeMotorista || extraData.nomeMotorista || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'nomeMotorista', e.target.value.toUpperCase())}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal uppercase outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-r border-black/25 tabular-nums font-normal">
+                            <input
+                              type="text"
+                              value={row.cpf || extraData.cpf || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'cpf', e.target.value)}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                          <td className="py-3 px-1.5 border-t border-black/25 tabular-nums font-normal">
+                            <input
+                              type="text"
+                              value={row.telefone || extraData.telefone || ''}
+                              onChange={(e) => handleUpdateTransportField(idx, 'telefone', e.target.value)}
+                              placeholder="-"
+                              className="w-full bg-transparent text-center font-normal tabular-nums outline-none focus:bg-black/10 rounded px-1 text-[11.5px] tracking-wide"
+                              style={{ color: activeTheme.textColor }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
         </div>
 
