@@ -693,10 +693,10 @@ export default function App() {
             ? "bg-[#070c14] overflow-hidden"
             : activeTab === 'sm_creator'
               ? "bg-[#FDF8EE] overflow-y-auto"
-              : activeTab === 'averbacao' || activeTab === 'lista_emails'
+              : activeTab === 'averbacao'
                 ? "bg-[#FAF6EF] overflow-y-auto"
-                : activeTab === 'ordem_servico' || activeTab === 'cobrancas'
-                  ? "bg-[#F4F5F7] overflow-y-auto"
+                : activeTab === 'ordem_servico' || activeTab === 'lista_emails' || activeTab === 'cobrancas'
+                  ? "bg-[#F9F8F6] overflow-y-auto"
                   : "overflow-y-auto"
         )}
         style={
@@ -717,8 +717,8 @@ export default function App() {
             className={cn(
               "internal-pages-wrapper w-full min-h-full flex flex-col",
               activeTab === 'sm_creator' && "bg-[#FDF8EE]",
-              (activeTab === 'averbacao' || activeTab === 'lista_emails') && "bg-[#FAF6EF]",
-              activeTab === 'ordem_servico' && "bg-[#F9F8F6]",
+              activeTab === 'averbacao' && "bg-[#FAF6EF]",
+              (activeTab === 'ordem_servico' || activeTab === 'lista_emails') && "bg-[#F9F8F6]",
               activeTab === 'cobrancas' && "bg-[#F4F5F7]"
             )}
           >
