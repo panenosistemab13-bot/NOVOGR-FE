@@ -17,6 +17,7 @@ import { rtdb as db } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { safeCopyText } from '../utils/clipboard';
 import { BrazilMapBroadcast, BRAZIL_STATES } from './common/BrazilMapBroadcast';
+import { logAuditAction } from '../utils/auditHistory';
 
 interface RouteItem {
   ida: string;
@@ -194,9 +195,33 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
   const handleSave = async () => {
     try {
       const rotasRef = ref(db, 'rotas_data');
+      const prevLen = routes.length;
+      const nextLen = tempRoutes.length;
       await set(rotasRef, tempRoutes);
       setRoutes(tempRoutes);
       setIsEditing(false);
+      if (nextLen > prevLen) {
+        logAuditAction({
+          action: 'ADD',
+          module: 'Rotas',
+          target: 'Tabela de Rotas',
+          details: `Adicionou ${nextLen - prevLen} nova(s) rota(s) (total: ${nextLen})`
+        });
+      } else if (nextLen < prevLen) {
+        logAuditAction({
+          action: 'DELETE',
+          module: 'Rotas',
+          target: 'Tabela de Rotas',
+          details: `Removeu ${prevLen - nextLen} rota(s) (total: ${nextLen})`
+        });
+      } else {
+        logAuditAction({
+          action: 'EDIT',
+          module: 'Rotas',
+          target: 'Tabela de Rotas',
+          details: `Editou e salvou ${nextLen} rota(s) na nuvem`
+        });
+      }
       showToast('Rotas salvas com sucesso na nuvem!');
     } catch (err) {
       console.error('Erro ao salvar rotas no Firebase:', err);
@@ -209,6 +234,12 @@ export default function Rotas({ onBack }: { onBack?: () => void }) {
       const rotasRef = ref(db, 'rotas_data');
       await set(rotasRef, DEFAULT_ROUTES);
       setRoutes(DEFAULT_ROUTES);
+      logAuditAction({
+        action: 'EDIT',
+        module: 'Rotas',
+        target: 'Rotas Oficiais',
+        details: `Restaurou as ${DEFAULT_ROUTES.length} rotas padrão do sistema`
+      });
       showToast('Rotas oficiais restauradas com sucesso!');
     } catch (err) {
       console.error('Erro ao restaurar rotas:', err);

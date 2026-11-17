@@ -13,7 +13,8 @@ import {
   Truck,
   FileSpreadsheet,
   Calendar,
-  Map
+  Map,
+  Mail
 } from 'lucide-react';
 
 // Simplified types for the purpose of this interface overhaul
@@ -34,8 +35,9 @@ const PAGES: PageItem[] = [
   { id: 'controle', label: 'PRÉ-ALERTA', subtitle: 'ISCAS & CONTROLE PGR', icon: Sliders, shortcut: 'Ctrl + 6' },
   { id: 'disponibilidade', label: 'DISPONIBILIDADE', subtitle: 'VEÍCULOS PÁTIO', icon: Truck, shortcut: 'Ctrl + 7' },
   { id: 'escala', label: 'ESCALA 3C', subtitle: 'PLANTÃO LOGÍSTICO', icon: FileSpreadsheet, shortcut: 'Ctrl + 8' },
-  { id: 'presence', label: 'CALENDÁRIO', subtitle: 'FREQUÊNCIA & AGENDA', icon: Calendar, shortcut: 'Ctrl + 9' },
-  { id: 'rotas', label: 'ROTAS', subtitle: 'P&R E DESTINOS', icon: Map, shortcut: 'Ctrl + 0' },
+  { id: 'lista_emails', label: 'LISTA DE E-MAILS', subtitle: 'DESTINOS & PARA', icon: Mail, shortcut: 'Ctrl + 9' },
+  { id: 'presence', label: 'CALENDÁRIO', subtitle: 'FREQUÊNCIA & AGENDA', icon: Calendar, shortcut: 'Menu' },
+  { id: 'rotas', label: 'ROTAS', subtitle: 'P&R E DESTINOS', icon: Map, shortcut: 'Menu' },
 ];
 
 interface RestrictedPagesModalProps {

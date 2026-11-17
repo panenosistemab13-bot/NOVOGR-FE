@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 interface CobrancasProps {
   onBack?: () => void;
@@ -304,64 +305,6 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
     return { total, critical, warning, normal, maxDias, avgDias };
   }, [filteredRows]);
 
-  const chartByDestino = useMemo(() => {
-    const counts: Record<string, number> = {};
-    filteredRows.forEach(r => {
-      const k = r.destino || 'N/I';
-      counts[k] = (counts[k] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
-  }, [filteredRows]);
-
-  const chartByMotorista = useMemo(() => {
-    const counts: Record<string, number> = {};
-    filteredRows.forEach(r => {
-      const k = r.motorista || 'N/I';
-      counts[k] = (counts[k] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
-  }, [filteredRows]);
-
-  const chartByDias = useMemo(() => {
-    const counts: Record<string, number> = {};
-    filteredRows.forEach(r => {
-      const n = r.diasNum;
-      let bin = '46d+';
-      if (n >= 1 && n <= 7) bin = '1j–7d';
-      else if (n >= 8 && n <= 14) bin = '8d–14d';
-      else if (n >= 15 && n <= 21) bin = '15d–21d';
-      else if (n >= 22 && n <= 30) bin = '22d–30d';
-      else if (n >= 31 && n <= 45) bin = '31d–45d';
-      counts[bin] = (counts[bin] || 0) + 1;
-    });
-    return [
-      { label: '1j–7d', value: counts['1j–7d'] || 0 },
-      { label: '8d–14d', value: counts['8d–14d'] || 0 },
-      { label: '15d–21d', value: counts['15d–21d'] || 0 },
-      { label: '22d–30d', value: counts['22d–30d'] || 0 },
-      { label: '31d–45d', value: counts['31d–45d'] || 0 },
-      { label: '46d+', value: counts['46d+'] || 0 }
-    ];
-  }, [filteredRows]);
-
-  const chartByUnidade = useMemo(() => {
-    const counts: Record<string, number> = {};
-    filteredRows.forEach(r => {
-      const k = r.unidade || 'N/I';
-      counts[k] = (counts[k] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
-  }, [filteredRows]);
-
   const hasActiveFilters = useMemo(() => {
     if (severityFilter !== 'ALL') return true;
     return COLUMNS.some(
@@ -402,6 +345,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
           r.status,
           r.cavalo,
           r.motorista,
+          r.diasAguard,
           r.ultimaPosicao,
           r.endereco
         ].join('\t')
@@ -490,6 +434,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
               <td>${r.status}</td>
               <td>${r.cavalo}</td>
               <td>${r.motorista}</td>
+              <td style="font-weight: bold;">${r.diasAguard}</td>
               <td>${r.ultimaPosicao}</td>
               <td style="text-align: left;">${r.endereco}</td>
             </tr>
@@ -530,19 +475,6 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
         setTimeout(() => setToast(null), 2800);
       }
     }
-  };
-
-  const mainUnidade = useMemo(() => {
-    if (columnExact.unidade !== 'TODOS') return columnExact.unidade;
-    if (chartByUnidade.length > 0) return `${chartByUnidade[0].label}/MG`;
-    return 'SANTA LUZIA/MG';
-  }, [columnExact.unidade, chartByUnidade]);
-
-  const toggleChartFilter = (key: ColumnKey, value: string) => {
-    setColumnExact(prev => ({
-      ...prev,
-      [key]: prev[key] === value ? 'TODOS' : value
-    }));
   };
 
   return (
@@ -863,8 +795,15 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
             <button
               type="button"
               onClick={() => {
+                const count = allRows.length;
                 setRawInput('');
                 resetAllFilters();
+                logAuditAction({
+                  action: 'DELETE',
+                  module: 'Cobranças',
+                  target: 'Tabela de Cobranças',
+                  details: `Limpou dados e filtros (${count} isca(s) removida(s))`
+                });
               }}
               className="flex items-center gap-2 font-black uppercase text-[11px] tracking-wider px-4 py-2.5 rounded-2xl transition-all cursor-pointer active:scale-95 bg-[#141518] hover:bg-[#292A30] text-white border border-transparent shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
             >
@@ -879,7 +818,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
         {/* =================================================================== */}
         {/* 2. FAIXA DE COLAGEM                                                 */}
         {/* =================================================================== */}
-        <div className="cp-panel w-full bg-white border border-[#D4AF37]/50 rounded-3xl p-5 sm:p-6 shadow-[0_10px_35px_rgba(45,35,20,0.06)] space-y-6">
+        <div className="cp-panel w-full bg-white border border-[#D4AF37]/50 rounded-3xl p-4 sm:p-5 shadow-[0_10px_35px_rgba(45,35,20,0.06)] space-y-4">
           <div className="w-full overflow-hidden rounded-2xl border border-[#D4AF37]/40 shadow-md bg-[#FFFDF9]">
             {/* Área de Colagem Minimizada com Botão MAXIMIZAR Dourado */}
             <div className="px-5 py-4 bg-white flex flex-col justify-center min-w-0 text-left">
@@ -917,7 +856,16 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
                 >
                   <textarea
                     value={rawInput}
-                    onChange={(e) => setRawInput(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setRawInput(val);
+                      logDebouncedEdit('cobrancas_raw_input', {
+                        action: val.trim() ? 'ADD' : 'DELETE',
+                        module: 'Cobranças',
+                        target: 'Planilha de Cobranças',
+                        details: val.trim() ? 'Inseriu/atualizou dados colados da planilha de cobranças' : 'Esvaziou campo de colagem'
+                      });
+                    }}
                     rows={4}
                     placeholder="Cole aqui as informações copiadas da sua planilha (ID ISCA, DESTINO, STATUS, OBS 1, DATA STATUS, CARRETA, CAVALO, MOTORISTA, UNIDADE, DIAS AGUARD)..."
                     className="w-full bg-[#FAF7F0] border border-[#D4AF37]/60 rounded-xl px-3.5 py-2.5 text-xs font-bold font-mono text-[#292820] focus:border-[#D92332] focus:ring-2 focus:ring-[#D4AF37]/25 outline-none transition-all shadow-inner resize-y placeholder:text-[#77736B]/70 select-text"
@@ -1087,165 +1035,7 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
           </div>
 
           {/* ================================================================= */}
-          {/* 4. TRÊS GRÁFICOS 3D                                               */}
-          {/* ================================================================= */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Gráfico 1: Dias Aguardando */}
-            <div className="cp-panel bg-[#FAF7F0] border border-[#D4AF37]/50 rounded-2xl p-4 text-left shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between mb-3 border-b border-[#E5DEC9] pb-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-white border border-[#D4AF37] flex items-center justify-center shadow-xs">
-                    <Clock size={14} className="text-[#B8860B]" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black uppercase text-[#292820] tracking-tight">
-                      GRÁFICO 3D 4K - DIAS AGUARDANDO
-                    </h3>
-                    <span className="text-[9.5px] font-bold text-[#77736B]">Clique nas colunas 3D para filtrar por dias</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-40 flex items-end justify-around gap-2 px-2 pt-6 pb-2">
-                {chartByDias.map((item) => {
-                  const maxVal = Math.max(...chartByDias.map(x => x.value), 1);
-                  const heightPercent = Math.max((item.value / maxVal) * 100, 15);
-                  const isRed = item.label.includes('15d') || item.label.includes('8d') || item.label.includes('1j');
-                  return (
-                    <div key={item.label} className="flex flex-col items-center gap-1.5 flex-1 h-full justify-end group">
-                      <span className="text-[10px] font-black text-[#292820] group-hover:scale-110 transition-transform">
-                        {item.value}
-                      </span>
-                      <div
-                        className={cn(
-                          "cp-chart-bar w-full max-w-[36px] rounded-t-xl transition-all relative border-t border-white/40",
-                          isRed
-                            ? "bg-gradient-to-t from-[#A81824] via-[#D92332] to-[#F0656E]"
-                            : "bg-gradient-to-t from-[#B8860B] via-[#D4AF37] to-[#F5D27B]"
-                        )}
-                        style={{ height: `${heightPercent}%` }}
-                      >
-                        <div className="absolute top-1 left-1 right-1 h-1 bg-white/40 rounded-full" />
-                      </div>
-                      <span className="text-[9.5px] font-extrabold text-[#77736B] uppercase tracking-tight">
-                        {item.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Gráfico 2: Destino da Unidade */}
-            <div className="cp-panel bg-[#FAF7F0] border border-[#D4AF37]/50 rounded-2xl p-4 text-left shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between mb-3 border-b border-[#E5DEC9] pb-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-white border border-[#D4AF37] flex items-center justify-center shadow-xs">
-                    <Database size={14} className="text-[#B8860B]" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black uppercase text-[#292820] tracking-tight">
-                      GRÁFICO 3D 4K - DESTINO DA UNIDADE
-                    </h3>
-                    <span className="text-[9.5px] font-bold text-[#77736B]">Clique nas barras 3D para filtrar por Destino da Unidade</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4 py-2">
-                <div>
-                  <div className="flex justify-between text-[10px] font-black uppercase text-[#77736B] mb-1">
-                    <span>POR DESTINO</span>
-                  </div>
-                  {chartByDestino.slice(0, 1).map((d) => (
-                    <div key={d.label} className="space-y-1">
-                      <div className="flex justify-between text-[11px] font-bold text-[#292820]">
-                        <span className="truncate max-w-[180px] uppercase">{d.label}</span>
-                        <span className="font-black text-[#292820]">{d.value} Iscas</span>
-                      </div>
-                      <div className="w-full bg-white border border-[#E5DEC9] h-3.5 rounded-full overflow-hidden p-0.5 shadow-inner">
-                        <div
-                          className="bg-gradient-to-r from-[#C5A059] via-[#D4AF37] to-[#F5D27B] h-full rounded-full"
-                          style={{ width: `${filteredRows.length > 0 ? (d.value / filteredRows.length) * 100 : 0}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-[10px] font-black uppercase text-[#77736B] mb-1">
-                    <span>POR UNIDADE DE ORIGEM</span>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-bold text-[#292820]">
-                      <span className="truncate max-w-[180px] uppercase">{mainUnidade}</span>
-                      <span className="font-black text-[#292820]">{filteredRows.length} Iscas</span>
-                    </div>
-                    <div className="w-full bg-white border border-[#E5DEC9] h-3.5 rounded-full overflow-hidden p-0.5 shadow-inner">
-                      <div className="bg-[#141518] h-full rounded-full" style={{ width: '100%' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Gráfico 3: Responsável (OBS 1) */}
-            <div className="cp-panel bg-[#FAF7F0] border border-[#D4AF37]/50 rounded-2xl p-4 text-left shadow-xs flex flex-col justify-between">
-              <div className="flex items-center justify-between mb-3 border-b border-[#E5DEC9] pb-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-white border border-[#D4AF37] flex items-center justify-center shadow-xs">
-                    <Clock size={14} className="text-[#B8860B]" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black uppercase text-[#292820] tracking-tight">
-                      GRÁFICO 3D 4K - MOTORISTA
-                    </h3>
-                    <span className="text-[9.5px] font-bold text-[#77736B]">Clique no motorista para filtrar as Iscas</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-around py-2">
-                <div className="cp-donut relative w-24 h-24 rounded-full border-4 border-[#D4AF37]/30 flex items-center justify-center bg-white shadow-inner">
-                  <div className="absolute inset-1 rounded-full border-4 border-[#D4AF37] border-t-transparent animate-spin-slow" />
-                  <div className="text-center">
-                    <span className="text-lg font-black text-[#292820] block leading-none">
-                      {filteredRows.length}
-                    </span>
-                    <span className="text-[8.5px] font-bold text-[#77736B] uppercase block mt-1">EM ROTA</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2 flex-1 pl-4">
-                  <span className="text-[10px] font-black uppercase text-[#77736B] block">MOTORISTA</span>
-                  {chartByMotorista.slice(0, 1).map((obs) => (
-                    <button
-                      key={obs.label}
-                      onClick={() => toggleChartFilter('motorista', obs.label)}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs",
-                        columnExact.motorista === obs.label
-                          ? "bg-[#D92332] text-white border-[#D92332]"
-                          : "bg-white hover:bg-[#FFF9ED] text-[#292820] border-[#D4AF37]/60"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <User size={13} className={columnExact.motorista === obs.label ? "text-white" : "text-[#B8860B]"} />
-                        <span className="uppercase truncate max-w-[120px]">{obs.label}</span>
-                      </div>
-                      <span className="px-2 py-0.5 rounded-md bg-[#FAF7F0] text-[#292820] font-black text-[10px] border border-[#D4AF37]/50">
-                        {obs.value}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ================================================================= */}
-          {/* 5. TABELA DE COBRANÇAS DE ISCAS                                   */}
+          {/* 4. TABELA DE COBRANÇAS DE ISCAS                                   */}
           {/* ================================================================= */}
           <div className="w-full rounded-2xl overflow-hidden shadow-[0_8px_24px_rgba(45,35,20,0.08)] bg-white border border-[#D4AF37]/60 tabular-nums">
             {/* Cabeçalho da Tabela */}
@@ -1427,12 +1217,23 @@ export default function Cobrancas({ onBack: _onBack }: CobrancasProps) {
                         <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] select-all">
                           {row.motorista}
                         </td>
+                        {/* DIAS AGUARD */}
+                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 text-center select-all">
+                          <span
+                            className={cn(
+                              "cp-days inline-block px-2.5 py-1 text-[11px] font-bold tabular-nums",
+                              row.diasNum >= 15 ? "text-[#A82028]" : "text-[#292820]"
+                            )}
+                          >
+                            {row.diasAguard}
+                          </span>
+                        </td>
                         {/* ULTIMA POSIÇÃO */}
                         <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] select-all">
                           {row.ultimaPosicao}
                         </td>
                         {/* ENDEREÇO */}
-                        <td className="border-r border-[#E5DEC9] px-2.5 py-1.5 font-semibold text-[#0F172A] text-left select-all">
+                        <td className="px-2.5 py-1.5 font-semibold text-[#0F172A] text-left select-all">
                           {row.endereco}
                         </td>
                       </tr>

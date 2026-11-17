@@ -40,6 +40,7 @@ import {
 } from '../utils/averbacaoParser';
 import { rtdb } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
+import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 const DEFAULT_TRANSPORTADORAS = [
   "MODECENSE",
@@ -260,6 +261,12 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       setExtraData(prev => ({ ...prev, transportadora: trimmed }));
       setNewTranspName("");
       setShowAddTranspInput(false);
+      logAuditAction({
+        action: 'ADD',
+        module: 'Averbação',
+        target: `Transportadora ${trimmed}`,
+        details: `Cadastrou transportadora "${trimmed}"`
+      });
       showNotificationMsg(`Transportadora "${trimmed}" adicionada!`);
     }
   };
@@ -296,6 +303,12 @@ export function Averbacao({ onBack }: AverbacaoProps) {
 
       setShowPasteModal(false);
       setRawInputText('');
+      logAuditAction({
+        action: 'ADD',
+        module: 'Averbação',
+        target: `${result.rows.length} nota(s) importada(s)`,
+        details: `Formato ${result.detectedFormat} | Rota: ${result.extra.origem || '-'} x ${result.extra.destino || '-'}`
+      });
       showNotificationMsg(`${result.rows.length} nota(s) importada(s) com sucesso! [${result.detectedFormat}]`);
     } else {
       showNotificationMsg('Formato não reconhecido. Cole dados tabulados ou linhas da planilha.', 'delete');
@@ -364,6 +377,12 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         [field]: value
       }));
     });
+    logDebouncedEdit(`averbacao_op_${String(field)}`, {
+      action: 'EDIT',
+      module: 'Averbação',
+      target: `Campo ${String(field)}`,
+      details: `Editou "${String(field)}" para "${value}"`
+    });
   };
 
   const handleUpdateTransportField = (index: number, field: keyof AverbacaoRow, value: string) => {
@@ -396,6 +415,12 @@ export function Averbacao({ onBack }: AverbacaoProps) {
         setExtraData(prev => ({ ...prev, [field]: value }));
       }
     }
+    logDebouncedEdit(`averbacao_transp_${index}_${String(field)}`, {
+      action: 'EDIT',
+      module: 'Averbação',
+      target: `Linha ${index + 1} (${String(field)})`,
+      details: `Alterou "${String(field)}" para "${value}"`
+    });
   };
 
   const handleClearAll = async () => {
@@ -435,11 +460,24 @@ export function Averbacao({ onBack }: AverbacaoProps) {
     } catch (e) {
       console.warn('Erro ao limpar averbacao_data no Firebase:', e);
     }
+    logAuditAction({
+      action: 'DELETE',
+      module: 'Averbação',
+      target: 'Dados de Averbação',
+      details: 'Limpou todas as notas e campos operacionais da averbação'
+    });
     showNotificationMsg('Informações limpas! Colunas mantidas para preenchimento manual.', 'delete');
   };
 
   const handleRemoveRow = (index: number) => {
+    const target = parsedRows[index];
     setParsedRows(prev => prev.filter((_, i) => i !== index));
+    logAuditAction({
+      action: 'DELETE',
+      module: 'Averbação',
+      target: target?.nf ? `NF ${target.nf}` : `Nota linha ${index + 1}`,
+      details: `Removeu nota fiscal (Valor: ${target?.valorNf || '-'})`
+    });
     showNotificationMsg('Nota fiscal removida.');
   };
 
@@ -457,6 +495,12 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       protocolo: ''
     };
     setParsedRows(prev => [...prev, newRow]);
+    logAuditAction({
+      action: 'ADD',
+      module: 'Averbação',
+      target: 'Nova Nota Fiscal',
+      details: 'Adicionou uma nova linha manual de nota fiscal'
+    });
     showNotificationMsg('Nova linha de nota fiscal adicionada!');
   };
 
@@ -465,6 +509,12 @@ export function Averbacao({ onBack }: AverbacaoProps) {
       const copy = [...prev];
       copy[index] = { ...copy[index], [field]: value };
       return copy;
+    });
+    logDebouncedEdit(`averbacao_row_${index}_${String(field)}`, {
+      action: 'EDIT',
+      module: 'Averbação',
+      target: `NF linha ${index + 1} (${String(field)})`,
+      details: `Editou "${String(field)}" para "${value}"`
     });
   };
 

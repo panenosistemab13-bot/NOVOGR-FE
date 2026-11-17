@@ -59,6 +59,7 @@ import { cn } from "../lib/utils";
 import { rtdb as db } from "../firebase";
 import { ref, onValue, set, update } from "firebase/database";
 import heroRotas from "../assets/images/hero_cinematic_rotas_1790216246671.jpg";
+import { logAuditAction, logDebouncedEdit } from "../utils/auditHistory";
 
 // Tech Corner Component
 function TechCorner({ className }: { className?: string }) {
@@ -1685,6 +1686,12 @@ export default function Controle({ onBack }: ControleProps) {
     setTransportadora(trimmed);
     setNewTranspName("");
     setIsAddingTransp(false);
+    logAuditAction({
+      action: "ADD",
+      module: "Pré-Alerta",
+      target: `Transportadora ${trimmed}`,
+      details: `Cadastrou transportadora personalizada "${trimmed}"`,
+    });
   };
 
   const handleIsca1Change = (val: string) => {
@@ -1721,6 +1728,14 @@ export default function Controle({ onBack }: ControleProps) {
 
   const handlePastePlanilhaChange = (text: string) => {
     setPastePlanilha(text);
+    logDebouncedEdit("controle_paste_planilha", {
+      action: text.trim() ? "EDIT" : "DELETE",
+      module: "Pré-Alerta",
+      target: "Colar da Planilha (Controle)",
+      details: text.trim()
+        ? `Colou/editou informações na planilha do pré-alerta (${text.trim().split("\n").length} linha(s))`
+        : "Limpou campo de colagem do pré-alerta",
+    });
     if (!text.trim()) {
       setIsca1Endereco("");
       setIsca2Endereco("");
@@ -2080,6 +2095,12 @@ export default function Controle({ onBack }: ControleProps) {
     setUma1("");
     setUma2("");
     setValorCarga("");
+    logAuditAction({
+      action: "DELETE",
+      module: "Pré-Alerta",
+      target: "Dados do Veículo",
+      details: "Limpou placas, iscas, produtos e valores do veículo",
+    });
   };
 
   const handleClear = () => {
@@ -2088,6 +2109,12 @@ export default function Controle({ onBack }: ControleProps) {
         "Deseja realmente limpar todas as informações do controle?",
       )
     ) {
+      logAuditAction({
+        action: "DELETE",
+        module: "Pré-Alerta",
+        target: "Todo o Pré-Alerta",
+        details: "Limpou todas as informações preenchidas do controle",
+      });
       setNumCarretas(2);
       setSaudacao(getInitialGreeting());
       setAlertaResgate(FRASE_RESGATE_PADRAO);

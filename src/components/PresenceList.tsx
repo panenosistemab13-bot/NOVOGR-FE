@@ -31,6 +31,7 @@ import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import { safeCopyText } from '../utils/clipboard';
+import { logAuditAction } from '../utils/auditHistory';
 
 // Color themes identical to Pre-Alerta and Checklist
 const COLOR_THEMES = {
@@ -173,6 +174,12 @@ export default function PresenceList({ onBack }: PresenceListProps) {
   const updateStatus = (date: string, status: 'trabalhei' | 'falta' | 'folga' | '') => {
     setDayStatuses(prev => ({ ...prev, [date]: status }));
     update(ref(db, 'presence_list/statuses'), { [date]: status });
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Lista de Presença',
+      target: `Data ${date}`,
+      details: `Marcou status como ${status ? status.toUpperCase() : 'ESCALA PADRÃO'}`
+    });
     showToast(`Status atualizado para ${status ? status.toUpperCase() : 'ESCALA PADRÃO'}`);
   };
 
@@ -181,6 +188,12 @@ export default function PresenceList({ onBack }: PresenceListProps) {
     const updated = { ...escalaConfig, enabled: nextState };
     setEscalaConfig(updated);
     update(ref(db, 'presence_list/escalaConfig'), updated);
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Lista de Presença',
+      target: 'Escala Automática',
+      details: `${nextState ? 'Ativou' : 'Desativou'} escala automática`
+    });
     showToast(`Escala automática ${nextState ? 'ATIVADA' : 'DESATIVADA'}`);
   };
 
@@ -189,12 +202,25 @@ export default function PresenceList({ onBack }: PresenceListProps) {
     const id = `app_${Date.now()}`;
     const newApp: Appointment = { id, date: selectedDate, time, title, type };
     update(ref(db, `presence_list/appointments`), { [id]: newApp });
+    logAuditAction({
+      action: 'ADD',
+      module: 'Lista de Presença',
+      target: title.trim(),
+      details: `Agendou compromisso (${type}) em ${selectedDate} às ${time}`
+    });
     setNewAppTitle('');
     showToast('Compromisso registrado com sucesso!');
   };
 
   const deleteAppointment = (id: string) => {
+    const targetApp = appointments[id];
     update(ref(db, `presence_list/appointments`), { [id]: null });
+    logAuditAction({
+      action: 'DELETE',
+      module: 'Lista de Presença',
+      target: targetApp?.title || `Compromisso ${id}`,
+      details: targetApp ? `Removeu compromisso de ${targetApp.date} às ${targetApp.time}` : 'Removeu compromisso'
+    });
     showToast('Compromisso removido.');
   };
 

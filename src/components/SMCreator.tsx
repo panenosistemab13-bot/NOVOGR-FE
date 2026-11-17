@@ -42,6 +42,7 @@ import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
 import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
 import { ref, onValue, set, update } from 'firebase/database';
+import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 // Configuração robusta do Worker do PDF.js (pdfjs-dist v6.2.108 usa .mjs)
 // 1. Arquivo local servido estaticamente em /public/pdf.worker.min.mjs (recomendado para empacotamento Vite)
@@ -634,6 +635,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setIdaRows(rows);
     try { localStorage.setItem('sm_creator_ida', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/ida'), rows);
+    logDebouncedEdit('sm_creator_ida', {
+      action: 'EDIT',
+      module: 'SM Creator',
+      target: 'Tabela IDA',
+      details: `Atualizou lista IDA (${rows.length} linha(s))`
+    });
   };
 
   const saveVolta = (rows: SMRow[], forcePush = false) => {
@@ -641,6 +648,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setVoltaRows(rows);
     try { localStorage.setItem('sm_creator_volta', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/volta'), rows);
+    logDebouncedEdit('sm_creator_volta', {
+      action: 'EDIT',
+      module: 'SM Creator',
+      target: 'Tabela VOLTA',
+      details: `Atualizou lista VOLTA (${rows.length} linha(s))`
+    });
   };
 
   const saveNordeste = (rows: SMRow[], forcePush = false) => {
@@ -648,6 +661,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setNordesteRows(rows);
     try { localStorage.setItem('sm_creator_nordeste', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/nordeste'), rows);
+    logDebouncedEdit('sm_creator_nordeste', {
+      action: 'EDIT',
+      module: 'SM Creator',
+      target: 'Tabela NORDESTE',
+      details: `Atualizou lista NORDESTE (${rows.length} linha(s))`
+    });
   };
 
   const saveVespasiano = (rows: SMRow[], forcePush = false) => {
@@ -655,6 +674,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setVespasianoRows(rows);
     try { localStorage.setItem('sm_creator_vespasiano', JSON.stringify(rows)); } catch {}
     set(ref(db, 'sm_creator_data/vespasiano'), rows);
+    logDebouncedEdit('sm_creator_vespasiano', {
+      action: 'EDIT',
+      module: 'SM Creator',
+      target: 'Tabela VESPASIANO',
+      details: `Atualizou lista VESPASIANO (${rows.length} linha(s))`
+    });
   };
 
   const saveCalc = (vals: string[], forcePush = false) => {
@@ -662,6 +687,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setCalcValues(vals);
     try { localStorage.setItem('sm_creator_calc', JSON.stringify(vals)); } catch {}
     set(ref(db, 'sm_creator_data/calc'), vals);
+    logDebouncedEdit('sm_creator_calc', {
+      action: 'EDIT',
+      module: 'SM Creator',
+      target: 'Calculadora de Valores',
+      details: `Editou valores da calculadora (${vals.filter(v => v.trim()).length} preenchido(s))`
+    });
   };
 
   const saveNote = (text: string) => {
@@ -672,11 +703,24 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       timestamp: new Date().toISOString()
     };
     set(ref(db, `sm_creator_data/notes/${noteId}`), newNote);
+    logAuditAction({
+      action: 'ADD',
+      module: 'SM Creator',
+      target: 'Anotação',
+      details: `Adicionou nota: "${text.trim().slice(0, 80)}"`
+    });
     setNewNoteText('');
   };
 
   const deleteNote = (id: string) => {
+    const targetNote = notes.find(n => n.id === id);
     set(ref(db, `sm_creator_data/notes/${id}`), null);
+    logAuditAction({
+      action: 'DELETE',
+      module: 'SM Creator',
+      target: 'Anotação',
+      details: targetNote ? `Removeu nota: "${targetNote.text.slice(0, 80)}"` : 'Removeu anotação'
+    });
   };
 
   const handleUndo = () => {
@@ -699,6 +743,13 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
         nordeste: previousState.nordeste || [],
         vespasiano: previousState.vespasiano || [],
         calc: previousState.calc
+      });
+
+      logAuditAction({
+        action: 'EDIT',
+        module: 'SM Creator',
+        target: 'Desfazer alteração',
+        details: 'Restaurou versão anterior das tabelas SM Creator'
       });
 
       setShowUndoToast(true);
@@ -1625,6 +1676,12 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
     setCalcValues(['']);
     setNotes([]);
     set(ref(db, 'sm_creator_data'), null);
+    logAuditAction({
+      action: 'DELETE',
+      module: 'SM Creator',
+      target: 'Todas as tabelas e notas SM',
+      details: 'Limpou todos os registros do SM Creator'
+    });
   };
 
   const copyTotalRaw = async () => {

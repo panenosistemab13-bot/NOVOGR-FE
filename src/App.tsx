@@ -31,7 +31,8 @@ import {
   Lock,
   Unlock,
   Settings,
-  Truck
+  Truck,
+  Mail
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { auth, rtdb as db } from './firebase';
@@ -58,6 +59,7 @@ import Escala from './components/Escala';
 import Disponibilidade from './components/Disponibilidade';
 import OrdemServico from './components/OrdemServico';
 import Cobrancas from './components/Cobrancas';
+import ListaEmails from './components/ListaEmails';
 import CalendarioView from './components/views/CalendarioView';
 import LoginScreen from './components/LoginScreen';
 import RestrictedPagesModal from './components/RestrictedPagesModal';
@@ -95,7 +97,7 @@ import factoryRotasBg from './assets/images/factory_wallpaper_rotas_179132871941
 import tresCoracoes8kBg from './assets/images/tres_coracoes_wallpaper_1791938048589.jpg';
 import Wallpaper360Viewer from './components/common/Wallpaper360Viewer';
 
-export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'lancamento' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'ordem_servico' | 'cobrancas' | 'calendario' | 'settings' | 'cadastro';
+export type Tab = 'menu' | 'presence' | 'risk' | 'averbacao' | 'sm_creator' | 'rotas' | 'lancamento' | 'checklist' | 'controle' | 'escala' | 'disponibilidade' | 'ordem_servico' | 'cobrancas' | 'lista_emails' | 'historico' | 'calendario' | 'settings' | 'cadastro';
 
 const backgroundImages: Record<Tab, string> = {
   menu: tresCoracoes8kBg,
@@ -111,6 +113,8 @@ const backgroundImages: Record<Tab, string> = {
   disponibilidade: tresCoracoes8kBg,
   ordem_servico: tresCoracoes8kBg,
   cobrancas: tresCoracoes8kBg,
+  lista_emails: tresCoracoes8kBg,
+  historico: tresCoracoes8kBg,
   calendario: tresCoracoes8kBg,
   settings: tresCoracoes8kBg,
   cadastro: tresCoracoes8kBg
@@ -129,6 +133,7 @@ const allTabs = [
   { id: 'disponibilidade', label: 'Disponibilidade', icon: Truck },
   { id: 'ordem_servico', label: 'Ordem de Serviço', icon: ClipboardCheck },
   { id: 'cobrancas', label: 'Cobranças', icon: Activity },
+  { id: 'lista_emails', label: 'Lista de E-mails', icon: Mail },
   { id: 'calendario', label: 'Calendário', icon: CalendarDays },
   { id: 'presence', label: 'Lista de Presença', icon: Users2 },
   { id: 'rotas', label: 'Rotas', icon: Route },
@@ -319,6 +324,10 @@ export default function App() {
           if (visibility.cobrancas === undefined) {
             visibility.cobrancas = true;
           }
+          if (visibility.lista_emails === undefined) {
+            visibility.lista_emails = true;
+          }
+          delete visibility.historico;
           savePageVisibility(visibility);
           setPageVisibility(visibility);
         }
@@ -489,6 +498,10 @@ export default function App() {
         return <OrdemServico onBack={() => setActiveTab('menu')} />;
       case 'cobrancas':
         return <Cobrancas onBack={() => setActiveTab('menu')} />;
+      case 'lista_emails':
+        return <ListaEmails onBack={() => setActiveTab('menu')} />;
+      case 'historico':
+        return <ConfiguracoesPaginasView initialTab="historico" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'calendario':
         return <CalendarioView onBack={() => setActiveTab('menu')} />;
       case 'settings':
@@ -627,6 +640,10 @@ export default function App() {
         return <OrdemServico onBack={() => setActiveTab('menu')} />;
       case 'cobrancas':
         return <Cobrancas onBack={() => setActiveTab('menu')} />;
+      case 'lista_emails':
+        return <ListaEmails onBack={() => setActiveTab('menu')} />;
+      case 'historico':
+        return <ConfiguracoesPaginasView initialTab="historico" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'settings':
         return <ConfiguracoesPaginasView initialTab="paginas" onBack={() => setActiveTab('menu')} onOpenCadastro={() => setActiveTab('cadastro')} currentUser={currentUser} />;
       case 'cadastro':
@@ -676,12 +693,14 @@ export default function App() {
             ? "bg-[#070c14] overflow-hidden"
             : activeTab === 'sm_creator'
               ? "bg-[#FDF8EE] overflow-y-auto"
-              : activeTab === 'averbacao'
+              : activeTab === 'averbacao' || activeTab === 'lista_emails'
                 ? "bg-[#FAF6EF] overflow-y-auto"
-                : "overflow-y-auto"
+                : activeTab === 'ordem_servico' || activeTab === 'cobrancas'
+                  ? "bg-[#F4F5F7] overflow-y-auto"
+                  : "overflow-y-auto"
         )}
         style={
-          activeTab === 'menu' || activeTab === 'sm_creator' || activeTab === 'averbacao'
+          activeTab === 'menu' || activeTab === 'sm_creator' || activeTab === 'averbacao' || activeTab === 'lista_emails' || activeTab === 'ordem_servico' || activeTab === 'cobrancas'
             ? {}
             : {
                 backgroundImage: `linear-gradient(rgba(8, 10, 12, 0.82), rgba(8, 10, 12, 0.88)), url(${backgroundImages[activeTab] || backgroundImages.menu})`,
@@ -698,7 +717,9 @@ export default function App() {
             className={cn(
               "internal-pages-wrapper w-full min-h-full flex flex-col",
               activeTab === 'sm_creator' && "bg-[#FDF8EE]",
-              activeTab === 'averbacao' && "bg-[#FAF6EF]"
+              (activeTab === 'averbacao' || activeTab === 'lista_emails') && "bg-[#FAF6EF]",
+              activeTab === 'ordem_servico' && "bg-[#F9F8F6]",
+              activeTab === 'cobrancas' && "bg-[#F4F5F7]"
             )}
           >
             {renderActiveModuleContent()}

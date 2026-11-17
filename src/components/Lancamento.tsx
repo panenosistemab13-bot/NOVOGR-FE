@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
+import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 export interface LancamentoRow {
   id: string;
@@ -387,6 +388,12 @@ export default function Lancamento({ onBack }: { onBack?: () => void }) {
     if (parsed.length > 0) {
       setRows(parsed);
       setPasteInput('');
+      logAuditAction({
+        action: 'ADD',
+        module: 'Lançamento',
+        target: `${parsed.length} isca(s) lançada(s)`,
+        details: `Processou ${parsed.length} lançamento(s) via colagem`
+      });
       showToast(`${parsed.length} lançamento(s) de isca identificado(s) e formatado(s)!`);
     } else {
       showToast('Nenhuma isca (ex: R100003185 ou 30D100003291) encontrada no texto colado.');
@@ -401,6 +408,12 @@ export default function Lancamento({ onBack }: { onBack?: () => void }) {
         const parsed = parseLancamentoInput(text, defaultRota);
         if (parsed.length > 0) {
           setRows(parsed);
+          logAuditAction({
+            action: 'ADD',
+            module: 'Lançamento',
+            target: `${parsed.length} isca(s) lançada(s)`,
+            details: `Colou ${parsed.length} isca(s) da área de transferência`
+          });
           showToast(`${parsed.length} isca(s) identificada(s) automaticamente da área de transferência!`);
         }
       } else {
@@ -418,6 +431,12 @@ export default function Lancamento({ onBack }: { onBack?: () => void }) {
         next[index] = { ...next[index], [field]: value };
       }
       return next;
+    });
+    logDebouncedEdit(`lancamento_cell_${index}_${String(field)}`, {
+      action: 'EDIT',
+      module: 'Lançamento',
+      target: `Linha ${index + 1} (${String(field)})`,
+      details: `Editou "${String(field)}" para "${value}"`
     });
   };
 
@@ -438,18 +457,38 @@ export default function Lancamento({ onBack }: { onBack?: () => void }) {
         envio: 'OK'
       }
     ]);
+    logAuditAction({
+      action: 'ADD',
+      module: 'Lançamento',
+      target: 'Nova Linha Lançamento',
+      details: `Adicionou linha em branco para rota ${defaultRota}`
+    });
   };
 
   const handleRemoveRow = (index: number) => {
+    const target = rows[index];
     setRows(prev => prev.filter((_, i) => i !== index));
+    logAuditAction({
+      action: 'DELETE',
+      module: 'Lançamento',
+      target: target?.positron || `Linha ${index + 1}`,
+      details: `Removeu lançamento (${target?.motorista || '-'})`
+    });
   };
 
   const handleClearAll = () => {
+    const count = rows.length;
     setRows([]);
     setPasteInput('');
     try {
       localStorage.removeItem('lancamento_positron_rows');
     } catch {}
+    logAuditAction({
+      action: 'DELETE',
+      module: 'Lançamento',
+      target: 'Tabela de Lançamento',
+      details: `Limpou todos os ${count} lançamento(s) da tabela`
+    });
     showToast('Tabela limpa! Cole novas informações no campo em branco.');
   };
 

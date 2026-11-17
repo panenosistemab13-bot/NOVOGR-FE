@@ -12,7 +12,8 @@ import {
   Users, 
   ExternalLink,
   Info,
-  ShieldAlert
+  ShieldAlert,
+  History
 } from 'lucide-react';
 import { 
   DEFAULT_PAGES, 
@@ -25,12 +26,14 @@ import {
 import { rtdb } from '../firebase';
 import { ref, set, onValue } from 'firebase/database';
 import CadastroView from './CadastroView';
+import Historico from './Historico';
 import { cn } from '../lib/utils';
+import { logAuditAction, subscribeAuditHistory } from '../utils/auditHistory';
 
 interface ConfiguracoesPaginasViewProps {
   onBack?: () => void;
   onOpenCadastro?: () => void;
-  initialTab?: 'paginas' | 'cadastro';
+  initialTab?: 'paginas' | 'cadastro' | 'historico';
   currentUser?: { email: string; name: string; role: string; allowedPages?: string[] } | null;
 }
 
@@ -41,9 +44,15 @@ export default function ConfiguracoesPaginasView({
   currentUser 
 }: ConfiguracoesPaginasViewProps) {
   const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'Administrador' || currentUser?.name?.toLowerCase() === 'jefferson';
-  const [activeTab, setActiveTab] = useState<'paginas' | 'cadastro'>(isAdmin ? initialTab : 'cadastro');
+  const canViewHistory = isAdmin || Boolean(currentUser?.allowedPages?.includes('historico'));
+  const resolveInitialTab = (tab: 'paginas' | 'cadastro' | 'historico') => {
+    if (tab === 'historico' && canViewHistory) return 'historico';
+    return isAdmin ? tab : 'cadastro';
+  };
+  const [activeTab, setActiveTab] = useState<'paginas' | 'cadastro' | 'historico'>(() => resolveInitialTab(initialTab));
   const [pages, setPages] = useState<PageDefinition[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
+  const [historyCount, setHistoryCount] = useState<number>(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Dynamic shortcuts calculation: Início is always 1 (Ctrl + 1),
@@ -77,8 +86,15 @@ export default function ConfiguracoesPaginasView({
   }, [pages, visibility]);
 
   useEffect(() => {
-    setActiveTab(isAdmin ? initialTab : 'cadastro');
-  }, [initialTab, isAdmin]);
+    setActiveTab(resolveInitialTab(initialTab));
+  }, [initialTab, isAdmin, canViewHistory]);
+
+  useEffect(() => {
+    const unsubHistory = subscribeAuditHistory((list) => {
+      setHistoryCount(list.length);
+    });
+    return () => unsubHistory();
+  }, []);
 
   useEffect(() => {
     setPages(getAllAvailablePages());
@@ -112,6 +128,12 @@ export default function ConfiguracoesPaginasView({
     }
 
     const pageName = pages.find(p => p.id === pageId)?.label || pageId;
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Configurações',
+      target: `Visibilidade: ${pageName}`,
+      details: `Marcou página como ${nextVal ? 'VISÍVEL' : 'OCULTA'} no menu`
+    });
     showToast(`Página "${pageName}" marcada como ${nextVal ? 'VISÍVEL' : 'OCULTA'}.`);
   };
 
@@ -127,6 +149,12 @@ export default function ConfiguracoesPaginasView({
     } catch (e) {
       console.error(e);
     }
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Configurações',
+      target: 'Visibilidade de Páginas',
+      details: 'Exibiu todas as páginas no menu principal'
+    });
     showToast('Todas as páginas agora estão visíveis no menu.');
   };
 
@@ -142,6 +170,12 @@ export default function ConfiguracoesPaginasView({
     } catch (e) {
       console.error(e);
     }
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Configurações',
+      target: 'Visibilidade de Páginas',
+      details: 'Restaurou visibilidade das páginas para o padrão do sistema'
+    });
     showToast('Visibilidade restaurada para o padrão do sistema.');
   };
 
@@ -215,8 +249,8 @@ export default function ConfiguracoesPaginasView({
           )}
         </div>
 
-        {/* TOP NAVIGATION TABS: PÁGINAS vs CADASTRO */}
-        <div className="flex items-center gap-3 border-b border-[#E6D2A3] pb-3">
+        {/* TOP NAVIGATION TABS: PÁGINAS vs CADASTRO vs HISTÓRICO */}
+        <div className="flex flex-wrap items-center gap-3 border-b border-[#E6D2A3] pb-3">
           {isAdmin && (
             <button
               type="button"
@@ -231,7 +265,7 @@ export default function ConfiguracoesPaginasView({
               <Sliders size={16} className={activeTab === 'paginas' ? "text-[#C5A059]" : "text-stone-400"} />
               <span>Páginas & Menu</span>
               <span className={cn(
-                "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
+                "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tabular-nums",
                 activeTab === 'paginas' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
               )}>
                 {visibleCount} ativas
@@ -258,6 +292,28 @@ export default function ConfiguracoesPaginasView({
               {isAdmin ? 'Acessos' : 'Senha'}
             </span>
           </button>
+
+          {canViewHistory && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('historico')}
+              className={cn(
+                "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-xs active:scale-95",
+                activeTab === 'historico'
+                  ? "bg-[#292820] text-[#FAF7F0] border border-[#D9C39B] shadow-md ring-2 ring-[#C5A059]/30"
+                  : "bg-white hover:bg-stone-50 text-[#77736B] border border-[#E6D2A3]"
+              )}
+            >
+              <History size={16} className={activeTab === 'historico' ? "text-[#C5A059]" : "text-stone-400"} />
+              <span>Histórico</span>
+              <span className={cn(
+                "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tabular-nums",
+                activeTab === 'historico' ? "bg-[#3D3A30] text-[#D8B065]" : "bg-stone-100 text-stone-600"
+              )}>
+                {historyCount} ações
+              </span>
+            </button>
+          )}
         </div>
 
         {/* TOAST NOTIFICATION */}
@@ -411,6 +467,17 @@ export default function ConfiguracoesPaginasView({
               embedded={true} 
               currentUser={currentUser} 
               onBack={onBack} 
+            />
+          </div>
+        )}
+
+        {/* TAB 3: HISTÓRICO DE AÇÕES DOS USUÁRIOS */}
+        {activeTab === 'historico' && canViewHistory && (
+          <div className="animate-fade-in">
+            <Historico
+              embedded={true}
+              currentUser={currentUser}
+              onBack={onBack}
             />
           </div>
         )}

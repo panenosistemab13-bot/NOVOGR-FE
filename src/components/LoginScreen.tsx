@@ -90,7 +90,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         name: matchedUser?.name || googleName,
         role: isUserAdmin ? 'admin' : 'agente_de_risco',
         roleLabel: isUserAdmin ? 'Administrador' : 'Agente de Risco',
-        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : (isUserAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'lancamento', 'controle', 'disponibilidade', 'escala'])
+        allowedPages: Array.isArray(matchedUser?.allowedPages) ? matchedUser.allowedPages : (isUserAdmin ? [] : ['checklist', 'averbacao', 'sm_creator', 'lancamento', 'controle', 'disponibilidade', 'escala', 'lista_emails', 'historico'])
       };
 
       localStorage.setItem('logged_user', JSON.stringify(userData));

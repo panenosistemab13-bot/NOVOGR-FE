@@ -46,6 +46,7 @@ import { rtdb } from '../firebase';
 import { ref, onValue, set, remove, update } from 'firebase/database';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
+import { logAuditAction } from '../utils/auditHistory';
 import { googleSignIn, getAccessToken, initAuth, logout } from '../lib/googleAuth';
 import { getSpreadsheetDetails, fetchDataFromWebAppUrl, fetchSantaLuziaCsvString, parseVehicleCsvText, PUBLIC_SANTA_LUZIA_CSV_URL, APPS_SCRIPT_API_URL, parseCsvText, parseVehicleObjects } from '../services/googleSheets';
 import Papa from 'papaparse';
@@ -638,8 +639,15 @@ ${genData.signature}`;
     }
 
     if (Object.keys(updatesMap).length > 0) {
+      const count = Object.keys(updatesMap).length;
       await update(ref(rtdb, 'checklist_veiculos'), updatesMap);
-      showToast(`${Object.keys(updatesMap).length} veículo(s) importados!`, 'success');
+      logAuditAction({
+        action: 'ADD',
+        module: 'Checklist',
+        target: `${count} veículo(s) importados`,
+        details: `Importou ${count} veículo(s) via planilha`
+      });
+      showToast(`${count} veículo(s) importados!`, 'success');
       setShowPasteModal(false);
       setPasteData('');
     }
@@ -652,6 +660,7 @@ ${genData.signature}`;
       showToast('A placa do cavalo é obrigatória.', 'info');
       return;
     }
+    const isEditing = Boolean(editingItem);
     const id = editingItem ? editingItem.id : `vh_${Date.now()}`;
     const itemToSave: ChecklistItem = { id, ...newItem };
 
@@ -663,7 +672,13 @@ ${genData.signature}`;
     setItems(updatedItems);
     setIsAdding(false);
     setEditingItem(null);
-    showToast(editingItem ? 'Veículo atualizado com sucesso!' : 'Novo veículo adicionado com sucesso!', 'success');
+    logAuditAction({
+      action: isEditing ? 'EDIT' : 'ADD',
+      module: 'Checklist',
+      target: `Cavalo ${itemToSave.cavalo}`,
+      details: `Carretas: ${itemToSave.carretas || '-'} | Status OS: ${itemToSave.osStatus || 'PENDENTE'}`
+    });
+    showToast(isEditing ? 'Veículo atualizado com sucesso!' : 'Novo veículo adicionado com sucesso!', 'success');
 
     // Executa persistência no Firebase RTDB e envio de POST para o Web App pessoal em segundo plano
     const payload = sanitizeForFirebase(itemToSave);
@@ -675,9 +690,16 @@ ${genData.signature}`;
   // Delete all records (Escrita Imediata com Atualização Otimista)
   const handleClearAll = async () => {
     if (window.confirm('Tem certeza que deseja apagar todos os veículos da prancheta?')) {
+      const previousCount = items.length;
       setItems([]);
       remove(ref(rtdb, 'checklist_veiculos'));
       localStorage.setItem('checklist_cleared_permanently', 'true');
+      logAuditAction({
+        action: 'DELETE',
+        module: 'Checklist',
+        target: 'Todos os veículos',
+        details: `Removeu todos os ${previousCount} veículo(s) da prancheta`
+      });
       showToast('Todos os registros foram removidos.', 'delete');
       syncToApiFrota([]);
     }
@@ -1363,6 +1385,12 @@ ${genData.signature}`;
                                 onClick={async () => {
                                   if (window.confirm(`Excluir o veículo ${item.cavalo}?`)) {
                                     await remove(ref(rtdb, `checklist_veiculos/${item.id}`));
+                                    logAuditAction({
+                                      action: 'DELETE',
+                                      module: 'Checklist',
+                                      target: `Cavalo ${item.cavalo}`,
+                                      details: `Excluiu veículo (Carretas: ${item.carretas || '-'})`
+                                    });
                                     showToast('Veículo removido.', 'delete');
                                   }
                                 }}

@@ -48,6 +48,7 @@ import { parseISO, differenceInDays } from 'date-fns';
 import heroEscala from '../assets/images/hero_cinematic_escala_1790216226888.jpg';
 import cardChecklist from '../assets/images/card_cinematic_check_1790214967098.jpg';
 import MasterModulePage, { MasterRecord } from './MasterModulePage';
+import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 const DEFAULT_ESCALA_RECORDS: MasterRecord[] = [
   {
@@ -617,6 +618,12 @@ export default function Escala({ onBack }: EscalaProps) {
     } catch (err) {
       console.error('Erro ao salvar apólices no Firebase RTDB:', err);
     }
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Escala',
+      target: 'Apólices Escala',
+      details: `Atualizou lista de apólices (${newItems.length} item(ns))`
+    });
   };
 
   // Subscribe to Transportadoras database (Firebase RTDB + LocalStorage sync)
@@ -653,6 +660,12 @@ export default function Escala({ onBack }: EscalaProps) {
     } catch (err) {
       console.error('Erro ao salvar transportadoras no Firebase RTDB:', err);
     }
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Escala',
+      target: 'Lista de Transportadoras',
+      details: `Atualizou transportadoras (${newList.length} cadastradas)`
+    });
   };
 
   // Calculate checklist status for a given plate
@@ -1309,6 +1322,12 @@ export default function Escala({ onBack }: EscalaProps) {
         return updated;
       })
     );
+    logDebouncedEdit(`escala_cell_${rowId}_${String(field)}`, {
+      action: 'EDIT',
+      module: 'Escala',
+      target: `Campo ${String(field)}`,
+      details: `Editou "${String(field)}" para "${value}"`
+    });
   };
 
   // Helper to convert a single DispoRow object into 33-column TSV string (Colunas A a AG, ignorando AI, AJ, AK)
@@ -1558,11 +1577,24 @@ export default function Escala({ onBack }: EscalaProps) {
       pendencia: ''
     };
     setEditableRows(prev => [...prev, newRow]);
+    logAuditAction({
+      action: 'ADD',
+      module: 'Escala',
+      target: 'Nova Linha na Escala',
+      details: `Adicionou linha manual (${newRow.origem} -> ${newRow.destino})`
+    });
   };
 
   // Remove row
   const handleRemoveRow = (rowId: string) => {
+    const target = editableRows.find(r => r.id === rowId);
     setEditableRows(prev => prev.filter(r => r.id !== rowId));
+    logAuditAction({
+      action: 'DELETE',
+      module: 'Escala',
+      target: target?.cavalo ? `Linha ${target.cavalo}` : 'Linha da Escala',
+      details: `Removeu linha da escala (${target?.conductor || target?.destino || rowId})`
+    });
   };
 
   // Motoristas 3C CRUD actions
@@ -1582,20 +1614,33 @@ export default function Escala({ onBack }: EscalaProps) {
     e.preventDefault();
     if (!formData.nome.trim()) return;
 
+    const nomeFmt = formData.nome.toUpperCase().trim();
     try {
       const motoristasRef = ref(rtdb, 'motoristas_3c');
       if (editingDriver) {
         const itemRef = ref(rtdb, `motoristas_3c/${editingDriver.id}`);
         await update(itemRef, {
-          nome: formData.nome.toUpperCase().trim(),
+          nome: nomeFmt,
           cpf: formData.cpf.trim(),
           rg: formData.rg.toUpperCase().trim()
         });
+        logAuditAction({
+          action: 'EDIT',
+          module: 'Escala',
+          target: `Motorista ${nomeFmt}`,
+          details: `Editou cadastro de motorista 3C (CPF: ${formData.cpf.trim() || '-'})`
+        });
       } else {
         await push(motoristasRef, {
-          nome: formData.nome.toUpperCase().trim(),
+          nome: nomeFmt,
           cpf: formData.cpf.trim(),
           rg: formData.rg.toUpperCase().trim()
+        });
+        logAuditAction({
+          action: 'ADD',
+          module: 'Escala',
+          target: `Motorista ${nomeFmt}`,
+          details: `Cadastrou novo motorista 3C (CPF: ${formData.cpf.trim() || '-'})`
         });
       }
       setIsModalOpen(false);
@@ -1609,6 +1654,12 @@ export default function Escala({ onBack }: EscalaProps) {
       try {
         const itemRef = ref(rtdb, `motoristas_3c/${id}`);
         await remove(itemRef);
+        logAuditAction({
+          action: 'DELETE',
+          module: 'Escala',
+          target: `Motorista ${name}`,
+          details: `Removeu motorista "${name}" do cadastro 3C`
+        });
       } catch (err) {
         console.error('Erro ao remover motorista:', err);
       }

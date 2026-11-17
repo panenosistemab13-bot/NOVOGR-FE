@@ -18,6 +18,7 @@ import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { getAllAvailablePages, ICON_MAP } from '../data/pagesConfig';
+import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 export interface UserAccount {
   id: number;
@@ -34,7 +35,9 @@ export const DEFAULT_AGENT_PAGES = [
   'lancamento', 
   'controle', 
   'disponibilidade', 
-  'escala'
+  'escala',
+  'lista_emails',
+  'historico'
 ];
 
 export const ALL_ADMIN_PAGES = [
@@ -44,10 +47,14 @@ export const ALL_ADMIN_PAGES = [
   'lancamento', 
   'controle', 
   'disponibilidade', 
-  'escala', 
+  'escala',
+  'ordem_servico',
+  'cobrancas',
+  'lista_emails',
   'presence', 
   'rotas',
   'calendario',
+  'historico',
   'settings',
   'cadastro'
 ];
@@ -188,7 +195,20 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const availablePagesList = useMemo(() => {
-    return getAllAvailablePages().filter(p => p.id !== 'cadastro');
+    const base = getAllAvailablePages().filter(p => p.id !== 'cadastro');
+    if (!base.some(p => p.id === 'historico')) {
+      base.push({
+        id: 'historico',
+        label: 'Histórico (Configurações)',
+        buttonLabel: 'Histórico',
+        category: 'Auditoria & Controle',
+        iconName: 'History',
+        description: 'Acesso à aba Histórico dentro de Configurações & Páginas.',
+        isDefaultVisible: true,
+        isRestrictedByDefault: false
+      });
+    }
+    return base;
   }, []);
 
   useEffect(() => {
@@ -261,6 +281,21 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     });
 
     saveToStorageAndFirebase(updated);
+    if (field === 'role') {
+      logAuditAction({
+        action: 'EDIT',
+        module: 'Cadastro',
+        target: `Função de ${selectedUser.name}`,
+        details: `Alterou função de "${selectedUser.role}" para "${String(value)}"`
+      });
+    } else {
+      logDebouncedEdit(`cadastro_user_${selectedUser.id}_${String(field)}`, {
+        action: 'EDIT',
+        module: 'Cadastro',
+        target: `Usuário ${selectedUser.name}`,
+        details: `Editou campo "${String(field)}" para "${String(value)}"`
+      });
+    }
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
@@ -275,6 +310,13 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
 
     const updated = users.map(u => u.id === selectedUserId ? { ...u, allowedPages: updatedPages } : u);
     saveToStorageAndFirebase(updated);
+    const pageLabel = availablePagesList.find(p => p.id === pageId)?.label || pageId;
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Cadastro',
+      target: `Permissões de ${selectedUser.name}`,
+      details: `${exists ? 'Removeu' : 'Liberou'} acesso à página "${pageLabel}"`
+    });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
@@ -284,6 +326,12 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     const allPageIds = availablePagesList.map(p => p.id);
     const updated = users.map(u => u.id === selectedUserId ? { ...u, allowedPages: allPageIds } : u);
     saveToStorageAndFirebase(updated);
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Cadastro',
+      target: `Permissões de ${selectedUser.name}`,
+      details: `Liberou todas as páginas (${allPageIds.length})`
+    });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
@@ -292,6 +340,12 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     if (!selectedUser || selectedUser.role === 'Administrador') return;
     const updated = users.map(u => u.id === selectedUserId ? { ...u, allowedPages: [] } : u);
     saveToStorageAndFirebase(updated);
+    logAuditAction({
+      action: 'EDIT',
+      module: 'Cadastro',
+      target: `Permissões de ${selectedUser.name}`,
+      details: 'Removeu todas as permissões de páginas'
+    });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
@@ -307,6 +361,12 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     const updated = [...users, newUser];
     saveToStorageAndFirebase(updated);
     setSelectedUserId(newUser.id);
+    logAuditAction({
+      action: 'ADD',
+      module: 'Cadastro',
+      target: newUser.name,
+      details: `Criou usuário (${newUser.email}) com função ${newUser.role}`
+    });
     setFeedbackMsg({ text: 'Novo usuário criado com sucesso.', type: 'success' });
     setTimeout(() => setFeedbackMsg(null), 3500);
   };
@@ -327,6 +387,14 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
     saveToStorageAndFirebase(updated);
     if (selectedUserId === id) {
       setSelectedUserId(updated[0]?.id || 1);
+    }
+    if (targetUser) {
+      logAuditAction({
+        action: 'DELETE',
+        module: 'Cadastro',
+        target: targetUser.name,
+        details: `Excluiu usuário (${targetUser.email})`
+      });
     }
     setFeedbackMsg({ text: 'Usuário removido com sucesso.', type: 'success' });
     setTimeout(() => setFeedbackMsg(null), 3000);

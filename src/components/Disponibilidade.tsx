@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
+import { logAuditAction } from '../utils/auditHistory';
 
 export interface DisponibilidadeRow {
   id: string;
@@ -258,6 +259,12 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
     const parsed = parseDisponibilidadeTsv(tsvInput);
     if (parsed.length > 0) {
       setRows(parsed);
+      logAuditAction({
+        action: 'ADD',
+        module: 'Disponibilidade',
+        target: `${parsed.length} veículo(s) processados`,
+        details: `Importou ${parsed.length} veículo(s) via planilha`
+      });
       showToast(`Sucesso! ${parsed.length} veículos processados.`);
     } else {
       showToast('Não foi possível identificar colunas válidas. Verifique o formato copiado.');
@@ -272,6 +279,12 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
         const parsed = parseDisponibilidadeTsv(text);
         if (parsed.length > 0) {
           setRows(parsed);
+          logAuditAction({
+            action: 'ADD',
+            module: 'Disponibilidade',
+            target: `${parsed.length} veículo(s) colados`,
+            details: `Colou e carregou ${parsed.length} veículo(s)`
+          });
           showToast(`Colado e processado! ${parsed.length} veículos carregados.`);
         } else {
           showToast('Texto colado da área de transferência.');
@@ -283,8 +296,15 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
   };
 
   const handleClearInputAndTable = () => {
+    const count = rows.length;
     setTsvInput('');
     setRows([]);
+    logAuditAction({
+      action: 'DELETE',
+      module: 'Disponibilidade',
+      target: 'Tabela de Disponibilidade',
+      details: `Limpou campo e tabela (${count} registro(s))`
+    });
     showToast('Campo e tabela limpos.');
   };
 

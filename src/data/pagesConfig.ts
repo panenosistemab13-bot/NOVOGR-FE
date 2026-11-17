@@ -17,7 +17,9 @@ import {
   Building2, 
   Lock, 
   LayoutGrid,
-  Trophy
+  Trophy,
+  Mail,
+  History
 } from 'lucide-react';
 
 import { rtdb } from '../firebase';
@@ -54,7 +56,9 @@ export const ICON_MAP: Record<string, React.ElementType> = {
   FileSpreadsheet,
   Building2,
   LayoutGrid,
-  Trophy
+  Trophy,
+  Mail,
+  History
 };
 
 export const DEFAULT_PAGES: PageDefinition[] = [
@@ -156,6 +160,17 @@ export const DEFAULT_PAGES: PageDefinition[] = [
     isDefaultVisible: true,
     isRestrictedByDefault: false,
     badge: '3D 4K'
+  },
+  { 
+    id: 'lista_emails', 
+    label: 'Lista de E-mails', 
+    buttonLabel: 'E-mails', 
+    category: 'Comunicação & Unidades',
+    iconName: 'Mail',
+    description: 'Lista de e-mails por unidade/destino com campo PARA para colagem em massa e cópia rápida de todos os destinatários.',
+    isDefaultVisible: true,
+    isRestrictedByDefault: false,
+    badge: 'E-mails'
   },
   { 
     id: 'presence', 
@@ -297,6 +312,10 @@ export function loadPageVisibility(): Record<string, boolean> {
         if (parsed.cobrancas === undefined) {
           visibility.cobrancas = true;
         }
+        if (parsed.lista_emails === undefined) {
+          visibility.lista_emails = true;
+        }
+        delete visibility['historico'];
         delete visibility['blitz'];
         delete visibility['parceiros'];
         delete visibility['iscas'];
@@ -318,7 +337,8 @@ export function loadPageVisibility(): Record<string, boolean> {
     // Ignore
   }
 
-  // Garante que páginas antigas de teste removidas não reapareçam
+  // Garante que páginas antigas removidas ou movidas não apareçam avulsas
+  delete visibility['historico'];
   delete visibility['blitz'];
   delete visibility['parceiros'];
   delete visibility['iscas'];
@@ -331,6 +351,9 @@ export function loadPageVisibility(): Record<string, boolean> {
   }
   if (visibility['cobrancas'] === undefined) {
     visibility['cobrancas'] = true;
+  }
+  if (visibility['lista_emails'] === undefined) {
+    visibility['lista_emails'] = true;
   }
 
   return visibility;
