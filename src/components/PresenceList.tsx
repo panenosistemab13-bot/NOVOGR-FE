@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
-import { ref, onValue, update } from 'firebase/database';
+import { ref, onValue, update } from '../utils/rtdbWithUndo';
 import { safeCopyText } from '../utils/clipboard';
 import { logAuditAction } from '../utils/auditHistory';
 

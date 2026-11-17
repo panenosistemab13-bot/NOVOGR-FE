@@ -209,9 +209,12 @@ export default function NavigationDrawer({
   );
 
   const isSettingsActive = activeTab === 'settings' || activeTab === 'cadastro';
-  const settingsLabel = (currentUser?.role === 'admin' || currentUser?.name?.toLowerCase() === 'jefferson')
-    ? 'Configurações'
-    : 'Meus Dados de Acesso';
+  const isAdmin =
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'Administrador' ||
+    currentUser?.name?.toLowerCase() === 'jefferson' ||
+    currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
+    currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br';
 
   return (
     <>
@@ -309,13 +312,13 @@ export default function NavigationDrawer({
             return renderNavItemButton(item, isActive, () => handleSelect(item.id));
           })}
 
-          {/* CONFIGURAÇÕES & PÁGINAS CARD AT THE BOTTOM OF THE LIST */}
-          {onOpenSettings && (
+          {/* CONFIGURAÇÕES - SOMENTE ADMINISTRADOR */}
+          {isAdmin && onOpenSettings && (
             <div className="pt-1 pb-2">
               {renderNavItemButton(
                 {
                   id: 'settings',
-                  label: settingsLabel,
+                  label: 'Configurações',
                   icon: Settings
                 },
                 isSettingsActive,

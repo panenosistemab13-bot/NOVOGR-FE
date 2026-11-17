@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { rtdb as db } from '../firebase';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set } from '../utils/rtdbWithUndo';
 import { safeCopyText } from '../utils/clipboard';
 import { BrazilMapBroadcast, BRAZIL_STATES } from './common/BrazilMapBroadcast';
 import { logAuditAction } from '../utils/auditHistory';

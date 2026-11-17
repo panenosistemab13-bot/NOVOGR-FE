@@ -3,8 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import {
+  installLocalStorageUndoInterceptor,
+  markTabTransitionSilence,
+  undoLastAction,
+} from './utils/undoManager';
+import {
+  recordUserSessionStart,
+  heartbeatUserOnlineTime,
+} from './utils/accessTracker';
 import AppShell from './components/AppShell/AppShell';
 import MainDashboard from './components/Dashboard/MainDashboard';
 import {
@@ -175,6 +184,16 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState<string>('');
   const [passwordError, setPasswordError] = useState<boolean>(false);
 
+  const isCurrentUserAdmin = useMemo(() => {
+    return (
+      currentUser?.role === 'admin' ||
+      currentUser?.role === 'Administrador' ||
+      currentUser?.name?.toLowerCase() === 'jefferson' ||
+      currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
+      currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br'
+    );
+  }, [currentUser]);
+
   // Dynamic visible tabs calculation - ensuring it's synchronized across the app
   const visibleTabs = useMemo(() => {
     const base = [{ id: 'menu', label: 'Início', icon: LayoutGrid }];
@@ -202,6 +221,107 @@ export default function App() {
   }, [availablePages, pageVisibility, currentUser]);
 
   const [activeTab, setActiveTab] = useState<Tab>('menu');
+  const [undoRefreshNonce, setUndoRefreshNonce] = useState<number>(0);
+  const [undoToastMsg, setUndoToastMsg] = useState<string | null>(null);
+  const undoToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastAccessHeartbeatRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    installLocalStorageUndoInterceptor();
+  }, []);
+
+  useEffect(() => {
+    markTabTransitionSilence(550);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const handleGlobalUndoKey = async (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'z' || e.key === 'Z')) {
+        if (e.defaultPrevented) return;
+
+        const el = document.activeElement as HTMLElement | null;
+        const isTextEditing =
+          el &&
+          ((el.tagName === 'TEXTAREA' && !(el as HTMLTextAreaElement).readOnly) ||
+            (el.tagName === 'INPUT' &&
+              !['checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'color', 'range'].includes(
+                ((el as HTMLInputElement).type || 'text').toLowerCase()
+              ) &&
+              !(el as HTMLInputElement).readOnly) ||
+            el.isContentEditable);
+
+        if (isTextEditing) return;
+
+        e.preventDefault();
+        const result = await undoLastAction();
+        if (result.undone) {
+          const needsComponentReload =
+            result.hadLocalStorage &&
+            (!result.hadRtdb ||
+              (result.localStorageKeys || []).some((k) =>
+                /controle|lancamento|cobranca|terceiros|prancheta|apolice/i.test(k)
+              ));
+          if (needsComponentReload) {
+            setUndoRefreshNonce((n) => n + 1);
+          }
+
+          setUndoToastMsg('Ação desfeita (Ctrl+Z)');
+          if (undoToastTimerRef.current) {
+            clearTimeout(undoToastTimerRef.current);
+          }
+          undoToastTimerRef.current = setTimeout(() => {
+            setUndoToastMsg(null);
+          }, 2400);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalUndoKey);
+    return () => window.removeEventListener('keydown', handleGlobalUndoKey);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser) return;
+    lastAccessHeartbeatRef.current = Date.now();
+
+    const flushOnlineTime = (keepOnline = true) => {
+      const now = Date.now();
+      const delta = now - lastAccessHeartbeatRef.current;
+      lastAccessHeartbeatRef.current = now;
+      heartbeatUserOnlineTime(currentUser, delta, keepOnline);
+    };
+
+    const interval = setInterval(() => {
+      flushOnlineTime(true);
+    }, 15000);
+
+    const handleVisibilityOrUnload = () => {
+      if (document.visibilityState === 'hidden') {
+        flushOnlineTime(true);
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      flushOnlineTime(false);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityOrUnload);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+    };
+  }, [isAuthenticated, currentUser]);
+
+  useEffect(() => {
+    if (!isCurrentUserAdmin && (activeTab === 'settings' || activeTab === 'cadastro' || activeTab === 'historico')) {
+      setActiveTab('menu');
+    }
+  }, [isCurrentUserAdmin, activeTab]);
   const [focusedCardIndex, setFocusedCardIndex] = useState<number>(0);
   const [averbacaoView, setAverbacaoView] = useState<'generator' | 'codes'>('generator');
   const [smCreatorView, setSmCreatorView] = useState<'generator' | 'codes'>('generator');
@@ -627,12 +747,13 @@ export default function App() {
 
   const renderActiveModuleContent = () => {
     const isAgenteDeRisco = currentUser?.role === 'agente_de_risco' || currentUser?.role === 'funcionario';
-    const isUnauthorized = isAgenteDeRisco && 
-      activeTab !== 'menu' && 
-      activeTab !== 'settings' && 
-      activeTab !== 'cadastro' && 
-      currentUser?.allowedPages && 
-      !currentUser.allowedPages.includes(activeTab);
+    const isAdminOnlyTab = activeTab === 'settings' || activeTab === 'cadastro' || activeTab === 'historico';
+    const isUnauthorized =
+      (!isCurrentUserAdmin && isAdminOnlyTab) ||
+      (isAgenteDeRisco &&
+        activeTab !== 'menu' &&
+        currentUser?.allowedPages &&
+        !currentUser.allowedPages.includes(activeTab));
 
     if (isUnauthorized) {
       return (
@@ -662,7 +783,7 @@ export default function App() {
           <Checklist
             onNavigate={(tab) => setActiveTab(tab as Tab)}
             onLogout={handleLogout}
-            onOpenSettings={() => setActiveTab('settings')}
+            onOpenSettings={isCurrentUserAdmin ? () => setActiveTab('settings') : undefined}
             pageVisibility={pageVisibility}
           />
         );
@@ -700,6 +821,11 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    if (currentUser) {
+      const delta = Date.now() - lastAccessHeartbeatRef.current;
+      lastAccessHeartbeatRef.current = Date.now();
+      heartbeatUserOnlineTime(currentUser, delta, false);
+    }
     localStorage.removeItem('logged_user');
     localStorage.removeItem('user_email');
     setIsAuthenticated(false);
@@ -707,6 +833,8 @@ export default function App() {
 
   if (!isAuthenticated) {
     return <LoginScreen onLoginSuccess={(user) => {
+      lastAccessHeartbeatRef.current = Date.now();
+      recordUserSessionStart(user);
       setIsAuthenticated(true);
       setCurrentUser(user);
     }} />;
@@ -716,13 +844,7 @@ export default function App() {
     <AppShell
       activeTab={activeTab}
       onSelectTab={(id) => setActiveTab(id as Tab)}
-      onOpenSettings={() => {
-        if (currentUser?.role === 'admin') {
-          setActiveTab('settings');
-        } else {
-          setActiveTab('cadastro'); // Employees go directly to their profile
-        }
-      }}
+      onOpenSettings={isCurrentUserAdmin ? () => setActiveTab('settings') : undefined}
       onLogout={handleLogout}
       showPresenceList={Boolean(pageVisibility['presence'])}
       showRotasPage={Boolean(pageVisibility['rotas'])}
@@ -760,6 +882,7 @@ export default function App() {
           <MainDashboard onNavigate={(id) => setActiveTab(id as Tab)} />
         ) : (
           <div
+            key={`${activeTab}-${undoRefreshNonce}`}
             className={cn(
               "internal-pages-wrapper w-full min-h-full flex flex-col",
               activeTab === 'sm_creator' && "bg-[#FDF8EE]",
@@ -772,6 +895,21 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* Global silent Ctrl+Z Undo feedback toast (no button) */}
+      <AnimatePresence>
+        {undoToastMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.96 }}
+            className="fixed bottom-5 right-5 z-[9999] pointer-events-none px-4 py-2.5 rounded-xl bg-[#1E1D1A]/95 text-[#FAF7F0] border border-[#DFC078]/60 shadow-xl text-xs font-bold tracking-wide flex items-center gap-2"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>{undoToastMsg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Full screen 360° 4K immersive wallpaper view occupying entire screen */}
       {showWallpaperModal && (

@@ -41,7 +41,8 @@ import {
 import { cn } from '../lib/utils';
 import { rtdb as db } from '../firebase';
 import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
-import { ref, onValue, set, update } from 'firebase/database';
+import { ref, onValue, set, update } from '../utils/rtdbWithUndo';
+import { runWithSyncIgnored } from '../utils/undoManager';
 import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 // Configuração robusta do Worker do PDF.js (pdfjs-dist v6.2.108 usa .mjs)
@@ -737,12 +738,14 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
       setVespasianoRows(previousState.vespasiano || []);
       setCalcValues(previousState.calc);
 
-      set(ref(db, 'sm_creator_data'), {
-        ida: previousState.ida,
-        volta: previousState.volta,
-        nordeste: previousState.nordeste || [],
-        vespasiano: previousState.vespasiano || [],
-        calc: previousState.calc
+      runWithSyncIgnored(() => {
+        set(ref(db, 'sm_creator_data'), {
+          ida: previousState.ida,
+          volta: previousState.volta,
+          nordeste: previousState.nordeste || [],
+          vespasiano: previousState.vespasiano || [],
+          calc: previousState.calc
+        });
       });
 
       logAuditAction({
@@ -760,6 +763,17 @@ export default function SMCreator({ view = 'generator', onBack }: SMCreatorProps
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+        const el = document.activeElement as HTMLElement | null;
+        const isTextEditing =
+          el &&
+          ((el.tagName === 'TEXTAREA' && !(el as HTMLTextAreaElement).readOnly) ||
+            (el.tagName === 'INPUT' &&
+              !['checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'color', 'range'].includes(
+                ((el as HTMLInputElement).type || 'text').toLowerCase()
+              ) &&
+              !(el as HTMLInputElement).readOnly) ||
+            el.isContentEditable);
+        if (isTextEditing) return;
         if (historyRef.current.length > 0) {
           e.preventDefault();
           handleUndo();

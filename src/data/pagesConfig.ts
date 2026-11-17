@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 import { rtdb } from '../firebase';
-import { ref, set } from 'firebase/database';
+import { ref, set } from '../utils/rtdbWithUndo';
 
 export interface PageDefinition {
   id: string;

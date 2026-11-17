@@ -11,7 +11,9 @@ import {
   X,
   Clock,
   Layers,
-  Filter
+  Filter,
+  Activity,
+  LogIn
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -23,6 +25,14 @@ import {
   clearAllAuditHistory,
   subscribeAuditHistory
 } from '../utils/auditHistory';
+import {
+  UserAccessRecord,
+  subscribeUserAccessStats,
+  resetAllUserAccessStats,
+  formatOnlineDuration,
+  isUserCurrentlyOnline,
+  normalizeUserAccessKey
+} from '../utils/accessTracker';
 
 interface HistoricoProps {
   onBack?: () => void;
@@ -87,7 +97,13 @@ function getActionMeta(action: AuditActionType) {
 }
 
 export default function Historico({ onBack: _onBack, currentUser, embedded = false }: HistoricoProps) {
+  const [subTab, setSubTab] = useState<'acoes' | 'acessos'>('acoes');
   const [entries, setEntries] = useState<AuditHistoryEntry[]>([]);
+  const [accessRecords, setAccessRecords] = useState<UserAccessRecord[]>([]);
+  const [accessSearch, setAccessSearch] = useState<string>('');
+  const [accessOnlineOnly, setAccessOnlineOnly] = useState<boolean>(false);
+  const [confirmResetAccess, setConfirmResetAccess] = useState<boolean>(false);
+  const [liveNowMs, setLiveNowMs] = useState<number>(() => Date.now());
   const [registeredUsers, setRegisteredUsers] = useState<Array<{ name: string; email: string; role: string }>>([]);
   const [selectedUserKey, setSelectedUserKey] = useState<string>('ALL');
   const [actionFilter, setActionFilter] = useState<'ALL' | AuditActionType>('ALL');
@@ -97,7 +113,12 @@ export default function Historico({ onBack: _onBack, currentUser, embedded = fal
   const [confirmClear, setConfirmClear] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const isAdmin = currentUser?.role === 'admin';
+  const isAdmin =
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'Administrador' ||
+    currentUser?.name?.toLowerCase() === 'jefferson' ||
+    currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
+    currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br';
 
   useEffect(() => {
     const unsubscribe = subscribeAuditHistory((list) => {
@@ -105,6 +126,22 @@ export default function Historico({ onBack: _onBack, currentUser, embedded = fal
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeUserAccessStats((list) => {
+      setAccessRecords(list);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (subTab !== 'acessos') return;
+    setLiveNowMs(Date.now());
+    const timer = setInterval(() => {
+      setLiveNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [subTab]);
 
   useEffect(() => {
     try {
@@ -317,6 +354,139 @@ export default function Historico({ onBack: _onBack, currentUser, embedded = fal
     showToast('Histórico limpo com sucesso.');
   };
 
+  const mergedAccessUsers = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        userKey: string;
+        name: string;
+        email: string;
+        role: string;
+        accessCount: number;
+        totalOnlineMs: number;
+        lastAccessAt: number;
+        lastSeenAt: number;
+        isOnline: boolean;
+      }
+    >();
+
+    registeredUsers.forEach((u) => {
+      const key = normalizeUserAccessKey(u.email, u.name);
+      if (!map.has(key)) {
+        map.set(key, {
+          userKey: key,
+          name: u.name || u.email.split('@')[0] || 'Usuário',
+          email: u.email,
+          role: u.role || 'Agente de Risco',
+          accessCount: 0,
+          totalOnlineMs: 0,
+          lastAccessAt: 0,
+          lastSeenAt: 0,
+          isOnline: false
+        });
+      }
+    });
+
+    accessRecords.forEach((rec) => {
+      const key = rec.userKey || normalizeUserAccessKey(rec.email, rec.name);
+      const existing = map.get(key);
+      const online = isUserCurrentlyOnline(rec, liveNowMs);
+      const activeExtraMs =
+        online && rec.lastSeenAt
+          ? Math.max(0, Math.min(liveNowMs - rec.lastSeenAt, 60_000))
+          : 0;
+
+      map.set(key, {
+        userKey: key,
+        name: rec.name || existing?.name || 'Usuário',
+        email: rec.email || existing?.email || '',
+        role: rec.role || existing?.role || 'Agente de Risco',
+        accessCount: rec.accessCount || 0,
+        totalOnlineMs: (rec.totalOnlineMs || 0) + activeExtraMs,
+        lastAccessAt: rec.lastAccessAt || 0,
+        lastSeenAt: rec.lastSeenAt || 0,
+        isOnline: online
+      });
+    });
+
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+      if (b.accessCount !== a.accessCount) return b.accessCount - a.accessCount;
+      if (b.totalOnlineMs !== a.totalOnlineMs) return b.totalOnlineMs - a.totalOnlineMs;
+      return a.name.localeCompare(b.name, 'pt-BR');
+    });
+  }, [registeredUsers, accessRecords, liveNowMs]);
+
+  const filteredAccessUsers = useMemo(() => {
+    return mergedAccessUsers.filter((u) => {
+      if (accessOnlineOnly && !u.isOnline) return false;
+      if (accessSearch.trim()) {
+        const q = accessSearch.trim().toLowerCase();
+        const hay = `${u.name} ${u.email} ${u.role}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [mergedAccessUsers, accessOnlineOnly, accessSearch]);
+
+  const accessSummary = useMemo(() => {
+    let totalAccesses = 0;
+    let totalOnlineMs = 0;
+    let onlineNow = 0;
+    mergedAccessUsers.forEach((u) => {
+      totalAccesses += u.accessCount;
+      totalOnlineMs += u.totalOnlineMs;
+      if (u.isOnline) onlineNow += 1;
+    });
+    return {
+      totalUsers: mergedAccessUsers.length,
+      totalAccesses,
+      totalOnlineMs,
+      onlineNow
+    };
+  }, [mergedAccessUsers]);
+
+  const handleExportAccessCsv = () => {
+    if (filteredAccessUsers.length === 0) {
+      showToast('Nenhum dado de acesso para exportar.');
+      return;
+    }
+
+    const escapeCsv = (val: string) => `"${String(val || '').replace(/"/g, '""')}"`;
+    const headers = ['Usuário', 'E-mail', 'Função', 'Status', 'Acessos ao App', 'Tempo Online', 'Último Acesso'];
+    const rows = filteredAccessUsers.map((u) =>
+      [
+        u.name,
+        u.email || '-',
+        u.role,
+        u.isOnline ? 'Online' : 'Offline',
+        String(u.accessCount),
+        formatOnlineDuration(u.totalOnlineMs),
+        u.lastAccessAt ? formatDateTime(u.lastAccessAt) : 'Nunca acessou'
+      ]
+        .map(escapeCsv)
+        .join(';')
+    );
+
+    const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `acessos-usuarios-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast(`${filteredAccessUsers.length} usuário(s) exportado(s) em CSV!`);
+  };
+
+  const handleResetAccessStats = async () => {
+    await resetAllUserAccessStats();
+    setConfirmResetAccess(false);
+    showToast('Contadores de acesso e tempo online zerados.');
+  };
+
   const resetFilters = () => {
     setSelectedUserKey('ALL');
     setActionFilter('ALL');
@@ -370,52 +540,371 @@ export default function Historico({ onBack: _onBack, currentUser, embedded = fal
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap shrink-0">
-            <button
-              type="button"
-              onClick={handleExportCsv}
-              className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF1DC] border border-[#D9C39B] text-xs font-bold text-[#292820] flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer transition-colors"
-            >
-              <Download size={14} className="text-[#8C6D28]" />
-              <span>Exportar CSV</span>
-            </button>
-
-            {isAdmin && entries.length > 0 && (
-              confirmClear ? (
-                <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-300 rounded-xl px-3 py-1.5">
-                  <span className="text-[11px] font-bold text-rose-800 whitespace-nowrap">
-                    Apagar tudo?
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleClearHistory}
-                    className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-bold cursor-pointer whitespace-nowrap"
-                  >
-                    Confirmar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmClear(false)}
-                    className="px-2 py-1 rounded-lg bg-white border border-stone-300 text-stone-700 text-[11px] font-semibold cursor-pointer"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              ) : (
+            {subTab === 'acoes' ? (
+              <>
                 <button
                   type="button"
-                  onClick={() => setConfirmClear(true)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-rose-50 border border-stone-300 hover:border-rose-300 text-xs font-bold text-stone-700 hover:text-rose-700 flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                  onClick={handleExportCsv}
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF1DC] border border-[#D9C39B] text-xs font-bold text-[#292820] flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer transition-colors"
                 >
-                  <Trash2 size={14} />
-                  <span>Limpar Histórico</span>
+                  <Download size={14} className="text-[#8C6D28]" />
+                  <span>Exportar CSV</span>
                 </button>
-              )
+
+                {isAdmin && entries.length > 0 && (
+                  confirmClear ? (
+                    <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-300 rounded-xl px-3 py-1.5">
+                      <span className="text-[11px] font-bold text-rose-800 whitespace-nowrap">
+                        Apagar tudo?
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleClearHistory}
+                        className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-bold cursor-pointer whitespace-nowrap"
+                      >
+                        Confirmar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmClear(false)}
+                        className="px-2 py-1 rounded-lg bg-white border border-stone-300 text-stone-700 text-[11px] font-semibold cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmClear(true)}
+                      className="px-4 py-2 rounded-xl bg-white hover:bg-rose-50 border border-stone-300 hover:border-rose-300 text-xs font-bold text-stone-700 hover:text-rose-700 flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                    >
+                      <Trash2 size={14} />
+                      <span>Limpar Histórico</span>
+                    </button>
+                  )
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleExportAccessCsv}
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF1DC] border border-[#D9C39B] text-xs font-bold text-[#292820] flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                >
+                  <Download size={14} className="text-[#8C6D28]" />
+                  <span>Exportar Acessos CSV</span>
+                </button>
+
+                {isAdmin && accessRecords.length > 0 && (
+                  confirmResetAccess ? (
+                    <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-300 rounded-xl px-3 py-1.5">
+                      <span className="text-[11px] font-bold text-rose-800 whitespace-nowrap">
+                        Zerar acessos?
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleResetAccessStats}
+                        className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-bold cursor-pointer whitespace-nowrap"
+                      >
+                        Confirmar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmResetAccess(false)}
+                        className="px-2 py-1 rounded-lg bg-white border border-stone-300 text-stone-700 text-[11px] font-semibold cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmResetAccess(true)}
+                      className="px-4 py-2 rounded-xl bg-white hover:bg-rose-50 border border-stone-300 hover:border-rose-300 text-xs font-bold text-stone-700 hover:text-rose-700 flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                    >
+                      <Trash2 size={14} />
+                      <span>Zerar Acessos</span>
+                    </button>
+                  )
+                )}
+              </>
             )}
           </div>
         </header>
 
-        {/* Indicadores de Resumo */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Sub-abas dentro do Histórico: Registro de Ações | Acessos */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setSubTab('acoes')}
+            className={cn(
+              'px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 border transition-all cursor-pointer',
+              subTab === 'acoes'
+                ? 'bg-[#292820] text-[#FAF7F0] border-[#D4AF37] shadow-xs'
+                : 'bg-[#FFFCF6] text-[#5C574E] border-[#E6D2A3] hover:bg-[#FAF1DC]'
+            )}
+          >
+            <History size={14} className={subTab === 'acoes' ? 'text-[#F5C542]' : 'text-[#8C6D28]'} />
+            <span>Registro de Ações</span>
+            <span
+              className={cn(
+                'px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums',
+                subTab === 'acoes' ? 'bg-white/10 text-[#F5C542]' : 'bg-[#F5EFE4] text-[#8C6D28]'
+              )}
+            >
+              {entries.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('acessos')}
+            className={cn(
+              'px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 border transition-all cursor-pointer',
+              subTab === 'acessos'
+                ? 'bg-[#292820] text-[#FAF7F0] border-[#D4AF37] shadow-xs'
+                : 'bg-[#FFFCF6] text-[#5C574E] border-[#E6D2A3] hover:bg-[#FAF1DC]'
+            )}
+          >
+            <Activity size={14} className={subTab === 'acessos' ? 'text-[#F5C542]' : 'text-[#8C6D28]'} />
+            <span>Acessos</span>
+            <span
+              className={cn(
+                'px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums',
+                subTab === 'acessos' ? 'bg-white/10 text-[#F5C542]' : 'bg-[#F5EFE4] text-[#8C6D28]'
+              )}
+            >
+              {accessSummary.totalAccesses}
+            </span>
+          </button>
+        </div>
+
+        {subTab === 'acessos' ? (
+          <div className="space-y-5">
+            {/* KPIs de Acessos e Tempo Online */}
+            <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <div className="bg-[#FFFCF6] rounded-2xl p-4 border border-[#E6D2A3] flex items-center justify-between text-left">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#77736B] block">
+                    Total de Acessos ao App
+                  </span>
+                  <span className="text-2xl font-extrabold text-[#17191E] tabular-nums mt-1 block">
+                    {accessSummary.totalAccesses}
+                  </span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-[#F5EFE4] border border-[#E6D2A3] flex items-center justify-center text-[#8C6D28]">
+                  <LogIn size={18} />
+                </div>
+              </div>
+
+              <div className="bg-[#FFFCF6] rounded-2xl p-4 border border-[#E6D2A3] flex items-center justify-between text-left">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C6D28] block">
+                    Tempo Total Online
+                  </span>
+                  <span className="text-2xl font-extrabold text-[#17191E] tabular-nums mt-1 block">
+                    {formatOnlineDuration(accessSummary.totalOnlineMs)}
+                  </span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
+                  <Clock size={18} />
+                </div>
+              </div>
+
+              <div className="bg-[#FFFCF6] rounded-2xl p-4 border border-[#E6D2A3] flex items-center justify-between text-left">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 block">
+                    Usuários Online Agora
+                  </span>
+                  <span className="text-2xl font-extrabold text-emerald-700 tabular-nums mt-1 block">
+                    {accessSummary.onlineNow}{' '}
+                    <span className="text-xs font-bold text-[#77736B]">/ {accessSummary.totalUsers}</span>
+                  </span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <Users size={18} />
+                </div>
+              </div>
+            </section>
+
+            {/* Barra de Busca e Filtro da Aba Acessos */}
+            <section className="bg-[#FFFCF6] rounded-2xl p-4 border border-[#E6D2A3] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAccessOnlineOnly(false)}
+                  className={cn(
+                    'px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer',
+                    !accessOnlineOnly
+                      ? 'bg-[#292820] text-[#FAF7F0] border-[#D4AF37]'
+                      : 'bg-white text-[#5C574E] border-[#D9C39B] hover:bg-stone-100'
+                  )}
+                >
+                  Todos ({mergedAccessUsers.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccessOnlineOnly(true)}
+                  className={cn(
+                    'px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer flex items-center gap-1.5',
+                    accessOnlineOnly
+                      ? 'bg-emerald-700 text-white border-emerald-800'
+                      : 'bg-white text-[#5C574E] border-[#D9C39B] hover:bg-emerald-50'
+                  )}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span>Online agora ({accessSummary.onlineNow})</span>
+                </button>
+              </div>
+
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="w-4 h-4 text-[#8C6D28] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={accessSearch}
+                  onChange={(e) => setAccessSearch(e.target.value)}
+                  placeholder="Buscar usuário por nome ou e-mail..."
+                  className="w-full sm:w-72 pl-9 pr-8 py-2 rounded-xl bg-white border border-[#D9C39B] text-xs text-[#1E1D1A] placeholder:text-stone-400 focus:outline-none focus:border-[#B98321]"
+                />
+                {accessSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setAccessSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 cursor-pointer"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </section>
+
+            {/* Tabela de Acessos por Usuário */}
+            <section className="bg-[#FFFCF6] rounded-2xl border border-[#D9C39B] overflow-hidden shadow-xs">
+              <div className="px-5 py-3.5 border-b border-[#E6D2A3] bg-[#FBF7EE] flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-left">
+                  <Activity size={15} className="text-[#8C6D28]" />
+                  <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#17191E]">
+                    Frequência de Acesso &amp; Tempo Online por Usuário
+                  </h2>
+                </div>
+                <span className="text-xs font-semibold text-[#6B665D] tabular-nums">
+                  {filteredAccessUsers.length} {filteredAccessUsers.length === 1 ? 'usuário' : 'usuários'}
+                </span>
+              </div>
+
+              {filteredAccessUsers.length === 0 ? (
+                <div className="p-12 text-center space-y-2.5">
+                  <div className="w-12 h-12 rounded-xl bg-[#F5EFE4] border border-[#E6D2A3] flex items-center justify-center mx-auto text-[#8C6D28]">
+                    <Users size={22} />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#17191E]">
+                    Nenhum acesso encontrado
+                  </h3>
+                  <p className="text-xs text-[#6B665D] max-w-md mx-auto">
+                    Os acessos e o tempo online são contabilizados automaticamente quando cada usuário entra e utiliza o sistema.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-xs">
+                    <thead>
+                      <tr className="bg-[#17191E] text-white text-[11px] font-bold uppercase tracking-wider">
+                        <th className="px-4 py-3 whitespace-nowrap">Usuário</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Função</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Status</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Qtd. Acessos</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Tempo Online</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Média / Acesso</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Último Acesso</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EFE6D4]">
+                      {filteredAccessUsers.map((u, idx) => {
+                        const avgMs = u.accessCount > 0 ? Math.round(u.totalOnlineMs / u.accessCount) : 0;
+                        return (
+                          <tr
+                            key={u.userKey}
+                            className={cn(
+                              'transition-colors hover:bg-[#FAF1DC]/40',
+                              idx % 2 === 0 ? 'bg-white' : 'bg-[#FFFCF6]'
+                            )}
+                          >
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-[#F5EFE4] border border-[#E6D2A3] flex items-center justify-center text-[#8C6D28] shrink-0">
+                                  <User size={14} />
+                                </div>
+                                <div>
+                                  <div className="font-bold text-[#17191E] uppercase">
+                                    {u.name}
+                                  </div>
+                                  <div className="text-[11px] text-[#77736B]">
+                                    {u.email || '-'}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="px-4 py-3 whitespace-nowrap font-semibold text-[#292820]">
+                              {u.role}
+                            </td>
+
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              {u.isOnline ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-emerald-50 text-emerald-800 border-emerald-200 text-[11px] font-bold">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                  <span>Online agora</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-stone-100 text-stone-600 border-stone-200 text-[11px] font-semibold">
+                                  <span className="w-2 h-2 rounded-full bg-stone-400" />
+                                  <span>Offline</span>
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="font-extrabold text-sm text-[#17191E] tabular-nums">
+                                {u.accessCount}
+                              </span>{' '}
+                              <span className="text-[11px] text-[#77736B]">
+                                {u.accessCount === 1 ? 'acesso' : 'acessos'}
+                              </span>
+                            </td>
+
+                            <td
+                              className="px-4 py-3 whitespace-nowrap font-bold text-[#17191E] tabular-nums"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              {formatOnlineDuration(u.totalOnlineMs)}
+                            </td>
+
+                            <td
+                              className="px-4 py-3 whitespace-nowrap text-[#5C574E] tabular-nums"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              {u.accessCount > 0 ? formatOnlineDuration(avgMs) : '-'}
+                            </td>
+
+                            <td
+                              className="px-4 py-3 whitespace-nowrap text-[11.5px] text-[#5C574E] tabular-nums"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              {u.lastAccessAt ? formatDateTime(u.lastAccessAt) : 'Nunca acessou'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </div>
+        ) : (
+          <>
+            {/* Indicadores de Resumo */}
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           <div className="bg-[#FFFCF6] rounded-2xl p-4 border border-[#E6D2A3] flex items-center justify-between text-left">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#77736B] block">
@@ -823,6 +1312,8 @@ export default function Historico({ onBack: _onBack, currentUser, embedded = fal
             </div>
           )}
         </section>
+          </>
+        )}
       </div>
     </div>
   );

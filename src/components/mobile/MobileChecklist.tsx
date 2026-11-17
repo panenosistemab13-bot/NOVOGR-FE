@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { rtdb } from '../../firebase';
-import { ref, onValue, push, set, remove, update } from 'firebase/database';
+import { ref, onValue, push, set, remove, update } from '../../utils/rtdbWithUndo';
 import { differenceInDays, parseISO, format } from 'date-fns';
 
 export const formatPlateMobile = (plateStr?: string): string => {

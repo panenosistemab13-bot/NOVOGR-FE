@@ -39,7 +39,7 @@ import {
   parseCurrencyNumber 
 } from '../utils/averbacaoParser';
 import { rtdb } from '../firebase';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set } from '../utils/rtdbWithUndo';
 import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 const DEFAULT_TRANSPORTADORAS = [

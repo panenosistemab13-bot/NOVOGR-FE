@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set } from '../utils/rtdbWithUndo';
 import { getAllAvailablePages, ICON_MAP } from '../data/pagesConfig';
 import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
@@ -509,14 +509,14 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-[#17191E] tracking-tight uppercase">
-                  {isAdmin ? 'CADASTRO DE USUÁRIOS' : 'MEUS DADOS DE ACESSO'}
+                  CADASTRO DE USUÁRIOS
                 </h1>
                 <span className="px-3 py-0.5 rounded-full bg-gradient-to-b from-[#FCE79D] to-[#DFB042] text-[#292012] border border-[#DFB042] text-[10px] font-extrabold uppercase">
-                  {isAdmin ? 'Google Auth & Acessos' : 'Agente de Risco'}
+                  Google Auth &amp; Acessos
                 </span>
               </div>
               <p className="text-xs text-[#6B665D] mt-0.5">
-                {isAdmin ? 'Gerencie nome, e-mail Google e função (Administrador ou Agente de Risco)' : 'Visualize seus dados de acesso cadastrados'}
+                Gerencie nome, e-mail Google e função (Administrador ou Agente de Risco)
               </p>
             </div>
           </div>
@@ -692,7 +692,7 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
                     <Edit3 size={15} />
                   </div>
                   <h2 className="text-sm sm:text-base font-black uppercase tracking-wide text-[#17191E]">
-                    {isAdmin ? `EDITAR CADASTRO: ${selectedUser.name || 'USUÁRIO'}` : 'MEUS DADOS DE ACESSO (GOOGLE)'}
+                    EDITAR CADASTRO: {selectedUser.name || 'USUÁRIO'}
                   </h2>
                 </div>
                 {saveSuccess && (
@@ -1063,6 +1063,31 @@ export default function CadastroView({ onBack, currentUser, embedded = false }: 
       </div>
     </div>
   );
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-full bg-[#F9F8F6] text-[#17191E] p-8 flex items-center justify-center select-none font-sans">
+        <div className="max-w-md w-full bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF8] to-[#FAF1DC] border border-[#DFC078] rounded-3xl p-8 shadow-sm text-center flex flex-col items-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] border-2 border-[#E7C46D] text-[#FFF5D6] flex items-center justify-center mb-4 shadow-sm">
+            <Lock size={28} />
+          </div>
+          <h2 className="text-lg font-black text-[#17191E] uppercase mb-2">Acesso Restrito ao Administrador</h2>
+          <p className="text-xs text-[#6B665D] leading-relaxed mb-6">
+            Somente o Administrador pode visualizar informações relacionadas a páginas, e-mails e funções.
+          </p>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-5 py-2.5 rounded-full bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#560409] text-white text-xs font-extrabold uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer border-2 border-[#E7C46D]"
+            >
+              Voltar ao Início
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (embedded) {
     return content;

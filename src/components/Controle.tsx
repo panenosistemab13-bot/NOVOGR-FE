@@ -57,7 +57,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { rtdb as db } from "../firebase";
-import { ref, onValue, set, update } from "firebase/database";
+import { ref, onValue, set, update } from "../utils/rtdbWithUndo";
 import heroRotas from "../assets/images/hero_cinematic_rotas_1790216246671.jpg";
 import { logAuditAction, logDebouncedEdit } from "../utils/auditHistory";
 

@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
-import { ref, onValue, set, remove, update } from 'firebase/database';
+import { ref, onValue, set, remove, update } from '../utils/rtdbWithUndo';
 import { format, differenceInCalendarDays, startOfDay, addDays } from 'date-fns';
 import { safeCopyText } from '../utils/clipboard';
 import { logAuditAction } from '../utils/auditHistory';

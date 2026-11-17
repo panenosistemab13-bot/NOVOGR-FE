@@ -26,6 +26,7 @@ import {
 import { cn } from '../lib/utils';
 import { safeCopyText, safeCopyHtmlAndText } from '../utils/clipboard';
 import { logAuditAction } from '../utils/auditHistory';
+import { pushCustomUndoAction } from '../utils/undoManager';
 
 export interface DisponibilidadeRow {
   id: string;
@@ -258,6 +259,12 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
     }
     const parsed = parseDisponibilidadeTsv(tsvInput);
     if (parsed.length > 0) {
+      const prevRows = rows;
+      const prevInput = tsvInput;
+      pushCustomUndoAction('Importação em Disponibilidade', () => {
+        setRows(prevRows);
+        setTsvInput(prevInput);
+      });
       setRows(parsed);
       logAuditAction({
         action: 'ADD',
@@ -275,9 +282,15 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
     try {
       const text = await navigator.clipboard.readText();
       if (text) {
+        const prevRows = rows;
+        const prevInput = tsvInput;
         setTsvInput(text);
         const parsed = parseDisponibilidadeTsv(text);
         if (parsed.length > 0) {
+          pushCustomUndoAction('Colagem em Disponibilidade', () => {
+            setRows(prevRows);
+            setTsvInput(prevInput);
+          });
           setRows(parsed);
           logAuditAction({
             action: 'ADD',
@@ -296,7 +309,13 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
   };
 
   const handleClearInputAndTable = () => {
+    const prevRows = rows;
+    const prevInput = tsvInput;
     const count = rows.length;
+    pushCustomUndoAction('Limpeza em Disponibilidade', () => {
+      setRows(prevRows);
+      setTsvInput(prevInput);
+    });
     setTsvInput('');
     setRows([]);
     logAuditAction({
@@ -309,6 +328,12 @@ export default function Disponibilidade({ onBack }: DisponibilidadeProps) {
   };
 
   const handleLoadSample = () => {
+    const prevRows = rows;
+    const prevInput = tsvInput;
+    pushCustomUndoAction('Carregamento de exemplo em Disponibilidade', () => {
+      setRows(prevRows);
+      setTsvInput(prevInput);
+    });
     setTsvInput(SAMPLE_TSV_DATA);
     const parsed = parseDisponibilidadeTsv(SAMPLE_TSV_DATA);
     setRows(parsed);

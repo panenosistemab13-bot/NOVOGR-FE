@@ -43,7 +43,7 @@ import ApoliceEscala, { ApoliceItem } from './ApoliceEscala';
 import TransportadorEscala from './TransportadorEscala';
 import { DEFAULT_TRANSPORTADORAS } from '../data/transportadoras';
 import { rtdb } from '../firebase';
-import { ref, onValue, set, push, remove, update } from 'firebase/database';
+import { ref, onValue, set, push, remove, update } from '../utils/rtdbWithUndo';
 import { parseISO, differenceInDays } from 'date-fns';
 import heroEscala from '../assets/images/hero_cinematic_escala_1790216226888.jpg';
 import cardChecklist from '../assets/images/card_cinematic_check_1790214967098.jpg';

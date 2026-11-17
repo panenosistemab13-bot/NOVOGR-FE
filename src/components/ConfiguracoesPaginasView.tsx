@@ -10,7 +10,8 @@ import {
   Users,
   Info,
   History,
-  LayoutGrid
+  LayoutGrid,
+  Lock
 } from 'lucide-react';
 import {
   getAllAvailablePages,
@@ -20,7 +21,7 @@ import {
   ICON_MAP
 } from '../data/pagesConfig';
 import { rtdb } from '../firebase';
-import { ref, set, onValue } from 'firebase/database';
+import { ref, set, onValue } from '../utils/rtdbWithUndo';
 import CadastroView from './CadastroView';
 import Historico from './Historico';
 import { cn } from '../lib/utils';
@@ -45,11 +46,11 @@ export default function ConfiguracoesPaginasView({
     currentUser?.name?.toLowerCase() === 'jefferson' ||
     currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
     currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br';
-  const canViewHistory = isAdmin || Boolean(currentUser?.allowedPages?.includes('historico'));
+  const canViewHistory = isAdmin;
 
   const resolveInitialTab = (tab: 'paginas' | 'cadastro' | 'historico') => {
     if (tab === 'historico' && canViewHistory) return 'historico';
-    return isAdmin ? tab : 'cadastro';
+    return tab;
   };
 
   const [activeTab, setActiveTab] = useState<'paginas' | 'cadastro' | 'historico'>(() =>
@@ -191,6 +192,31 @@ export default function ConfiguracoesPaginasView({
   const visibleCount = pages.filter((p) => visibility[p.id] !== false).length;
   const hiddenCount = totalPages - visibleCount;
 
+  if (!isAdmin) {
+    return (
+      <div className="min-h-full bg-[#F9F8F6] text-[#17191E] p-8 flex items-center justify-center select-none font-sans">
+        <div className="max-w-md w-full bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF8] to-[#FAF1DC] border border-[#DFC078] rounded-3xl p-8 shadow-sm text-center flex flex-col items-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-[#D2212B] via-[#9E0E17] to-[#68060B] border-2 border-[#E7C46D] text-[#FFF5D6] flex items-center justify-center mb-4 shadow-sm">
+            <Lock size={28} />
+          </div>
+          <h2 className="text-lg font-black text-[#17191E] uppercase mb-2">Acesso Restrito ao Administrador</h2>
+          <p className="text-xs text-[#6B665D] leading-relaxed mb-6">
+            Somente o Administrador tem permissão para visualizar informações relacionadas a páginas, e-mails e funções.
+          </p>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-5 py-2.5 rounded-full bg-gradient-to-b from-[#C81B24] via-[#8E0E17] to-[#560409] text-white text-xs font-extrabold uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer border-2 border-[#E7C46D]"
+            >
+              Voltar ao Início
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{ zoom: 0.88 }}
@@ -309,16 +335,14 @@ export default function ConfiguracoesPaginasView({
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black text-[#17191E] tracking-tight uppercase">
-                  {isAdmin ? 'CONFIGURAÇÕES' : 'MEUS DADOS DE ACESSO'}
+                  CONFIGURAÇÕES
                 </h1>
                 <span className="px-3 py-0.5 rounded-full bg-gradient-to-b from-[#FCE79D] via-[#EAC159] to-[#C89428] text-[#292012] border border-[#DFB042] text-[10px] font-extrabold uppercase tracking-wider shadow-2xs">
-                  {isAdmin ? 'Central de Gestão' : 'Meu Perfil'}
+                  Central de Gestão
                 </span>
               </div>
               <p className="text-xs text-[#6B665D] mt-0.5 font-medium">
-                {isAdmin
-                  ? 'Gerencie as páginas do sistema, visibilidade no menu e cadastro de usuários com suas funções'
-                  : 'Visualize seus dados de acesso e acompanhe o histórico autorizado'}
+                Gerencie as páginas do sistema, visibilidade no menu e cadastro de usuários com suas funções
               </p>
             </div>
           </div>
@@ -391,7 +415,7 @@ export default function ConfiguracoesPaginasView({
               size={15}
               className={activeTab === 'cadastro' ? 'text-[#FCE79D]' : 'text-[#8C6D28]'}
             />
-            <span>{isAdmin ? 'Aba Cadastro (Usuários & Funções)' : 'Meus Dados de Acesso'}</span>
+            <span>Aba Cadastro (Usuários & Funções)</span>
             <span
               className={cn(
                 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border',
@@ -400,7 +424,7 @@ export default function ConfiguracoesPaginasView({
                   : 'bg-gradient-to-b from-[#FCE79D] to-[#DFB042] border-[#DFB042] text-[#292012]'
               )}
             >
-              {isAdmin ? 'Acessos' : 'Perfil'}
+              Acessos
             </span>
           </button>
 

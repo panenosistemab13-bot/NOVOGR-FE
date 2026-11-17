@@ -22,7 +22,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { rtdb } from '../firebase';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set } from '../utils/rtdbWithUndo';
 import { logAuditAction, logDebouncedEdit } from '../utils/auditHistory';
 
 interface ListaEmailsProps {

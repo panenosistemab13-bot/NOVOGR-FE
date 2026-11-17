@@ -37,6 +37,13 @@ export default function AppShell({
   const [isCollapsed, setIsCollapsed] = useState(true);
   const isDark = false;
 
+  const isAdminUser =
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'Administrador' ||
+    currentUser?.name?.toLowerCase() === 'jefferson' ||
+    currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
+    currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br';
+
   const handleToggleDrawer = () => {
     setDrawerOpen(prev => !prev);
   };
@@ -49,11 +56,11 @@ export default function AppShell({
           activeTab={activeTab}
           onSelectTab={onSelectTab}
           onOpenWallpaper={onOpenWallpaper}
-          onOpenSettings={onOpenSettings}
+          onOpenSettings={isAdminUser ? onOpenSettings : undefined}
           onLogout={onLogout}
           onToggleDrawer={handleToggleDrawer}
           isWallpaperOpen={isWallpaperOpen}
-          isAdmin={currentUser?.role === 'admin'}
+          isAdmin={isAdminUser}
           currentUser={currentUser}
         />
       }
@@ -61,7 +68,7 @@ export default function AppShell({
         <NavigationDrawer
           activeTab={activeTab}
           onSelectTab={onSelectTab}
-          onOpenSettings={onOpenSettings}
+          onOpenSettings={isAdminUser ? onOpenSettings : undefined}
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
           isOpen={drawerOpen}

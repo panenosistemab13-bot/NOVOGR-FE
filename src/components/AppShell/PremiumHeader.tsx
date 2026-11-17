@@ -31,7 +31,7 @@ export default function PremiumHeader({
   onLogout, 
   isWallpaperOpen: _isWallpaperOpen, 
   onToggleDrawer, 
-  isAdmin: _isAdmin = false,
+  isAdmin = false,
   currentUser
 }: PremiumHeaderProps) {
   const [_currentTime, setCurrentTime] = useState(new Date());
@@ -42,8 +42,16 @@ export default function PremiumHeader({
       const saved = localStorage.getItem('logged_user');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return { name: 'JEFFERSON', role: 'admin' };
+    return { name: 'USUÁRIO', role: '' };
   });
+
+  const isAdminUser =
+    isAdmin ||
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'Administrador' ||
+    currentUser?.name?.toLowerCase() === 'jefferson' ||
+    currentUser?.email?.trim().toLowerCase() === 'panenosistemab13@gmail.com' ||
+    currentUser?.email?.trim().toLowerCase() === 'jefferson@3coracoes.com.br';
 
   useEffect(() => {
     try {
@@ -112,11 +120,13 @@ export default function PremiumHeader({
               </div>
               <div className="hidden sm:flex flex-col text-left leading-tight">
                 <span className="text-[11px] font-black tracking-wide uppercase text-slate-900">
-                  {currentUser?.name || loggedUser?.name || 'JEFFERSON'}
+                  {currentUser?.name || loggedUser?.name || 'USUÁRIO'}
                 </span>
-                <span className="text-[8.5px] font-semibold text-slate-500">
-                  {currentUser?.role || loggedUser?.role || 'admin'}
-                </span>
+                {isAdminUser && (
+                  <span className="text-[8.5px] font-semibold text-slate-500">
+                    Administrador
+                  </span>
+                )}
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
@@ -130,13 +140,15 @@ export default function PremiumHeader({
                 <div className="absolute right-0 mt-2 w-52 rounded-2xl shadow-xl py-2 z-50 text-xs border bg-white border-slate-200 text-slate-800">
                   <div className="px-4 py-2 border-b border-slate-100 text-slate-600">
                     <p className="font-bold uppercase text-slate-900">
-                      {currentUser?.name || loggedUser?.name || 'JEFFERSON'}
+                      {currentUser?.name || loggedUser?.name || 'USUÁRIO'}
                     </p>
-                    <p className="text-[10px] font-bold text-[#8C6D28]">
-                      {currentUser?.role === 'admin' ? 'Acesso Administrador Fixo' : 'Acesso Operacional'}
-                    </p>
+                    {isAdminUser && (
+                      <p className="text-[10px] font-bold text-[#8C6D28]">
+                        Acesso Administrador Fixo
+                      </p>
+                    )}
                   </div>
-                  {onOpenSettings && (
+                  {isAdminUser && onOpenSettings && (
                     <button
                       onClick={() => {
                         setShowUserDropdown(false);
@@ -145,7 +157,7 @@ export default function PremiumHeader({
                       className="w-full px-4 py-2 text-left flex items-center gap-2 font-semibold cursor-pointer hover:bg-slate-100 text-slate-700"
                     >
                       <Settings className="w-3.5 h-3.5 text-[#E5C27A]" />
-                      <span>{currentUser?.role === 'admin' ? 'Configurações' : 'Meu Perfil / Senha'}</span>
+                      <span>Configurações</span>
                     </button>
                   )}
                   {onLogout && (
