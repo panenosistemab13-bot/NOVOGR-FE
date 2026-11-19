@@ -23,7 +23,7 @@ function getPageRegistry(){
   return NOVOGR_PAGES.filter(p=>{
     if(p.internal)return false;
     if(p.admin && user.role!=='Administrador' && user.role!=='admin')return false;
-    if(user.allowedPages && user.allowedPages.length && !['Administrador','admin'].includes(user.role))return user.allowedPages.includes(p.id);
+    if(!['Administrador','admin'].includes(user.role))return (user.allowedPages||[]).includes(p.id);
     return true;
   }).map(p=>({...p}));
 }
